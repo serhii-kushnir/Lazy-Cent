@@ -1,0 +1,171 @@
+<!-- templates/day-budget.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${dayBudget.date} + ' - WebMoney'"></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <div th:replace="~{fragments :: themeAssets}"></div>
+</head>
+<body>
+<nav th:replace="~{fragments :: navbar('none')}"></nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col">
+            <h2 th:text="${dayBudget.dayName} + ', ' + ${dayBudget.date}"></h2>
+        </div>
+    </div>
+
+    <!-- Баланс -->
+    <div class="row mb-4">
+        <div class="col-md-6 mx-auto">
+            <div class="card text-center shadow">
+                <div class="card-body">
+                    <h5>Залишок на кінець дня</h5>
+                    <h3 th:class="${dayBudget.remainingBalance >= 0} ? 'balance-positive' : 'balance-negative'"
+                        th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Форма додавання витрат -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5>➕ Додати витрату</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/day/{date}/expense(date=${dayBudget.date})}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Категорія</label>
+                            <select name="category" class="form-select" required>
+                                <option th:each="cat : ${expenseCategories}" th:value="${cat}" th:text="${cat.ukrainianName}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Опис</label>
+                            <input type="text" name="description" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сума (₴)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Додати витрату</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Форма додавання доходів -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5>➕ Додати дохід</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/day/{date}/income(date=${dayBudget.date})}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Категорія</label>
+                            <select name="category" class="form-select" required>
+                                <option th:each="cat : ${incomeCategories}" th:value="${cat}" th:text="${cat.ukrainianName}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Опис</label>
+                            <input type="text" name="description" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сума (₴)</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Додати дохід</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список витрат -->
+    <div class="card shadow mt-4">
+        <div class="card-header bg-danger text-white">
+            <h5>📝 Витрати за день</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Категорія</th>
+                        <th>Опис</th>
+                        <th class="text-end">Сума</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="expense : ${dayBudget.expenses}">
+                        <td th:text="${expense.category.ukrainianName}"></td>
+                        <td th:text="${expense.description}"></td>
+                        <td class="text-end text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
+                    </tr>
+                    <tr th:if="${dayBudget.expenses.isEmpty()}">
+                        <td colspan="3" class="text-center text-muted">Немає витрат</td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr class="table-danger">
+                        <th colspan="2">Всього витрат:</th>
+                        <th class="text-end" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Список доходів -->
+    <div class="card shadow mt-4">
+        <div class="card-header bg-success text-white">
+            <h5>💰 Доходи за день</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Категорія</th>
+                        <th>Опис</th>
+                        <th class="text-end">Сума</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="income : ${dayBudget.incomes}">
+                        <td th:text="${income.category.ukrainianName}"></td>
+                        <td th:text="${income.description}"></td>
+                        <td class="text-end text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
+                    </tr>
+                    <tr th:if="${dayBudget.incomes.isEmpty()}">
+                        <td colspan="3" class="text-center text-muted">Немає доходів</td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr class="table-success">
+                        <th colspan="2">Всього доходів:</th>
+                        <th class="text-end" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></th>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="/budget" class="btn btn-secondary">← Назад до бюджету</a>
+    </div>
+</div>
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+</body>
+</html>

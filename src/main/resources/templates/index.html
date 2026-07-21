@@ -1,0 +1,241 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>WebMoney - Бюджет</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .feature-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .quick-link {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
+    <div th:replace="~{fragments :: themeAssets}"></div>
+</head>
+<body>
+<nav th:replace="~{fragments :: navbar('home')}"></nav>
+
+<div class="container mt-4">
+    <!-- Заголовок -->
+    <div class="row mb-4">
+        <div class="col text-center">
+            <h1 class="display-4">
+                <i class="fas fa-coins text-warning"></i> WebMoney
+            </h1>
+            <p class="lead">Ваш особистий фінансовий помічник</p>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Швидкі посилання - основні функції -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-bolt text-primary"></i> Швидкий доступ
+            </h3>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/budget" class="quick-link">
+                <div class="card feature-card text-center bg-primary text-white">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <h4>Бюджет</h4>
+                        <p>Перегляд загального бюджету та витрат за період</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/dashboard" class="quick-link">
+                <div class="card feature-card text-center" style="background:#1B2430;color:#F7F3E8;">
+                    <div class="card-body">
+                        <i class="fas fa-columns fa-3x mb-3"></i>
+                        <h4>Дашборд</h4>
+                        <p>Графіки та візуальна аналітика витрат</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/totals" class="quick-link">
+                <div class="card feature-card text-center bg-success text-white">
+                    <div class="card-body">
+                        <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                        <h4>Підсумки</h4>
+                        <p>Аналітика та статистика за категоріями</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="/all-days" class="quick-link">
+                <div class="card feature-card text-center bg-info text-white">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                        <h4>Всі дні</h4>
+                        <p>Детальний перегляд за кожен день</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Швидке додавання витрат/доходів -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-plus-circle text-success"></i> Швидке додавання
+            </h3>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-shopping-cart me-2"></i> Додати витрату
+                </div>
+                <div class="card-body">
+                    <form action="/quick-expense" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Дата:</label>
+                            <select name="date" class="form-control" required>
+                                <option th:each="i : ${#numbers.sequence(1, 31)}"
+                                        th:value="'2026-10-' + ${i}"
+                                        th:text="'2026-10-' + ${i}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Категорія:</label>
+                            <select name="category" class="form-control" required>
+                                <option th:each="cat : ${expenseCategories}"
+                                        th:value="${cat}"
+                                        th:text="${cat.getUkrainianName()}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сума (₴):</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Введіть суму" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Опис:</label>
+                            <input type="text" name="description" class="form-control" placeholder="Опис витрати" required>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fas fa-plus me-1"></i>Додати витрату
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-money-bill-wave me-2"></i> Додати дохід
+                </div>
+                <div class="card-body">
+                    <form action="/quick-income" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Дата:</label>
+                            <select name="date" class="form-control" required>
+                                <option th:each="i : ${#numbers.sequence(1, 31)}"
+                                        th:value="'2026-10-' + ${i}"
+                                        th:text="'2026-10-' + ${i}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Категорія:</label>
+                            <select name="category" class="form-control" required>
+                                <option th:each="cat : ${incomeCategories}"
+                                        th:value="${cat}"
+                                        th:text="${cat.getUkrainianName()}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сума (₴):</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" placeholder="Введіть суму" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Опис:</label>
+                            <input type="text" name="description" class="form-control" placeholder="Опис доходу" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-plus me-1"></i>Додати дохід
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Демо дані та інше -->
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-database me-2"></i> Демо-дані
+                </div>
+                <div class="card-body text-center">
+                    <p>Завантажте тестові дані для ознайомлення з функціоналом</p>
+                    <form action="/init-demo" method="post">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-upload me-1"></i>Завантажити демо-дані
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-info-circle me-2"></i> Інформація
+                </div>
+                <div class="card-body">
+                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій витрат: 5</p>
+                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій доходів: 4</p>
+                    <p><i class="fas fa-calendar me-2"></i> Жовтень 2026</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Навігація по днях місяця -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-calendar-week me-2"></i> Швидка навігація по днях - Жовтень 2026
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div th:each="i : ${#numbers.sequence(1, 31)}" class="col-md-2 col-3 mb-2">
+                            <a th:href="'/day/2026-10-' + ${i}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-calendar-day me-1"></i> <span th:text="${i}"></span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!-- templates/fragments.html -->
+<!-- Спільні фрагменти: навбар, футер, стилі/скрипт перемикача теми -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ===================== HEAD-АСЕТИ (стилі + скрипт застосування теми до завантаження) ===================== -->
+<th:block th:fragment="themeAssets">
+    <style>
+        :root { --wm-transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
+        body { transition: var(--wm-transition); }
+        .card, .navbar, .table { transition: var(--wm-transition); }
+
+        /* --- СТИЛІ ДЛЯ НАВБАРА ТА ФУТЕРА (адаптивні до теми) --- */
+        .wm-navbar {
+            background-color: #f8f9fa !important; /* Світлий фон для світлої теми за замовчуванням */
+            color: #1B2430 !important;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .wm-navbar .navbar-brand,
+        .wm-navbar .nav-link {
+            color: #1B2430 !important;
+        }
+        .wm-navbar .nav-link:hover {
+            color: #0a58ca !important;
+        }
+        .wm-navbar .nav-link.active {
+            color: #0a58ca !important;
+            font-weight: 600;
+        }
+        .wm-navbar .btn-outline-light {
+            color: #1B2430;
+            border-color: #6c757d;
+        }
+        .wm-navbar .btn-outline-light:hover {
+            background-color: #1B2430;
+            color: #fff;
+        }
+        .wm-footer {
+            background-color: #f8f9fa !important; /* Світлий фон для світлої теми */
+            color: #1B2430 !important;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* --- ТЕМНА ТЕМА (перевизначаємо кольори) --- */
+        [data-bs-theme="dark"] .wm-navbar {
+            background-color: #1d2027 !important; /* Темний фон */
+            color: #e6e6e6 !important;
+            border-bottom-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .wm-navbar .navbar-brand,
+        [data-bs-theme="dark"] .wm-navbar .nav-link {
+            color: #e6e6e6 !important;
+        }
+        [data-bs-theme="dark"] .wm-navbar .nav-link:hover {
+            color: #ffc107 !important;
+        }
+        [data-bs-theme="dark"] .wm-navbar .nav-link.active {
+            color: #ffc107 !important;
+        }
+        [data-bs-theme="dark"] .wm-navbar .btn-outline-light {
+            color: #e6e6e6;
+            border-color: #6c757d;
+        }
+        [data-bs-theme="dark"] .wm-navbar .btn-outline-light:hover {
+            background-color: #e6e6e6;
+            color: #1d2027;
+        }
+        [data-bs-theme="dark"] .wm-footer {
+            background-color: #1d2027 !important;
+            color: #e6e6e6 !important;
+            border-top-color: #2a2e37;
+        }
+
+        /* Додаткові стилі для темної теми (ті, що вже були) */
+        [data-bs-theme="dark"] body { background-color: #14161a; }
+        [data-bs-theme="dark"] .card { background-color: #1d2027; border-color: #2a2e37; }
+        [data-bs-theme="dark"] .table { color: #e6e6e6; }
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select { background-color: #23262e; color: #e6e6e6; border-color: #3a3f4a; }
+        [data-bs-theme="dark"] .alert-info {
+            background-color: #1d3a4f;
+            border-color: #2a5a7a;
+            color: #b8d4f0;
+        }
+        [data-bs-theme="dark"] .card-header.bg-danger { background-color: #7a2a2a !important; }
+        [data-bs-theme="dark"] .card-header.bg-success { background-color: #1f6d3b !important; }
+        [data-bs-theme="dark"] .card-header.bg-warning { background-color: #6d5a1f !important; color: #e6e6e6 !important; }
+        [data-bs-theme="dark"] .btn-outline-primary { color: #6ea8fe; border-color: #6ea8fe; }
+        [data-bs-theme="dark"] .btn-outline-primary:hover { background-color: #6ea8fe; color: #14161a; }
+    </style>
+    <script>
+        (function () {
+            const saved = localStorage.getItem('webmoney-theme');
+            if (saved) document.documentElement.setAttribute('data-bs-theme', saved);
+        })();
+    </script>
+</th:block>
+
+<!-- ===================== НАВБАР =====================
+     Параметр active приймає одне з: 'home' | 'budget' | 'dashboard' | 'totals' | 'all-days'
+     Виклик: <nav th:replace="~{fragments :: navbar('budget')}"></nav>
+-->
+<nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-wallet me-2"></i>💰 WebMoney
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" href="/">
+                        <i class="fas fa-home me-1"></i>Головна
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" href="/budget">
+                        <i class="fas fa-chart-line me-1"></i>Бюджет
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'dashboard'} ? ' active'" href="/dashboard">
+                        <i class="fas fa-columns me-1"></i>Дашборд
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" href="/totals">
+                        <i class="fas fa-chart-pie me-1"></i>Підсумки
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" href="/all-days">
+                        <i class="fas fa-calendar-alt me-1"></i>Всі дні
+                    </a>
+                </li>
+                <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                    <button id="themeToggle" class="btn btn-outline-light btn-sm" type="button" title="Перемкнути тему">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ===================== ФУТЕР ===================== -->
+<footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
+    <div class="container">
+        <p class="mb-0">© 2026 WebMoney - Ваш фінансовий помічник</p>
+    </div>
+</footer>
+
+<!-- ===================== СКРИПТ ПЕРЕМИКАЧА (перед </body>) ===================== -->
+<th:block th:fragment="themeScript">
+    <script>
+        (function () {
+            const btn = document.getElementById('themeToggle');
+            if (!btn) return;
+            const icon = btn.querySelector('i');
+            const root = document.documentElement;
+            function updateIcon() {
+                const theme = root.getAttribute('data-bs-theme') || 'light';
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            updateIcon();
+            btn.addEventListener('click', function () {
+                const current = root.getAttribute('data-bs-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-bs-theme', next);
+                localStorage.setItem('webmoney-theme', next);
+                updateIcon();
+            });
+        })();
+    </script>
+</th:block>
+
+</body>
+</html>

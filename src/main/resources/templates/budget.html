@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Бюджет - WebMoney</title>
+
+    <!-- ===== ПІДКЛЮЧЕННЯ СТИЛІВ (тепер є все необхідне) ===== -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Асети теми (перемикач темної/світлої) -->
+    <div th:replace="~{fragments :: themeAssets}"></div>
+</head>
+<body>
+
+<!-- ===== НАВІГАЦІЙНЕ МЕНЮ (уніфіковане через фрагмент) ===== -->
+<nav th:replace="~{fragments :: navbar('budget')}"></nav>
+
+<div class="container mt-4">
+    <div class="alert alert-info">
+        <h4>Бюджет на <span th:text="${startDate} + ' - ' + ${endDate}"></span></h4>
+    </div>
+
+    <!-- Прості картки -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5>Витрати</h5>
+                    <h3 class="text-danger" th:text="${#numbers.formatDecimal(totalBudget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5>Доходи</h5>
+                    <h3 class="text-success" th:text="${#numbers.formatDecimal(totalBudget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5>Баланс</h5>
+                    <h3 th:class="${totalBudget.balance >= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблиця витрат по категоріях -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Витрати за категоріями</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Категорія</th>
+                    <th>Сума</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="entry : ${totalBudget.expensesByCategory}">
+                    <td th:text="${entry.key.getUkrainianName()}"></td>
+                    <td th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-secondary">На головну</a>
+    </div>
+</div>
+
+<!-- ===== ПІДКЛЮЧЕННЯ BOOTSTRAP JS (для роботи гамбургера) ===== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+</body>
+</html>
