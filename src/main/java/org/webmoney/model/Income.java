@@ -1,10 +1,10 @@
-// model/Income.java
 package org.webmoney.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.time.LocalTime;
 
 @Entity
 @Data
@@ -19,26 +19,22 @@ public class Income {
     @JoinColumn(name = "day_budget_id")
     private DayBudget dayBudget;
 
-    @Enumerated(EnumType.STRING)
-    private IncomeCategory category;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     private String description;
     private Double amount;
 
-    public enum IncomeCategory {
-        TIPS("Чаєві"),
-        SALARY_M("Зарплата (М)"),
-        SALARY_S("Зарплата (С)"),
-        OTHER("Різне");
+    @Column(nullable = true)
+    private Integer quantity;
 
-        private final String ukrainianName;
+    @Column(length = 500, nullable = true)
+    private String details;
 
-        IncomeCategory(String ukrainianName) {
-            this.ukrainianName = ukrainianName;
-        }
+    @Column(nullable = true)
+    private Boolean shareWithFamily;
 
-        public String getUkrainianName() {
-            return ukrainianName;
-        }
-    }
+    @Column(nullable = true)
+    private LocalTime time;
 }

@@ -1,4 +1,3 @@
-// model/TotalBudget.java
 package org.webmoney.model;
 
 import lombok.Data;
@@ -10,8 +9,8 @@ public class TotalBudget {
     private Double totalExpenses;
     private Double totalIncomes;
     private Double balance;
-    private Map<Expense.ExpenseCategory, Double> expensesByCategory;
-    private Map<Income.IncomeCategory, Double> incomesByCategory;
+    private Map<Category, Double> expensesByCategory;   // замість Expense.ExpenseCategory
+    private Map<Category, Double> incomesByCategory;    // замість Income.IncomeCategory
     private Map<LocalDate, DayBudgetSummary> dailySummaries;
 
     @Data

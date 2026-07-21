@@ -1,10 +1,10 @@
-// model/Expense.java
 package org.webmoney.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.time.LocalTime;
 
 @Entity
 @Data
@@ -19,27 +19,22 @@ public class Expense {
     @JoinColumn(name = "day_budget_id")
     private DayBudget dayBudget;
 
-    @Enumerated(EnumType.STRING)
-    private ExpenseCategory category;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 
-    private String description;
-    private Double amount;
+    private String description;      // Назва (обов'язкове)
+    private Double amount;           // Сума (обов'язкове)
 
-    public enum ExpenseCategory {
-        FOOD("Їжа"),
-        TRANSPORT("Дорога"),
-        MEDICINE("Ліки"),
-        CLOTHES("Одяг"),
-        OTHER("Різне");
+    @Column(nullable = true)
+    private Integer quantity;        // Кількість (необов'язково)
 
-        private final String ukrainianName;
+    @Column(length = 500, nullable = true)
+    private String details;          // Додаткові деталі (необов'язково)
 
-        ExpenseCategory(String ukrainianName) {
-            this.ukrainianName = ukrainianName;
-        }
+    @Column(nullable = true)
+    private Boolean shareWithFamily; // Прапорець "поділитися"
 
-        public String getUkrainianName() {
-            return ukrainianName;
-        }
-    }
+    @Column(nullable = true)
+    private LocalTime time;
 }

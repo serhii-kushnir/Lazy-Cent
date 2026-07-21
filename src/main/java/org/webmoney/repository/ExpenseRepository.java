@@ -1,7 +1,7 @@
-// repository/ExpenseRepository.java
 package org.webmoney.repository;
 
 import org.webmoney.model.Expense;
+import org.webmoney.model.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

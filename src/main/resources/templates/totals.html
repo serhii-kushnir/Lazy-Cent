@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Підсумки — WebMoney</title>
 
-    <!-- ===== ПІДКЛЮЧЕННЯ СТИЛІВ ===== -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <!-- Асети теми (перемикач темної/світлої) -->
     <div th:replace="~{fragments :: themeAssets}"></div>
 
     <style>
@@ -36,7 +34,6 @@
             margin: 0 auto;
             padding: 40px 24px 80px;
         }
-
         .ledger-head {
             display: flex;
             justify-content: space-between;
@@ -65,7 +62,6 @@
             font-size: 0.85rem;
             color: var(--text-muted);
         }
-
         .balance-row {
             display: grid;
             grid-template-columns: 1.3fr 1fr 1fr;
@@ -96,7 +92,6 @@
         .balance-cell.hero .amount { color: var(--gold-soft); font-size: 2.5rem; }
         .amount.income { color: var(--income); }
         .amount.expense { color: var(--expense); }
-
         .panels {
             display: grid;
             grid-template-columns: 1.1fr 0.9fr;
@@ -115,10 +110,9 @@
             margin: 0 0 18px;
             padding-bottom: 12px;
             border-bottom: 1px dashed #E4DCC8;
-            color: var(--ink); /* явно задаємо колір для світлої теми */
+            color: var(--ink);
         }
         .panel canvas { max-height: 260px; }
-
         .ledger-table {
             width: 100%;
             border-collapse: collapse;
@@ -144,31 +138,26 @@
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
-
         .trend-panel { grid-column: 1 / -1; }
-
         .empty-note {
             font-family: 'IBM Plex Mono', monospace;
             color: var(--text-muted);
             font-size: 0.9rem;
             padding: 20px 0;
         }
-
         @media (max-width: 860px) {
             .balance-row, .panels { grid-template-columns: 1fr; }
         }
-
-        /* ===== СТИЛІ ДЛЯ ТЕМНОЇ ТЕМИ (виправлено кольори) ===== */
         [data-bs-theme="dark"] body {
             background-color: #14161a;
-            color: #e6e6e6; /* додано – текстовий колір для всього тіла */
+            color: #e6e6e6;
         }
         [data-bs-theme="dark"] .panel {
             background-color: #1d2027;
             border-color: #2a2e37;
         }
         [data-bs-theme="dark"] .panel h2 {
-            color: #e6e6e6; /* додано – заголовки панелей стають світлими */
+            color: #e6e6e6;
             border-bottom-color: #2a2e37;
         }
         [data-bs-theme="dark"] .balance-cell {
@@ -188,10 +177,10 @@
             border-color: #2a2e37;
         }
         [data-bs-theme="dark"] .ledger-table th {
-            color: #9AA3B2; /* трохи світліший для заголовків таблиці */
+            color: #9AA3B2;
         }
         [data-bs-theme="dark"] .ledger-table td {
-            color: #e6e6e6; /* текст у таблицях стає світлим */
+            color: #e6e6e6;
         }
         [data-bs-theme="dark"] .empty-note {
             color: #9AA3B2;
@@ -209,7 +198,6 @@
 </head>
 <body>
 
-<!-- ===== НАВІГАЦІЙНЕ МЕНЮ ===== -->
 <nav th:replace="~{fragments :: navbar('totals')}"></nav>
 
 <div class="wrap">
@@ -250,7 +238,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="entry : ${totalBudget.expensesByCategory}" th:if="${entry.value > 0}">
-                    <td th:text="${entry.key.getUkrainianName()}"></td>
+                    <td th:text="${entry.key.name}"></td>   <!-- виправлено -->
                     <td class="num" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
                 </tr>
                 </tbody>
@@ -266,19 +254,13 @@
         </div>
     </div>
 
-</div> <!-- Кінець .wrap -->
+</div>
 
-<!-- ===== ПІДКЛЮЧЕННЯ BOOTSTRAP JS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- ===== ФУТЕР ===== -->
 <footer th:replace="~{fragments :: footer}"></footer>
-
-<!-- ===== СКРИПТ ПЕРЕМИКАЧА ТЕМИ ===== -->
 <div th:replace="~{fragments :: themeScript}"></div>
 
 <script th:inline="javascript">
-    /*<![CDATA[*/
     const categoryLabels = /*[[${totalBudget.expensesByCategory.keySet()}]]*/ [];
     const categoryValues = /*[[${totalBudget.expensesByCategory.values()}]]*/ [];
 
@@ -291,7 +273,6 @@
     dailyIncomes.push(/*[[${entry.value.incomes}]]*/ 0);
     dailyExpenses.push(/*[[${entry.value.expenses}]]*/ 0);
     /*[/]*/
-    /*]]>*/
 
     const palette = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
 

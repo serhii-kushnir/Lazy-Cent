@@ -6,20 +6,177 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .filter-bar {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        [data-bs-theme="dark"] .filter-bar {
+            background: #1d2027;
+            border: 1px solid #2a2e37;
+        }
+        .filter-bar .form-control,
+        .filter-bar .form-select {
+            flex: 1 1 200px;
+            min-width: 150px;
+        }
+        .filter-bar .btn-add {
+            white-space: nowrap;
+        }
+        .filter-bar .btn-add i {
+            margin-right: 0.4rem;
+        }
+        .card-day {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-day:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="dark"] .card-day:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        .no-results {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-muted);
+        }
+
+        .modal-content {
+            border-radius: 1rem;
+        }
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+        }
+        .transaction-type-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .transaction-type-toggle .btn {
+            flex: 1;
+            padding: 0.6rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+        .transaction-type-toggle .btn.active-expense {
+            background-color: #dc3545;
+            color: #fff;
+            border-color: #dc3545;
+        }
+        .transaction-type-toggle .btn.active-income {
+            background-color: #198754;
+            color: #fff;
+            border-color: #198754;
+        }
+        .input-group-number {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .input-group-number .btn {
+            flex: 0 0 40px;
+        }
+        .input-group-number input {
+            flex: 1;
+            text-align: center;
+        }
+        .char-counter {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        [data-bs-theme="dark"] .char-counter {
+            color: #9aa3b2;
+        }
+        [data-bs-theme="dark"] .modal-content {
+            background-color: #1d2027;
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .modal-header {
+            border-bottom-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .modal-footer {
+            border-top-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select {
+            background-color: #23262e;
+            color: #e6e6e6;
+            border-color: #3a3f4a;
+        }
+        [data-bs-theme="dark"] .form-control:focus,
+        [data-bs-theme="dark"] .form-select:focus {
+            background-color: #2a2e37;
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .btn-close {
+            filter: invert(1);
+        }
+        [data-bs-theme="dark"] .form-check-label {
+            color: #e6e6e6;
+        }
+    </style>
 </head>
 <body>
+
 <nav th:replace="~{fragments :: navbar('all-days')}"></nav>
 
 <div class="container mt-4">
-    <h2><i class="fas fa-calendar-alt me-2"></i>Всі дні</h2>
 
-    <div th:if="${allBudgets.empty}" class="alert alert-warning">
-        Немає даних. Натисніть "Завантажити демо-дані" на головній сторінці.
+    <h2 class="mb-4"><i class="fas fa-calendar-alt me-2"></i>Всі дні</h2>
+
+    <!-- Панель фільтрів -->
+    <div class="filter-bar">
+        <div class="flex-fill" style="min-width: 180px;">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Пошук транзакцій...">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span class="text-muted small">від</span>
+                <input type="date" id="dateFrom" class="form-control form-control-sm" style="width: 140px;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.3rem;">
+                <span class="text-muted small">до</span>
+                <input type="date" id="dateTo" class="form-control form-control-sm" style="width: 140px;">
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" id="clearDateFilter" title="Скинути фільтр дат">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <button class="btn btn-primary btn-add ms-auto" data-bs-toggle="modal" data-bs-target="#transactionModal">
+            <i class="fas fa-plus"></i> Додати транзакцію
+        </button>
     </div>
 
-    <div class="row mt-4">
-        <div th:each="budget : ${allBudgets}" class="col-md-4 mb-3">
-            <div class="card">
+    <!-- Сітка карток -->
+    <div id="daysContainer" class="row">
+        <div th:if="${allBudgets.empty}" class="col-12">
+            <div class="alert alert-warning">
+                Немає даних. Натисніть "Завантажити демо-дані" на головній сторінці.
+            </div>
+        </div>
+
+        <!-- ВАЖЛИВО: використовуємо th:data-* замість звичайних data-* -->
+        <div th:each="budget : ${allBudgets}" class="col-md-4 mb-3 day-card"
+             th:data-date="${budget.date}"
+             th:data-dayname="${budget.dayName}"
+             th:data-expenses="${budget.totalExpenses}"
+             th:data-incomes="${budget.totalIncomes}"
+             th:data-balance="${budget.remainingBalance}">
+            <div class="card card-day h-100">
                 <div class="card-header"
                      th:classappend="${budget.remainingBalance >= 0} ? 'bg-success text-white' : 'bg-danger text-white'">
                     <h5 class="mb-0">
@@ -46,8 +203,301 @@
             </div>
         </div>
     </div>
+
+    <!-- Повідомлення "нічого не знайдено" -->
+    <div id="noResults" class="no-results" style="display: none;">
+        <i class="fas fa-search fa-3x mb-3" style="opacity: 0.4;"></i>
+        <h5>Нічого не знайдено</h5>
+        <p class="text-muted">Спробуйте змінити параметри пошуку або фільтра</p>
+    </div>
+
 </div>
+
+<!-- ===== МОДАЛЬНЕ ВІКНО ===== -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Додати нову транзакцію
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="transactionForm" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="transactionName" class="form-label">Назва</label>
+                        <input type="text" class="form-control" id="transactionName" name="description"
+                               placeholder="наприклад, Продукти, обід, канцелярія" required>
+                        <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <div class="transaction-type-toggle">
+                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i> Расход
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i> Доход
+                            </button>
+                        </div>
+                        <input type="hidden" name="type" id="transactionType" value="EXPENSE">
+                    </div>
+                    <div class="mb-3">
+                        <label for="categorySelect" class="form-label">Категорія</label>
+                        <select class="form-select" id="categorySelect" name="category" required>
+                            <option value="">Завантаження...</option>
+                        </select>
+                        <div class="invalid-feedback">Виберіть категорію</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionDate" class="form-label">Дата</label>
+                        <input type="date" class="form-control" id="transactionDate" name="date"
+                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionAmount" class="form-label">Сума (₴)</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
+                                   placeholder="0.0" value="0" required>
+                            <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
+                        </div>
+                        <div class="invalid-feedback">Введіть суму</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
+                                   placeholder="1" value="1" min="1">
+                            <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="shareWithFamily" name="shareWithFamily">
+                        <label class="form-check-label" for="shareWithFamily">
+                            Поділитися з членами сім'ї
+                            <i class="fas fa-circle-question text-muted ms-1" data-bs-toggle="tooltip" title="Транзакція буде видна іншим користувачам"></i>
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
+                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> / 250
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-primary" id="saveTransactionBtn">Зберегти транзакцію</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+
+<script>
+    (function() {
+        // ---- ФІЛЬТРИ ----
+        const searchInput = document.getElementById('searchInput');
+        const dateFrom = document.getElementById('dateFrom');
+        const dateTo = document.getElementById('dateTo');
+        const clearDateBtn = document.getElementById('clearDateFilter');
+        const noResults = document.getElementById('noResults');
+        const cards = document.querySelectorAll('.day-card');
+
+        function filterCards() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const fromVal = dateFrom.value;
+            const toVal = dateTo.value;
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const dateStr = card.dataset.date || '';
+                const dayName = (card.dataset.dayname || '').toLowerCase();
+                const expenses = parseFloat(card.dataset.expenses) || 0;
+                const incomes = parseFloat(card.dataset.incomes) || 0;
+                const balance = parseFloat(card.dataset.balance) || 0;
+
+                let matchSearch = true;
+                if (searchTerm) {
+                    const cardText = (dayName + ' ' + dateStr + ' ' + expenses + ' ' + incomes + ' ' + balance).toLowerCase();
+                    matchSearch = cardText.includes(searchTerm);
+                }
+
+                let matchDate = true;
+                if (fromVal && dateStr < fromVal) matchDate = false;
+                if (toVal && dateStr > toVal) matchDate = false;
+
+                if (matchSearch && matchDate) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (visibleCount === 0 && cards.length > 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', filterCards);
+        dateFrom.addEventListener('change', filterCards);
+        dateTo.addEventListener('change', filterCards);
+        clearDateBtn.addEventListener('click', function() {
+            dateFrom.value = '';
+            dateTo.value = '';
+            filterCards();
+        });
+
+        // ---- ЗАВАНТАЖЕННЯ КАТЕГОРІЙ ----
+        let expenseCategories = [];
+        let incomeCategories = [];
+
+        const modelExpense = /*[[${expenseCategories}]]*/ null;
+        const modelIncome = /*[[${incomeCategories}]]*/ null;
+
+        if (modelExpense && modelExpense.length > 0) expenseCategories = modelExpense;
+        if (modelIncome && modelIncome.length > 0) incomeCategories = modelIncome;
+
+        function fetchCategories() {
+            fetch('/categories/expense')
+                .then(r => r.json())
+                .then(data => { expenseCategories = data; if (transactionType.value === 'EXPENSE') populateCategories(expenseCategories); })
+                .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
+            fetch('/categories/income')
+                .then(r => r.json())
+                .then(data => { incomeCategories = data; if (transactionType.value === 'INCOME') populateCategories(incomeCategories); })
+                .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
+        }
+
+        if (expenseCategories.length === 0 || incomeCategories.length === 0) {
+            fetchCategories();
+        }
+
+        // ---- ІНІЦІАЛІЗАЦІЯ МОДАЛЬНОГО ВІКНА ----
+        const categorySelect = document.getElementById('categorySelect');
+        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
+        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
+        const transactionType = document.getElementById('transactionType');
+        const transactionForm = document.getElementById('transactionForm');
+        const amountInput = document.getElementById('transactionAmount');
+        const quantityInput = document.getElementById('transactionQuantity');
+        const detailsTextarea = document.getElementById('transactionDetails');
+        const charCount = document.getElementById('charCount');
+        const modal = document.getElementById('transactionModal');
+
+        function populateCategories(categories) {
+            categorySelect.innerHTML = '';
+            if (!categories || categories.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Немає категорій';
+                opt.disabled = true;
+                categorySelect.appendChild(opt);
+                return;
+            }
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                categorySelect.appendChild(opt);
+            });
+        }
+
+        function setTransactionType(type) {
+            if (type === 'EXPENSE') {
+                populateCategories(expenseCategories);
+                transactionType.value = 'EXPENSE';
+                typeExpenseBtn.className = 'btn active-expense';
+                typeIncomeBtn.className = 'btn btn-outline-success';
+                transactionForm.action = '/quick-expense';
+            } else {
+                populateCategories(incomeCategories);
+                transactionType.value = 'INCOME';
+                typeIncomeBtn.className = 'btn active-income';
+                typeExpenseBtn.className = 'btn btn-outline-danger';
+                transactionForm.action = '/quick-income';
+            }
+        }
+
+        setTransactionType('EXPENSE');
+
+        typeExpenseBtn.addEventListener('click', () => setTransactionType('EXPENSE'));
+        typeIncomeBtn.addEventListener('click', () => setTransactionType('INCOME'));
+
+        document.getElementById('amountMinus').addEventListener('click', function() {
+            let val = parseFloat(amountInput.value) || 0;
+            if (val > 0) amountInput.value = (val - 0.01).toFixed(2);
+        });
+        document.getElementById('amountPlus').addEventListener('click', function() {
+            let val = parseFloat(amountInput.value) || 0;
+            amountInput.value = (val + 0.01).toFixed(2);
+        });
+        document.getElementById('quantityMinus').addEventListener('click', function() {
+            let val = parseInt(quantityInput.value) || 1;
+            if (val > 1) quantityInput.value = val - 1;
+        });
+        document.getElementById('quantityPlus').addEventListener('click', function() {
+            let val = parseInt(quantityInput.value) || 1;
+            quantityInput.value = val + 1;
+        });
+
+        detailsTextarea.addEventListener('input', function() {
+            const len = this.value.length;
+            charCount.textContent = len;
+            charCount.style.color = len >= 250 ? '#dc3545' : '';
+        });
+        charCount.textContent = detailsTextarea.value.length;
+
+        modal.addEventListener('show.bs.modal', function() {
+            const dateInput = document.getElementById('transactionDate');
+            if (!dateInput.value) {
+                dateInput.value = new Date().toISOString().split('T')[0];
+            }
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        });
+
+        modal.addEventListener('hidden.bs.modal', function() {
+            document.getElementById('transactionForm').reset();
+            setTransactionType('EXPENSE');
+            quantityInput.value = 1;
+            charCount.textContent = 0;
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        });
+
+        transactionForm.addEventListener('submit', function(e) {
+            let valid = true;
+            const name = document.getElementById('transactionName');
+            if (!name.value.trim()) { name.classList.add('is-invalid'); valid = false; }
+            else name.classList.remove('is-invalid');
+
+            const amount = document.getElementById('transactionAmount');
+            if (parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; }
+            else amount.classList.remove('is-invalid');
+
+            if (!categorySelect.value) { categorySelect.classList.add('is-invalid'); valid = false; }
+            else categorySelect.classList.remove('is-invalid');
+
+            if (!valid) {
+                e.preventDefault();
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) firstError.focus();
+            }
+        });
+
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+    })();
+</script>
 </body>
 </html>
