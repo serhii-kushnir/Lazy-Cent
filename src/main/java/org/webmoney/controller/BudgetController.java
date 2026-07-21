@@ -211,13 +211,13 @@ public class BudgetController {
         }
     }
 
-    @GetMapping("/dashboard")
-    public String viewDashboard(
+    @GetMapping("/totals")
+    public String viewtotals(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Model model) {
 
-        log.info("Accessing dashboard page");
+        log.info("Accessing totals page");
 
         try {
             if (startDate == null) startDate = LocalDate.now().withDayOfMonth(1);
@@ -239,9 +239,9 @@ public class BudgetController {
             model.addAttribute("startDate", startDate);
             model.addAttribute("endDate", endDate);
 
-            return "dashboard";
+            return "totals";
         } catch (Exception e) {
-            log.error("Error loading dashboard page: ", e);
+            log.error("Error loading totals page: ", e);
             model.addAttribute("error", "Помилка завантаження дашборду: " + e.getMessage());
             return "error";
         }
@@ -261,21 +261,5 @@ public class BudgetController {
             return "error";
         }
     }
-
-    @GetMapping("/totals")
-    public String viewTotals(Model model) {
-        log.info("Accessing totals page");
-        try {
-            TotalBudget totalBudget = budgetService.getTotalBudget(
-                    LocalDate.now().withDayOfMonth(1),
-                    LocalDate.now()
-            );
-            model.addAttribute("totalBudget", totalBudget);
-            return "totals";
-        } catch (Exception e) {
-            log.error("Error loading totals page: ", e);
-            model.addAttribute("error", "Помилка завантаження підсумків: " + e.getMessage());
-            return "error";
-        }
-    }
+    
 }
