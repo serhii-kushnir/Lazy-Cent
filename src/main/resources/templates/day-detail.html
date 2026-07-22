@@ -8,7 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <div th:replace="~{fragments :: themeAssets}"></div>
   <style>
-    /* ===== ОСНОВНІ СТИЛІ ===== */
+    /* ===== ОСНОВНІ СТИЛІ (без змін) ===== */
     .balance-card { border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: #fff; }
     [data-bs-theme="dark"] .balance-card { background: #1d2027; border: 1px solid #2a2e37; }
     .balance-card .col-3 { border-right: 1px solid #dee2e6; }
@@ -51,10 +51,15 @@
     .table-transactions .col-category { width: 130px; min-width: 130px; max-width: 130px; text-align: center; white-space: nowrap; }
     .table-transactions .col-category .badge { display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+    .sortable { cursor: pointer; user-select: none; position: relative; }
+    .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; transition: opacity 0.2s; }
+    .sortable:hover .sort-icon { opacity: 1; }
+    .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
+    .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
+
     .btn-rounded { border-radius: 50px !important; padding: 0.6rem 1.2rem; transition: all 0.3s ease; font-size: 1rem; }
     .btn-rounded:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 
-    /* === СТИЛІ ФІЛЬТРІВ === */
     .filter-bar { background: #f8f9fa; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
     [data-bs-theme="dark"] .filter-bar { background: #1d2027; border: 1px solid #2a2e37; }
     .filter-bar .form-control, .filter-bar .form-select { flex: 1 1 180px; min-width: 140px; }
@@ -69,7 +74,6 @@
     .badge-type.bg-danger { background-color: #dc3545; color: #fff; }
     .badge-type.bg-success { background-color: #198754; color: #fff; }
 
-    /* === СТИЛІ ДЛЯ ДРУКУ === */
     @media print {
       body, html { margin: 0 !important; padding: 0 !important; }
       .container { max-width: 100% !important; padding: 0 4px !important; margin: 0 !important; }
@@ -140,29 +144,33 @@
     <div class="col-12">
       <div class="card balance-card">
         <div class="card-body">
-          <div class="row text-start align-items-center">
-            <div class="col-3 d-flex align-items-center gap-2">
+          <div class="row">
+            <!-- Поч. баланс -->
+            <div class="col-3 d-flex align-items-center justify-content-center gap-2">
               <div class="icon-circle"><i class="fas fa-flag-checkered text-secondary fa-2x"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Поч. баланс</h6>
                 <h4 class="mb-0" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 2, 'POINT')} + ' ₴'"></h4>
               </div>
             </div>
-            <div class="col-3 d-flex align-items-center gap-2">
+            <!-- Доходи -->
+            <div class="col-3 d-flex align-items-center justify-content-center gap-2">
               <div class="icon-circle"><i class="fas fa-arrow-up text-success fa-2x"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Доходи</h6>
                 <h4 class="text-success mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 2, 'POINT')} + ' ₴'"></h4>
               </div>
             </div>
-            <div class="col-3 d-flex align-items-center gap-2">
+            <!-- Витрати -->
+            <div class="col-3 d-flex align-items-center justify-content-center gap-2">
               <div class="icon-circle"><i class="fas fa-arrow-down text-danger fa-2x"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Витрати</h6>
                 <h4 class="text-danger mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 2, 'POINT')} + ' ₴'"></h4>
               </div>
             </div>
-            <div class="col-3 d-flex align-items-center gap-2">
+            <!-- Баланс -->
+            <div class="col-3 d-flex align-items-center justify-content-center gap-2">
               <div class="icon-circle"><i class="fas fa-balance-scale fa-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Баланс</h6>
@@ -196,7 +204,7 @@
           <button type="button" class="btn btn-outline-secondary" data-type="expense">Витрати</button>
           <button type="button" class="btn btn-outline-secondary" data-type="income">Доходи</button>
         </div>
-        <div class="btn-group" role="group" aria-label="Сортування">
+        <div class="btn-group" role="group" aria-label="Сортування за часом">
           <button type="button" class="btn btn-outline-secondary" id="sortTimeAsc" title="Сортувати за часом (зростання)"><i class="fas fa-sort-amount-up-alt"></i></button>
           <button type="button" class="btn btn-outline-secondary" id="sortTimeDesc" title="Сортувати за часом (спадання)"><i class="fas fa-sort-amount-down"></i></button>
         </div>
@@ -211,14 +219,14 @@
           <thead>
           <tr>
             <th class="col-type">Тип</th>
-            <th class="col-center">Час</th>
-            <th class="col-name">Найменування</th>
-            <th class="col-center">Кол-во</th>
-            <th class="col-center">Сума</th>
-            <th class="col-buyer-seller">Покупець</th>
-            <th class="col-buyer-seller">Продавець</th>
+            <th class="col-center sortable" data-sort="time" data-type="string">Час <i class="fas fa-sort sort-icon"></i></th>
+            <th class="col-name sortable" data-sort="name" data-type="string">Найменування <i class="fas fa-sort sort-icon"></i></th>
+            <th class="col-center sortable" data-sort="quantity" data-type="number">Кол-во <i class="fas fa-sort sort-icon"></i></th>
+            <th class="col-center sortable" data-sort="amount" data-type="number">Сума <i class="fas fa-sort sort-icon"></i></th>
+            <th class="col-buyer-seller sortable" data-sort="buyer" data-type="string">Покупець <i class="fas fa-sort sort-icon"></i></th>
+            <th class="col-buyer-seller sortable" data-sort="seller" data-type="string">Продавець <i class="fas fa-sort sort-icon"></i></th>
             <th class="col-center">Деталі</th>
-            <th class="col-category">Категорія</th>
+            <th class="col-category sortable" data-sort="category" data-type="string">Категорія <i class="fas fa-sort sort-icon"></i></th>
             <th class="col-actions no-print">Дії</th>
           </tr>
           </thead>
@@ -309,7 +317,7 @@
   </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
+<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -466,7 +474,7 @@
 
 <script>
   (function() {
-    // ---- КАТЕГОРІЇ ----
+    // ---- КАТЕГОРІЇ (без змін) ----
     let expenseCategories = /*[[${expenseCategories}]]*/ null;
     let incomeCategories = /*[[${incomeCategories}]]*/ null;
     const categorySelect = document.getElementById('categorySelect');
@@ -661,7 +669,7 @@
     [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
     // ================================================================
-    // ===== ФІЛЬТРИ ТАБЛИЦІ =====
+    // ===== ФІЛЬТРИ ТА СОРТУВАННЯ (без змін) =====
     // ================================================================
 
     const searchInput = document.getElementById('searchInput');
@@ -675,6 +683,7 @@
 
     let currentFilterType = 'all';
     let currentSearch = '';
+    let currentSort = null;
 
     function filterRows() {
       if (!rows.length) return;
@@ -702,6 +711,86 @@
       if (countSpan) countSpan.textContent = 'Всього: ' + visibleCount;
     }
 
+    function sortRowsBy(column, direction) {
+      if (!rows.length) return;
+      const rowsArray = Array.from(rows);
+      const th = document.querySelector(`.sortable[data-sort="${column}"]`);
+      const dataType = th ? th.dataset.type : 'string';
+
+      const indexMap = {
+        'time': 1,
+        'name': 2,
+        'quantity': 3,
+        'amount': 4,
+        'buyer': 5,
+        'seller': 6,
+        'category': 8
+      };
+      const idx = indexMap[column];
+      if (idx === undefined) return;
+
+      rowsArray.sort((a, b) => {
+        const aCell = a.querySelector(`td:nth-child(${idx+1})`);
+        const bCell = b.querySelector(`td:nth-child(${idx+1})`);
+        let aVal = aCell ? aCell.textContent.trim() : '';
+        let bVal = bCell ? bCell.textContent.trim() : '';
+
+        if (dataType === 'number') {
+          const cleanA = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
+          const cleanB = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
+          aVal = isNaN(cleanA) ? 0 : cleanA;
+          bVal = isNaN(cleanB) ? 0 : cleanB;
+          return direction === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
+          return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        }
+      });
+
+      rowsArray.forEach(row => tableBody.appendChild(row));
+
+      document.querySelectorAll('.sortable').forEach(th => {
+        th.classList.remove('active-asc', 'active-desc');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = 'fas fa-sort sort-icon';
+      });
+      if (th) {
+        th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
+        const icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+      }
+      filterRows();
+    }
+
+    // ---- Кліки на заголовки ----
+    document.querySelectorAll('.sortable').forEach(th => {
+      th.addEventListener('click', function() {
+        const column = this.dataset.sort;
+        const currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
+        let direction = 'asc';
+        if (currentDir === 'asc') direction = 'desc';
+        else if (currentDir === 'desc') direction = 'asc';
+        if (currentSort && currentSort.column !== column) direction = 'asc';
+        currentSort = { column, direction };
+        sortRowsBy(column, direction);
+      });
+    });
+
+    // ---- Кнопки сортування за часом ----
+    if (sortAscBtn) {
+      sortAscBtn.addEventListener('click', function() {
+        currentSort = { column: 'time', direction: 'asc' };
+        sortRowsBy('time', 'asc');
+      });
+    }
+    if (sortDescBtn) {
+      sortDescBtn.addEventListener('click', function() {
+        currentSort = { column: 'time', direction: 'desc' };
+        sortRowsBy('time', 'desc');
+      });
+    }
+
     // ---- Перемикання типу ----
     typeButtons.forEach(btn => {
       btn.addEventListener('click', function() {
@@ -720,30 +809,6 @@
       });
     }
 
-    // ---- Сортування ----
-    function sortRows(direction) {
-      if (!rows.length) return;
-      const rowsArray = Array.from(rows);
-      rowsArray.sort((a, b) => {
-        const getTime = (row) => {
-          const timeCell = row.querySelector('td:nth-child(2)');
-          let time = timeCell ? timeCell.textContent.trim() : '00:00';
-          if (time === '—') time = '00:00';
-          const parts = time.split(':').map(Number);
-          return parts[0] * 60 + parts[1];
-        };
-        const aMinutes = getTime(a);
-        const bMinutes = getTime(b);
-        return direction === 'asc' ? aMinutes - bMinutes : bMinutes - aMinutes;
-      });
-
-      rowsArray.forEach(row => tableBody.appendChild(row));
-      filterRows();
-    }
-
-    if (sortAscBtn) sortAscBtn.addEventListener('click', function() { sortRows('asc'); });
-    if (sortDescBtn) sortDescBtn.addEventListener('click', function() { sortRows('desc'); });
-
     // ---- Скидання ----
     if (resetBtn) {
       resetBtn.addEventListener('click', function() {
@@ -752,6 +817,12 @@
         const allBtn = document.querySelector('.filter-bar .btn-group[aria-label="Фільтр типу"] .btn[data-type="all"]');
         if (allBtn) allBtn.classList.add('active-filter');
         currentFilterType = 'all';
+        currentSort = null;
+        document.querySelectorAll('.sortable').forEach(th => {
+          th.classList.remove('active-asc', 'active-desc');
+          const icon = th.querySelector('.sort-icon');
+          if (icon) icon.className = 'fas fa-sort sort-icon';
+        });
         const expenseRows = Array.from(rows).filter(r => r.dataset.type === 'expense');
         const incomeRows = Array.from(rows).filter(r => r.dataset.type === 'income');
         expenseRows.forEach(row => tableBody.appendChild(row));
