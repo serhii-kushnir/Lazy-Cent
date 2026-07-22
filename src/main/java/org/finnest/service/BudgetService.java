@@ -28,8 +28,6 @@ public class BudgetService {
             5, "П'ятниця", 6, "Субота", 7, "Неділя"
     );
 
-    // ==================== ОСНОВНІ МЕТОДИ ДЛЯ ДНІВ ====================
-
     @Transactional
     public DayBudget getOrCreateDayBudget(LocalDate date) {
         return dayBudgetRepository.findByDate(date)
@@ -58,8 +56,6 @@ public class BudgetService {
         return DAY_NAMES.getOrDefault(dayOfWeek, "Невідомо");
     }
 
-    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ ====================
-
     @Transactional
     public Expense addExpense(Long dayBudgetId, Expense expense) {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
@@ -79,8 +75,6 @@ public class BudgetService {
         updateDayBudgetBalance(dayBudget);
         return saved;
     }
-
-    // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
     private void updateDayBudgetBalance(DayBudget dayBudget) {
         Double totalExpenses = expenseRepository.sumExpensesByDate(dayBudget.getDate());
@@ -122,8 +116,6 @@ public class BudgetService {
         }
     }
 
-    // ==================== ОТРИМАННЯ ДАНИХ ДЛЯ ЗВІТІВ ====================
-
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate) {
         TotalBudget total = new TotalBudget();
 
@@ -149,7 +141,6 @@ public class BudgetService {
             totalExpenses += dayExpenses;
             totalIncomes += dayIncomes;
 
-            // Категорії витрат
             List<Object[]> expensesByCat = expenseRepository.sumExpensesByCategory(budget.getDate(), budget.getDate());
             for (Object[] row : expensesByCat) {
                 Category cat = (Category) row[0];
@@ -157,7 +148,6 @@ public class BudgetService {
                 expensesByCategory.merge(cat, amount, Double::sum);
             }
 
-            // Категорії доходів
             List<Object[]> incomesByCat = incomeRepository.sumIncomesByCategory(budget.getDate(), budget.getDate());
             for (Object[] row : incomesByCat) {
                 Category cat = (Category) row[0];
@@ -188,8 +178,7 @@ public class BudgetService {
         return dayBudgetRepository.findAllByOrderByDateAsc();
     }
 
-    // ==================== МЕТОДИ ДЛЯ КАТЕГОРІЙ ====================
-
+    // ==================== КАТЕГОРІЇ ====================
     public List<Category> getExpenseCategories() {
         return categoryRepository.findByType("EXPENSE");
     }
@@ -204,7 +193,6 @@ public class BudgetService {
 
     @Transactional
     public Category addCategory(String name, String type) {
-        // Перевірка на унікальність
         if (categoryRepository.findByName(name).isPresent()) {
             throw new RuntimeException("Категорія з таким ім'ям вже існує");
         }
@@ -218,8 +206,6 @@ public class BudgetService {
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
-        // Перевіряємо, чи є транзакції з цією категорією
-        // Якщо є – можна або заборонити видалення, або переназначити на "Різне"
         categoryRepository.deleteById(id);
     }
 
@@ -236,8 +222,7 @@ public class BudgetService {
                 .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
     }
 
-    // ==================== РЕДАГУВАННЯ ТА ВИДАЛЕННЯ ТРАНЗАКЦІЙ ====================
-
+    // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ТРАНЗАКЦІЙ ====================
     @Transactional
     public void deleteExpense(Long expenseId) {
         Expense expense = expenseRepository.findById(expenseId)
@@ -258,7 +243,8 @@ public class BudgetService {
 
     @Transactional
     public Expense updateExpense(Long expenseId, String description, Double amount, Long categoryId,
-                                 Integer quantity, String details, Boolean shareWithFamily, LocalTime time) {
+                                 Integer quantity, String details, Boolean shareWithFamily, LocalTime time,
+                                 String buyer, String seller) {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new RuntimeException("Витрату не знайдено"));
         expense.setDescription(description);
@@ -272,6 +258,8 @@ public class BudgetService {
         expense.setDetails(details);
         expense.setShareWithFamily(shareWithFamily != null && shareWithFamily);
         expense.setTime(time);
+        expense.setBuyer(buyer);
+        expense.setSeller(seller);
         Expense saved = expenseRepository.save(expense);
         updateDayBudgetBalance(expense.getDayBudget());
         return saved;
@@ -279,7 +267,8 @@ public class BudgetService {
 
     @Transactional
     public Income updateIncome(Long incomeId, String description, Double amount, Long categoryId,
-                               Integer quantity, String details, Boolean shareWithFamily, LocalTime time) {
+                               Integer quantity, String details, Boolean shareWithFamily, LocalTime time,
+                               String buyer, String seller) {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new RuntimeException("Дохід не знайдено"));
         income.setDescription(description);
@@ -293,13 +282,14 @@ public class BudgetService {
         income.setDetails(details);
         income.setShareWithFamily(shareWithFamily != null && shareWithFamily);
         income.setTime(time);
+        income.setBuyer(buyer);
+        income.setSeller(seller);
         Income saved = incomeRepository.save(income);
         updateDayBudgetBalance(income.getDayBudget());
         return saved;
     }
 
-    // ==================== ДОПОМІЖНІ МЕТОДИ ДЛЯ РЕДИРЕКТІВ ====================
-
+    // ==================== ДОПОМІЖНІ ====================
     public LocalDate getDateByExpense(Long expenseId) {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new RuntimeException("Витрату не знайдено"));
@@ -312,13 +302,11 @@ public class BudgetService {
         return income.getDayBudget().getDate();
     }
 
-    // ==================== ІНІЦІАЛІЗАЦІЯ ДАНИХ ====================
-
+    // ==================== ДЕМО-ДАНІ ====================
     @Transactional
     public void initializeDemoData() {
         log.info("Starting demo data initialization...");
 
-        // Спочатку створюємо категорії, якщо їх немає
         if (categoryRepository.count() == 0) {
             log.info("Creating default categories...");
             addCategory("Їжа", "EXPENSE");
@@ -332,7 +320,6 @@ public class BudgetService {
             addCategory("Різне (дохід)", "INCOME");
         }
 
-        // Якщо вже є денні бюджети – не додаємо демо-транзакції (щоб не дублювати)
         if (dayBudgetRepository.count() > 0) {
             log.info("Data already exists, skipping demo transactions");
             return;
@@ -342,7 +329,6 @@ public class BudgetService {
             LocalDate today = LocalDate.now();
             DayBudget budget = getOrCreateDayBudget(today);
 
-            // Отримуємо категорії
             Category food = categoryRepository.findByName("Їжа").orElse(null);
             Category transport = categoryRepository.findByName("Дорога").orElse(null);
             Category tips = categoryRepository.findByName("Чаєві").orElse(null);
@@ -353,6 +339,8 @@ public class BudgetService {
                 expense.setDescription("Тестова їжа");
                 expense.setAmount(150.0);
                 expense.setDayBudget(budget);
+                expense.setBuyer("Я");
+                expense.setSeller("Супермаркет");
                 expenseRepository.save(expense);
             }
 
@@ -362,6 +350,8 @@ public class BudgetService {
                 expense2.setDescription("Дорога");
                 expense2.setAmount(50.0);
                 expense2.setDayBudget(budget);
+                expense2.setBuyer("Я");
+                expense2.setSeller("Таксі");
                 expenseRepository.save(expense2);
             }
 
@@ -371,6 +361,8 @@ public class BudgetService {
                 income.setDescription("Тестові чайові");
                 income.setAmount(200.0);
                 income.setDayBudget(budget);
+                income.setBuyer("Клієнт");
+                income.setSeller("Я");
                 incomeRepository.save(income);
             }
 

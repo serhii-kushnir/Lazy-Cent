@@ -37,4 +37,10 @@ public class Income {
 
     @Column(nullable = true)
     private LocalTime time;
+
+    @Column(nullable = true)
+    private String buyer;
+
+    @Column(nullable = true)
+    private String seller;
 }

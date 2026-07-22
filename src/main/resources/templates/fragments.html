@@ -91,7 +91,7 @@
     </style>
     <script>
         (function () {
-            const saved = localStorage.getItem('webmoney-theme');
+            const saved = localStorage.getItem('finnest-theme');
             if (saved) document.documentElement.setAttribute('data-bs-theme', saved);
         })();
     </script>
@@ -167,7 +167,7 @@
                 const current = root.getAttribute('data-bs-theme') || 'light';
                 const next = current === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-bs-theme', next);
-                localStorage.setItem('webmoney-theme', next);
+                localStorage.setItem('finnest-theme', next);
                 updateIcon();
             });
         })();

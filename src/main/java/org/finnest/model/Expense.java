@@ -23,18 +23,24 @@ public class Expense {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    private String description;      // Назва (обов'язкове)
-    private Double amount;           // Сума (обов'язкове)
+    private String description;
+    private Double amount;
 
     @Column(nullable = true)
-    private Integer quantity;        // Кількість (необов'язково)
+    private Integer quantity;
 
     @Column(length = 500, nullable = true)
-    private String details;          // Додаткові деталі (необов'язково)
+    private String details;
 
     @Column(nullable = true)
-    private Boolean shareWithFamily; // Прапорець "поділитися"
+    private Boolean shareWithFamily;
 
     @Column(nullable = true)
     private LocalTime time;
+
+    @Column(nullable = true)
+    private String buyer;
+
+    @Column(nullable = true)
+    private String seller;
 }
