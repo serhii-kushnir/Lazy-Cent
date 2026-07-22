@@ -1,10 +1,10 @@
-package org.webmoney;
+package org.finnest;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class WebmoneyApplicationTests {
+class FinNestApplicationTests {
 
     @Test
     void contextLoads() {

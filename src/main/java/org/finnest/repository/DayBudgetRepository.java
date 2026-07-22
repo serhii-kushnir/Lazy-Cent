@@ -1,7 +1,7 @@
 // DayBudgetRepository.java
-package org.webmoney.repository;
+package org.finnest.repository;
 
-import org.webmoney.model.DayBudget;
+import org.finnest.model.DayBudget;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;

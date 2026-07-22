@@ -1,7 +1,7 @@
-package org.webmoney.config;
+package org.finnest.config;
 
-import org.webmoney.service.BudgetService;
-import org.webmoney.repository.CategoryRepository;
+import org.finnest.service.BudgetService;
+import org.finnest.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

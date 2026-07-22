@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - WebMoney'"></title>
+  <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - FinNest'"></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <div th:replace="~{fragments :: themeAssets}"></div>
@@ -322,7 +322,7 @@
 
   <!-- ===== БЛОК, ЯКИЙ ВИДНО ТІЛЬКИ ПРИ ДРУЦІ ===== -->
   <div class="print-header d-print-flex" style="display: none;">
-    <span class="logo">💰 WebMoney</span>
+    <span class="logo">💰 FinNest</span>
     <h2 th:text="${dayBudget.dayName} + ', ' + ${#temporals.format(dayBudget.date, 'dd/MM/yyyy')}"></h2>
   </div>
 
@@ -507,7 +507,7 @@
 
   <!-- ===== ФУТЕР ПРИ ДРУЦІ ===== -->
   <div class="print-footer d-print-block" style="display: none;">
-    © 2026 WebMoney - Ваш фінансовий помічник
+    © 2026 FinNest - Ваш фінансовий помічник
   </div>
 
 </div>

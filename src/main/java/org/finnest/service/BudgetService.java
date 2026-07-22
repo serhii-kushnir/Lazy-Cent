@@ -1,7 +1,7 @@
-package org.webmoney.service;
+package org.finnest.service;
 
-import org.webmoney.model.*;
-import org.webmoney.repository.*;
+import org.finnest.model.*;
+import org.finnest.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package org.webmoney.model;
+package org.finnest.model;
 
 import lombok.Data;
 import java.time.LocalDate;

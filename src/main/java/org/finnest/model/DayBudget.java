@@ -1,5 +1,5 @@
 // model/DayBudget.java
-package org.webmoney.model;
+package org.finnest.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
