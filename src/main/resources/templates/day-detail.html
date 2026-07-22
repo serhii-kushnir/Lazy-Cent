@@ -8,6 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <div th:replace="~{fragments :: themeAssets}"></div>
   <style>
+    /* ===== ВСІ ОСНОВНІ СТИЛІ (БЕЗ ЗМІН) ===== */
     .balance-card {
       border-radius: 1rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -142,7 +143,6 @@
       white-space: nowrap;
     }
 
-    /* Ширина та вирівнювання стовпців таблиці */
     .table-transactions th,
     .table-transactions td {
       vertical-align: middle;
@@ -169,14 +169,101 @@
       white-space: nowrap;
       width: 1%;
     }
-    .btn-export {
+
+    .btn-rounded {
+      border-radius: 50px !important;
       padding: 0.6rem 1.2rem;
+      transition: all 0.3s ease;
       font-size: 1rem;
-      border-radius: 50px;
-      transition: all 0.3s;
     }
-    .btn-export:hover {
+    .btn-rounded:hover {
       transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    /* ===== СТИЛІ ДЛЯ ДРУКУ ===== */
+    @media print {
+      /* Повне скидання відступів */
+      body, html {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .container {
+        max-width: 100% !important;
+        padding: 5px !important;
+        margin: 0 !important;
+      }
+
+      /* Ховаємо все зайве */
+      nav.navbar, footer, .no-print, .btn, .btn-add-transaction, .modal, .modal-backdrop {
+        display: none !important;
+      }
+      .d-print-block {
+        display: block !important;
+      }
+      .d-print-flex {
+        display: flex !important;
+      }
+
+      /* Заголовок друку - ще менше відступів */
+      .print-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 !important;
+        margin: 0 0 10px 0 !important;
+        border-bottom: 2px solid #333;
+        line-height: 1.2;
+      }
+      .print-header .logo {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1B2430;
+      }
+      .print-header h2 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+      }
+
+      /* Футер при друці */
+      .print-footer {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #666;
+        border-top: 1px solid #ccc;
+        padding-top: 5px;
+        margin-top: 15px;
+      }
+
+      /* Таблиці: заголовки – темно-сірий фон, білий текст */
+      .table-transactions th {
+        background-color: #333 !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .table-transactions td {
+        border-color: #ddd !important;
+      }
+
+      .card, .balance-card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        margin-bottom: 10px !important;
+      }
+
+      .card-header.bg-danger, .card-header.bg-success {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .card-header.bg-danger {
+        background-color: #dc3545 !important;
+      }
+      .card-header.bg-success {
+        background-color: #198754 !important;
+      }
     }
   </style>
 </head>
@@ -184,8 +271,16 @@
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
 
 <div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>
+
+  <!-- ===== БЛОК, ЯКИЙ ВИДНО ТІЛЬКИ ПРИ ДРУЦІ ===== -->
+  <div class="print-header d-print-flex" style="display: none;">
+    <span class="logo">💰 WebMoney</span>
+    <h2 th:text="${dayBudget.dayName} + ', ' + ${#temporals.format(dayBudget.date, 'dd/MM/yyyy')}"></h2>
+  </div>
+
+  <!-- ===== ВЕРХНЯ ПАНЕЛЬ (НЕ ДРУКУЄТЬСЯ) ===== -->
+  <div class="d-flex justify-content-between align-items-center mb-3 no-print">
+    <h2 class="no-print">
       <i class="fas fa-calendar-day me-2"></i>
       <span th:text="${dayBudget.dayName} + ', ' + ${#temporals.format(dayBudget.date, 'dd/MM/yyyy')}"></span>
     </h2>
@@ -193,12 +288,13 @@
       <button class="btn btn-primary btn-add-transaction me-2" data-bs-toggle="modal" data-bs-target="#transactionModal">
         <i class="fas fa-plus me-1"></i> Додати транзакцію
       </button>
-      <!-- ===== ВИПРАВЛЕНА КНОПКА "Всі дні" ===== -->
-      <a href="/all-days" class="btn btn-outline-secondary me-2">
+      <a href="/all-days" class="btn btn-outline-primary me-2 btn-rounded">
         <i class="fas fa-calendar-alt me-1"></i>Всі дні
       </a>
-      <!-- ===== НОВА КНОПКА ЕКСПОРТУ В EXCEL ===== -->
-      <a th:href="'/export/day/' + ${dayBudget.date}" class="btn btn-success btn-export">
+      <button class="btn btn-outline-secondary me-2 btn-rounded" onclick="window.print()">
+        <i class="fas fa-print me-1"></i>Друк
+      </button>
+      <a th:href="'/export/day/' + ${dayBudget.date}" class="btn btn-success btn-rounded">
         <i class="fas fa-file-excel me-1"></i>Експорт у Excel
       </a>
     </div>
@@ -262,7 +358,7 @@
             <th class="col-center">Сума</th>
             <th class="col-center">Деталі</th>
             <th class="col-center">Категорія</th>
-            <th class="col-actions">Дії</th>
+            <th class="col-actions no-print">Дії</th>
           </tr>
           </thead>
           <tbody>
@@ -280,7 +376,7 @@
               <span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span>
             </td>
             <td class="col-center"><span class="badge badge-category bg-danger" th:text="${expense.category.name}"></span></td>
-            <td class="col-actions">
+            <td class="col-actions no-print">
               <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editExpenseModal"
                       th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}"
                       th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}"
@@ -318,7 +414,7 @@
             <th class="col-center">Сума</th>
             <th class="col-center">Деталі</th>
             <th class="col-center">Категорія</th>
-            <th class="col-actions">Дії</th>
+            <th class="col-actions no-print">Дії</th>
           </tr>
           </thead>
           <tbody>
@@ -336,7 +432,7 @@
               <span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span>
             </td>
             <td class="col-center"><span class="badge badge-category bg-success" th:text="${income.category.name}"></span></td>
-            <td class="col-actions">
+            <td class="col-actions no-print">
               <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editIncomeModal"
                       th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}"
                       th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}"
@@ -357,10 +453,15 @@
     </div>
   </div>
 
+  <!-- ===== ФУТЕР ПРИ ДРУЦІ ===== -->
+  <div class="print-footer d-print-block" style="display: none;">
+    © 2026 WebMoney - Ваш фінансовий помічник
+  </div>
+
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
-<div class="modal fade" id="transactionModal" tabindex="-1">
+<!-- ===== МОДАЛЬНІ ВІКНА (БЕЗ ЗМІН) ===== -->
+<div class="modal fade no-print" id="transactionModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -435,7 +536,7 @@
 </div>
 
 <!-- ===== МОДАЛЬНЕ РЕДАГУВАННЯ ВИТРАТИ ===== -->
-<div class="modal fade" id="editExpenseModal" tabindex="-1">
+<div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -465,7 +566,7 @@
 </div>
 
 <!-- ===== МОДАЛЬНЕ РЕДАГУВАННЯ ДОХОДУ ===== -->
-<div class="modal fade" id="editIncomeModal" tabindex="-1">
+<div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
