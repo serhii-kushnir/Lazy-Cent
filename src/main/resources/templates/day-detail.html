@@ -373,28 +373,28 @@
               <div class="icon-circle"><i class="fas fa-flag-checkered text-secondary fa-2x"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Поч. баланс</h6>
-                <h4 class="mb-0" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 2, 'POINT')} + ' ₴'"></h4>
+                <h4 class="mb-0" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></h4>
               </div>
             </div>
             <div class="col-3 d-flex align-items-center gap-2">
               <div class="icon-circle"><i class="fas fa-arrow-up text-success fa-2x"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Доходи</h6>
-                <h4 class="text-success mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 2, 'POINT')} + ' ₴'"></h4>
+                <h4 class="text-success mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></h4>
               </div>
             </div>
             <div class="col-3 d-flex align-items-center gap-2">
               <div class="icon-circle"><i class="fas fa-arrow-down text-danger fa-2x"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Витрати</h6>
-                <h4 class="text-danger mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 2, 'POINT')} + ' ₴'"></h4>
+                <h4 class="text-danger mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></h4>
               </div>
             </div>
             <div class="col-3 d-flex align-items-center gap-2">
               <div class="icon-circle"><i class="fas fa-balance-scale fa-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
               <div>
                 <h6 class="text-muted mb-0">Баланс</h6>
-                <h4 class="mb-0" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 2, 'POINT')} + ' ₴'"></h4>
+                <h4 class="mb-0" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></h4>
               </div>
             </div>
           </div>
@@ -407,7 +407,7 @@
   <div class="card shadow mt-4">
     <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
       <h5><i class="fas fa-shopping-cart me-2"></i>Витрати за день</h5>
-      <span class="badge bg-light text-dark">Всього: <span th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 2, 'POINT')} + ' ₴'"></span></span>
+      <span class="badge bg-light text-dark">Всього: <span th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></span></span>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -433,7 +433,7 @@
             </td>
             <td class="col-name" th:text="${expense.description}"></td>
             <td class="col-center" th:text="${expense.quantity ?: 1}"></td>
-            <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 2, 'POINT')} + ' ₴'"></td>
+            <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></td>
             <td class="col-buyer-seller" th:text="${expense.buyer}"></td>
             <td class="col-buyer-seller" th:text="${expense.seller}"></td>
             <td class="col-center">
@@ -474,7 +474,7 @@
   <div class="card shadow mt-4">
     <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
       <h5><i class="fas fa-money-bill-wave me-2"></i>Доходи за день</h5>
-      <span class="badge bg-light text-dark">Всього: <span th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 2, 'POINT')} + ' ₴'"></span></span>
+      <span class="badge bg-light text-dark">Всього: <span th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></span></span>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
@@ -500,7 +500,7 @@
             </td>
             <td class="col-name" th:text="${income.description}"></td>
             <td class="col-center" th:text="${income.quantity ?: 1}"></td>
-            <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 2, 'POINT')} + ' ₴'"></td>
+            <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'WHITESPACE', 2, 'COMMA')} + ' ₴'"></td>
             <td class="col-buyer-seller" th:text="${income.buyer}"></td>
             <td class="col-buyer-seller" th:text="${income.seller}"></td>
             <td class="col-center">
