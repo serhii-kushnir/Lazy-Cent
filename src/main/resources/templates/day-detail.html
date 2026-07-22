@@ -8,7 +8,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <div th:replace="~{fragments :: themeAssets}"></div>
   <style>
-    /* ===== ВСІ ОСНОВНІ СТИЛІ (БЕЗ ЗМІН) ===== */
+    /* ===== ВСІ СТИЛІ – ТІ Ж, ЩО Й РАНІШЕ ===== */
     .balance-card {
       border-radius: 1rem;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -181,21 +181,20 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    /* ===== СТИЛІ ДЛЯ ДРУКУ ===== */
+    /* ===== СТИЛІ ДЛЯ ДРУКУ – МІНІМАЛЬНІ ВІДСТУПИ ЗВЕРХУ ===== */
     @media print {
-      /* Повне скидання відступів */
       body, html {
         margin: 0 !important;
         padding: 0 !important;
       }
       .container {
         max-width: 100% !important;
-        padding: 5px !important;
+        padding: 0 4px !important;
         margin: 0 !important;
       }
 
-      /* Ховаємо все зайве */
-      nav.navbar, footer, .no-print, .btn, .btn-add-transaction, .modal, .modal-backdrop {
+      nav.navbar, footer, .no-print, .btn, .btn-add-transaction,
+      .modal, .modal-backdrop, .d-print-none {
         display: none !important;
       }
       .d-print-block {
@@ -205,39 +204,36 @@
         display: flex !important;
       }
 
-      /* Заголовок друку - ще менше відступів */
       .print-header {
         display: flex !important;
         justify-content: space-between;
         align-items: center;
         padding: 0 !important;
-        margin: 0 0 10px 0 !important;
-        border-bottom: 2px solid #333;
+        margin: 0 0 4px 0 !important;
+        border-bottom: 1px solid #333;
         line-height: 1.2;
       }
       .print-header .logo {
-        font-size: 1.4rem;
+        font-size: 1rem !important;
         font-weight: 700;
         color: #1B2430;
       }
       .print-header h2 {
-        font-size: 1.2rem;
+        font-size: 0.9rem !important;
         font-weight: 600;
         margin: 0;
         color: #333;
       }
 
-      /* Футер при друці */
       .print-footer {
         text-align: center;
-        font-size: 0.8rem;
+        font-size: 0.6rem !important;
         color: #666;
         border-top: 1px solid #ccc;
-        padding-top: 5px;
-        margin-top: 15px;
+        padding-top: 2px !important;
+        margin-top: 4px !important;
       }
 
-      /* Таблиці: заголовки – темно-сірий фон, білий текст */
       .table-transactions th {
         background-color: #333 !important;
         color: #fff !important;
@@ -246,23 +242,74 @@
       }
       .table-transactions td {
         border-color: #ddd !important;
+        padding: 1px 4px !important;
+        font-size: 0.65rem !important;
+      }
+      .table-transactions th {
+        padding: 2px 4px !important;
+        font-size: 0.65rem !important;
+      }
+      .table-transactions .badge-category {
+        font-size: 0.55rem !important;
+        padding: 1px 3px !important;
       }
 
       .card, .balance-card {
         border: 1px solid #ddd !important;
         box-shadow: none !important;
-        margin-bottom: 10px !important;
+        margin-bottom: 4px !important;
+      }
+      .card .card-body {
+        padding: 2px 6px !important;
+      }
+      .card-header {
+        padding: 2px 8px !important;
+      }
+      .card-header h5 {
+        font-size: 0.7rem !important;
+        margin: 0 !important;
+      }
+      .card-header .badge {
+        font-size: 0.6rem !important;
       }
 
-      .card-header.bg-danger, .card-header.bg-success {
+      /* Зменшуємо картку балансу */
+      .balance-card .card-body {
+        padding: 2px 4px !important;
+      }
+      .balance-card .icon-circle {
+        width: 20px !important;
+        height: 20px !important;
+        margin-bottom: 0 !important;
+        background: rgba(0,0,0,0.05) !important;
+      }
+      .balance-card .icon-circle i {
+        font-size: 0.7rem !important;
+      }
+      .balance-card h6 {
+        font-size: 0.5rem !important;
+        margin-bottom: 0 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .balance-card h4 {
+        font-size: 0.7rem !important;
+        margin-bottom: 0 !important;
+        font-weight: 600;
+      }
+      .balance-card .col-3 {
+        padding: 2px 0 !important;
+      }
+
+      .card-header.bg-danger {
+        background-color: #dc3545 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      .card-header.bg-danger {
-        background-color: #dc3545 !important;
-      }
       .card-header.bg-success {
         background-color: #198754 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
     }
   </style>
@@ -285,17 +332,21 @@
       <span th:text="${dayBudget.dayName} + ', ' + ${#temporals.format(dayBudget.date, 'dd/MM/yyyy')}"></span>
     </h2>
     <div>
+      <!-- 1. Додати транзакцію -->
       <button class="btn btn-primary btn-add-transaction me-2" data-bs-toggle="modal" data-bs-target="#transactionModal">
         <i class="fas fa-plus me-1"></i> Додати транзакцію
       </button>
-      <a href="/all-days" class="btn btn-outline-primary me-2 btn-rounded">
-        <i class="fas fa-calendar-alt me-1"></i>Всі дні
+      <!-- 2. Експорт у Excel -->
+      <a th:href="'/export/day/' + ${dayBudget.date}" class="btn btn-success btn-rounded me-2">
+        <i class="fas fa-file-excel me-1"></i>Експорт у Excel
       </a>
-      <button class="btn btn-outline-secondary me-2 btn-rounded" onclick="window.print()">
+      <!-- 3. Друк – жовтогарячий фон -->
+      <button class="btn btn-warning btn-rounded me-2" onclick="window.print()">
         <i class="fas fa-print me-1"></i>Друк
       </button>
-      <a th:href="'/export/day/' + ${dayBudget.date}" class="btn btn-success btn-rounded">
-        <i class="fas fa-file-excel me-1"></i>Експорт у Excel
+      <!-- 4. Всі дні – блакитний фон -->
+      <a href="/all-days" class="btn btn-info btn-rounded text-white">
+        <i class="fas fa-calendar-alt me-1"></i>Всі дні
       </a>
     </div>
   </div>
