@@ -178,6 +178,50 @@ public class BudgetService {
         return dayBudgetRepository.findAllByOrderByDateAsc();
     }
 
+    // ==================== ДУБЛЮВАННЯ ТРАНЗАКЦІЙ ====================
+
+    @Transactional
+    public LocalDate duplicateExpense(Long expenseId) {
+        Expense original = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new RuntimeException("Витрату не знайдено"));
+
+        Expense duplicate = new Expense();
+        duplicate.setDayBudget(original.getDayBudget());
+        duplicate.setCategory(original.getCategory());
+        duplicate.setDescription(original.getDescription() + " (копія)");
+        duplicate.setAmount(original.getAmount());
+        duplicate.setQuantity(original.getQuantity());
+        duplicate.setDetails(original.getDetails());
+        duplicate.setTime(original.getTime());
+        duplicate.setBuyer(original.getBuyer());
+        duplicate.setSeller(original.getSeller());
+
+        expenseRepository.save(duplicate);
+        updateDayBudgetBalance(original.getDayBudget());
+        return original.getDayBudget().getDate();
+    }
+
+    @Transactional
+    public LocalDate duplicateIncome(Long incomeId) {
+        Income original = incomeRepository.findById(incomeId)
+                .orElseThrow(() -> new RuntimeException("Дохід не знайдено"));
+
+        Income duplicate = new Income();
+        duplicate.setDayBudget(original.getDayBudget());
+        duplicate.setCategory(original.getCategory());
+        duplicate.setDescription(original.getDescription() + " (копія)");
+        duplicate.setAmount(original.getAmount());
+        duplicate.setQuantity(original.getQuantity());
+        duplicate.setDetails(original.getDetails());
+        duplicate.setTime(original.getTime());
+        duplicate.setBuyer(original.getBuyer());
+        duplicate.setSeller(original.getSeller());
+
+        incomeRepository.save(duplicate);
+        updateDayBudgetBalance(original.getDayBudget());
+        return original.getDayBudget().getDate();
+    }
+
     // ==================== КАТЕГОРІЇ ====================
     public List<Category> getExpenseCategories() {
         return categoryRepository.findByType("EXPENSE");
