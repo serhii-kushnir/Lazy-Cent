@@ -68,6 +68,19 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
+        /* Темна тема для кнопок */
+        [data-bs-theme="dark"] .btn-outline-secondary {
+            color: #e6e6e6;
+            border-color: #495057;
+        }
+        [data-bs-theme="dark"] .btn-outline-secondary:hover {
+            background-color: #2a2e37;
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .btn-outline-secondary:focus {
+            box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.3);
+        }
+
         .custom-container {
             width: 100%;
             margin: 0 auto;
@@ -658,8 +671,8 @@
                         <span><i class="fas fa-chart-pie me-2"></i>Аналітика витрат та доходів</span>
                         <div>
                             <span class="badge bg-light text-dark me-2" id="chartTotalLabel">Всього: 0</span>
-                            <button class="btn btn-sm btn-light chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
-                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
+                                <i class="fas fa-chevron-down toggle-icon" id="chartToggleIcon"></i>
                             </button>
                         </div>
                     </div>
@@ -772,14 +785,46 @@
                         <td class="col-category"><span class="badge badge-category" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
                         <td class="col-actions no-print">
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
-                                    <li><a class="dropdown-item action-edit" href="#" data-id="${expense.id}" data-category="${expense.category.id}" data-description="${expense.description}" data-amount="${expense.amount}" data-quantity="${expense.quantity}" data-details="${expense.details}" data-time="${expense.time}" data-buyer="${expense.buyer}" data-seller="${expense.seller}" data-category-name="${expense.category.name}"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
-                                    <li><a class="dropdown-item action-duplicate" href="#" data-id="${expense.id}" data-category="${expense.category.id}" data-description="${expense.description}" data-amount="${expense.amount}" data-quantity="${expense.quantity}" data-details="${expense.details}" data-time="${expense.time}" data-buyer="${expense.buyer}" data-seller="${expense.seller}" data-category-name="${expense.category.name}"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
+                                    <li><a class="dropdown-item action-edit" href="#"
+                                           th:data-id="${expense.id}"
+                                           th:data-category="${expense.category.id}"
+                                           th:data-description="${expense.description}"
+                                           th:data-amount="${expense.amount}"
+                                           th:data-quantity="${expense.quantity}"
+                                           th:data-details="${expense.details}"
+                                           th:data-time="${expense.time}"
+                                           th:data-buyer="${expense.buyer}"
+                                           th:data-seller="${expense.seller}"
+                                           th:data-category-name="${expense.category.name}"
+                                           data-type="expense"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
+                                    <li><a class="dropdown-item action-duplicate" href="#"
+                                           th:data-id="${expense.id}"
+                                           th:data-category="${expense.category.id}"
+                                           th:data-description="${expense.description}"
+                                           th:data-amount="${expense.amount}"
+                                           th:data-quantity="${expense.quantity}"
+                                           th:data-details="${expense.details}"
+                                           th:data-time="${expense.time}"
+                                           th:data-buyer="${expense.buyer}"
+                                           th:data-seller="${expense.seller}"
+                                           th:data-category-name="${expense.category.name}"
+                                           data-type="expense"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item action-delete text-danger" href="#" data-id="${expense.id}" data-type="expense" data-description="${expense.description}" data-amount="${expense.amount}" data-category="${expense.category.name}" data-details="${expense.details}" data-time="${expense.time}" data-quantity="${expense.quantity}" data-buyer="${expense.buyer}" data-seller="${expense.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
+                                    <li><a class="dropdown-item action-delete text-danger" href="#"
+                                           th:data-id="${expense.id}"
+                                           data-type="expense"
+                                           th:data-description="${expense.description}"
+                                           th:data-amount="${expense.amount}"
+                                           th:data-category="${expense.category.name}"
+                                           th:data-details="${expense.details}"
+                                           th:data-time="${expense.time}"
+                                           th:data-quantity="${expense.quantity}"
+                                           th:data-buyer="${expense.buyer}"
+                                           th:data-seller="${expense.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -805,14 +850,46 @@
                         <td class="col-category"><span class="badge badge-category" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
                         <td class="col-actions no-print">
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
                                     <i class="fas fa-ellipsis-v"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
-                                    <li><a class="dropdown-item action-edit" href="#" data-id="${income.id}" data-category="${income.category.id}" data-description="${income.description}" data-amount="${income.amount}" data-quantity="${income.quantity}" data-details="${income.details}" data-time="${income.time}" data-buyer="${income.buyer}" data-seller="${income.seller}" data-category-name="${income.category.name}"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
-                                    <li><a class="dropdown-item action-duplicate" href="#" data-id="${income.id}" data-category="${income.category.id}" data-description="${income.description}" data-amount="${income.amount}" data-quantity="${income.quantity}" data-details="${income.details}" data-time="${income.time}" data-buyer="${income.buyer}" data-seller="${income.seller}" data-category-name="${income.category.name}"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
+                                    <li><a class="dropdown-item action-edit" href="#"
+                                           th:data-id="${income.id}"
+                                           th:data-category="${income.category.id}"
+                                           th:data-description="${income.description}"
+                                           th:data-amount="${income.amount}"
+                                           th:data-quantity="${income.quantity}"
+                                           th:data-details="${income.details}"
+                                           th:data-time="${income.time}"
+                                           th:data-buyer="${income.buyer}"
+                                           th:data-seller="${income.seller}"
+                                           th:data-category-name="${income.category.name}"
+                                           data-type="income"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
+                                    <li><a class="dropdown-item action-duplicate" href="#"
+                                           th:data-id="${income.id}"
+                                           th:data-category="${income.category.id}"
+                                           th:data-description="${income.description}"
+                                           th:data-amount="${income.amount}"
+                                           th:data-quantity="${income.quantity}"
+                                           th:data-details="${income.details}"
+                                           th:data-time="${income.time}"
+                                           th:data-buyer="${income.buyer}"
+                                           th:data-seller="${income.seller}"
+                                           th:data-category-name="${income.category.name}"
+                                           data-type="income"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item action-delete text-danger" href="#" data-id="${income.id}" data-type="income" data-description="${income.description}" data-amount="${income.amount}" data-category="${income.category.name}" data-details="${income.details}" data-time="${income.time}" data-quantity="${income.quantity}" data-buyer="${income.buyer}" data-seller="${income.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
+                                    <li><a class="dropdown-item action-delete text-danger" href="#"
+                                           th:data-id="${income.id}"
+                                           data-type="income"
+                                           th:data-description="${income.description}"
+                                           th:data-amount="${income.amount}"
+                                           th:data-category="${income.category.name}"
+                                           th:data-details="${income.details}"
+                                           th:data-time="${income.time}"
+                                           th:data-quantity="${income.quantity}"
+                                           th:data-buyer="${income.buyer}"
+                                           th:data-seller="${income.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -1402,10 +1479,17 @@
             editIncAmount.addEventListener('change', function() { formatEditAmount('editIncomeAmount'); });
         }
 
-        // ---- РЕДАГУВАННЯ (через пункти меню) ----
+        // ================================================================
+        // 4. ОБРОБНИКИ ДЛЯ ПУНКТІВ МЕНЮ (ВИПРАВЛЕНО ЗАПОВНЕННЯ BUYER/SELLER)
+        // ================================================================
+
+        // ---- РЕДАГУВАННЯ ----
         document.querySelectorAll('.action-edit').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
+
+                // Зчитуємо всі data-атрибути
+                const type = this.dataset.type;
                 const id = this.dataset.id;
                 const category = this.dataset.category;
                 const description = this.dataset.description || '';
@@ -1413,9 +1497,11 @@
                 const quantity = this.dataset.quantity || 1;
                 const details = this.dataset.details || '';
                 const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-                const type = this.closest('.transaction-row').dataset.type; // 'expense' або 'income'
+                const buyer = this.dataset.buyer || '';  // <-- ОСЬ ВОНИ
+                const seller = this.dataset.seller || ''; // <-- ОСЬ ВОНИ
+
+                // Лог для дебагу (перевірте консоль F12)
+                console.log('Редагування:', { type, id, buyer, seller });
 
                 if (type === 'expense') {
                     const modal = document.getElementById('editExpenseModal');
@@ -1426,6 +1512,7 @@
                     document.getElementById('editExpenseQuantity').value = quantity;
                     document.getElementById('editExpenseTime').value = time;
                     document.getElementById('editExpenseDetails').value = details;
+                    // Присвоєння Покупця та Продавця
                     document.getElementById('editExpenseBuyer').value = buyer;
                     document.getElementById('editExpenseSeller').value = seller;
                     document.getElementById('editExpenseCharCount').textContent = details.length;
@@ -1441,6 +1528,7 @@
                     document.getElementById('editIncomeQuantity').value = quantity;
                     document.getElementById('editIncomeTime').value = time;
                     document.getElementById('editIncomeDetails').value = details;
+                    // Присвоєння Покупця та Продавця
                     document.getElementById('editIncomeBuyer').value = buyer;
                     document.getElementById('editIncomeSeller').value = seller;
                     document.getElementById('editIncomeCharCount').textContent = details.length;
@@ -1451,20 +1539,22 @@
             });
         });
 
-        // ---- ДУБЛЮВАННЯ (через пункти меню) ----
+        // ---- ДУБЛЮВАННЯ ----
         document.querySelectorAll('.action-duplicate').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                const id = this.dataset.id;
+
+                const type = this.dataset.type;
                 const category = this.dataset.category;
                 const description = this.dataset.description || '';
                 const amount = parseFloat(this.dataset.amount) || 0;
                 const quantity = this.dataset.quantity || 1;
                 const details = this.dataset.details || '';
                 const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-                const type = this.closest('.transaction-row').dataset.type;
+                const buyer = this.dataset.buyer || '';  // <-- ОСЬ ВОНИ
+                const seller = this.dataset.seller || ''; // <-- ОСЬ ВОНИ
+
+                console.log('Дублювання:', { type, buyer, seller });
 
                 if (type === 'expense') {
                     const modal = document.getElementById('cloneExpenseModal');
@@ -1474,6 +1564,7 @@
                     document.getElementById('cloneExpenseQuantity').value = quantity;
                     document.getElementById('cloneExpenseTime').value = time;
                     document.getElementById('cloneExpenseDetails').value = details;
+                    // Присвоєння Покупця та Продавця
                     document.getElementById('cloneExpenseBuyer').value = buyer;
                     document.getElementById('cloneExpenseSeller').value = seller;
                     document.getElementById('cloneExpenseCharCount').textContent = details.length;
@@ -1487,6 +1578,7 @@
                     document.getElementById('cloneIncomeQuantity').value = quantity;
                     document.getElementById('cloneIncomeTime').value = time;
                     document.getElementById('cloneIncomeDetails').value = details;
+                    // Присвоєння Покупця та Продавця
                     document.getElementById('cloneIncomeBuyer').value = buyer;
                     document.getElementById('cloneIncomeSeller').value = seller;
                     document.getElementById('cloneIncomeCharCount').textContent = details.length;
@@ -1496,7 +1588,7 @@
             });
         });
 
-        // ---- ВИДАЛЕННЯ (через пункти меню) ----
+        // ---- ВИДАЛЕННЯ ----
         document.querySelectorAll('.action-delete').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1540,7 +1632,7 @@
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
         // ================================================================
-        // 4. АВТОЗБЕРЕЖЕННЯ ЧАСУ
+        // 5. АВТОЗБЕРЕЖЕННЯ ЧАСУ
         // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
@@ -1558,7 +1650,7 @@
         });
 
         // ================================================================
-        // 5. ТЕПЛІ КЛАВІШІ
+        // 6. ТЕПЛІ КЛАВІШІ
         // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
@@ -1593,7 +1685,7 @@
         });
 
         // ================================================================
-        // 6. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ у localStorage
+        // 7. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ у localStorage
         // ================================================================
         function saveFilters() {
             try {
@@ -1623,7 +1715,7 @@
         }
 
         // ================================================================
-        // 7. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // 8. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
         // ================================================================
         function saveChartVisibility(visible) {
             try {
@@ -1643,7 +1735,7 @@
         }
 
         // ================================================================
-        // 8. ДІАГРАМИ (оновлені: вирівняні по центру)
+        // 9. ДІАГРАМИ
         // ================================================================
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
@@ -1776,7 +1868,7 @@
         }
 
         // ================================================================
-        // 9. ПРИСВОЄННЯ КОЛЬОРІВ КАТЕГОРІЯМ
+        // 10. ПРИСВОЄННЯ КОЛЬОРІВ КАТЕГОРІЯМ
         // ================================================================
         function assignCategoryColors() {
             document.querySelectorAll('.badge-category').forEach(badge => {
@@ -1790,7 +1882,7 @@
         }
 
         // ================================================================
-        // 10. ТОГЛ ДІАГРАМ
+        // 11. ТОГЛ ДІАГРАМ
         // ================================================================
         function toggleCharts() {
             const chartBody = document.getElementById('chartBody');
@@ -1813,7 +1905,7 @@
         }
 
         // ================================================================
-        // 11. ПОРТАЛЬНИЙ ПІДХІД ДЛЯ DROPDOWN (щоб не обрізалося)
+        // 12. ПОРТАЛЬНИЙ ПІДХІД ДЛЯ DROPDOWN
         // ================================================================
         document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
             const toggle = menu.closest('.btn-group').querySelector('[data-bs-toggle="dropdown"]');
@@ -1822,6 +1914,7 @@
             const originalParent = menu.parentNode;
 
             toggle.addEventListener('shown.bs.dropdown', function() {
+                // Переносимо меню в body
                 document.body.appendChild(menu);
                 const rect = toggle.getBoundingClientRect();
                 menu.style.position = 'fixed';
@@ -1842,7 +1935,7 @@
         });
 
         // ================================================================
-        // 12. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // 13. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -2041,7 +2134,7 @@
         document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
 
         // ================================================================
-        // 13. СОРТУВАННЯ З ПАМ'ЯТТЮ
+        // 14. СОРТУВАННЯ З ПАМ'ЯТТЮ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -2136,7 +2229,7 @@
         });
 
         // ================================================================
-        // 14. РЕСАЙЗ КОЛОНОК
+        // 15. РЕСАЙЗ КОЛОНОК
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -2217,7 +2310,7 @@
         }
 
         // ================================================================
-        // 15. ЗАПУСК
+        // 16. ЗАПУСК
         // ================================================================
         checkUrlParams();
         init();
