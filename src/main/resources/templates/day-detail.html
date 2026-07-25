@@ -1095,7 +1095,8 @@
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати витрату</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/expense/edit/{id}(id=${editExpenseId})}" method="post" id="editExpenseForm">
+            <!-- th:action прибрано, action задаватиметься через JS -->
+            <form id="editExpenseForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
                     <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editExpenseCategory" required>
@@ -1127,7 +1128,8 @@
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати дохід</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form th:action="@{/income/edit/{id}(id=${editIncomeId})}" method="post" id="editIncomeForm">
+            <!-- th:action прибрано, action задаватиметься через JS -->
+            <form id="editIncomeForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
                     <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editIncomeCategory" required>
