@@ -6,6 +6,7 @@
     <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - FinNest'"></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
         /* ===== АНІМАЦІЯ ПОЯВИ ===== */
@@ -99,7 +100,7 @@
         [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus { background-color: #2a2e37; color: #fff; }
         [data-bs-theme="dark"] .btn-close { filter: invert(1); }
 
-        /* ===== ТАБЛИЦЯ – РЕСАЙЗ І ВИДИМІ ГРАНИЦІ ===== */
+        /* ===== ТАБЛИЦЯ ===== */
         .table-transactions {
             table-layout: fixed;
             width: 100%;
@@ -147,6 +148,17 @@
         [data-bs-theme="dark"] .table-transactions th .resize-handle:hover,
         [data-bs-theme="dark"] .table-transactions th .resize-handle.active {
             background: #5a8ac5;
+        }
+
+        /* Плавне підсвічування рядків */
+        .table-transactions tbody tr {
+            transition: background-color 0.25s ease;
+        }
+        .table-transactions tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.08);
+        }
+        [data-bs-theme="dark"] .table-transactions tbody tr:hover {
+            background-color: rgba(90, 138, 197, 0.18);
         }
 
         .table-transactions .col-num {
@@ -218,6 +230,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            transition: background-color 0.2s ease;
         }
 
         .sortable { cursor: pointer; user-select: none; position: relative; }
@@ -357,7 +370,81 @@
             color: #e6e6e6;
         }
 
-        /* ===== АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ===== */
+        /* ===== ДІАГРАМИ (стиль як у totals) ===== */
+        .chart-section {
+            transition: all 0.3s ease;
+        }
+        .chart-section.collapsed {
+            display: none;
+        }
+        .chart-toggle-btn {
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.3s ease;
+        }
+        .chart-toggle-btn .toggle-icon {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        .chart-toggle-btn .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+        .chart-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chart-card .card-header .badge-chart {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+        }
+
+        .chart-container {
+            max-height: 240px;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+        .chart-container canvas {
+            max-height: 240px;
+            max-width: 320px;
+            cursor: pointer;
+        }
+
+        .chart-legend-table {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .chart-legend-table td {
+            padding: 0.1rem 0.3rem;
+        }
+        .chart-legend-table .color-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .chart-legend-table .amount-col {
+            text-align: right;
+            font-weight: 600;
+        }
+        .chart-legend-table .category-col {
+            text-align: left;
+        }
+
+        .chart-row-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0;
+        }
+        .chart-col {
+            flex: 1 1 50%;
+            min-width: 280px;
+            padding: 0 0.5rem;
+        }
+
+        /* ===== АДАПТИВНІСТЬ ===== */
         @media (max-width: 768px) {
             body { font-size: 14px; }
             .custom-container { padding-left: 8px; padding-right: 8px; }
@@ -400,6 +487,9 @@
             .delete-details .value { font-size: 0.8rem; }
             .keyboard-hint { font-size: 0.7rem; }
             .keyboard-hint kbd { font-size: 0.7rem; padding: 0.12rem 0.4rem; }
+            .chart-container { max-height: 160px; max-width: 200px; }
+            .chart-container canvas { max-height: 160px; max-width: 200px; }
+            .chart-col { flex: 1 1 100%; }
         }
 
         @media (max-width: 480px) {
@@ -533,6 +623,50 @@
         </div>
     </div>
 
+    <!-- ===== ДІАГРАМИ (як у totals) ===== -->
+    <div class="chart-section" id="chartSection">
+        <div class="row mb-4 stats-animated">
+            <div class="col-12">
+                <div class="card chart-card">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-pie me-2"></i>Аналітика витрат та доходів</span>
+                        <div>
+                            <span class="badge bg-light text-dark me-2" id="chartTotalLabel">Всього: 0</span>
+                            <button class="btn btn-sm btn-light chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
+                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" id="chartBody">
+                        <div class="chart-row-container">
+                            <div class="chart-col" id="expenseChartCol" th:unless="${dayBudget.expenses.empty}">
+                                <div class="text-center">
+                                    <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
+                                    <div class="chart-container mx-auto">
+                                        <canvas id="expenseChart"></canvas>
+                                    </div>
+                                    <div class="chart-legend-table" id="expenseLegend"></div>
+                                </div>
+                            </div>
+                            <div class="chart-col" id="incomeChartCol" th:unless="${dayBudget.incomes.empty}">
+                                <div class="text-center">
+                                    <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи</h6>
+                                    <div class="chart-container mx-auto">
+                                        <canvas id="incomeChart"></canvas>
+                                    </div>
+                                    <div class="chart-legend-table" id="incomeLegend"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Клікніть на сектор діаграми, щоб відфільтрувати категорію</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== ТАБЛИЦЯ ===== -->
     <div class="card shadow mt-4 table-wrap-animated">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -603,13 +737,14 @@
                             <span th:if="${expense.details != null and expense.details.length() > 0}" th:text="${expense.details}" th:title="${expense.details}"></span>
                             <span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span>
                         </td>
-                        <td class="col-category"><span class="badge badge-category bg-danger" th:text="${expense.category.name}"></span></td>
+                        <td class="col-category"><span class="badge badge-category" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
                         <td class="col-actions no-print">
                             <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editExpenseModal"
                                     th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}"
                                     th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}"
                                     th:data-time="${expense.time}"
-                                    th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}">
+                                    th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}"
+                                    th:data-category-name="${expense.category.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn btn-info btn-sm me-1" data-bs-toggle="modal" data-bs-target="#cloneExpenseModal"
@@ -653,13 +788,14 @@
                             <span th:if="${income.details != null and income.details.length() > 0}" th:text="${income.details}" th:title="${income.details}"></span>
                             <span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span>
                         </td>
-                        <td class="col-category"><span class="badge badge-category bg-success" th:text="${income.category.name}"></span></td>
+                        <td class="col-category"><span class="badge badge-category" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
                         <td class="col-actions no-print">
                             <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editIncomeModal"
                                     th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}"
                                     th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}"
                                     th:data-time="${income.time}"
-                                    th:data-buyer="${income.buyer}" th:data-seller="${income.seller}">
+                                    th:data-buyer="${income.buyer}" th:data-seller="${income.seller}"
+                                    th:data-category-name="${income.category.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn btn-info btn-sm me-1" data-bs-toggle="modal" data-bs-target="#cloneIncomeModal"
@@ -703,6 +839,7 @@
     </div>
 </div>
 
+<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
 <!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -981,6 +1118,26 @@
 <script>
     (function() {
         // ================================================================
+        // 0. КОЛІРНА ПАЛІТРА (як у totals)
+        // ================================================================
+        const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
+
+        function getCategoryColor(name, index) {
+            if (!name) return '#6c757d';
+            // Якщо передано індекс, використовуємо палітру
+            if (index !== undefined && index < CHART_PALETTE.length) {
+                return CHART_PALETTE[index];
+            }
+            // Інакше генеруємо за хешем
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const idx = Math.abs(hash % CHART_PALETTE.length);
+            return CHART_PALETTE[idx];
+        }
+
+        // ================================================================
         // 1. TOAST ПОВІДОМЛЕННЯ
         // ================================================================
         function showToast(message, type) {
@@ -1015,7 +1172,7 @@
             const success = urlParams.get('success');
             const error = urlParams.get('error');
 
-            if (success === 'true' || success === 'expense_added') {
+            if (success === 'true' || success === 'expense_added' || success === 'income_added') {
                 showToast('Транзакцію додано!', 'success');
             } else if (success === 'expense_edited' || success === 'income_edited') {
                 showToast('Транзакцію оновлено!', 'success');
@@ -1023,6 +1180,12 @@
                 showToast('Транзакцію видалено!', 'success');
             } else if (success === 'expense_duplicated' || success === 'income_duplicated') {
                 showToast('Транзакцію дубльовано!', 'success');
+            } else if (success === 'category_added') {
+                showToast('Категорію додано!', 'success');
+            } else if (success === 'category_deleted') {
+                showToast('Категорію видалено!', 'success');
+            } else if (success === 'category_updated') {
+                showToast('Категорію оновлено!', 'success');
             } else if (error) {
                 showToast('Сталася помилка. Спробуйте ще раз.', 'error');
             }
@@ -1034,7 +1197,7 @@
         }
 
         // ================================================================
-        // 2. ДАТА ДЛЯ LOCALSTORAGE
+        // 2. ДАТА для ключів localStorage
         // ================================================================
         const dateElem = document.querySelector('h5.no-print span');
         let currentDate = '';
@@ -1053,6 +1216,8 @@
         }
         const STORAGE_KEY = 'finnest_sort_day_' + currentDate;
         const COL_WIDTH_KEY = 'finnest_col_widths_' + currentDate;
+        const FILTERS_KEY = 'finnest_filters_day_' + currentDate;
+        const CHART_VISIBLE_KEY = 'finnest_chart_visible_' + currentDate;
 
         // ================================================================
         // 3. КАТЕГОРІЇ (для модалок)
@@ -1341,7 +1506,7 @@
         });
 
         // ================================================================
-        // 5. ТЕПЛІ КЛАВІШІ (Keyboard shortcuts)
+        // 5. ТЕПЛІ КЛАВІШІ
         // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
@@ -1376,7 +1541,231 @@
         });
 
         // ================================================================
-        // 6. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // 6. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ у localStorage
+        // ================================================================
+        function saveFilters() {
+            try {
+                const filters = {
+                    type: typeFilter.value,
+                    category: categoryFilter.value,
+                    search: searchInput.value,
+                    pageSize: pageSizeSelect.value
+                };
+                localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+            } catch(e) {}
+        }
+
+        function restoreFilters() {
+            try {
+                const stored = localStorage.getItem(FILTERS_KEY);
+                if (stored) {
+                    const filters = JSON.parse(stored);
+                    if (filters.type) typeFilter.value = filters.type;
+                    if (filters.category) categoryFilter.value = filters.category;
+                    if (filters.search) searchInput.value = filters.search;
+                    if (filters.pageSize) pageSizeSelect.value = filters.pageSize;
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        // ================================================================
+        // 7. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // ================================================================
+        function saveChartVisibility(visible) {
+            try {
+                localStorage.setItem(CHART_VISIBLE_KEY, JSON.stringify({ visible: visible }));
+            } catch(e) {}
+        }
+
+        function restoreChartVisibility() {
+            try {
+                const stored = localStorage.getItem(CHART_VISIBLE_KEY);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    return data.visible;
+                }
+            } catch(e) {}
+            return true; // за замовчуванням показуємо
+        }
+
+        // ================================================================
+        // 8. ДІАГРАМИ (як у totals)
+        // ================================================================
+        function renderChart(type) {
+            const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
+            const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
+            const chartCanvas = document.getElementById(canvasId);
+            const legendContainer = document.getElementById(legendId);
+            if (!chartCanvas) {
+                console.warn('Canvas #' + canvasId + ' не знайдено');
+                return;
+            }
+
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js не завантажено');
+                const container = chartCanvas.parentElement;
+                if (container) {
+                    container.innerHTML = '<p class="text-muted">Бібліотека Chart.js не завантажилась. Спробуйте перезавантажити сторінку.</p>';
+                }
+                return;
+            }
+
+            const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
+            const categoryMap = new Map();
+
+            rows.forEach(row => {
+                const badge = row.querySelector('.col-category .badge');
+                if (!badge) return;
+                const catName = badge.textContent.trim();
+                const amountCell = row.querySelector('td:nth-child(6)');
+                if (!amountCell) return;
+                const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
+                const amount = parseFloat(amountText) || 0;
+                if (amount > 0) {
+                    categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
+                }
+            });
+
+            const entries = Array.from(categoryMap.entries());
+            // Сортуємо за спаданням суми
+            entries.sort((a, b) => b[1] - a[1]);
+
+            const labels = entries.map(e => e[0]);
+            const data = entries.map(e => e[1]);
+
+            const chartRow = document.getElementById(type + 'ChartCol');
+            if (data.length === 0) {
+                if (chartRow) chartRow.style.display = 'none';
+                return;
+            } else {
+                if (chartRow) chartRow.style.display = '';
+            }
+
+            // Кольори з палітри
+            const colors = labels.map((name, index) => getCategoryColor(name, index));
+
+            const chartKey = type + 'ChartInstance';
+            if (window[chartKey]) {
+                try { window[chartKey].destroy(); } catch(e) {}
+                window[chartKey] = null;
+            }
+
+            try {
+                window[chartKey] = new Chart(chartCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        onClick: function(e, elements) {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const category = labels[index];
+                                categoryFilter.value = category;
+                                categoryFilter.dispatchEvent(new Event('change'));
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        cutout: '55%'
+                    }
+                });
+
+                // Оновлюємо легенду (таблиця з категоріями та сумами)
+                if (legendContainer) {
+                    const total = data.reduce((a, b) => a + b, 0);
+                    let html = '<table class="chart-legend-table"><tbody>';
+                    entries.forEach(([name, amount], idx) => {
+                        const color = getCategoryColor(name, idx);
+                        const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                        html += '<tr>' +
+                            '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
+                            '<td class="category-col">' + name + '</td>' +
+                            '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                            '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
+                            '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    legendContainer.innerHTML = html;
+                }
+
+                // Оновлюємо загальну кількість
+                const totalLabel = document.getElementById('chartTotalLabel');
+                if (totalLabel) {
+                    const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
+                    const incomeTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="income"]');
+                    const totalCount = expenseTotal.length + incomeTotal.length;
+                    totalLabel.textContent = 'Всього: ' + totalCount;
+                }
+
+                console.log('Діаграма ' + type + ' успішно створена');
+            } catch (e) {
+                console.error('Помилка при створенні діаграми ' + type + ':', e);
+                const container = chartCanvas.parentElement;
+                if (container) {
+                    container.innerHTML = '<p class="text-muted">Помилка створення діаграми. Перевірте консоль.</p>';
+                }
+            }
+        }
+
+        function renderAllCharts() {
+            renderChart('expense');
+            renderChart('income');
+        }
+
+        // ================================================================
+        // 9. ПРИСВОЄННЯ КОЛЬОРІВ КАТЕГОРІЯМ
+        // ================================================================
+        function assignCategoryColors() {
+            document.querySelectorAll('.badge-category').forEach(badge => {
+                const name = badge.getAttribute('data-category');
+                if (name) {
+                    const color = getCategoryColor(name, 0);
+                    badge.style.backgroundColor = color;
+                    badge.style.color = '#fff';
+                }
+            });
+        }
+
+        // ================================================================
+        // 10. ТОГЛ ДІАГРАМ
+        // ================================================================
+        function toggleCharts() {
+            const chartBody = document.getElementById('chartBody');
+            const icon = document.getElementById('chartToggleIcon');
+            const section = document.getElementById('chartSection');
+
+            if (!chartBody) return;
+
+            const isHidden = chartBody.style.display === 'none';
+            if (isHidden) {
+                chartBody.style.display = '';
+                icon.className = 'fas fa-chevron-up toggle-icon';
+                // Перемальовуємо діаграми
+                setTimeout(renderAllCharts, 100);
+                saveChartVisibility(true);
+            } else {
+                chartBody.style.display = 'none';
+                icon.className = 'fas fa-chevron-down toggle-icon';
+                saveChartVisibility(false);
+            }
+        }
+
+        // ================================================================
+        // 11. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -1405,6 +1794,7 @@
                     if (catName) categories.add(catName);
                 }
             });
+            const currentVal = categoryFilter.value;
             categoryFilter.innerHTML = '<option value="">Всі категорії</option>';
             const sorted = Array.from(categories).sort();
             sorted.forEach(cat => {
@@ -1413,20 +1803,55 @@
                 opt.textContent = cat;
                 categoryFilter.appendChild(opt);
             });
+            if (currentVal && categories.has(currentVal)) {
+                categoryFilter.value = currentVal;
+            }
         }
 
         function init() {
             allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
+
+            const filtersRestored = restoreFilters();
+
             pageSize = parseInt(pageSizeSelect.value) || 0;
             filterType = typeFilter.value;
             filterCategory = categoryFilter.value;
             searchText = searchInput.value.toLowerCase().trim();
+
             populateCategoryFilter();
             applyStoredSort();
+            assignCategoryColors();
+
+            // Відновлюємо стан діаграм
+            const chartVisible = restoreChartVisibility();
+            const chartBody = document.getElementById('chartBody');
+            const icon = document.getElementById('chartToggleIcon');
+            if (!chartVisible && chartBody) {
+                chartBody.style.display = 'none';
+                if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
+            }
+
             setTimeout(() => {
                 restoreColumnWidths();
                 initColumnResize();
             }, 50);
+
+            if (!filtersRestored) {
+                applyFiltersAndLoad();
+            }
+
+            setTimeout(function() {
+                if (typeof Chart !== 'undefined') {
+                    renderAllCharts();
+                } else {
+                    console.warn('Chart.js не завантажено, спробуйте перезавантажити сторінку');
+                    setTimeout(function() {
+                        if (typeof Chart !== 'undefined') {
+                            renderAllCharts();
+                        }
+                    }, 2000);
+                }
+            }, 300);
         }
 
         function getFilteredRows() {
@@ -1497,6 +1922,9 @@
             visibleRows = getFilteredRows();
             currentPage = 1;
             updateUI();
+            saveFilters();
+            setTimeout(renderAllCharts, 50);
+            setTimeout(assignCategoryColors, 50);
         }
 
         function loadMore() {
@@ -1533,8 +1961,11 @@
 
         loadMoreBtn.addEventListener('click', loadMore);
 
+        // ---- ТОГЛ ДІАГРАМ ----
+        document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
+
         // ================================================================
-        // 7. СОРТУВАННЯ З ПАМ'ЯТТЮ
+        // 12. СОРТУВАННЯ З ПАМ'ЯТТЮ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -1629,7 +2060,7 @@
         });
 
         // ================================================================
-        // 8. ПОКРАЩЕНЕ ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ (ВСІ ПОЛЯ)
+        // 13. ВИДАЛЕННЯ
         // ================================================================
         const deleteForm = document.getElementById('deleteForm');
         const deleteType = document.getElementById('deleteType');
@@ -1677,7 +2108,7 @@
         });
 
         // ================================================================
-        // 9. РЕСАЙЗ КОЛОНОК – ВИДИМІ ГРАНИЦІ
+        // 14. РЕСАЙЗ КОЛОНОК
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -1758,18 +2189,10 @@
         }
 
         // ================================================================
-        // 10. ЗАПУСК
+        // 15. ЗАПУСК
         // ================================================================
         checkUrlParams();
-
         init();
-        setTimeout(() => {
-            const hasActiveSort = document.querySelector('.sortable.active-asc, .sortable.active-desc');
-            if (!hasActiveSort) {
-                applyStoredSort();
-            }
-        }, 200);
-        setTimeout(populateCategoryFilter, 300);
     })();
 </script>
 </body>
