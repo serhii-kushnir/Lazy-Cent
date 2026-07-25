@@ -39,7 +39,10 @@ public class BudgetService {
                     newBudget.setDayName(getDayName(date));
                     newBudget.setStartingBalance(getLastRemainingBalance(date));
                     newBudget.setRemainingBalance(0.0);
-                    return dayBudgetRepository.save(newBudget);
+                    DayBudget saved = dayBudgetRepository.save(newBudget);
+                    // Одразу перераховуємо баланс, щоб врахувати будь-які вже існуючі транзакції за цю дату
+                    updateDayBudgetBalance(saved);
+                    return saved;
                 });
     }
 
