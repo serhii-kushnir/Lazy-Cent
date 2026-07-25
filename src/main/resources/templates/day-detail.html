@@ -370,7 +370,7 @@
             color: #e6e6e6;
         }
 
-        /* ===== ДІАГРАМИ (стиль як у totals) ===== */
+        /* ===== ДІАГРАМИ (оновлене вирівнювання по центру) ===== */
         .chart-section {
             transition: all 0.3s ease;
         }
@@ -400,20 +400,40 @@
             border-radius: 20px;
         }
 
+        .chart-row-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0;
+        }
+        .chart-col {
+            flex: 0 0 auto;
+            max-width: 50%;
+            padding: 0 0.5rem;
+            min-width: 280px;
+        }
+        .chart-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
         .chart-container {
-            max-height: 240px;
-            max-width: 320px;
-            margin: 0 auto;
+            max-height: 200px;
+            max-width: 200px;
+            flex-shrink: 0;
         }
         .chart-container canvas {
-            max-height: 240px;
-            max-width: 320px;
+            max-height: 200px;
+            max-width: 200px;
             cursor: pointer;
         }
-
         .chart-legend-table {
             font-size: 0.8rem;
-            margin-top: 0.5rem;
+            flex: 0 0 auto;
+            min-width: 120px;
+            text-align: left;
         }
         .chart-legend-table td {
             padding: 0.1rem 0.3rem;
@@ -433,15 +453,20 @@
             text-align: left;
         }
 
-        .chart-row-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0;
+        /* ===== ТЕМНА ТЕМА ДЛЯ ДІАГРАМ ===== */
+        [data-bs-theme="dark"] .chart-card .card-header {
+            background-color: #2a2e37 !important;
+            color: #e6e6e6 !important;
+            border-bottom-color: #3a3f4a !important;
         }
-        .chart-col {
-            flex: 1 1 50%;
-            min-width: 280px;
-            padding: 0 0.5rem;
+        [data-bs-theme="dark"] .chart-card .card-body {
+            background-color: #1d2027 !important;
+        }
+        [data-bs-theme="dark"] .chart-legend-table td {
+            color: #e6e6e6 !important;
+        }
+        [data-bs-theme="dark"] .chart-legend-table .amount-col {
+            color: #9aa3b2 !important;
         }
 
         /* ===== АДАПТИВНІСТЬ ===== */
@@ -487,9 +512,10 @@
             .delete-details .value { font-size: 0.8rem; }
             .keyboard-hint { font-size: 0.7rem; }
             .keyboard-hint kbd { font-size: 0.7rem; padding: 0.12rem 0.4rem; }
-            .chart-container { max-height: 160px; max-width: 200px; }
-            .chart-container canvas { max-height: 160px; max-width: 200px; }
-            .chart-col { flex: 1 1 100%; }
+            .chart-container { max-height: 140px; max-width: 140px; }
+            .chart-container canvas { max-height: 140px; max-width: 140px; }
+            .chart-col { flex: 0 0 100%; max-width: 100%; }
+            .chart-flex { flex-direction: column; align-items: center; }
         }
 
         @media (max-width: 480px) {
@@ -623,7 +649,7 @@
         </div>
     </div>
 
-    <!-- ===== ДІАГРАМИ (як у totals) ===== -->
+    <!-- ===== ДІАГРАМИ (оновлене вирівнювання по центру) ===== -->
     <div class="chart-section" id="chartSection">
         <div class="row mb-4 stats-animated">
             <div class="col-12">
@@ -639,22 +665,28 @@
                     </div>
                     <div class="card-body" id="chartBody">
                         <div class="chart-row-container">
+                            <!-- Витрати -->
                             <div class="chart-col" id="expenseChartCol" th:unless="${dayBudget.expenses.empty}">
                                 <div class="text-center">
                                     <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
-                                    <div class="chart-container mx-auto">
-                                        <canvas id="expenseChart"></canvas>
+                                    <div class="chart-flex">
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="expenseChart"></canvas>
+                                        </div>
+                                        <div class="chart-legend-table" id="expenseLegend"></div>
                                     </div>
-                                    <div class="chart-legend-table" id="expenseLegend"></div>
                                 </div>
                             </div>
+                            <!-- Доходи -->
                             <div class="chart-col" id="incomeChartCol" th:unless="${dayBudget.incomes.empty}">
                                 <div class="text-center">
                                     <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи</h6>
-                                    <div class="chart-container mx-auto">
-                                        <canvas id="incomeChart"></canvas>
+                                    <div class="chart-flex">
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="incomeChart"></canvas>
+                                        </div>
+                                        <div class="chart-legend-table" id="incomeLegend"></div>
                                     </div>
-                                    <div class="chart-legend-table" id="incomeLegend"></div>
                                 </div>
                             </div>
                         </div>
@@ -839,7 +871,7 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
+<!-- ===== ВСІ МОДАЛЬНІ ВІКНА ===== -->
 <!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -1124,11 +1156,9 @@
 
         function getCategoryColor(name, index) {
             if (!name) return '#6c757d';
-            // Якщо передано індекс, використовуємо палітру
             if (index !== undefined && index < CHART_PALETTE.length) {
                 return CHART_PALETTE[index];
             }
-            // Інакше генеруємо за хешем
             let hash = 0;
             for (let i = 0; i < name.length; i++) {
                 hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -1587,11 +1617,11 @@
                     return data.visible;
                 }
             } catch(e) {}
-            return true; // за замовчуванням показуємо
+            return true;
         }
 
         // ================================================================
-        // 8. ДІАГРАМИ (як у totals)
+        // 8. ДІАГРАМИ (оновлені: вирівняні по центру)
         // ================================================================
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
@@ -1629,21 +1659,19 @@
             });
 
             const entries = Array.from(categoryMap.entries());
-            // Сортуємо за спаданням суми
             entries.sort((a, b) => b[1] - a[1]);
 
             const labels = entries.map(e => e[0]);
             const data = entries.map(e => e[1]);
 
-            const chartRow = document.getElementById(type + 'ChartCol');
+            const chartCol = document.getElementById(type + 'ChartCol');
             if (data.length === 0) {
-                if (chartRow) chartRow.style.display = 'none';
+                if (chartCol) chartCol.style.display = 'none';
                 return;
             } else {
-                if (chartRow) chartRow.style.display = '';
+                if (chartCol) chartCol.style.display = '';
             }
 
-            // Кольори з палітри
             const colors = labels.map((name, index) => getCategoryColor(name, index));
 
             const chartKey = type + 'ChartInstance';
@@ -1684,7 +1712,7 @@
                     }
                 });
 
-                // Оновлюємо легенду (таблиця з категоріями та сумами)
+                // Оновлюємо легенду (таблиця)
                 if (legendContainer) {
                     const total = data.reduce((a, b) => a + b, 0);
                     let html = '<table class="chart-legend-table"><tbody>';
@@ -1702,7 +1730,6 @@
                     legendContainer.innerHTML = html;
                 }
 
-                // Оновлюємо загальну кількість
                 const totalLabel = document.getElementById('chartTotalLabel');
                 if (totalLabel) {
                     const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
@@ -1754,7 +1781,6 @@
             if (isHidden) {
                 chartBody.style.display = '';
                 icon.className = 'fas fa-chevron-up toggle-icon';
-                // Перемальовуємо діаграми
                 setTimeout(renderAllCharts, 100);
                 saveChartVisibility(true);
             } else {
@@ -1822,7 +1848,6 @@
             applyStoredSort();
             assignCategoryColors();
 
-            // Відновлюємо стан діаграм
             const chartVisible = restoreChartVisibility();
             const chartBody = document.getElementById('chartBody');
             const icon = document.getElementById('chartToggleIcon');
