@@ -309,13 +309,105 @@
         [data-bs-theme="dark"] .delete-details .label {
             color: #9aa3b2;
         }
-        /* ВИПРАВЛЕННЯ: перенесення тексту в значеннях */
         .delete-details .value {
             color: var(--text-primary);
             word-break: break-word;
             overflow-wrap: break-word;
             white-space: normal;
             max-width: 100%;
+        }
+
+        /* ===== TOAST КОНТЕЙНЕР ===== */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            background: #fff;
+            border-left: 4px solid #0d6efd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 250px;
+        }
+        .toast.success { border-left-color: #198754; }
+        .toast.error { border-left-color: #dc3545; }
+        [data-bs-theme="dark"] .toast { background: #1d2027; color: #e6e6e6; }
+
+        /* ===== ПІДКАЗКА КЛАВІШ – БІЛЬШИЙ РОЗМІР ===== */
+        .keyboard-hint {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-right: 1rem;
+        }
+        [data-bs-theme="dark"] .keyboard-hint {
+            color: #9aa3b2;
+        }
+        .keyboard-hint kbd {
+            background: #e9ecef;
+            color: #212529;
+            border-radius: 4px;
+            padding: 0.2rem 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="dark"] .keyboard-hint kbd {
+            background: #2a2e37;
+            color: #e6e6e6;
+        }
+
+        /* ===== АДАПТИВНІСТЬ ДЛЯ МОБІЛЬНИХ ===== */
+        @media (max-width: 768px) {
+            body { font-size: 14px; }
+            .custom-container { padding-left: 8px; padding-right: 8px; }
+            .card-body { padding: 4px !important; }
+            .card-header { padding: 4px !important; }
+            .card-header h5 { font-size: 1rem; }
+            .balance-card .icon-circle { width: 32px; height: 32px; }
+            .balance-card .icon-circle i { font-size: 1.2rem; }
+            .balance-card h6 { font-size: 0.6rem; }
+            .balance-card h4 { font-size: 0.8rem; }
+
+            .table-transactions { font-size: 0.7rem; }
+            .table-transactions th, .table-transactions td { padding: 0.3rem 0.2rem; }
+            .table-transactions .col-num { width: 30px; min-width: 30px; max-width: 30px; }
+            .table-transactions .col-type { width: 70px; min-width: 70px; max-width: 70px; }
+            .table-transactions .col-name { min-width: 80px; max-width: 120px; }
+            .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
+            .table-transactions .col-details { min-width: 60px; max-width: 80px; }
+            .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
+            .table-transactions .col-actions { width: 100px; min-width: 100px; max-width: 100px; }
+            .table-transactions .col-actions .btn { font-size: 0.6rem; padding: 0.15rem 0.3rem; }
+
+            .table-toolbar { gap: 0.4rem; }
+            .table-toolbar .search-input { min-width: 100px; }
+            .table-toolbar .filter-select { max-width: 100px; }
+            .table-toolbar .category-filter { max-width: 110px; }
+            .table-toolbar .page-size-select { max-width: 70px; }
+            .table-toolbar .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+            .table-toolbar .info-text { font-size: 0.7rem; }
+
+            .modal-dialog { margin: 0.5rem; }
+            .modal-content { font-size: 0.85rem; }
+            .modal-body { padding: 1rem; }
+            .transaction-type-toggle .btn { font-size: 0.8rem; padding: 0.4rem; }
+            .input-group-number .btn { flex: 0 0 30px; font-size: 0.8rem; }
+            .input-group-number input { font-size: 0.8rem; }
+            .delete-details { padding: 0.5rem; }
+            .delete-details .row { margin-bottom: 0.15rem; }
+            .delete-details .label { font-size: 0.75rem; }
+            .delete-details .value { font-size: 0.8rem; }
+            .keyboard-hint { font-size: 0.7rem; }
+            .keyboard-hint kbd { font-size: 0.7rem; padding: 0.12rem 0.4rem; }
+        }
+
+        @media (max-width: 480px) {
+            .table-transactions { font-size: 0.6rem; }
+            .table-transactions th, .table-transactions td { padding: 0.2rem 0.1rem; }
+            .table-transactions .col-actions .btn { font-size: 0.5rem; padding: 0.1rem 0.2rem; }
+            .badge-type { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
+            .badge-category { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
         }
 
         /* ===== ДРУК ===== */
@@ -355,6 +447,20 @@
 </head>
 <body>
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
+
+<!-- ===== TOAST КОНТЕЙНЕР ===== -->
+<div class="toast-container">
+    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-info-circle me-2" id="toastIcon"></i>
+            <strong class="me-auto" id="toastTitle">Повідомлення</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastMessage">
+            Текст повідомлення
+        </div>
+    </div>
+</div>
 
 <!-- ===== КОНТЕЙНЕР ===== -->
 <div class="container-fluid custom-container mt-4">
@@ -597,7 +703,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНІ ВІКНА (без змін) ===== -->
 <!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -673,6 +778,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                     <button type="submit" class="btn btn-primary">Зберегти транзакцію</button>
                 </div>
@@ -681,7 +787,7 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ (З ВСІМА ПОЛЯМИ) ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ ===== -->
 <div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -765,6 +871,7 @@
                     <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                     <button type="submit" class="btn btn-primary">Зберегти</button>
                 </div>
@@ -796,6 +903,7 @@
                     <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                     <button type="submit" class="btn btn-primary">Зберегти</button>
                 </div>
@@ -826,6 +934,7 @@
                     <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneExpenseCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                     <button type="submit" class="btn btn-primary">Дублювати</button>
                 </div>
@@ -856,6 +965,7 @@
                     <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneIncomeCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                     <button type="submit" class="btn btn-primary">Дублювати</button>
                 </div>
@@ -871,7 +981,60 @@
 <script>
     (function() {
         // ================================================================
-        // 1. ДАТА ДЛЯ LOCALSTORAGE
+        // 1. TOAST ПОВІДОМЛЕННЯ
+        // ================================================================
+        function showToast(message, type) {
+            const toastElement = document.getElementById('liveToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            if (!toastElement) return;
+
+            toastElement.classList.remove('success', 'error');
+            if (type === 'success') {
+                toastElement.classList.add('success');
+                toastIcon.className = 'fas fa-check-circle me-2';
+                toastTitle.textContent = 'Успішно!';
+            } else if (type === 'error') {
+                toastElement.classList.add('error');
+                toastIcon.className = 'fas fa-exclamation-circle me-2';
+                toastTitle.textContent = 'Помилка!';
+            } else {
+                toastIcon.className = 'fas fa-info-circle me-2';
+                toastTitle.textContent = 'Інформація';
+            }
+
+            toastMessage.textContent = message;
+            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+            toast.show();
+        }
+
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const error = urlParams.get('error');
+
+            if (success === 'true' || success === 'expense_added') {
+                showToast('Транзакцію додано!', 'success');
+            } else if (success === 'expense_edited' || success === 'income_edited') {
+                showToast('Транзакцію оновлено!', 'success');
+            } else if (success === 'expense_deleted' || success === 'income_deleted') {
+                showToast('Транзакцію видалено!', 'success');
+            } else if (success === 'expense_duplicated' || success === 'income_duplicated') {
+                showToast('Транзакцію дубльовано!', 'success');
+            } else if (error) {
+                showToast('Сталася помилка. Спробуйте ще раз.', 'error');
+            }
+
+            if (urlParams.toString()) {
+                const newUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, newUrl);
+            }
+        }
+
+        // ================================================================
+        // 2. ДАТА ДЛЯ LOCALSTORAGE
         // ================================================================
         const dateElem = document.querySelector('h5.no-print span');
         let currentDate = '';
@@ -892,7 +1055,7 @@
         const COL_WIDTH_KEY = 'finnest_col_widths_' + currentDate;
 
         // ================================================================
-        // 2. КАТЕГОРІЇ (для модалок)
+        // 3. КАТЕГОРІЇ (для модалок)
         // ================================================================
         let expenseCategories = /*[[${expenseCategories}]]*/ null;
         let incomeCategories = /*[[${incomeCategories}]]*/ null;
@@ -1008,13 +1171,6 @@
             });
             amountInput.addEventListener('blur', formatAmountField);
             amountInput.addEventListener('change', formatAmountField);
-            document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
-                if (!amountInput.value || parseFloat(amountInput.value) === 0) {
-                    amountInput.value = '0.00';
-                } else {
-                    formatAmountField();
-                }
-            });
         }
 
         // ---- КНОПКИ +/- ДЛЯ КІЛЬКОСТІ ----
@@ -1167,7 +1323,60 @@
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
         // ================================================================
-        // 3. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // 4. АВТОЗБЕРЕЖЕННЯ ЧАСУ
+        // ================================================================
+        document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
+            const timeInput = document.getElementById('transactionTime');
+            if (timeInput && !timeInput.value) {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                timeInput.value = hours + ':' + minutes;
+            }
+            if (amountInput && (!amountInput.value || parseFloat(amountInput.value) === 0)) {
+                amountInput.value = '0.00';
+            } else if (amountInput) {
+                formatAmountField();
+            }
+        });
+
+        // ================================================================
+        // 5. ТЕПЛІ КЛАВІШІ (Keyboard shortcuts)
+        // ================================================================
+        document.addEventListener('keydown', function(e) {
+            const openModals = document.querySelectorAll('.modal.show');
+            if (openModals.length === 0) return;
+
+            if (e.key === 'Escape') {
+                openModals.forEach(modal => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                });
+                e.preventDefault();
+                return;
+            }
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                for (const modal of openModals) {
+                    const form = modal.querySelector('form:not(#deleteForm)');
+                    if (form) {
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.click();
+                            e.preventDefault();
+                            break;
+                        } else {
+                            form.submit();
+                            e.preventDefault();
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        // ================================================================
+        // 6. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -1214,7 +1423,6 @@
             searchText = searchInput.value.toLowerCase().trim();
             populateCategoryFilter();
             applyStoredSort();
-            // Відновлюємо ширини колонок ПІСЛЯ того, як таблиця повністю завантажена
             setTimeout(() => {
                 restoreColumnWidths();
                 initColumnResize();
@@ -1326,7 +1534,7 @@
         loadMoreBtn.addEventListener('click', loadMore);
 
         // ================================================================
-        // 4. СОРТУВАННЯ З ПАМ'ЯТТЮ
+        // 7. СОРТУВАННЯ З ПАМ'ЯТТЮ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -1421,7 +1629,7 @@
         });
 
         // ================================================================
-        // 5. ПОКРАЩЕНЕ ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ (ВСІ ПОЛЯ)
+        // 8. ПОКРАЩЕНЕ ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ (ВСІ ПОЛЯ)
         // ================================================================
         const deleteForm = document.getElementById('deleteForm');
         const deleteType = document.getElementById('deleteType');
@@ -1469,7 +1677,7 @@
         });
 
         // ================================================================
-        // 6. РЕСАЙЗ КОЛОНОК – ВИДИМІ ГРАНИЦІ
+        // 9. РЕСАЙЗ КОЛОНОК – ВИДИМІ ГРАНИЦІ
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -1482,7 +1690,6 @@
             } catch(e) { /* ignore */ }
 
             headers.forEach((th, index) => {
-                // Пропускаємо колонку дій та останню (без ручки)
                 if (th.classList.contains('col-actions')) return;
                 const colKey = 'col-' + index;
                 if (widths[colKey]) {
@@ -1505,10 +1712,7 @@
             } catch(e) { /* ignore */ }
 
             headers.forEach((th, index) => {
-                // Пропускаємо колонку "Дії"
                 if (th.classList.contains('col-actions')) return;
-
-                // Якщо вже є ручка – не додаємо повторно
                 if (th.querySelector('.resize-handle')) return;
 
                 const handle = document.createElement('div');
@@ -1554,8 +1758,10 @@
         }
 
         // ================================================================
-        // 7. ЗАПУСК
+        // 10. ЗАПУСК
         // ================================================================
+        checkUrlParams();
+
         init();
         setTimeout(() => {
             const hasActiveSort = document.querySelector('.sortable.active-asc, .sortable.active-desc');
