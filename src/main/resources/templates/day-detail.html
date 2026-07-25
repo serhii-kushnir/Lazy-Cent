@@ -193,9 +193,9 @@
             text-align: center;
         }
         .table-transactions .col-actions {
-            width: 130px;
-            min-width: 130px;
-            max-width: 130px;
+            width: 60px;
+            min-width: 60px;
+            max-width: 60px;
             text-align: center;
             white-space: nowrap;
         }
@@ -489,7 +489,7 @@
             .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
             .table-transactions .col-details { min-width: 60px; max-width: 80px; }
             .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
-            .table-transactions .col-actions { width: 100px; min-width: 100px; max-width: 100px; }
+            .table-transactions .col-actions { width: 40px; min-width: 40px; max-width: 40px; }
             .table-transactions .col-actions .btn { font-size: 0.6rem; padding: 0.15rem 0.3rem; }
 
             .table-toolbar { gap: 0.4rem; }
@@ -649,7 +649,7 @@
         </div>
     </div>
 
-    <!-- ===== ДІАГРАМИ (оновлене вирівнювання по центру) ===== -->
+    <!-- ===== ДІАГРАМИ ===== -->
     <div class="chart-section" id="chartSection">
         <div class="row mb-4 stats-animated">
             <div class="col-12">
@@ -771,35 +771,17 @@
                         </td>
                         <td class="col-category"><span class="badge badge-category" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
                         <td class="col-actions no-print">
-                            <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editExpenseModal"
-                                    th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}"
-                                    th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}"
-                                    th:data-time="${expense.time}"
-                                    th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}"
-                                    th:data-category-name="${expense.category.name}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-info btn-sm me-1" data-bs-toggle="modal" data-bs-target="#cloneExpenseModal"
-                                    th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}"
-                                    th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}"
-                                    th:data-time="${expense.time}"
-                                    th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}"
-                                    title="Дублювати">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm btn-delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"
-                                    th:data-id="${expense.id}" data-type="expense"
-                                    th:data-description="${expense.description}"
-                                    th:data-amount="${expense.amount}"
-                                    th:data-category="${expense.category.name}"
-                                    th:data-details="${expense.details}"
-                                    th:data-time="${expense.time}"
-                                    th:data-quantity="${expense.quantity}"
-                                    th:data-buyer="${expense.buyer}"
-                                    th:data-seller="${expense.seller}"
-                                    title="Видалити">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
+                                    <li><a class="dropdown-item action-edit" href="#" data-id="${expense.id}" data-category="${expense.category.id}" data-description="${expense.description}" data-amount="${expense.amount}" data-quantity="${expense.quantity}" data-details="${expense.details}" data-time="${expense.time}" data-buyer="${expense.buyer}" data-seller="${expense.seller}" data-category-name="${expense.category.name}"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
+                                    <li><a class="dropdown-item action-duplicate" href="#" data-id="${expense.id}" data-category="${expense.category.id}" data-description="${expense.description}" data-amount="${expense.amount}" data-quantity="${expense.quantity}" data-details="${expense.details}" data-time="${expense.time}" data-buyer="${expense.buyer}" data-seller="${expense.seller}" data-category-name="${expense.category.name}"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item action-delete text-danger" href="#" data-id="${expense.id}" data-type="expense" data-description="${expense.description}" data-amount="${expense.amount}" data-category="${expense.category.name}" data-details="${expense.details}" data-time="${expense.time}" data-quantity="${expense.quantity}" data-buyer="${expense.buyer}" data-seller="${expense.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
 
@@ -822,35 +804,17 @@
                         </td>
                         <td class="col-category"><span class="badge badge-category" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
                         <td class="col-actions no-print">
-                            <button class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editIncomeModal"
-                                    th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}"
-                                    th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}"
-                                    th:data-time="${income.time}"
-                                    th:data-buyer="${income.buyer}" th:data-seller="${income.seller}"
-                                    th:data-category-name="${income.category.name}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-info btn-sm me-1" data-bs-toggle="modal" data-bs-target="#cloneIncomeModal"
-                                    th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}"
-                                    th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}"
-                                    th:data-time="${income.time}"
-                                    th:data-buyer="${income.buyer}" th:data-seller="${income.seller}"
-                                    title="Дублювати">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm btn-delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal"
-                                    th:data-id="${income.id}" data-type="income"
-                                    th:data-description="${income.description}"
-                                    th:data-amount="${income.amount}"
-                                    th:data-category="${income.category.name}"
-                                    th:data-details="${income.details}"
-                                    th:data-time="${income.time}"
-                                    th:data-quantity="${income.quantity}"
-                                    th:data-buyer="${income.buyer}"
-                                    th:data-seller="${income.seller}"
-                                    title="Видалити">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
+                                    <li><a class="dropdown-item action-edit" href="#" data-id="${income.id}" data-category="${income.category.id}" data-description="${income.description}" data-amount="${income.amount}" data-quantity="${income.quantity}" data-details="${income.details}" data-time="${income.time}" data-buyer="${income.buyer}" data-seller="${income.seller}" data-category-name="${income.category.name}"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
+                                    <li><a class="dropdown-item action-duplicate" href="#" data-id="${income.id}" data-category="${income.category.id}" data-description="${income.description}" data-amount="${income.amount}" data-quantity="${income.quantity}" data-details="${income.details}" data-time="${income.time}" data-buyer="${income.buyer}" data-seller="${income.seller}" data-category-name="${income.category.name}"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item action-delete text-danger" href="#" data-id="${income.id}" data-type="income" data-description="${income.description}" data-amount="${income.amount}" data-category="${income.category.name}" data-details="${income.details}" data-time="${income.time}" data-quantity="${income.quantity}" data-buyer="${income.buyer}" data-seller="${income.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
 
@@ -1438,79 +1402,137 @@
             editIncAmount.addEventListener('change', function() { formatEditAmount('editIncomeAmount'); });
         }
 
-        // ---- РЕДАГУВАННЯ ----
-        document.querySelectorAll('[data-bs-target="#editExpenseModal"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('editExpenseId').value = this.dataset.id;
-                document.getElementById('editExpenseCategory').value = this.dataset.category;
-                document.getElementById('editExpenseDescription').value = this.dataset.description || '';
-                const amountField = document.getElementById('editExpenseAmount');
-                if (amountField) {
-                    let val = parseFloat(this.dataset.amount) || 0;
-                    amountField.value = val.toFixed(2);
+        // ---- РЕДАГУВАННЯ (через пункти меню) ----
+        document.querySelectorAll('.action-edit').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+                const type = this.closest('.transaction-row').dataset.type; // 'expense' або 'income'
+
+                if (type === 'expense') {
+                    const modal = document.getElementById('editExpenseModal');
+                    document.getElementById('editExpenseId').value = id;
+                    document.getElementById('editExpenseCategory').value = category;
+                    document.getElementById('editExpenseDescription').value = description;
+                    document.getElementById('editExpenseAmount').value = amount.toFixed(2);
+                    document.getElementById('editExpenseQuantity').value = quantity;
+                    document.getElementById('editExpenseTime').value = time;
+                    document.getElementById('editExpenseDetails').value = details;
+                    document.getElementById('editExpenseBuyer').value = buyer;
+                    document.getElementById('editExpenseSeller').value = seller;
+                    document.getElementById('editExpenseCharCount').textContent = details.length;
+                    document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
+                } else {
+                    const modal = document.getElementById('editIncomeModal');
+                    document.getElementById('editIncomeId').value = id;
+                    document.getElementById('editIncomeCategory').value = category;
+                    document.getElementById('editIncomeDescription').value = description;
+                    document.getElementById('editIncomeAmount').value = amount.toFixed(2);
+                    document.getElementById('editIncomeQuantity').value = quantity;
+                    document.getElementById('editIncomeTime').value = time;
+                    document.getElementById('editIncomeDetails').value = details;
+                    document.getElementById('editIncomeBuyer').value = buyer;
+                    document.getElementById('editIncomeSeller').value = seller;
+                    document.getElementById('editIncomeCharCount').textContent = details.length;
+                    document.getElementById('editIncomeForm').action = '/income/edit/' + id;
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
                 }
-                document.getElementById('editExpenseQuantity').value = this.dataset.quantity || 1;
-                document.getElementById('editExpenseTime').value = this.dataset.time || '';
-                document.getElementById('editExpenseDetails').value = this.dataset.details || '';
-                document.getElementById('editExpenseBuyer').value = this.dataset.buyer || '';
-                document.getElementById('editExpenseSeller').value = this.dataset.seller || '';
-                document.getElementById('editExpenseCharCount').textContent = this.dataset.details ? this.dataset.details.length : 0;
-                document.getElementById('editExpenseForm').action = '/expense/edit/' + this.dataset.id;
             });
         });
 
-        document.querySelectorAll('[data-bs-target="#editIncomeModal"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('editIncomeId').value = this.dataset.id;
-                document.getElementById('editIncomeCategory').value = this.dataset.category;
-                document.getElementById('editIncomeDescription').value = this.dataset.description || '';
-                const amountField = document.getElementById('editIncomeAmount');
-                if (amountField) {
-                    let val = parseFloat(this.dataset.amount) || 0;
-                    amountField.value = val.toFixed(2);
+        // ---- ДУБЛЮВАННЯ (через пункти меню) ----
+        document.querySelectorAll('.action-duplicate').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+                const type = this.closest('.transaction-row').dataset.type;
+
+                if (type === 'expense') {
+                    const modal = document.getElementById('cloneExpenseModal');
+                    document.getElementById('cloneExpenseCategory').value = category;
+                    document.getElementById('cloneExpenseDescription').value = description;
+                    document.getElementById('cloneExpenseAmount').value = amount.toFixed(2);
+                    document.getElementById('cloneExpenseQuantity').value = quantity;
+                    document.getElementById('cloneExpenseTime').value = time;
+                    document.getElementById('cloneExpenseDetails').value = details;
+                    document.getElementById('cloneExpenseBuyer').value = buyer;
+                    document.getElementById('cloneExpenseSeller').value = seller;
+                    document.getElementById('cloneExpenseCharCount').textContent = details.length;
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
+                } else {
+                    const modal = document.getElementById('cloneIncomeModal');
+                    document.getElementById('cloneIncomeCategory').value = category;
+                    document.getElementById('cloneIncomeDescription').value = description;
+                    document.getElementById('cloneIncomeAmount').value = amount.toFixed(2);
+                    document.getElementById('cloneIncomeQuantity').value = quantity;
+                    document.getElementById('cloneIncomeTime').value = time;
+                    document.getElementById('cloneIncomeDetails').value = details;
+                    document.getElementById('cloneIncomeBuyer').value = buyer;
+                    document.getElementById('cloneIncomeSeller').value = seller;
+                    document.getElementById('cloneIncomeCharCount').textContent = details.length;
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
                 }
-                document.getElementById('editIncomeQuantity').value = this.dataset.quantity || 1;
-                document.getElementById('editIncomeTime').value = this.dataset.time || '';
-                document.getElementById('editIncomeDetails').value = this.dataset.details || '';
-                document.getElementById('editIncomeBuyer').value = this.dataset.buyer || '';
-                document.getElementById('editIncomeSeller').value = this.dataset.seller || '';
-                document.getElementById('editIncomeCharCount').textContent = this.dataset.details ? this.dataset.details.length : 0;
-                document.getElementById('editIncomeForm').action = '/income/edit/' + this.dataset.id;
             });
         });
 
-        // ---- ДУБЛЮВАННЯ ----
-        document.querySelectorAll('[data-bs-target="#cloneExpenseModal"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('cloneExpenseCategory').value = this.dataset.category;
-                document.getElementById('cloneExpenseDescription').value = this.dataset.description || '';
-                document.getElementById('cloneExpenseAmount').value = this.dataset.amount || 0;
-                document.getElementById('cloneExpenseQuantity').value = this.dataset.quantity || 1;
-                document.getElementById('cloneExpenseTime').value = this.dataset.time || '';
-                document.getElementById('cloneExpenseDetails').value = this.dataset.details || '';
-                document.getElementById('cloneExpenseBuyer').value = this.dataset.buyer || '';
-                document.getElementById('cloneExpenseSeller').value = this.dataset.seller || '';
-                document.getElementById('cloneExpenseCharCount').textContent = this.dataset.details ? this.dataset.details.length : 0;
-                document.getElementById('cloneExpenseDetails').oninput = function() {
-                    document.getElementById('cloneExpenseCharCount').textContent = this.value.length;
-                };
-            });
-        });
+        // ---- ВИДАЛЕННЯ (через пункти меню) ----
+        document.querySelectorAll('.action-delete').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const type = this.dataset.type;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const category = this.dataset.category || '';
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const quantity = this.dataset.quantity || '1';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
 
-        document.querySelectorAll('[data-bs-target="#cloneIncomeModal"]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.getElementById('cloneIncomeCategory').value = this.dataset.category;
-                document.getElementById('cloneIncomeDescription').value = this.dataset.description || '';
-                document.getElementById('cloneIncomeAmount').value = this.dataset.amount || 0;
-                document.getElementById('cloneIncomeQuantity').value = this.dataset.quantity || 1;
-                document.getElementById('cloneIncomeTime').value = this.dataset.time || '';
-                document.getElementById('cloneIncomeDetails').value = this.dataset.details || '';
-                document.getElementById('cloneIncomeBuyer').value = this.dataset.buyer || '';
-                document.getElementById('cloneIncomeSeller').value = this.dataset.seller || '';
-                document.getElementById('cloneIncomeCharCount').textContent = this.dataset.details ? this.dataset.details.length : 0;
-                document.getElementById('cloneIncomeDetails').oninput = function() {
-                    document.getElementById('cloneIncomeCharCount').textContent = this.value.length;
-                };
+                const deleteForm = document.getElementById('deleteForm');
+                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
+
+                document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
+                document.getElementById('deleteTime').textContent = time || '—';
+                document.getElementById('deleteDescription').textContent = description || '—';
+                document.getElementById('deleteQuantity').textContent = quantity || '1';
+                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ₴';
+                document.getElementById('deleteBuyer').textContent = buyer || '—';
+                document.getElementById('deleteSeller').textContent = seller || '—';
+                document.getElementById('deleteCategory').textContent = category || '—';
+
+                const detailsRow = document.getElementById('deleteDetailsRow');
+                if (details && details.trim().length > 0) {
+                    document.getElementById('deleteDetails').textContent = details;
+                    detailsRow.style.display = '';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                modal.show();
             });
         });
 
@@ -1791,7 +1813,36 @@
         }
 
         // ================================================================
-        // 11. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // 11. ПОРТАЛЬНИЙ ПІДХІД ДЛЯ DROPDOWN (щоб не обрізалося)
+        // ================================================================
+        document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
+            const toggle = menu.closest('.btn-group').querySelector('[data-bs-toggle="dropdown"]');
+            if (!toggle) return;
+
+            const originalParent = menu.parentNode;
+
+            toggle.addEventListener('shown.bs.dropdown', function() {
+                document.body.appendChild(menu);
+                const rect = toggle.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = (rect.bottom + window.scrollY) + 'px';
+                menu.style.left = (rect.right - menu.offsetWidth) + 'px';
+                menu.style.zIndex = '9999';
+                menu.style.display = 'block';
+            });
+
+            toggle.addEventListener('hidden.bs.dropdown', function() {
+                originalParent.appendChild(menu);
+                menu.style.position = '';
+                menu.style.top = '';
+                menu.style.left = '';
+                menu.style.zIndex = '';
+                menu.style.display = '';
+            });
+        });
+
+        // ================================================================
+        // 12. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -1990,7 +2041,7 @@
         document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
 
         // ================================================================
-        // 12. СОРТУВАННЯ З ПАМ'ЯТТЮ
+        // 13. СОРТУВАННЯ З ПАМ'ЯТТЮ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -2081,54 +2132,6 @@
                 if (currentDir === 'asc') direction = 'desc';
                 else if (currentDir === 'desc') direction = 'asc';
                 sortRowsBy(column, direction);
-            });
-        });
-
-        // ================================================================
-        // 13. ВИДАЛЕННЯ
-        // ================================================================
-        const deleteForm = document.getElementById('deleteForm');
-        const deleteType = document.getElementById('deleteType');
-        const deleteTime = document.getElementById('deleteTime');
-        const deleteDescription = document.getElementById('deleteDescription');
-        const deleteQuantity = document.getElementById('deleteQuantity');
-        const deleteAmount = document.getElementById('deleteAmount');
-        const deleteBuyer = document.getElementById('deleteBuyer');
-        const deleteSeller = document.getElementById('deleteSeller');
-        const deleteCategory = document.getElementById('deleteCategory');
-        const deleteDetails = document.getElementById('deleteDetails');
-        const deleteDetailsRow = document.getElementById('deleteDetailsRow');
-
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const type = this.dataset.type;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const category = this.dataset.category || '';
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const quantity = this.dataset.quantity || '1';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-
-                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
-
-                deleteType.textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
-                deleteTime.textContent = time || '—';
-                deleteDescription.textContent = description || '—';
-                deleteQuantity.textContent = quantity || '1';
-                deleteAmount.textContent = amount.toFixed(2) + ' ₴';
-                deleteBuyer.textContent = buyer || '—';
-                deleteSeller.textContent = seller || '—';
-                deleteCategory.textContent = category || '—';
-
-                if (details && details.trim().length > 0) {
-                    deleteDetails.textContent = details;
-                    deleteDetailsRow.style.display = '';
-                } else {
-                    deleteDetailsRow.style.display = 'none';
-                }
             });
         });
 
