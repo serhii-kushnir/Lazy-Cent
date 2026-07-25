@@ -1,6 +1,7 @@
 package org.finnest.controller;
 
 import org.finnest.model.*;
+import org.finnest.model.dto.TransactionRequest;
 import org.finnest.service.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -33,7 +34,6 @@ public class BudgetController {
     private final BudgetService budgetService;
 
     // ==================== ДУБЛЮВАННЯ ТРАНЗАКЦІЙ ====================
-
     @PostMapping("/expense/duplicate/{id}")
     public String duplicateExpense(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         LocalDate date = budgetService.duplicateExpense(id);
@@ -146,7 +146,48 @@ public class BudgetController {
         return "settings";
     }
 
-    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ ====================
+    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ (спрощені) ====================
+
+    /**
+     * Універсальний метод для додавання транзакції (витрата або дохід) на конкретну дату.
+     * Використовується для /day/{date}/expense та /day/{date}/income.
+     */
+    private String addTransactionForDate(
+            LocalDate date,
+            TransactionType type,
+            Long categoryId,
+            String description,
+            Double amount,
+            Integer quantity,
+            String details,
+            Boolean shareWithFamily,
+            String timeStr,
+            String buyer,
+            String seller,
+            RedirectAttributes redirectAttributes) {
+
+        TransactionRequest request = new TransactionRequest();
+        request.setDate(date);
+        request.setType(type);
+        request.setCategoryId(categoryId);
+        request.setDescription(description);
+        request.setAmount(amount);
+        request.setQuantity(quantity != null ? quantity : 1);
+        request.setDetails(details);
+        request.setShareWithFamily(shareWithFamily != null && shareWithFamily);
+        if (timeStr != null && !timeStr.isEmpty()) {
+            request.setTime(LocalTime.parse(timeStr));
+        }
+        request.setBuyer(buyer);
+        request.setSeller(seller);
+
+        budgetService.addTransaction(request);
+
+        String message = type == TransactionType.EXPENSE ? "Витрату додано!" : "Дохід додано!";
+        redirectAttributes.addFlashAttribute("successMessage", message);
+        return "redirect:/day/" + date;
+    }
+
     @PostMapping("/day/{date}/expense")
     public String addExpense(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -161,24 +202,8 @@ public class BudgetController {
             @RequestParam(value = "seller", required = false) String seller,
             RedirectAttributes redirectAttributes) {
 
-        DayBudget dayBudget = budgetService.getOrCreateDayBudget(date);
-        Category category = budgetService.getCategoryById(categoryId);
-        Expense expense = new Expense();
-        expense.setCategory(category);
-        expense.setDescription(description);
-        expense.setAmount(amount);
-        expense.setQuantity(quantity != null ? quantity : 1);
-        expense.setDetails(details);
-        expense.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        if (timeStr != null && !timeStr.isEmpty()) {
-            expense.setTime(LocalTime.parse(timeStr));
-        }
-        expense.setBuyer(buyer);
-        expense.setSeller(seller);
-        budgetService.addExpense(dayBudget.getId(), expense);
-
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
-        return "redirect:/day/" + date;
+        return addTransactionForDate(date, TransactionType.EXPENSE, categoryId, description, amount,
+                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
     }
 
     @PostMapping("/day/{date}/income")
@@ -195,24 +220,48 @@ public class BudgetController {
             @RequestParam(value = "seller", required = false) String seller,
             RedirectAttributes redirectAttributes) {
 
-        DayBudget dayBudget = budgetService.getOrCreateDayBudget(date);
-        Category category = budgetService.getCategoryById(categoryId);
-        Income income = new Income();
-        income.setCategory(category);
-        income.setDescription(description);
-        income.setAmount(amount);
-        income.setQuantity(quantity != null ? quantity : 1);
-        income.setDetails(details);
-        income.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        if (timeStr != null && !timeStr.isEmpty()) {
-            income.setTime(LocalTime.parse(timeStr));
-        }
-        income.setBuyer(buyer);
-        income.setSeller(seller);
-        budgetService.addIncome(dayBudget.getId(), income);
+        return addTransactionForDate(date, TransactionType.INCOME, categoryId, description, amount,
+                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
+    }
 
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
-        return "redirect:/day/" + date;
+    /**
+     * Універсальний метод для швидкого додавання транзакції (без вказання дня в URL).
+     * Використовується для /quick-expense та /quick-income.
+     */
+    private String quickAddTransaction(
+            LocalDate date,
+            TransactionType type,
+            Long categoryId,
+            String description,
+            Double amount,
+            Integer quantity,
+            String details,
+            Boolean shareWithFamily,
+            String timeStr,
+            String buyer,
+            String seller,
+            RedirectAttributes redirectAttributes) {
+
+        TransactionRequest request = new TransactionRequest();
+        request.setDate(date);
+        request.setType(type);
+        request.setCategoryId(categoryId);
+        request.setDescription(description);
+        request.setAmount(amount);
+        request.setQuantity(quantity != null ? quantity : 1);
+        request.setDetails(details);
+        request.setShareWithFamily(shareWithFamily != null && shareWithFamily);
+        if (timeStr != null && !timeStr.isEmpty()) {
+            request.setTime(LocalTime.parse(timeStr));
+        }
+        request.setBuyer(buyer);
+        request.setSeller(seller);
+
+        budgetService.addTransaction(request);
+
+        String message = type == TransactionType.EXPENSE ? "Витрату додано!" : "Дохід додано!";
+        redirectAttributes.addFlashAttribute("successMessage", message);
+        return "redirect:/budget";
     }
 
     @PostMapping("/quick-expense")
@@ -229,24 +278,8 @@ public class BudgetController {
             @RequestParam(value = "seller", required = false) String seller,
             RedirectAttributes redirectAttributes) {
 
-        DayBudget dayBudget = budgetService.getOrCreateDayBudget(date);
-        Category category = budgetService.getCategoryById(categoryId);
-        Expense expense = new Expense();
-        expense.setCategory(category);
-        expense.setDescription(description);
-        expense.setAmount(amount);
-        expense.setQuantity(quantity != null ? quantity : 1);
-        expense.setDetails(details);
-        expense.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        if (timeStr != null && !timeStr.isEmpty()) {
-            expense.setTime(LocalTime.parse(timeStr));
-        }
-        expense.setBuyer(buyer);
-        expense.setSeller(seller);
-        budgetService.addExpense(dayBudget.getId(), expense);
-
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
-        return "redirect:/budget";
+        return quickAddTransaction(date, TransactionType.EXPENSE, categoryId, description, amount,
+                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
     }
 
     @PostMapping("/quick-income")
@@ -263,24 +296,8 @@ public class BudgetController {
             @RequestParam(value = "seller", required = false) String seller,
             RedirectAttributes redirectAttributes) {
 
-        DayBudget dayBudget = budgetService.getOrCreateDayBudget(date);
-        Category category = budgetService.getCategoryById(categoryId);
-        Income income = new Income();
-        income.setCategory(category);
-        income.setDescription(description);
-        income.setAmount(amount);
-        income.setQuantity(quantity != null ? quantity : 1);
-        income.setDetails(details);
-        income.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        if (timeStr != null && !timeStr.isEmpty()) {
-            income.setTime(LocalTime.parse(timeStr));
-        }
-        income.setBuyer(buyer);
-        income.setSeller(seller);
-        budgetService.addIncome(dayBudget.getId(), income);
-
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
-        return "redirect:/budget";
+        return quickAddTransaction(date, TransactionType.INCOME, categoryId, description, amount,
+                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
     }
 
     // ==================== РЕДАГУВАННЯ / ВИДАЛЕННЯ ====================
@@ -373,7 +390,7 @@ public class BudgetController {
     // ==================== ЕКСПОРТ В EXCEL ====================
     @GetMapping("/export/day/{date}")
     public ResponseEntity<byte[]> exportDayToExcel(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws Exception {
 
         DayBudget dayBudget = budgetService.getOrCreateDayBudget(date);
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -399,181 +416,177 @@ public class BudgetController {
             return t2.compareTo(t1);
         });
 
-        try (Workbook workbook = new XSSFWorkbook()) {
-            Sheet sheet = workbook.createSheet("Транзакції " + date.format(dateFormatter));
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Транзакції " + date.format(dateFormatter));
 
-            // Стилі (залишаємо без змін)
-            Font headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerFont.setFontHeightInPoints((short) 11);
-            CellStyle headerStyle = workbook.createCellStyle();
-            headerStyle.setFont(headerFont);
-            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            headerStyle.setBorderBottom(BorderStyle.THIN);
-            headerStyle.setBorderTop(BorderStyle.THIN);
-            headerStyle.setBorderLeft(BorderStyle.THIN);
-            headerStyle.setBorderRight(BorderStyle.THIN);
-            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        // Стилі (скорочено для компактності, але залишаємо основні)
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerFont.setFontHeightInPoints((short) 11);
+        CellStyle headerStyle = workbook.createCellStyle();
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            Font expenseFont = workbook.createFont();
-            expenseFont.setColor(IndexedColors.RED.getIndex());
-            CellStyle expenseStyle = workbook.createCellStyle();
-            expenseStyle.setFont(expenseFont);
-            expenseStyle.setAlignment(HorizontalAlignment.CENTER);
+        Font expenseFont = workbook.createFont();
+        expenseFont.setColor(IndexedColors.RED.getIndex());
+        CellStyle expenseStyle = workbook.createCellStyle();
+        expenseStyle.setFont(expenseFont);
+        expenseStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            Font incomeFont = workbook.createFont();
-            incomeFont.setColor(IndexedColors.GREEN.getIndex());
-            CellStyle incomeStyle = workbook.createCellStyle();
-            incomeStyle.setFont(incomeFont);
-            incomeStyle.setAlignment(HorizontalAlignment.CENTER);
+        Font incomeFont = workbook.createFont();
+        incomeFont.setColor(IndexedColors.GREEN.getIndex());
+        CellStyle incomeStyle = workbook.createCellStyle();
+        incomeStyle.setFont(incomeFont);
+        incomeStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            CellStyle defaultStyle = workbook.createCellStyle();
-            defaultStyle.setAlignment(HorizontalAlignment.CENTER);
-            defaultStyle.setBorderBottom(BorderStyle.THIN);
-            defaultStyle.setBorderLeft(BorderStyle.THIN);
-            defaultStyle.setBorderRight(BorderStyle.THIN);
-            defaultStyle.setBorderTop(BorderStyle.THIN);
+        CellStyle defaultStyle = workbook.createCellStyle();
+        defaultStyle.setAlignment(HorizontalAlignment.CENTER);
+        defaultStyle.setBorderBottom(BorderStyle.THIN);
+        defaultStyle.setBorderLeft(BorderStyle.THIN);
+        defaultStyle.setBorderRight(BorderStyle.THIN);
+        defaultStyle.setBorderTop(BorderStyle.THIN);
 
-            Font summaryFont = workbook.createFont();
-            summaryFont.setBold(true);
-            CellStyle summaryStyle = workbook.createCellStyle();
-            summaryStyle.setFont(summaryFont);
-            summaryStyle.setAlignment(HorizontalAlignment.CENTER);
+        Font summaryFont = workbook.createFont();
+        summaryFont.setBold(true);
+        CellStyle summaryStyle = workbook.createCellStyle();
+        summaryStyle.setFont(summaryFont);
+        summaryStyle.setAlignment(HorizontalAlignment.CENTER);
 
-            // Заголовок
-            Row titleRow = sheet.createRow(0);
-            Cell titleCell = titleRow.createCell(0);
-            String dayName = dayBudget.getDayName() != null ? dayBudget.getDayName() : "";
-            titleCell.setCellValue("Транзакції за " + date.format(dateFormatter) + " (" + dayName + ")");
-            CellStyle titleStyle = workbook.createCellStyle();
-            Font titleFont = workbook.createFont();
-            titleFont.setBold(true);
-            titleFont.setFontHeightInPoints((short) 14);
-            titleStyle.setFont(titleFont);
-            titleStyle.setAlignment(HorizontalAlignment.CENTER);
-            titleCell.setCellStyle(titleStyle);
-            sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 8));
+        // Заголовок
+        Row titleRow = sheet.createRow(0);
+        Cell titleCell = titleRow.createCell(0);
+        String dayName = dayBudget.getDayName() != null ? dayBudget.getDayName() : "";
+        titleCell.setCellValue("Транзакції за " + date.format(dateFormatter) + " (" + dayName + ")");
+        CellStyle titleStyle = workbook.createCellStyle();
+        Font titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 14);
+        titleStyle.setFont(titleFont);
+        titleStyle.setAlignment(HorizontalAlignment.CENTER);
+        titleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 8));
 
-            // Заголовки колонок
-            String[] headers = {"Тип", "Час", "Найменування", "Кількість", "Сума", "Покупець", "Продавець", "Деталі", "Категорія"};
-            Row headerRow = sheet.createRow(1);
-            for (int i = 0; i < headers.length; i++) {
-                Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(headerStyle);
-            }
-
-            int rowNum = 2;
-
-            // Витрати
-            for (Expense expense : expenses) {
-                Row row = sheet.createRow(rowNum++);
-                Cell typeCell = row.createCell(0);
-                typeCell.setCellValue("Витрата");
-                typeCell.setCellStyle(expenseStyle);
-
-                row.createCell(1).setCellValue(expense.getTime() != null ? expense.getTime().toString() : "");
-                row.createCell(2).setCellValue(expense.getDescription());
-                row.createCell(3).setCellValue(expense.getQuantity() != null ? expense.getQuantity() : 1);
-                Cell amountCell = row.createCell(4);
-                amountCell.setCellValue(expense.getAmount());
-                amountCell.setCellStyle(expenseStyle);
-                row.createCell(5).setCellValue(expense.getBuyer() != null ? expense.getBuyer() : "");
-                row.createCell(6).setCellValue(expense.getSeller() != null ? expense.getSeller() : "");
-                row.createCell(7).setCellValue(expense.getDetails() != null ? expense.getDetails() : "");
-                row.createCell(8).setCellValue(expense.getCategory().getName());
-
-                for (int i = 1; i < 9; i++) {
-                    Cell cell = row.getCell(i);
-                    if (cell != null) cell.setCellStyle(defaultStyle);
-                }
-            }
-
-            // Доходи
-            for (Income income : incomes) {
-                Row row = sheet.createRow(rowNum++);
-                Cell typeCell = row.createCell(0);
-                typeCell.setCellValue("Дохід");
-                typeCell.setCellStyle(incomeStyle);
-
-                row.createCell(1).setCellValue(income.getTime() != null ? income.getTime().toString() : "");
-                row.createCell(2).setCellValue(income.getDescription());
-                row.createCell(3).setCellValue(income.getQuantity() != null ? income.getQuantity() : 1);
-                Cell amountCell = row.createCell(4);
-                amountCell.setCellValue(income.getAmount());
-                amountCell.setCellStyle(incomeStyle);
-                row.createCell(5).setCellValue(income.getBuyer() != null ? income.getBuyer() : "");
-                row.createCell(6).setCellValue(income.getSeller() != null ? income.getSeller() : "");
-                row.createCell(7).setCellValue(income.getDetails() != null ? income.getDetails() : "");
-                row.createCell(8).setCellValue(income.getCategory().getName());
-
-                for (int i = 1; i < 9; i++) {
-                    Cell cell = row.getCell(i);
-                    if (cell != null) cell.setCellStyle(defaultStyle);
-                }
-            }
-
-            // Підсумки
-            if (rowNum > 2) {
-                Row emptyRow = sheet.createRow(rowNum++);
-                for (int i = 0; i < 9; i++) emptyRow.createCell(i).setCellValue("");
-
-                Row startRow = sheet.createRow(rowNum++);
-                startRow.createCell(0).setCellValue("Початковий баланс:");
-                double startBal = dayBudget.getStartingBalance() != null ? dayBudget.getStartingBalance() : 0.0;
-                startRow.createCell(4).setCellValue(String.format("%.2f", startBal));
-                for (int i = 0; i < 9; i++) {
-                    Cell cell = startRow.getCell(i);
-                    if (cell == null) cell = startRow.createCell(i);
-                    cell.setCellStyle(summaryStyle);
-                }
-
-                Row sumRow1 = sheet.createRow(rowNum++);
-                sumRow1.createCell(0).setCellValue("Підсумки:");
-                sumRow1.createCell(4).setCellValue("Всього витрат: " + String.format("%.2f", dayBudget.getTotalExpenses()));
-                for (int i = 0; i < 9; i++) {
-                    Cell cell = sumRow1.getCell(i);
-                    if (cell == null) cell = sumRow1.createCell(i);
-                    cell.setCellStyle(summaryStyle);
-                }
-
-                Row sumRow2 = sheet.createRow(rowNum++);
-                sumRow2.createCell(4).setCellValue("Всього доходів: " + String.format("%.2f", dayBudget.getTotalIncomes()));
-                for (int i = 0; i < 9; i++) {
-                    Cell cell = sumRow2.getCell(i);
-                    if (cell == null) cell = sumRow2.createCell(i);
-                    cell.setCellStyle(summaryStyle);
-                }
-
-                Row sumRow3 = sheet.createRow(rowNum++);
-                sumRow3.createCell(4).setCellValue("Баланс: " + String.format("%.2f", dayBudget.getRemainingBalance()));
-                for (int i = 0; i < 9; i++) {
-                    Cell cell = sumRow3.getCell(i);
-                    if (cell == null) cell = sumRow3.createCell(i);
-                    cell.setCellStyle(summaryStyle);
-                }
-            } else {
-                Row emptyRow = sheet.createRow(rowNum);
-                emptyRow.createCell(0).setCellValue("Немає транзакцій за цей день");
-                for (int i = 1; i < 9; i++) emptyRow.createCell(i).setCellValue("");
-            }
-
-            for (int i = 0; i < 9; i++) sheet.autoSizeColumn(i);
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            workbook.write(baos);
-
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            responseHeaders.setContentDispositionFormData("attachment", "transactions_" + date + ".xlsx");
-
-            return new ResponseEntity<>(baos.toByteArray(), responseHeaders, HttpStatus.OK);
-
-        } catch (Exception e) {
-            log.error("Error exporting day to Excel: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        // Заголовки колонок
+        String[] headers = {"Тип", "Час", "Найменування", "Кількість", "Сума", "Покупець", "Продавець", "Деталі", "Категорія"};
+        Row headerRow = sheet.createRow(1);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
         }
+
+        int rowNum = 2;
+
+        // Витрати
+        for (Expense expense : expenses) {
+            Row row = sheet.createRow(rowNum++);
+            Cell typeCell = row.createCell(0);
+            typeCell.setCellValue("Витрата");
+            typeCell.setCellStyle(expenseStyle);
+
+            row.createCell(1).setCellValue(expense.getTime() != null ? expense.getTime().toString() : "");
+            row.createCell(2).setCellValue(expense.getDescription());
+            row.createCell(3).setCellValue(expense.getQuantity() != null ? expense.getQuantity() : 1);
+            Cell amountCell = row.createCell(4);
+            amountCell.setCellValue(expense.getAmount());
+            amountCell.setCellStyle(expenseStyle);
+            row.createCell(5).setCellValue(expense.getBuyer() != null ? expense.getBuyer() : "");
+            row.createCell(6).setCellValue(expense.getSeller() != null ? expense.getSeller() : "");
+            row.createCell(7).setCellValue(expense.getDetails() != null ? expense.getDetails() : "");
+            row.createCell(8).setCellValue(expense.getCategory().getName());
+
+            for (int i = 1; i < 9; i++) {
+                Cell cell = row.getCell(i);
+                if (cell != null) cell.setCellStyle(defaultStyle);
+            }
+        }
+
+        // Доходи
+        for (Income income : incomes) {
+            Row row = sheet.createRow(rowNum++);
+            Cell typeCell = row.createCell(0);
+            typeCell.setCellValue("Дохід");
+            typeCell.setCellStyle(incomeStyle);
+
+            row.createCell(1).setCellValue(income.getTime() != null ? income.getTime().toString() : "");
+            row.createCell(2).setCellValue(income.getDescription());
+            row.createCell(3).setCellValue(income.getQuantity() != null ? income.getQuantity() : 1);
+            Cell amountCell = row.createCell(4);
+            amountCell.setCellValue(income.getAmount());
+            amountCell.setCellStyle(incomeStyle);
+            row.createCell(5).setCellValue(income.getBuyer() != null ? income.getBuyer() : "");
+            row.createCell(6).setCellValue(income.getSeller() != null ? income.getSeller() : "");
+            row.createCell(7).setCellValue(income.getDetails() != null ? income.getDetails() : "");
+            row.createCell(8).setCellValue(income.getCategory().getName());
+
+            for (int i = 1; i < 9; i++) {
+                Cell cell = row.getCell(i);
+                if (cell != null) cell.setCellStyle(defaultStyle);
+            }
+        }
+
+        // Підсумки
+        if (rowNum > 2) {
+            Row emptyRow = sheet.createRow(rowNum++);
+            for (int i = 0; i < 9; i++) emptyRow.createCell(i).setCellValue("");
+
+            Row startRow = sheet.createRow(rowNum++);
+            startRow.createCell(0).setCellValue("Початковий баланс:");
+            double startBal = dayBudget.getStartingBalance() != null ? dayBudget.getStartingBalance() : 0.0;
+            startRow.createCell(4).setCellValue(String.format("%.2f", startBal));
+            for (int i = 0; i < 9; i++) {
+                Cell cell = startRow.getCell(i);
+                if (cell == null) cell = startRow.createCell(i);
+                cell.setCellStyle(summaryStyle);
+            }
+
+            Row sumRow1 = sheet.createRow(rowNum++);
+            sumRow1.createCell(0).setCellValue("Підсумки:");
+            sumRow1.createCell(4).setCellValue("Всього витрат: " + String.format("%.2f", dayBudget.getTotalExpenses()));
+            for (int i = 0; i < 9; i++) {
+                Cell cell = sumRow1.getCell(i);
+                if (cell == null) cell = sumRow1.createCell(i);
+                cell.setCellStyle(summaryStyle);
+            }
+
+            Row sumRow2 = sheet.createRow(rowNum++);
+            sumRow2.createCell(4).setCellValue("Всього доходів: " + String.format("%.2f", dayBudget.getTotalIncomes()));
+            for (int i = 0; i < 9; i++) {
+                Cell cell = sumRow2.getCell(i);
+                if (cell == null) cell = sumRow2.createCell(i);
+                cell.setCellStyle(summaryStyle);
+            }
+
+            Row sumRow3 = sheet.createRow(rowNum++);
+            sumRow3.createCell(4).setCellValue("Баланс: " + String.format("%.2f", dayBudget.getRemainingBalance()));
+            for (int i = 0; i < 9; i++) {
+                Cell cell = sumRow3.getCell(i);
+                if (cell == null) cell = sumRow3.createCell(i);
+                cell.setCellStyle(summaryStyle);
+            }
+        } else {
+            Row emptyRow = sheet.createRow(rowNum);
+            emptyRow.createCell(0).setCellValue("Немає транзакцій за цей день");
+            for (int i = 1; i < 9; i++) emptyRow.createCell(i).setCellValue("");
+        }
+
+        for (int i = 0; i < 9; i++) sheet.autoSizeColumn(i);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        workbook.write(baos);
+        workbook.close();
+
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        responseHeaders.setContentDispositionFormData("attachment", "transactions_" + date + ".xlsx");
+
+        return new ResponseEntity<>(baos.toByteArray(), responseHeaders, HttpStatus.OK);
     }
 
     // ==================== AJAX ДЛЯ КАТЕГОРІЙ ====================
@@ -587,5 +600,12 @@ public class BudgetController {
     @ResponseBody
     public List<Category> getIncomeCategoriesJson() {
         return budgetService.getIncomeCategories();
+    }
+
+    // ==================== ТЕСТ (залишаємо для зручності) ====================
+    @GetMapping("/init-demo-test")
+    @ResponseBody
+    public String initDemoTest() {
+        return "Demo data is handled by DataLoader on startup.";
     }
 }

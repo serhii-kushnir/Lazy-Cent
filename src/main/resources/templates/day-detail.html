@@ -706,19 +706,7 @@
                     </div>
                     <div class="card-body" id="chartBody">
                         <div class="chart-row-container">
-                            <!-- Витрати -->
-                            <div class="chart-col" id="expenseChartCol" th:unless="${dayBudget.expenses.empty}">
-                                <div class="text-center">
-                                    <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
-                                    <div class="chart-flex">
-                                        <div class="chart-container mx-auto">
-                                            <canvas id="expenseChart"></canvas>
-                                        </div>
-                                        <div class="chart-legend-table" id="expenseLegend"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Доходи -->
+                            <!-- Доходи (тепер зліва) -->
                             <div class="chart-col" id="incomeChartCol" th:unless="${dayBudget.incomes.empty}">
                                 <div class="text-center">
                                     <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи</h6>
@@ -727,6 +715,19 @@
                                             <canvas id="incomeChart"></canvas>
                                         </div>
                                         <div class="chart-legend-table" id="incomeLegend"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Витрати (тепер справа) -->
+                            <div class="chart-col" id="expenseChartCol" th:unless="${dayBudget.expenses.empty}">
+                                <div class="text-center">
+                                    <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
+                                    <div class="chart-flex">
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="expenseChart"></canvas>
+                                        </div>
+                                        <div class="chart-legend-table" id="expenseLegend"></div>
                                     </div>
                                 </div>
                             </div>

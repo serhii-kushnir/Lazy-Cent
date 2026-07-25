@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.finnest.model.TransactionType;
+import org.finnest.model.dto.TransactionRequest;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -346,5 +348,36 @@ public class BudgetService {
         return income.getDayBudget().getDate();
     }
 
-    // ==================== ДЕМО-ДАНІ ====================
+    @Transactional
+    public void addTransaction(TransactionRequest request) {
+        LocalDate date = request.getDate();
+        DayBudget dayBudget = getOrCreateDayBudget(date);
+        Category category = getCategoryById(request.getCategoryId());
+
+        if (request.getType() == TransactionType.EXPENSE) {
+            Expense expense = new Expense();
+            expense.setCategory(category);
+            expense.setDescription(request.getDescription());
+            expense.setAmount(request.getAmount());
+            expense.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+            expense.setDetails(request.getDetails());
+            expense.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
+            expense.setTime(request.getTime());
+            expense.setBuyer(request.getBuyer());
+            expense.setSeller(request.getSeller());
+            addExpense(dayBudget.getId(), expense);
+        } else {
+            Income income = new Income();
+            income.setCategory(category);
+            income.setDescription(request.getDescription());
+            income.setAmount(request.getAmount());
+            income.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+            income.setDetails(request.getDetails());
+            income.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
+            income.setTime(request.getTime());
+            income.setBuyer(request.getBuyer());
+            income.setSeller(request.getSeller());
+            addIncome(dayBudget.getId(), income);
+        }
+    }
 }
