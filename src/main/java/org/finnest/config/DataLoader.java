@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -55,9 +54,6 @@ public class DataLoader implements CommandLineRunner {
         log.info("DataLoader finished.");
     }
 
-    /**
-     * Створює базові категорії, якщо їх ще немає.
-     */
     private void initializeCategories() {
         if (categoryRepository.count() > 0) {
             log.info("Categories already exist, skipping creation.");
@@ -86,19 +82,15 @@ public class DataLoader implements CommandLineRunner {
         }
     }
 
-    /**
-     * Створює демо-транзакції лише якщо немає жодного дня з даними.
-     */
     private void initializeDemoTransactions() {
         if (dayBudgetRepository.count() > 0) {
             log.info("Day budgets already exist, skipping demo transactions.");
             return;
         }
 
-        // Переконаємось, що категорії існують (якщо вони були вимкнені, але ми хочемо демо)
         if (categoryRepository.count() == 0) {
             log.warn("No categories found, but demo transactions are enabled. Creating categories automatically.");
-            initializeCategories(); // або можна викинути виняток
+            initializeCategories();
         }
 
         log.info("Creating demo transactions for today...");
@@ -111,7 +103,6 @@ public class DataLoader implements CommandLineRunner {
         budget.setRemainingBalance(0.0);
         dayBudgetRepository.save(budget);
 
-        // Додаємо кілька тестових транзакцій
         Category food = categoryRepository.findByName("Їжа").orElse(null);
         Category transport = categoryRepository.findByName("Дорога").orElse(null);
         Category tips = categoryRepository.findByName("Чаєві").orElse(null);
@@ -149,7 +140,6 @@ public class DataLoader implements CommandLineRunner {
             incomeRepository.save(income);
         }
 
-        // Перераховуємо баланс (вручну, бо ми не використовуємо BudgetService)
         Double totalExpenses = expenseRepository.sumExpensesByDate(today);
         Double totalIncomes = incomeRepository.sumIncomesByDate(today);
         if (totalExpenses == null) totalExpenses = 0.0;

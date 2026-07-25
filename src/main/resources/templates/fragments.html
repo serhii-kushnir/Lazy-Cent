@@ -1,5 +1,5 @@
 <!-- templates/fragments.html -->
-<!-- Спільні фрагменти: навбар, футер, стилі/скрипт перемикача теми -->
+<!-- Спільні фрагменти: навбар, футер, тости, стилі/скрипт перемикача теми -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -41,6 +41,51 @@
             background-color: #f8f9fa !important;
             color: #1B2430 !important;
             border-top: 1px solid #e9ecef;
+        }
+
+        /* --- ТОСТИ --- */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 350px;
+        }
+        .toast {
+            background: #fff;
+            border-left: 4px solid #0d6efd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 250px;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast.success { border-left-color: #198754; }
+        .toast.error { border-left-color: #dc3545; }
+        .toast .toast-header {
+            background: transparent;
+            border-bottom: none;
+            padding: 0.75rem 1rem 0.25rem 1rem;
+        }
+        .toast .toast-body {
+            padding: 0.25rem 1rem 0.75rem 1rem;
+            font-size: 0.95rem;
+        }
+        [data-bs-theme="dark"] .toast {
+            background: #1d2027;
+            color: #e6e6e6;
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .toast .toast-header {
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .toast .btn-close {
+            filter: invert(1);
         }
 
         /* --- ТЕМНА ТЕМА --- */
@@ -150,7 +195,68 @@
     </div>
 </footer>
 
-<!-- ===================== СКРИПТ ПЕРЕМИКАЧА ===================== -->
+<!-- ===================== ТОСТ (контейнер) ===================== -->
+<div th:fragment="toastContainer">
+    <div class="toast-container">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Повідомлення</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Текст повідомлення
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== СКРИПТ ДЛЯ ТОСТІВ ===================== -->
+<th:block th:fragment="toastScript">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const successMessage = /*[[${successMessage}]]*/ null;
+        const errorMessage = /*[[${errorMessage}]]*/ null;
+        /*]]>*/
+
+        (function() {
+            function showToast(message, type) {
+                const toastElement = document.getElementById('liveToast');
+                if (!toastElement) return;
+
+                const toastTitle = document.getElementById('toastTitle');
+                const toastMessage = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+
+                toastElement.classList.remove('success', 'error');
+                if (type === 'success') {
+                    toastElement.classList.add('success');
+                    toastIcon.className = 'fas fa-check-circle me-2';
+                    toastTitle.textContent = 'Успішно!';
+                } else if (type === 'error') {
+                    toastElement.classList.add('error');
+                    toastIcon.className = 'fas fa-exclamation-circle me-2';
+                    toastTitle.textContent = 'Помилка!';
+                } else {
+                    toastIcon.className = 'fas fa-info-circle me-2';
+                    toastTitle.textContent = 'Інформація';
+                }
+
+                toastMessage.textContent = message;
+                const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+                toast.show();
+            }
+
+            if (successMessage) {
+                showToast(successMessage, 'success');
+            } else if (errorMessage) {
+                showToast(errorMessage, 'error');
+            }
+        })();
+    </script>
+</th:block>
+
+<!-- ===================== СКРИПТ ПЕРЕМИКАЧА ТЕМИ ===================== -->
 <th:block th:fragment="themeScript">
     <script>
         (function () {

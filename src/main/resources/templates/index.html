@@ -80,6 +80,9 @@
 
 <nav th:replace="~{fragments :: navbar('home')}"></nav>
 
+<!-- ===== TOAST ===== -->
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container mt-4">
     <div class="row mb-4">
         <div class="col text-center">
@@ -242,6 +245,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
 
 <script>
     (function() {
@@ -266,7 +270,7 @@
                 .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
         }
 
-        // ---- Ініціалізація модального вікна (повністю аналогічно до all-days) ----
+        // ---- Ініціалізація модального вікна ----
         const categorySelect = document.getElementById('categorySelect');
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');

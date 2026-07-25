@@ -11,6 +11,9 @@
 
 <nav th:replace="~{fragments :: navbar('budget')}"></nav>
 
+<!-- ===== TOAST ===== -->
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container mt-4">
     <div class="alert alert-info">
         <h4>Бюджет на <span th:text="${startDate} + ' - ' + ${endDate}"></span></h4>
@@ -60,7 +63,7 @@
                 </thead>
                 <tbody>
                 <tr th:each="entry : ${totalBudget.expensesByCategory}">
-                    <td th:text="${entry.key.name}"></td>   <!-- замінено getUkrainianName() на name -->
+                    <td th:text="${entry.key.name}"></td>
                     <td th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
                 </tr>
                 </tbody>
@@ -76,5 +79,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+
 </body>
 </html>

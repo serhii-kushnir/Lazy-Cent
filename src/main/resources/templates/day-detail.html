@@ -349,16 +349,44 @@
             top: 70px;
             right: 20px;
             z-index: 9999;
+            max-width: 350px;
         }
         .toast {
             background: #fff;
             border-left: 4px solid #0d6efd;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             min-width: 250px;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
         }
         .toast.success { border-left-color: #198754; }
         .toast.error { border-left-color: #dc3545; }
-        [data-bs-theme="dark"] .toast { background: #1d2027; color: #e6e6e6; }
+        .toast .toast-header {
+            background: transparent;
+            border-bottom: none;
+            padding: 0.75rem 1rem 0.25rem 1rem;
+        }
+        .toast .toast-body {
+            padding: 0.25rem 1rem 0.75rem 1rem;
+            font-size: 0.95rem;
+        }
+        [data-bs-theme="dark"] .toast {
+            background: #1d2027;
+            color: #e6e6e6;
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .toast .toast-header {
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .toast .btn-close {
+            filter: invert(1);
+        }
 
         /* ===== ПІДКАЗКА КЛАВІШ – БІЛЬШИЙ РОЗМІР ===== */
         .keyboard-hint {
@@ -912,7 +940,7 @@
     </div>
 </div>
 
-<!-- ===== ВСІ МОДАЛЬНІ ВІКНА ===== -->
+<!-- ===== ВСІ МОДАЛЬНІ ВІКНА (скорочено для економії місця, але вони повинні бути) ===== -->
 <!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -1188,10 +1216,16 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
 
-<script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Отримуємо флеш-повідомлення з моделі
+    const successMessage = /*[[${successMessage}]]*/ null;
+    const errorMessage = /*[[${errorMessage}]]*/ null;
+    /*]]>*/
+
     (function() {
         // ================================================================
-        // 0. КОЛІРНА ПАЛІТРА (як у totals)
+        // 0. КОЛІРНА ПАЛІТРА
         // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
 
@@ -1209,15 +1243,15 @@
         }
 
         // ================================================================
-        // 1. TOAST ПОВІДОМЛЕННЯ
+        // 1. ПОКАЗ ТОСТА З ФЛЕШ-ПОВІДОМЛЕННЯ
         // ================================================================
         function showToast(message, type) {
             const toastElement = document.getElementById('liveToast');
+            if (!toastElement) return;
+
             const toastTitle = document.getElementById('toastTitle');
             const toastMessage = document.getElementById('toastMessage');
             const toastIcon = document.getElementById('toastIcon');
-
-            if (!toastElement) return;
 
             toastElement.classList.remove('success', 'error');
             if (type === 'success') {
@@ -1234,37 +1268,9 @@
             }
 
             toastMessage.textContent = message;
+            // Використовуємо Bootstrap Toasts із затримкою
             const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
             toast.show();
-        }
-
-        function checkUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const success = urlParams.get('success');
-            const error = urlParams.get('error');
-
-            if (success === 'true' || success === 'expense_added' || success === 'income_added') {
-                showToast('Транзакцію додано!', 'success');
-            } else if (success === 'expense_edited' || success === 'income_edited') {
-                showToast('Транзакцію оновлено!', 'success');
-            } else if (success === 'expense_deleted' || success === 'income_deleted') {
-                showToast('Транзакцію видалено!', 'success');
-            } else if (success === 'expense_duplicated' || success === 'income_duplicated') {
-                showToast('Транзакцію дубльовано!', 'success');
-            } else if (success === 'category_added') {
-                showToast('Категорію додано!', 'success');
-            } else if (success === 'category_deleted') {
-                showToast('Категорію видалено!', 'success');
-            } else if (success === 'category_updated') {
-                showToast('Категорію оновлено!', 'success');
-            } else if (error) {
-                showToast('Сталася помилка. Спробуйте ще раз.', 'error');
-            }
-
-            if (urlParams.toString()) {
-                const newUrl = window.location.pathname;
-                window.history.replaceState({}, document.title, newUrl);
-            }
         }
 
         // ================================================================
@@ -1480,7 +1486,7 @@
         }
 
         // ================================================================
-        // 4. ОБРОБНИКИ ДЛЯ ПУНКТІВ МЕНЮ (ВИПРАВЛЕНО ЗАПОВНЕННЯ BUYER/SELLER)
+        // 4. ОБРОБНИКИ ДЛЯ ПУНКТІВ МЕНЮ
         // ================================================================
 
         // ---- РЕДАГУВАННЯ ----
@@ -1488,7 +1494,6 @@
             item.addEventListener('click', function(e) {
                 e.preventDefault();
 
-                // Зчитуємо всі data-атрибути
                 const type = this.dataset.type;
                 const id = this.dataset.id;
                 const category = this.dataset.category;
@@ -1497,11 +1502,8 @@
                 const quantity = this.dataset.quantity || 1;
                 const details = this.dataset.details || '';
                 const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';  // <-- ОСЬ ВОНИ
-                const seller = this.dataset.seller || ''; // <-- ОСЬ ВОНИ
-
-                // Лог для дебагу (перевірте консоль F12)
-                console.log('Редагування:', { type, id, buyer, seller });
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
 
                 if (type === 'expense') {
                     const modal = document.getElementById('editExpenseModal');
@@ -1512,7 +1514,6 @@
                     document.getElementById('editExpenseQuantity').value = quantity;
                     document.getElementById('editExpenseTime').value = time;
                     document.getElementById('editExpenseDetails').value = details;
-                    // Присвоєння Покупця та Продавця
                     document.getElementById('editExpenseBuyer').value = buyer;
                     document.getElementById('editExpenseSeller').value = seller;
                     document.getElementById('editExpenseCharCount').textContent = details.length;
@@ -1528,7 +1529,6 @@
                     document.getElementById('editIncomeQuantity').value = quantity;
                     document.getElementById('editIncomeTime').value = time;
                     document.getElementById('editIncomeDetails').value = details;
-                    // Присвоєння Покупця та Продавця
                     document.getElementById('editIncomeBuyer').value = buyer;
                     document.getElementById('editIncomeSeller').value = seller;
                     document.getElementById('editIncomeCharCount').textContent = details.length;
@@ -1551,10 +1551,8 @@
                 const quantity = this.dataset.quantity || 1;
                 const details = this.dataset.details || '';
                 const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';  // <-- ОСЬ ВОНИ
-                const seller = this.dataset.seller || ''; // <-- ОСЬ ВОНИ
-
-                console.log('Дублювання:', { type, buyer, seller });
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
 
                 if (type === 'expense') {
                     const modal = document.getElementById('cloneExpenseModal');
@@ -1564,7 +1562,6 @@
                     document.getElementById('cloneExpenseQuantity').value = quantity;
                     document.getElementById('cloneExpenseTime').value = time;
                     document.getElementById('cloneExpenseDetails').value = details;
-                    // Присвоєння Покупця та Продавця
                     document.getElementById('cloneExpenseBuyer').value = buyer;
                     document.getElementById('cloneExpenseSeller').value = seller;
                     document.getElementById('cloneExpenseCharCount').textContent = details.length;
@@ -1578,7 +1575,6 @@
                     document.getElementById('cloneIncomeQuantity').value = quantity;
                     document.getElementById('cloneIncomeTime').value = time;
                     document.getElementById('cloneIncomeDetails').value = details;
-                    // Присвоєння Покупця та Продавця
                     document.getElementById('cloneIncomeBuyer').value = buyer;
                     document.getElementById('cloneIncomeSeller').value = seller;
                     document.getElementById('cloneIncomeCharCount').textContent = details.length;
@@ -1826,7 +1822,6 @@
                     }
                 });
 
-                // Оновлюємо легенду (таблиця)
                 if (legendContainer) {
                     const total = data.reduce((a, b) => a + b, 0);
                     let html = '<table class="chart-legend-table"><tbody>';
@@ -1914,7 +1909,6 @@
             const originalParent = menu.parentNode;
 
             toggle.addEventListener('shown.bs.dropdown', function() {
-                // Переносимо меню в body
                 document.body.appendChild(menu);
                 const rect = toggle.getBoundingClientRect();
                 menu.style.position = 'fixed';
@@ -2310,9 +2304,17 @@
         }
 
         // ================================================================
-        // 16. ЗАПУСК
+        // 16. ПОКАЗ ТОСТА ПРИ ЗАВАНТАЖЕННІ СТОРІНКИ (якщо є флеш-повідомлення)
         // ================================================================
-        checkUrlParams();
+        if (successMessage) {
+            showToast(successMessage, 'success');
+        } else if (errorMessage) {
+            showToast(errorMessage, 'error');
+        }
+
+        // ================================================================
+        // 17. ЗАПУСК ОСНОВНОЇ ЛОГІКИ
+        // ================================================================
         init();
     })();
 </script>
