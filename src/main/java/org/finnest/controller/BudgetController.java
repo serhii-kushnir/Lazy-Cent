@@ -636,17 +636,7 @@ public class BudgetController {
         }
     }
 
-    // ==================== ТЕСТ ====================
-    @GetMapping("/init-demo-test")
-    @ResponseBody
-    public String initDemoTest() {
-        try {
-            budgetService.initializeDemoData();
-            return "Demo data initialized successfully!";
-        } catch (Exception e) {
-            return "Error: " + e.getMessage();
-        }
-    }
+
 
     // ==================== AJAX ДЛЯ КАТЕГОРІЙ ====================
     @GetMapping("/categories/expense")
