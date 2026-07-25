@@ -1,22 +1,24 @@
 package org.finnest.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Category {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name;            // назва категорії (унікальна)
+    private String name;
 
     @Column(nullable = false)
-    private String type;            // "EXPENSE" або "INCOME"
+    private String type; // "EXPENSE" або "INCOME"
 }
