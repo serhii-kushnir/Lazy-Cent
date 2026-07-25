@@ -1,14 +1,13 @@
 package org.finnest.service;
 
 import org.finnest.model.*;
+import org.finnest.model.dto.TransactionRequest;
 import org.finnest.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.finnest.model.TransactionType;
-import org.finnest.model.dto.TransactionRequest;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -29,6 +28,8 @@ public class BudgetService {
             1, "Понеділок", 2, "Вівторок", 3, "Середа", 4, "Четвер",
             5, "П'ятниця", 6, "Субота", 7, "Неділя"
     );
+
+    // ==================== ОСНОВНІ МЕТОДИ ====================
 
     @Transactional
     public DayBudget getOrCreateDayBudget(LocalDate date) {
@@ -61,6 +62,41 @@ public class BudgetService {
         return DAY_NAMES.getOrDefault(dayOfWeek, "Невідомо");
     }
 
+    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ (ЧЕРЕЗ DTO) ====================
+
+    @Transactional
+    public void addTransaction(TransactionRequest request, TransactionType type) {
+        LocalDate date = request.getDate();
+        DayBudget dayBudget = getOrCreateDayBudget(date);
+        Category category = getCategoryById(request.getCategoryId());
+
+        if (type == TransactionType.EXPENSE) {
+            Expense expense = new Expense();
+            expense.setCategory(category);
+            expense.setDescription(request.getDescription());
+            expense.setAmount(request.getAmount());
+            expense.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+            expense.setDetails(request.getDetails());
+            expense.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
+            expense.setTime(request.getTime());
+            expense.setBuyer(request.getBuyer());
+            expense.setSeller(request.getSeller());
+            addExpense(dayBudget.getId(), expense);
+        } else {
+            Income income = new Income();
+            income.setCategory(category);
+            income.setDescription(request.getDescription());
+            income.setAmount(request.getAmount());
+            income.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+            income.setDetails(request.getDetails());
+            income.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
+            income.setTime(request.getTime());
+            income.setBuyer(request.getBuyer());
+            income.setSeller(request.getSeller());
+            addIncome(dayBudget.getId(), income);
+        }
+    }
+
     @Transactional
     public Expense addExpense(Long dayBudgetId, Expense expense) {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
@@ -80,6 +116,8 @@ public class BudgetService {
         updateDayBudgetBalance(dayBudget);
         return saved;
     }
+
+    // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
     private void updateDayBudgetBalance(DayBudget dayBudget) {
         Double totalExpenses = expenseRepository.sumExpensesByDate(dayBudget.getDate());
@@ -120,6 +158,8 @@ public class BudgetService {
             }
         }
     }
+
+    // ==================== ОТРИМАННЯ ДАНИХ ====================
 
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate) {
         TotalBudget total = new TotalBudget();
@@ -228,6 +268,7 @@ public class BudgetService {
     }
 
     // ==================== КАТЕГОРІЇ ====================
+
     public List<Category> getExpenseCategories() {
         return categoryRepository.findByType("EXPENSE");
     }
@@ -272,6 +313,7 @@ public class BudgetService {
     }
 
     // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ТРАНЗАКЦІЙ ====================
+
     @Transactional
     public void deleteExpense(Long expenseId) {
         Expense expense = expenseRepository.findById(expenseId)
@@ -339,6 +381,7 @@ public class BudgetService {
     }
 
     // ==================== ДОПОМІЖНІ ====================
+
     public LocalDate getDateByExpense(Long expenseId) {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new RuntimeException("Витрату не знайдено"));
@@ -349,38 +392,5 @@ public class BudgetService {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new RuntimeException("Дохід не знайдено"));
         return income.getDayBudget().getDate();
-    }
-
-    @Transactional
-    public void addTransaction(TransactionRequest request) {
-        LocalDate date = request.getDate();
-        DayBudget dayBudget = getOrCreateDayBudget(date);
-        Category category = getCategoryById(request.getCategoryId());
-
-        if (request.getType() == TransactionType.EXPENSE) {
-            Expense expense = new Expense();
-            expense.setCategory(category);
-            expense.setDescription(request.getDescription());
-            expense.setAmount(request.getAmount());
-            expense.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
-            expense.setDetails(request.getDetails());
-            expense.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
-            expense.setTime(request.getTime());
-            expense.setBuyer(request.getBuyer());
-            expense.setSeller(request.getSeller());
-            addExpense(dayBudget.getId(), expense);
-        } else {
-            Income income = new Income();
-            income.setCategory(category);
-            income.setDescription(request.getDescription());
-            income.setAmount(request.getAmount());
-            income.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
-            income.setDetails(request.getDetails());
-            income.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
-            income.setTime(request.getTime());
-            income.setBuyer(request.getBuyer());
-            income.setSeller(request.getSeller());
-            addIncome(dayBudget.getId(), income);
-        }
     }
 }

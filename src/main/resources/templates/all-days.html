@@ -215,7 +215,7 @@
 
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО (оновлене) ===== -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -243,11 +243,10 @@
                                 <i class="fas fa-arrow-up me-1"></i> Доход
                             </button>
                         </div>
-                        <input type="hidden" name="type" id="transactionType" value="EXPENSE">
                     </div>
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
-                        <select class="form-select" id="categorySelect" name="category" required>
+                        <select class="form-select" id="categorySelect" name="categoryId" required>
                             <option value="">Завантаження...</option>
                         </select>
                         <div class="invalid-feedback">Виберіть категорію</div>
@@ -277,7 +276,7 @@
                         </div>
                     </div>
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="shareWithFamily" name="shareWithFamily">
+                        <input type="checkbox" class="form-check-input" id="shareWithFamily" name="shareWithFamily" value="true">
                         <label class="form-check-label" for="shareWithFamily">
                             Поділитися з членами сім'ї
                             <i class="fas fa-circle-question text-muted ms-1" data-bs-toggle="tooltip" title="Транзакція буде видна іншим користувачам"></i>
@@ -290,6 +289,18 @@
                         <div class="char-counter">
                             <span id="charCount">0</span> / 250
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionTime" class="form-label">Час (необов'язково)</label>
+                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -376,11 +387,11 @@
         function fetchCategories() {
             fetch('/categories/expense')
                 .then(r => r.json())
-                .then(data => { expenseCategories = data; if (transactionType.value === 'EXPENSE') populateCategories(expenseCategories); })
+                .then(data => { expenseCategories = data; populateCategories(expenseCategories); })
                 .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
             fetch('/categories/income')
                 .then(r => r.json())
-                .then(data => { incomeCategories = data; if (transactionType.value === 'INCOME') populateCategories(incomeCategories); })
+                .then(data => { incomeCategories = data; })
                 .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
         }
 
@@ -392,7 +403,6 @@
         const categorySelect = document.getElementById('categorySelect');
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
-        const transactionType = document.getElementById('transactionType');
         const transactionForm = document.getElementById('transactionForm');
         const amountInput = document.getElementById('transactionAmount');
         const quantityInput = document.getElementById('transactionQuantity');
@@ -421,13 +431,11 @@
         function setTransactionType(type) {
             if (type === 'EXPENSE') {
                 populateCategories(expenseCategories);
-                transactionType.value = 'EXPENSE';
                 typeExpenseBtn.className = 'btn active-expense';
                 typeIncomeBtn.className = 'btn btn-outline-success';
                 transactionForm.action = '/quick-expense';
             } else {
                 populateCategories(incomeCategories);
-                transactionType.value = 'INCOME';
                 typeIncomeBtn.className = 'btn active-income';
                 typeExpenseBtn.className = 'btn btn-outline-danger';
                 transactionForm.action = '/quick-income';

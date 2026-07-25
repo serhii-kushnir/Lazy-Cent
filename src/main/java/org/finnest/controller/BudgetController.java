@@ -3,6 +3,7 @@ package org.finnest.controller;
 import org.finnest.model.*;
 import org.finnest.model.dto.TransactionRequest;
 import org.finnest.service.BudgetService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -15,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -34,6 +36,7 @@ public class BudgetController {
     private final BudgetService budgetService;
 
     // ==================== ДУБЛЮВАННЯ ТРАНЗАКЦІЙ ====================
+
     @PostMapping("/expense/duplicate/{id}")
     public String duplicateExpense(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         LocalDate date = budgetService.duplicateExpense(id);
@@ -49,6 +52,7 @@ public class BudgetController {
     }
 
     // ==================== ГОЛОВНА ====================
+
     @GetMapping("/")
     public String index(Model model) {
         log.info("Accessing index page");
@@ -59,6 +63,7 @@ public class BudgetController {
     }
 
     // ==================== БЮДЖЕТ ====================
+
     @GetMapping("/budget")
     public String viewBudget(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -88,6 +93,7 @@ public class BudgetController {
     }
 
     // ==================== ДЕНЬ ====================
+
     @GetMapping("/day/{date}")
     public String viewDay(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -100,6 +106,7 @@ public class BudgetController {
     }
 
     // ==================== ВСІ ДНІ ====================
+
     @GetMapping("/all-days")
     public String viewAllDays(Model model) {
         log.info("Viewing all days");
@@ -111,6 +118,7 @@ public class BudgetController {
     }
 
     // ==================== ПІДСУМКИ ====================
+
     @GetMapping("/totals")
     public String viewTotals(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -138,6 +146,7 @@ public class BudgetController {
     }
 
     // ==================== НАЛАШТУВАННЯ ====================
+
     @GetMapping("/settings")
     public String settings(Model model) {
         model.addAttribute("categories", budgetService.getAllCategories());
@@ -146,161 +155,94 @@ public class BudgetController {
         return "settings";
     }
 
-    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ (спрощені) ====================
-
-    /**
-     * Універсальний метод для додавання транзакції (витрата або дохід) на конкретну дату.
-     * Використовується для /day/{date}/expense та /day/{date}/income.
-     */
-    private String addTransactionForDate(
-            LocalDate date,
-            TransactionType type,
-            Long categoryId,
-            String description,
-            Double amount,
-            Integer quantity,
-            String details,
-            Boolean shareWithFamily,
-            String timeStr,
-            String buyer,
-            String seller,
-            RedirectAttributes redirectAttributes) {
-
-        TransactionRequest request = new TransactionRequest();
-        request.setDate(date);
-        request.setType(type);
-        request.setCategoryId(categoryId);
-        request.setDescription(description);
-        request.setAmount(amount);
-        request.setQuantity(quantity != null ? quantity : 1);
-        request.setDetails(details);
-        request.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        if (timeStr != null && !timeStr.isEmpty()) {
-            request.setTime(LocalTime.parse(timeStr));
-        }
-        request.setBuyer(buyer);
-        request.setSeller(seller);
-
-        budgetService.addTransaction(request);
-
-        String message = type == TransactionType.EXPENSE ? "Витрату додано!" : "Дохід додано!";
-        redirectAttributes.addFlashAttribute("successMessage", message);
-        return "redirect:/day/" + date;
-    }
+    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ (З ВАЛІДАЦІЄЮ) ====================
 
     @PostMapping("/day/{date}/expense")
     public String addExpense(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam Long categoryId,
-            @RequestParam String description,
-            @RequestParam Double amount,
-            @RequestParam(value = "quantity", required = false, defaultValue = "1") Integer quantity,
-            @RequestParam(value = "details", required = false) String details,
-            @RequestParam(value = "shareWithFamily", required = false, defaultValue = "false") Boolean shareWithFamily,
-            @RequestParam(value = "time", required = false) String timeStr,
-            @RequestParam(value = "buyer", required = false) String buyer,
-            @RequestParam(value = "seller", required = false) String seller,
+            @Valid @ModelAttribute TransactionRequest request,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
-        return addTransactionForDate(date, TransactionType.EXPENSE, categoryId, description, amount,
-                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("Невірні дані");
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/day/" + date;
+        }
+
+        request.setDate(date);
+        budgetService.addTransaction(request, TransactionType.EXPENSE);
+        redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
+        return "redirect:/day/" + date;
     }
 
     @PostMapping("/day/{date}/income")
     public String addIncome(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam Long categoryId,
-            @RequestParam String description,
-            @RequestParam Double amount,
-            @RequestParam(value = "quantity", required = false, defaultValue = "1") Integer quantity,
-            @RequestParam(value = "details", required = false) String details,
-            @RequestParam(value = "shareWithFamily", required = false, defaultValue = "false") Boolean shareWithFamily,
-            @RequestParam(value = "time", required = false) String timeStr,
-            @RequestParam(value = "buyer", required = false) String buyer,
-            @RequestParam(value = "seller", required = false) String seller,
+            @Valid @ModelAttribute TransactionRequest request,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
-        return addTransactionForDate(date, TransactionType.INCOME, categoryId, description, amount,
-                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
-    }
-
-    /**
-     * Універсальний метод для швидкого додавання транзакції (без вказання дня в URL).
-     * Використовується для /quick-expense та /quick-income.
-     */
-    private String quickAddTransaction(
-            LocalDate date,
-            TransactionType type,
-            Long categoryId,
-            String description,
-            Double amount,
-            Integer quantity,
-            String details,
-            Boolean shareWithFamily,
-            String timeStr,
-            String buyer,
-            String seller,
-            RedirectAttributes redirectAttributes) {
-
-        TransactionRequest request = new TransactionRequest();
-        request.setDate(date);
-        request.setType(type);
-        request.setCategoryId(categoryId);
-        request.setDescription(description);
-        request.setAmount(amount);
-        request.setQuantity(quantity != null ? quantity : 1);
-        request.setDetails(details);
-        request.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        if (timeStr != null && !timeStr.isEmpty()) {
-            request.setTime(LocalTime.parse(timeStr));
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("Невірні дані");
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/day/" + date;
         }
-        request.setBuyer(buyer);
-        request.setSeller(seller);
 
-        budgetService.addTransaction(request);
-
-        String message = type == TransactionType.EXPENSE ? "Витрату додано!" : "Дохід додано!";
-        redirectAttributes.addFlashAttribute("successMessage", message);
-        return "redirect:/budget";
+        request.setDate(date);
+        budgetService.addTransaction(request, TransactionType.INCOME);
+        redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
+        return "redirect:/day/" + date;
     }
 
     @PostMapping("/quick-expense")
     public String quickAddExpense(
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam("category") Long categoryId,
-            @RequestParam("description") String description,
-            @RequestParam("amount") Double amount,
-            @RequestParam(value = "quantity", required = false, defaultValue = "1") Integer quantity,
-            @RequestParam(value = "details", required = false) String details,
-            @RequestParam(value = "shareWithFamily", required = false, defaultValue = "false") Boolean shareWithFamily,
-            @RequestParam(value = "time", required = false) String timeStr,
-            @RequestParam(value = "buyer", required = false) String buyer,
-            @RequestParam(value = "seller", required = false) String seller,
+            @Valid @ModelAttribute TransactionRequest request,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
-        return quickAddTransaction(date, TransactionType.EXPENSE, categoryId, description, amount,
-                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("Невірні дані");
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/";
+        }
+
+        budgetService.addTransaction(request, TransactionType.EXPENSE);
+        redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
+        return "redirect:/budget";
     }
 
     @PostMapping("/quick-income")
     public String quickAddIncome(
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam("category") Long categoryId,
-            @RequestParam("description") String description,
-            @RequestParam("amount") Double amount,
-            @RequestParam(value = "quantity", required = false, defaultValue = "1") Integer quantity,
-            @RequestParam(value = "details", required = false) String details,
-            @RequestParam(value = "shareWithFamily", required = false, defaultValue = "false") Boolean shareWithFamily,
-            @RequestParam(value = "time", required = false) String timeStr,
-            @RequestParam(value = "buyer", required = false) String buyer,
-            @RequestParam(value = "seller", required = false) String seller,
+            @Valid @ModelAttribute TransactionRequest request,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
 
-        return quickAddTransaction(date, TransactionType.INCOME, categoryId, description, amount,
-                quantity, details, shareWithFamily, timeStr, buyer, seller, redirectAttributes);
+        if (bindingResult.hasErrors()) {
+            String errorMessage = bindingResult.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .findFirst()
+                    .orElse("Невірні дані");
+            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            return "redirect:/";
+        }
+
+        budgetService.addTransaction(request, TransactionType.INCOME);
+        redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
+        return "redirect:/budget";
     }
 
     // ==================== РЕДАГУВАННЯ / ВИДАЛЕННЯ ====================
+
     @PostMapping("/expense/delete/{id}")
     public String deleteExpense(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         LocalDate date = budgetService.getDateByExpense(id);
@@ -366,6 +308,7 @@ public class BudgetController {
     }
 
     // ==================== КАТЕГОРІЇ ====================
+
     @PostMapping("/categories/add")
     public String addCategory(@RequestParam String name, @RequestParam String type, RedirectAttributes redirectAttributes) {
         budgetService.addCategory(name, type);
@@ -388,6 +331,7 @@ public class BudgetController {
     }
 
     // ==================== ЕКСПОРТ В EXCEL ====================
+
     @GetMapping("/export/day/{date}")
     public ResponseEntity<byte[]> exportDayToExcel(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws Exception {
@@ -398,7 +342,6 @@ public class BudgetController {
         List<Expense> expenses = new ArrayList<>(dayBudget.getExpenses());
         List<Income> incomes = new ArrayList<>(dayBudget.getIncomes());
 
-        // Сортування за часом (спадання)
         expenses.sort((e1, e2) -> {
             LocalTime t1 = e1.getTime();
             LocalTime t2 = e2.getTime();
@@ -419,7 +362,7 @@ public class BudgetController {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Транзакції " + date.format(dateFormatter));
 
-        // Стилі (скорочено для компактності, але залишаємо основні)
+        // Стилі (скорочено для зменшення обсягу)
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
         headerFont.setFontHeightInPoints((short) 11);
@@ -590,6 +533,7 @@ public class BudgetController {
     }
 
     // ==================== AJAX ДЛЯ КАТЕГОРІЙ ====================
+
     @GetMapping("/categories/expense")
     @ResponseBody
     public List<Category> getExpenseCategoriesJson() {
@@ -602,7 +546,8 @@ public class BudgetController {
         return budgetService.getIncomeCategories();
     }
 
-    // ==================== ТЕСТ (залишаємо для зручності) ====================
+    // ==================== ТЕСТ ====================
+
     @GetMapping("/init-demo-test")
     @ResponseBody
     public String initDemoTest() {
