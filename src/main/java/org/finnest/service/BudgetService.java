@@ -283,11 +283,18 @@ public class BudgetService {
 
     @Transactional
     public Category addCategory(String name, String type) {
-        if (categoryRepository.findByName(name).isPresent()) {
+        String normalizedName = name.trim();
+        if (normalizedName.isEmpty()) {
+            throw new RuntimeException("Назва категорії не може бути порожньою");
+        }
+
+        // Перевірка на дублікат без урахування регістру
+        if (categoryRepository.findByNameIgnoreCase(normalizedName).isPresent()) {
             throw new RuntimeException("Категорія з таким ім'ям вже існує");
         }
+
         Category category = new Category();
-        category.setName(name);
+        category.setName(normalizedName); // зберігаємо оригінальний регістр
         category.setType(type.toUpperCase());
         return categoryRepository.save(category);
     }
@@ -303,7 +310,21 @@ public class BudgetService {
     public Category updateCategory(Long id, String newName) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
-        category.setName(newName);
+
+        String normalizedName = newName.trim();
+        if (normalizedName.isEmpty()) {
+            throw new RuntimeException("Назва категорії не може бути порожньою");
+        }
+
+        // Перевірка, чи нове ім'я не зайняте іншою категорією (без урахування регістру)
+        categoryRepository.findByNameIgnoreCase(normalizedName)
+                .ifPresent(existing -> {
+                    if (!existing.getId().equals(id)) {
+                        throw new RuntimeException("Категорія з таким ім'ям вже існує");
+                    }
+                });
+
+        category.setName(normalizedName);
         return categoryRepository.save(category);
     }
 

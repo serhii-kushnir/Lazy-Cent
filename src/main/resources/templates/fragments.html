@@ -6,6 +6,9 @@
 
 <!-- ===================== HEAD-АСЕТИ ===================== -->
 <th:block th:fragment="themeAssets">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <script src="/lib/chart.js/chart.umd.min.js"></script>
     <style>
         :root { --wm-transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
         body { transition: var(--wm-transition); }
@@ -48,7 +51,7 @@
             position: fixed;
             top: 70px;
             right: 20px;
-            z-index: 9999;
+            z-index: 9999 !important;
             max-width: 350px;
         }
         .toast {
@@ -86,6 +89,14 @@
         }
         [data-bs-theme="dark"] .toast .btn-close {
             filter: invert(1);
+        }
+
+        /* --- ГАРАНТІЯ, ЩО МОДАЛЬНІ ВІКНА ПОВЕРХ ВСЬОГО --- */
+        .modal {
+            z-index: 1060 !important;
+        }
+        .modal-backdrop {
+            z-index: 1050 !important;
         }
 
         /* --- ТЕМНА ТЕМА --- */
@@ -134,6 +145,7 @@
         [data-bs-theme="dark"] .btn-outline-primary { color: #6ea8fe; border-color: #6ea8fe; }
         [data-bs-theme="dark"] .btn-outline-primary:hover { background-color: #6ea8fe; color: #14161a; }
     </style>
+
     <script>
         (function () {
             const saved = localStorage.getItem('finnest-theme');
@@ -278,6 +290,11 @@
             });
         })();
     </script>
+</th:block>
+
+<!-- ===================== BOOTSTRAP JS ===================== -->
+<th:block th:fragment="bootstrapScript">
+    <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 </th:block>
 
 </body>

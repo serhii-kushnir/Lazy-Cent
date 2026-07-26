@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - FinNest'"></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <script src="/lib/chart.js/chart.umd.min.js"></script>
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
         /* ===== АНІМАЦІЯ ПОЯВИ ===== */
@@ -68,19 +68,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        /* Темна тема для кнопок */
-        [data-bs-theme="dark"] .btn-outline-secondary {
-            color: #e6e6e6;
-            border-color: #495057;
-        }
-        [data-bs-theme="dark"] .btn-outline-secondary:hover {
-            background-color: #2a2e37;
-            color: #fff;
-        }
-        [data-bs-theme="dark"] .btn-outline-secondary:focus {
-            box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.3);
-        }
-
         .custom-container {
             width: 100%;
             margin: 0 auto;
@@ -95,7 +82,40 @@
         [data-bs-theme="dark"] .balance-card .col-3 { border-right-color: #2a2e37; }
         .balance-card .icon-circle { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.05); margin-bottom: 0.5rem; }
         [data-bs-theme="dark"] .balance-card .icon-circle { background: rgba(255,255,255,0.05); }
-        .badge-category { font-size: 0.75rem; padding: 0.3rem 0.6rem; border-radius: 20px; }
+
+        /* ===== ВИДАЛЕНО ФОН У ТИП ТА КАТЕГОРІЯ ===== */
+        .badge-type {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 600;
+            background-color: transparent !important;
+        }
+        .badge-type.bg-danger {
+            color: #dc3545;
+        }
+        .badge-type.bg-success {
+            color: #198754;
+        }
+        .badge-category {
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            background-color: transparent !important;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+        [data-bs-theme="dark"] .badge-category {
+            border-color: #495057;
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .badge-type.bg-danger {
+            color: #f87171;
+        }
+        [data-bs-theme="dark"] .badge-type.bg-success {
+            color: #6ee7b7;
+        }
+
         .modal-content { border-radius: 1rem; }
         .transaction-type-toggle { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
         .transaction-type-toggle .btn { flex: 1; padding: 0.6rem; font-weight: 600; border-radius: 0.5rem; }
@@ -206,9 +226,9 @@
             text-align: center;
         }
         .table-transactions .col-actions {
-            width: 60px;
-            min-width: 60px;
-            max-width: 60px;
+            width: 110px;
+            min-width: 110px;
+            max-width: 110px;
             text-align: center;
             white-space: nowrap;
         }
@@ -252,9 +272,15 @@
         .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
         .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
 
-        .badge-type { font-size: 0.7rem; padding: 0.25rem 0.6rem; border-radius: 20px; font-weight: 600; }
-        .badge-type.bg-danger { background-color: #dc3545; color: #fff; }
-        .badge-type.bg-success { background-color: #198754; color: #fff; }
+        /* ===== КНОПКИ ДІЙ ===== */
+        .btn-action {
+            padding: 0.15rem 0.4rem;
+            font-size: 0.7rem;
+            margin: 0 1px;
+        }
+        .btn-action i {
+            font-size: 0.8rem;
+        }
 
         [data-bs-theme="dark"] .card-header.bg-primary {
             background-color: #1e2a36 !important;
@@ -411,7 +437,7 @@
             color: #e6e6e6;
         }
 
-        /* ===== ДІАГРАМИ (оновлене вирівнювання по центру) ===== */
+        /* ===== ДІАГРАМИ ===== */
         .chart-section {
             transition: all 0.3s ease;
         }
@@ -530,8 +556,29 @@
             .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
             .table-transactions .col-details { min-width: 60px; max-width: 80px; }
             .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
-            .table-transactions .col-actions { width: 40px; min-width: 40px; max-width: 40px; }
-            .table-transactions .col-actions .btn { font-size: 0.6rem; padding: 0.15rem 0.3rem; }
+
+            /* ===== ВИПРАВЛЕНО: кнопки не ховаються ===== */
+            .table-transactions .col-actions {
+                width: 90px !important;
+                min-width: 90px !important;
+                max-width: 90px !important;
+                white-space: normal !important;
+            }
+            td.col-actions {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 2px;
+                align-items: center;
+            }
+            .btn-action {
+                padding: 0.1rem 0.2rem;
+                font-size: 0.55rem;
+                margin: 1px 0;
+            }
+            .btn-action i {
+                font-size: 0.65rem;
+            }
 
             .table-toolbar { gap: 0.4rem; }
             .table-toolbar .search-input { min-width: 100px; }
@@ -562,7 +609,18 @@
         @media (max-width: 480px) {
             .table-transactions { font-size: 0.6rem; }
             .table-transactions th, .table-transactions td { padding: 0.2rem 0.1rem; }
-            .table-transactions .col-actions .btn { font-size: 0.5rem; padding: 0.1rem 0.2rem; }
+            .table-transactions .col-actions {
+                width: 70px !important;
+                min-width: 70px !important;
+                max-width: 70px !important;
+            }
+            .btn-action {
+                padding: 0.05rem 0.1rem;
+                font-size: 0.5rem;
+            }
+            .btn-action i {
+                font-size: 0.55rem;
+            }
             .badge-type { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
             .badge-category { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
         }
@@ -580,7 +638,7 @@
             .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
             .table-transactions th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; padding: 2px 4px !important; font-size: 0.6rem !important; }
             .table-transactions td { border-color: #ddd !important; padding: 1px 4px !important; font-size: 0.6rem !important; }
-            .table-transactions .badge-category { font-size: 0.5rem !important; padding: 1px 3px !important; }
+            .badge-category { font-size: 0.5rem !important; padding: 1px 3px !important; border: 0 !important; }
             .table-transactions .col-name { min-width: 80px !important; max-width: 120px !important; }
             .table-transactions .col-buyer-seller { min-width: 60px !important; max-width: 60px !important; }
             .table-transactions .col-details { min-width: 80px !important; max-width: 80px !important; }
@@ -605,19 +663,8 @@
 <body>
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
 
-<!-- ===== TOAST КОНТЕЙНЕР ===== -->
-<div class="toast-container">
-    <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <i class="fas fa-info-circle me-2" id="toastIcon"></i>
-            <strong class="me-auto" id="toastTitle">Повідомлення</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-        </div>
-        <div class="toast-body" id="toastMessage">
-            Текст повідомлення
-        </div>
-    </div>
-</div>
+<!-- ===== TOAST ===== -->
+<div th:replace="~{fragments :: toastContainer}"></div>
 
 <!-- ===== КОНТЕЙНЕР ===== -->
 <div class="container-fluid custom-container mt-4">
@@ -706,7 +753,7 @@
                     </div>
                     <div class="card-body" id="chartBody">
                         <div class="chart-row-container">
-                            <!-- Доходи (тепер зліва) -->
+                            <!-- Доходи (зліва) -->
                             <div class="chart-col" id="incomeChartCol" th:unless="${dayBudget.incomes.empty}">
                                 <div class="text-center">
                                     <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи</h6>
@@ -718,8 +765,7 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Витрати (тепер справа) -->
+                            <!-- Витрати (справа) -->
                             <div class="chart-col" id="expenseChartCol" th:unless="${dayBudget.expenses.empty}">
                                 <div class="text-center">
                                     <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
@@ -813,49 +859,51 @@
                         </td>
                         <td class="col-category"><span class="badge badge-category" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
                         <td class="col-actions no-print">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
-                                    <li><a class="dropdown-item action-edit" href="#"
-                                           th:data-id="${expense.id}"
-                                           th:data-category="${expense.category.id}"
-                                           th:data-description="${expense.description}"
-                                           th:data-amount="${expense.amount}"
-                                           th:data-quantity="${expense.quantity}"
-                                           th:data-details="${expense.details}"
-                                           th:data-time="${expense.time}"
-                                           th:data-buyer="${expense.buyer}"
-                                           th:data-seller="${expense.seller}"
-                                           th:data-category-name="${expense.category.name}"
-                                           data-type="expense"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
-                                    <li><a class="dropdown-item action-duplicate" href="#"
-                                           th:data-id="${expense.id}"
-                                           th:data-category="${expense.category.id}"
-                                           th:data-description="${expense.description}"
-                                           th:data-amount="${expense.amount}"
-                                           th:data-quantity="${expense.quantity}"
-                                           th:data-details="${expense.details}"
-                                           th:data-time="${expense.time}"
-                                           th:data-buyer="${expense.buyer}"
-                                           th:data-seller="${expense.seller}"
-                                           th:data-category-name="${expense.category.name}"
-                                           data-type="expense"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item action-delete text-danger" href="#"
-                                           th:data-id="${expense.id}"
-                                           data-type="expense"
-                                           th:data-description="${expense.description}"
-                                           th:data-amount="${expense.amount}"
-                                           th:data-category="${expense.category.name}"
-                                           th:data-details="${expense.details}"
-                                           th:data-time="${expense.time}"
-                                           th:data-quantity="${expense.quantity}"
-                                           th:data-buyer="${expense.buyer}"
-                                           th:data-seller="${expense.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
-                                </ul>
-                            </div>
+                            <!-- ПРЯМІ КНОПКИ БЕЗ DROPDOWN -->
+                            <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#"
+                               th:data-id="${expense.id}"
+                               th:data-category="${expense.category.id}"
+                               th:data-description="${expense.description}"
+                               th:data-amount="${expense.amount}"
+                               th:data-quantity="${expense.quantity}"
+                               th:data-details="${expense.details}"
+                               th:data-time="${expense.time}"
+                               th:data-buyer="${expense.buyer}"
+                               th:data-seller="${expense.seller}"
+                               th:data-category-name="${expense.category.name}"
+                               data-type="expense"
+                               title="Редагувати">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#"
+                               th:data-id="${expense.id}"
+                               th:data-category="${expense.category.id}"
+                               th:data-description="${expense.description}"
+                               th:data-amount="${expense.amount}"
+                               th:data-quantity="${expense.quantity}"
+                               th:data-details="${expense.details}"
+                               th:data-time="${expense.time}"
+                               th:data-buyer="${expense.buyer}"
+                               th:data-seller="${expense.seller}"
+                               th:data-category-name="${expense.category.name}"
+                               data-type="expense"
+                               title="Дублювати">
+                                <i class="fas fa-copy"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#"
+                               th:data-id="${expense.id}"
+                               data-type="expense"
+                               th:data-description="${expense.description}"
+                               th:data-amount="${expense.amount}"
+                               th:data-category="${expense.category.name}"
+                               th:data-details="${expense.details}"
+                               th:data-time="${expense.time}"
+                               th:data-quantity="${expense.quantity}"
+                               th:data-buyer="${expense.buyer}"
+                               th:data-seller="${expense.seller}"
+                               title="Видалити">
+                                <i class="fas fa-trash"></i>
+                            </a>
                         </td>
                     </tr>
 
@@ -878,49 +926,51 @@
                         </td>
                         <td class="col-category"><span class="badge badge-category" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
                         <td class="col-actions no-print">
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-container="body" aria-expanded="false">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu">
-                                    <li><a class="dropdown-item action-edit" href="#"
-                                           th:data-id="${income.id}"
-                                           th:data-category="${income.category.id}"
-                                           th:data-description="${income.description}"
-                                           th:data-amount="${income.amount}"
-                                           th:data-quantity="${income.quantity}"
-                                           th:data-details="${income.details}"
-                                           th:data-time="${income.time}"
-                                           th:data-buyer="${income.buyer}"
-                                           th:data-seller="${income.seller}"
-                                           th:data-category-name="${income.category.name}"
-                                           data-type="income"><i class="fas fa-edit me-2"></i>Редагувати</a></li>
-                                    <li><a class="dropdown-item action-duplicate" href="#"
-                                           th:data-id="${income.id}"
-                                           th:data-category="${income.category.id}"
-                                           th:data-description="${income.description}"
-                                           th:data-amount="${income.amount}"
-                                           th:data-quantity="${income.quantity}"
-                                           th:data-details="${income.details}"
-                                           th:data-time="${income.time}"
-                                           th:data-buyer="${income.buyer}"
-                                           th:data-seller="${income.seller}"
-                                           th:data-category-name="${income.category.name}"
-                                           data-type="income"><i class="fas fa-copy me-2"></i>Дублювати</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item action-delete text-danger" href="#"
-                                           th:data-id="${income.id}"
-                                           data-type="income"
-                                           th:data-description="${income.description}"
-                                           th:data-amount="${income.amount}"
-                                           th:data-category="${income.category.name}"
-                                           th:data-details="${income.details}"
-                                           th:data-time="${income.time}"
-                                           th:data-quantity="${income.quantity}"
-                                           th:data-buyer="${income.buyer}"
-                                           th:data-seller="${income.seller}"><i class="fas fa-trash me-2"></i>Видалити</a></li>
-                                </ul>
-                            </div>
+                            <!-- ПРЯМІ КНОПКИ БЕЗ DROPDOWN -->
+                            <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#"
+                               th:data-id="${income.id}"
+                               th:data-category="${income.category.id}"
+                               th:data-description="${income.description}"
+                               th:data-amount="${income.amount}"
+                               th:data-quantity="${income.quantity}"
+                               th:data-details="${income.details}"
+                               th:data-time="${income.time}"
+                               th:data-buyer="${income.buyer}"
+                               th:data-seller="${income.seller}"
+                               th:data-category-name="${income.category.name}"
+                               data-type="income"
+                               title="Редагувати">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#"
+                               th:data-id="${income.id}"
+                               th:data-category="${income.category.id}"
+                               th:data-description="${income.description}"
+                               th:data-amount="${income.amount}"
+                               th:data-quantity="${income.quantity}"
+                               th:data-details="${income.details}"
+                               th:data-time="${income.time}"
+                               th:data-buyer="${income.buyer}"
+                               th:data-seller="${income.seller}"
+                               th:data-category-name="${income.category.name}"
+                               data-type="income"
+                               title="Дублювати">
+                                <i class="fas fa-copy"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#"
+                               th:data-id="${income.id}"
+                               data-type="income"
+                               th:data-description="${income.description}"
+                               th:data-amount="${income.amount}"
+                               th:data-category="${income.category.name}"
+                               th:data-details="${income.details}"
+                               th:data-time="${income.time}"
+                               th:data-quantity="${income.quantity}"
+                               th:data-buyer="${income.buyer}"
+                               th:data-seller="${income.seller}"
+                               title="Видалити">
+                                <i class="fas fa-trash"></i>
+                            </a>
                         </td>
                     </tr>
 
@@ -941,7 +991,7 @@
     </div>
 </div>
 
-<!-- ===== ВСІ МОДАЛЬНІ ВІКНА (скорочено для економії місця, але вони повинні бути) ===== -->
+<!-- ===== ВСІ МОДАЛЬНІ ВІКНА ===== -->
 <!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -950,7 +1000,7 @@
                 <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Додати нову транзакцію</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="transactionForm" method="post">
+            <form id="transactionForm" method="post" th:action="@{'/day/' + ${dayBudget.date} + '/expense'}">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
@@ -962,7 +1012,6 @@
                                 <i class="fas fa-arrow-up me-1"></i> Дохід
                             </button>
                         </div>
-                        <input type="hidden" name="type" id="transactionType" value="EXPENSE">
                     </div>
                     <div class="mb-3">
                         <label for="transactionDate" class="form-label">Дата</label>
@@ -976,7 +1025,7 @@
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
                         <select class="form-select" id="categorySelect" name="categoryId" required>
-                            <option value="">Завантаження...</option>
+                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
                         </select>
                         <div class="invalid-feedback">Виберіть категорію</div>
                     </div>
@@ -1095,20 +1144,44 @@
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати витрату</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <!-- th:action прибрано, action задаватиметься через JS -->
             <form id="editExpenseForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
-                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editExpenseCategory" required>
-                        <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                    </select></div>
-                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="editExpenseDescription" required></div>
-                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="editExpenseBuyer"></div>
-                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="editExpenseSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required></div>
-                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1"></div>
-                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="editExpenseTime" name="time" step="60"></div>
-                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div></div>
+                    <div class="mb-3">
+                        <label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="editExpenseCategory" required>
+                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="editExpenseDescription" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="editExpenseBuyer">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="editExpenseSeller">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="editExpenseTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1128,20 +1201,44 @@
                 <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати дохід</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <!-- th:action прибрано, action задаватиметься через JS -->
             <form id="editIncomeForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
-                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editIncomeCategory" required>
-                        <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                    </select></div>
-                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="editIncomeDescription" required></div>
-                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="editIncomeBuyer"></div>
-                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="editIncomeSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required></div>
-                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1"></div>
-                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="editIncomeTime" name="time" step="60"></div>
-                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div></div>
+                    <div class="mb-3">
+                        <label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="editIncomeCategory" required>
+                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="editIncomeDescription" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="editIncomeBuyer">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="editIncomeSeller">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="editIncomeTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1163,16 +1260,41 @@
             </div>
             <form id="cloneExpenseForm" method="post" th:action="@{/day/{date}/expense(date=${dayBudget.date})}">
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="cloneExpenseCategory" required>
-                        <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                    </select></div>
-                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="cloneExpenseDescription" required></div>
-                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneExpenseBuyer"></div>
-                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="cloneExpenseSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneExpenseAmount" required></div>
-                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneExpenseQuantity" min="1"></div>
-                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="cloneExpenseTime" name="time" step="60"></div>
-                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneExpenseCharCount">0</span> / 250</div></div>
+                    <div class="mb-3">
+                        <label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="cloneExpenseCategory" required>
+                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="cloneExpenseDescription" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="cloneExpenseBuyer">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="cloneExpenseSeller">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneExpenseAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="cloneExpenseQuantity" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="cloneExpenseTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="cloneExpenseDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="cloneExpenseCharCount">0</span> / 250</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1194,16 +1316,41 @@
             </div>
             <form id="cloneIncomeForm" method="post" th:action="@{/day/{date}/income(date=${dayBudget.date})}">
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="cloneIncomeCategory" required>
-                        <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                    </select></div>
-                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="cloneIncomeDescription" required></div>
-                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneIncomeBuyer"></div>
-                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="cloneIncomeSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneIncomeAmount" required></div>
-                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneIncomeQuantity" min="1"></div>
-                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="cloneIncomeTime" name="time" step="60"></div>
-                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneIncomeCharCount">0</span> / 250</div></div>
+                    <div class="mb-3">
+                        <label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="cloneIncomeCategory" required>
+                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="cloneIncomeDescription" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="cloneIncomeBuyer">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="cloneIncomeSeller">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneIncomeAmount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="cloneIncomeQuantity" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="cloneIncomeTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="cloneIncomeDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="cloneIncomeCharCount">0</span> / 250</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1215,17 +1362,12 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
 
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    // Отримуємо флеш-повідомлення з моделі
-    const successMessage = /*[[${successMessage}]]*/ null;
-    const errorMessage = /*[[${errorMessage}]]*/ null;
-    /*]]>*/
-
+<script>
     (function() {
         // ================================================================
         // 0. КОЛІРНА ПАЛІТРА
@@ -1246,7 +1388,7 @@
         }
 
         // ================================================================
-        // 1. ПОКАЗ ТОСТА З ФЛЕШ-ПОВІДОМЛЕННЯ
+        // 1. TOAST ПОВІДОМЛЕННЯ (для AJAX)
         // ================================================================
         function showToast(message, type) {
             const toastElement = document.getElementById('liveToast');
@@ -1271,7 +1413,6 @@
             }
 
             toastMessage.textContent = message;
-            // Використовуємо Bootstrap Toasts із затримкою
             const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
             toast.show();
         }
@@ -1304,24 +1445,32 @@
         // ================================================================
         let expenseCategories = /*[[${expenseCategories}]]*/ null;
         let incomeCategories = /*[[${incomeCategories}]]*/ null;
-        const categorySelect = document.getElementById('categorySelect');
 
-        function populateCategories(categories) {
-            if (!categorySelect) return;
-            categorySelect.innerHTML = '';
-            if (!categories || categories.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Немає категорій';
-                opt.disabled = true;
-                categorySelect.appendChild(opt);
-                return;
+        function populateAllSelects(categories, type) {
+            const selectors = [];
+            if (type === 'EXPENSE') {
+                selectors.push('#categorySelect', '#editExpenseCategory', '#cloneExpenseCategory');
+            } else {
+                selectors.push('#categorySelect', '#editIncomeCategory', '#cloneIncomeCategory');
             }
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                categorySelect.appendChild(opt);
+            selectors.forEach(selector => {
+                const select = document.querySelector(selector);
+                if (!select) return;
+                select.innerHTML = '';
+                if (!categories || categories.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.value = '';
+                    opt.textContent = 'Немає категорій';
+                    opt.disabled = true;
+                    select.appendChild(opt);
+                    return;
+                }
+                categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
             });
         }
 
@@ -1332,7 +1481,7 @@
                     expenseCategories = data;
                     const typeInput = document.getElementById('transactionType');
                     if (typeInput && typeInput.value === 'EXPENSE') {
-                        populateCategories(expenseCategories);
+                        populateAllSelects(expenseCategories, 'EXPENSE');
                     }
                 })
                 .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
@@ -1345,7 +1494,7 @@
                     incomeCategories = data;
                     const typeInput = document.getElementById('transactionType');
                     if (typeInput && typeInput.value === 'INCOME') {
-                        populateCategories(incomeCategories);
+                        populateAllSelects(incomeCategories, 'INCOME');
                     }
                 })
                 .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
@@ -1354,7 +1503,7 @@
         if (!expenseCategories || expenseCategories.length === 0) {
             fetchExpenseCategories();
         } else {
-            populateCategories(expenseCategories);
+            populateAllSelects(expenseCategories, 'EXPENSE');
         }
         if (!incomeCategories || incomeCategories.length === 0) {
             fetchIncomeCategories();
@@ -1369,14 +1518,14 @@
         if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
             function setTransactionType(type) {
                 if (type === 'EXPENSE') {
-                    populateCategories(expenseCategories);
+                    populateAllSelects(expenseCategories, 'EXPENSE');
                     transactionType.value = 'EXPENSE';
                     typeExpenseBtn.className = 'btn active-expense';
                     typeIncomeBtn.className = 'btn btn-outline-success';
                     const dateInput = document.getElementById('transactionDate');
                     transactionForm.action = '/day/' + (dateInput ? dateInput.value : '') + '/expense';
                 } else {
-                    populateCategories(incomeCategories);
+                    populateAllSelects(incomeCategories, 'INCOME');
                     transactionType.value = 'INCOME';
                     typeIncomeBtn.className = 'btn active-income';
                     typeExpenseBtn.className = 'btn btn-outline-danger';
@@ -1903,33 +2052,8 @@
         }
 
         // ================================================================
-        // 12. ПОРТАЛЬНИЙ ПІДХІД ДЛЯ DROPDOWN
+        // 12. ПОРТАЛЬНИЙ ПІДХІД ДЛЯ DROPDOWN – ВИДАЛЕНО (використовуються прямі кнопки)
         // ================================================================
-        document.querySelectorAll('.action-dropdown-menu').forEach(menu => {
-            const toggle = menu.closest('.btn-group').querySelector('[data-bs-toggle="dropdown"]');
-            if (!toggle) return;
-
-            const originalParent = menu.parentNode;
-
-            toggle.addEventListener('shown.bs.dropdown', function() {
-                document.body.appendChild(menu);
-                const rect = toggle.getBoundingClientRect();
-                menu.style.position = 'fixed';
-                menu.style.top = (rect.bottom + window.scrollY) + 'px';
-                menu.style.left = (rect.right - menu.offsetWidth) + 'px';
-                menu.style.zIndex = '9999';
-                menu.style.display = 'block';
-            });
-
-            toggle.addEventListener('hidden.bs.dropdown', function() {
-                originalParent.appendChild(menu);
-                menu.style.position = '';
-                menu.style.top = '';
-                menu.style.left = '';
-                menu.style.zIndex = '';
-                menu.style.display = '';
-            });
-        });
 
         // ================================================================
         // 13. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
@@ -2307,16 +2431,7 @@
         }
 
         // ================================================================
-        // 16. ПОКАЗ ТОСТА ПРИ ЗАВАНТАЖЕННІ СТОРІНКИ (якщо є флеш-повідомлення)
-        // ================================================================
-        if (successMessage) {
-            showToast(successMessage, 'success');
-        } else if (errorMessage) {
-            showToast(errorMessage, 'error');
-        }
-
-        // ================================================================
-        // 17. ЗАПУСК ОСНОВНОЇ ЛОГІКИ
+        // 16. ЗАПУСК
         // ================================================================
         init();
     })();
