@@ -194,6 +194,7 @@
             background-color: rgba(90, 138, 197, 0.18);
         }
 
+        /* ===== ШИРИНИ КОЛОНОК ===== */
         .table-transactions .col-num {
             width: 50px;
             min-width: 50px;
@@ -224,13 +225,6 @@
             width: auto;
             white-space: nowrap;
             text-align: center;
-        }
-        .table-transactions .col-actions {
-            width: 110px;
-            min-width: 110px;
-            max-width: 110px;
-            text-align: center;
-            white-space: nowrap;
         }
         .table-transactions .col-buyer-seller {
             width: 140px;
@@ -266,21 +260,47 @@
             transition: background-color 0.2s ease;
         }
 
-        .sortable { cursor: pointer; user-select: none; position: relative; }
-        .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; transition: opacity 0.2s; }
-        .sortable:hover .sort-icon { opacity: 1; }
-        .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
-        .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
+        /* ===== КОЛОНКА ДІЙ – КНОПКИ ЗАВЖДИ ВИДИМІ ===== */
+        .table-transactions .col-actions {
+            width: 120px !important;
+            min-width: 120px !important;
+            max-width: 120px !important;
+            white-space: normal !important;
+            text-align: center !important;
+        }
+        td.col-actions {
+            display: table-cell !important;  /* забезпечує стандартну поведінку */
+            white-space: nowrap !important;
+        }
+        /* Контейнер для кнопок у колонці дій */
+        td.col-actions .btn-group,
+        td.col-actions .btn-action-wrapper {
+            display: inline-flex !important;
+            flex-wrap: nowrap !important;
+            gap: 2px;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap !important;
+        }
 
         /* ===== КНОПКИ ДІЙ ===== */
         .btn-action {
             padding: 0.15rem 0.4rem;
             font-size: 0.7rem;
             margin: 0 1px;
+            display: inline-block !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
         }
         .btn-action i {
             font-size: 0.8rem;
         }
+
+        .sortable { cursor: pointer; user-select: none; position: relative; }
+        .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; transition: opacity 0.2s; }
+        .sortable:hover .sort-icon { opacity: 1; }
+        .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
+        .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
 
         [data-bs-theme="dark"] .card-header.bg-primary {
             background-color: #1e2a36 !important;
@@ -414,7 +434,7 @@
             filter: invert(1);
         }
 
-        /* ===== ПІДКАЗКА КЛАВІШ – БІЛЬШИЙ РОЗМІР ===== */
+        /* ===== ПІДКАЗКА КЛАВІШ ===== */
         .keyboard-hint {
             font-size: 0.9rem;
             color: #6c757d;
@@ -536,7 +556,7 @@
             color: #9aa3b2 !important;
         }
 
-        /* ===== АДАПТИВНІСТЬ ===== */
+        /* ===== АДАПТИВНІСТЬ (КНОПКИ ЗАВЖДИ ВИДИМІ) ===== */
         @media (max-width: 768px) {
             body { font-size: 14px; }
             .custom-container { padding-left: 8px; padding-right: 8px; }
@@ -557,7 +577,7 @@
             .table-transactions .col-details { min-width: 60px; max-width: 80px; }
             .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
 
-            /* ===== ВИПРАВЛЕНО: кнопки не ховаються ===== */
+            /* ===== КОЛОНКА ДІЙ – ЗБІЛЬШУЄМО ШИРИНУ, ЩОБ КНОПКИ ВМІЩУВАЛИСЬ ===== */
             .table-transactions .col-actions {
                 width: 90px !important;
                 min-width: 90px !important;
@@ -565,19 +585,40 @@
                 white-space: normal !important;
             }
             td.col-actions {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 2px;
-                align-items: center;
+                display: table-cell !important;
+                white-space: normal !important;
+            }
+            td.col-actions .btn-action {
+                display: inline-block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                padding: 0.2rem 0.4rem !important;
+                font-size: 0.75rem !important;
+                margin: 0 2px !important;
+                white-space: nowrap !important;
+                border: 1px solid !important; /* тимчасово, щоб побачити межі */
+            }
+
+            td.col-actions .btn-action i {
+                font-size: 0.85rem !important;
+            }
+
+            td.col-actions .btn-group,
+            td.col-actions .btn-action-wrapper {
+                display: inline-flex !important;
+                flex-wrap: wrap !important;
+                gap: 1px !important;
+                justify-content: center !important;
+                align-items: center !important;
             }
             .btn-action {
-                padding: 0.1rem 0.2rem;
-                font-size: 0.55rem;
-                margin: 1px 0;
+                padding: 0.1rem 0.2rem !important;
+                font-size: 0.55rem !important;
+                margin: 1px 0 !important;
+                flex-shrink: 1 !important;
             }
             .btn-action i {
-                font-size: 0.65rem;
+                font-size: 0.65rem !important;
             }
 
             .table-toolbar { gap: 0.4rem; }
@@ -610,16 +651,20 @@
             .table-transactions { font-size: 0.6rem; }
             .table-transactions th, .table-transactions td { padding: 0.2rem 0.1rem; }
             .table-transactions .col-actions {
-                width: 70px !important;
-                min-width: 70px !important;
-                max-width: 70px !important;
+                width: 75px !important;
+                min-width: 75px !important;
+                max-width: 75px !important;
+            }
+            td.col-actions .btn-group,
+            td.col-actions .btn-action-wrapper {
+                gap: 1px !important;
             }
             .btn-action {
-                padding: 0.05rem 0.1rem;
-                font-size: 0.5rem;
+                padding: 0.05rem 0.1rem !important;
+                font-size: 0.45rem !important;
             }
             .btn-action i {
-                font-size: 0.55rem;
+                font-size: 0.5rem !important;
             }
             .badge-type { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
             .badge-category { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
