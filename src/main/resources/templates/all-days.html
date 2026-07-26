@@ -105,13 +105,52 @@
             box-shadow: 0 8px 16px rgba(0,0,0,0.4);
         }
 
+        /* ===== БЕЙДЖІ У ЗАГОЛОВКУ ===== */
+        .card-header .badge-count {
+            font-size: 0.6rem;
+            padding: 0.2rem 0.4rem;
+            border-radius: 20px;
+            margin-left: 2px;
+        }
+        .card-header .badge-count.total {
+            background-color: rgba(255,255,255,0.25);
+            color: #fff;
+        }
+        .card-header .badge-count.income {
+            background-color: rgba(25, 135, 84, 0.8);
+            color: #fff;
+        }
+        .card-header .badge-count.expense {
+            background-color: rgba(220, 53, 69, 0.8);
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .card-header .badge-count.total {
+            background-color: rgba(255,255,255,0.15);
+        }
+        [data-bs-theme="dark"] .card-header .badge-count.income {
+            background-color: rgba(25, 135, 84, 0.6);
+        }
+        [data-bs-theme="dark"] .card-header .badge-count.expense {
+            background-color: rgba(220, 53, 69, 0.6);
+        }
+
+        /* ===== КНОПКА ВИДАЛИТИ ===== */
+        .btn-delete-day {
+            padding: 0.15rem 0.5rem;
+            font-size: 0.7rem;
+            border-radius: 20px;
+        }
+        .btn-delete-day i {
+            font-size: 0.7rem;
+        }
+
         .no-results {
             text-align: center;
             padding: 3rem 0;
             color: var(--text-muted);
         }
 
-        /* ===== ПАНЕЛЬ ІНСТРУМЕНТІВ (як у day-detail) ===== */
+        /* ===== СТИЛІ ДЛЯ ФІЛЬТРІВ ===== */
         .table-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -191,7 +230,35 @@
             width: 140px;
         }
 
-        /* ===== СТИЛІ ДЛЯ МОДАЛКИ ===== */
+        /* ===== СТИЛІ ДЛЯ МОДАЛКИ ПІДТВЕРДЖЕННЯ ===== */
+        .delete-details {
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        [data-bs-theme="dark"] .delete-details {
+            background: #2a2e37;
+        }
+        .delete-details .row {
+            margin-bottom: 0.3rem;
+        }
+        .delete-details .label {
+            font-weight: 600;
+            color: #555;
+        }
+        [data-bs-theme="dark"] .delete-details .label {
+            color: #9aa3b2;
+        }
+        .delete-details .value {
+            color: var(--text-primary);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            max-width: 100%;
+        }
+
+        /* ===== СТИЛІ ДЛЯ МОДАЛКИ ДОДАВАННЯ ===== */
         .modal-content { border-radius: 1rem; }
         .modal-header { border-bottom: 1px solid #dee2e6; }
         .transaction-type-toggle {
@@ -336,12 +403,16 @@
             .table-toolbar .info-text { font-size: 0.7rem; }
             .table-toolbar .search-input { min-width: 100px; }
             .date-filter-group .form-control-sm { width: 110px; }
+            .card-header .badge-count { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
+            .btn-delete-day { font-size: 0.6rem; padding: 0.1rem 0.3rem; }
         }
 
         @media (max-width: 480px) {
             .table-toolbar .page-size-select { max-width: 70px; }
             .table-toolbar .info-text { font-size: 0.65rem; }
             .date-filter-group .form-control-sm { width: 90px; }
+            .card-header .badge-count { font-size: 0.45rem; padding: 0.05rem 0.2rem; }
+            .btn-delete-day { font-size: 0.5rem; padding: 0.05rem 0.2rem; }
         }
     </style>
 </head>
@@ -386,7 +457,7 @@
                     <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Пошук транзакцій...">
                 </div>
 
-                <!-- Фільтр по даті (перенесено сюди) -->
+                <!-- Фільтр по даті -->
                 <div class="date-filter-group">
                     <span class="text-muted small">від</span>
                     <input type="date" id="dateFrom" class="form-control form-control-sm">
@@ -425,17 +496,46 @@
                      th:data-expenses="${budget.totalExpenses}"
                      th:data-incomes="${budget.totalIncomes}"
                      th:data-balance="${budget.remainingBalance}"
-                     th:data-starting="${budget.startingBalance}">
+                     th:data-starting="${budget.startingBalance}"
+                     th:data-expense-count="${budget.expenses.size()}"
+                     th:data-income-count="${budget.incomes.size()}"
+                     th:data-id="${budget.id}">
                     <div class="card card-day h-100">
+                        <!-- ===== ЗАГОЛОВОК КАРТКИ ===== -->
                         <div class="card-header"
-                             th:classappend="${budget.remainingBalance >= 0} ? 'bg-success text-white' : 'bg-danger text-white'">
-                            <h5 class="mb-0">
-                                <i class="fas fa-calendar-day me-2"></i>
+                             th:classappend="${budget.remainingBalance >= 0} ? 'bg-success text-white' : 'bg-danger text-white'"
+                             style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2px;">
+                            <h5 class="mb-0" style="font-size: 0.95rem;">
+                                <i class="fas fa-calendar-day me-1"></i>
                                 <span th:text="${budget.dayName}"></span>,
                                 <span th:text="${budget.date}"></span>
                             </h5>
+                            <div style="display: flex; gap: 2px; flex-wrap: wrap; align-items: center;">
+                                <span class="badge-count total" title="Всього транзакцій">
+                                    <i class="fas fa-list"></i> <span th:text="${budget.expenses.size() + budget.incomes.size()}"></span>
+                                </span>
+                                <span class="badge-count income" title="Доходи">
+                                    <i class="fas fa-arrow-up"></i> <span th:text="${budget.incomes.size()}"></span>
+                                </span>
+                                <span class="badge-count expense" title="Витрати">
+                                    <i class="fas fa-arrow-down"></i> <span th:text="${budget.expenses.size()}"></span>
+                                </span>
+                                <!-- ===== КНОПКА ВИДАЛИТИ ===== -->
+                                <button class="btn btn-sm btn-outline-light btn-delete-day action-delete-day"
+                                        th:data-id="${budget.id}"
+                                        th:data-date="${budget.date}"
+                                        th:data-dayname="${budget.dayName}"
+                                        th:data-expenses="${budget.totalExpenses}"
+                                        th:data-incomes="${budget.totalIncomes}"
+                                        th:data-balance="${budget.remainingBalance}"
+                                        title="Видалити день">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
+
                         <div class="card-body">
+                            <!-- Суми -->
                             <p><i class="fas fa-flag-checkered text-secondary me-2"></i>Початковий баланс:
                                 <strong th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
@@ -449,7 +549,8 @@
                                 <strong th:class="${budget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"
                                         th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
-                            <a th:href="'/day/' + ${budget.date}" class="btn btn-primary w-100">
+
+                            <a th:href="'/day/' + ${budget.date}" class="btn btn-primary w-100 mt-2">
                                 <i class="fas fa-eye me-1"></i>Переглянути
                             </a>
                         </div>
@@ -469,7 +570,56 @@
 
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ ДНЯ ===== -->
+<div class="modal fade no-print" id="deleteDayConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Підтвердження видалення дня</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Ви впевнені, що хочете видалити цей день <strong id="deleteDayName"></strong>?</p>
+                <p class="text-muted small text-center">Цю дію не можна скасувати. Всі транзакції за цей день будуть видалені.</p>
+                <hr>
+                <div class="delete-details">
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Дата:</div>
+                        <div class="col-8 value" id="deleteDate"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">День тижня:</div>
+                        <div class="col-8 value" id="deleteDayNameDetail"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Витрати:</div>
+                        <div class="col-8 value" id="deleteExpenses"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Доходи:</div>
+                        <div class="col-8 value" id="deleteIncomes"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Баланс:</div>
+                        <div class="col-8 value" id="deleteBalance"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Всього транзакцій:</div>
+                        <div class="col-8 value" id="deleteTotalTransactions"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <form id="deleteDayForm" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Видалити день</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -700,7 +850,38 @@
         applyFiltersAndPaginate();
 
         // ================================================================
-        // 3. МОДАЛКА
+        // 3. ВИДАЛЕННЯ ДНЯ
+        // ================================================================
+        const deleteDayModal = document.getElementById('deleteDayConfirmModal');
+        const deleteDayForm = document.getElementById('deleteDayForm');
+
+        document.querySelectorAll('.action-delete-day').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const date = this.dataset.date || '—';
+                const dayName = this.dataset.dayname || '—';
+                const expenses = parseFloat(this.dataset.expenses) || 0;
+                const incomes = parseFloat(this.dataset.incomes) || 0;
+                const balance = parseFloat(this.dataset.balance) || 0;
+                const total = expenses + incomes;
+
+                document.getElementById('deleteDate').textContent = date;
+                document.getElementById('deleteDayName').textContent = dayName;
+                document.getElementById('deleteDayNameDetail').textContent = dayName;
+                document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
+                document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ₴';
+                document.getElementById('deleteBalance').textContent = balance.toFixed(2) + ' ₴';
+                document.getElementById('deleteTotalTransactions').textContent = total;
+
+                deleteDayForm.action = '/day/delete/' + id;
+
+                const modal = new bootstrap.Modal(deleteDayModal);
+                modal.show();
+            });
+        });
+
+        // ================================================================
+        // 4. МОДАЛКА ДОДАВАННЯ
         // ================================================================
         let expenseCategories = [];
         let incomeCategories = [];
