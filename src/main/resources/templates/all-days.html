@@ -134,6 +134,43 @@
             background-color: rgba(220, 53, 69, 0.6);
         }
 
+        /* ===== КОЛЬОРИ ДЛЯ ТЕКСТУ В КАРТЦІ ===== */
+        .card-day .text-starting {
+            color: #6c757d;
+        }
+        .card-day .text-expense {
+            color: #dc3545;
+        }
+        .card-day .text-income {
+            color: #198754;
+        }
+        .card-day .text-balance-positive {
+            color: #198754;
+        }
+        .card-day .text-balance-negative {
+            color: #dc3545;
+        }
+
+        [data-bs-theme="dark"] .card-day .text-starting {
+            color: #adb5bd;
+        }
+        [data-bs-theme="dark"] .card-day .text-expense {
+            color: #f87171;
+        }
+        [data-bs-theme="dark"] .card-day .text-income {
+            color: #6ee7b7;
+        }
+        [data-bs-theme="dark"] .card-day .text-balance-positive {
+            color: #6ee7b7;
+        }
+        [data-bs-theme="dark"] .card-day .text-balance-negative {
+            color: #f87171;
+        }
+
+        .card-day .value-amount {
+            font-weight: 600;
+        }
+
         /* ===== КНОПКА ВИДАЛИТИ ===== */
         .btn-delete-day {
             padding: 0.15rem 0.5rem;
@@ -537,19 +574,23 @@
                             </div>
                         </div>
 
+                        <!-- ===== ТІЛО КАРТКИ З КОЛЬОРАМИ ===== -->
                         <div class="card-body">
-                            <!-- Суми -->
-                            <p><i class="fas fa-flag-checkered text-secondary me-2"></i>Початковий баланс:
-                                <strong th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                            <p><i class="fas fa-flag-checkered text-secondary me-2"></i>
+                                <span class="text-starting">Початковий баланс:</span>
+                                <strong class="value-amount text-starting" th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
-                            <p><i class="fas fa-arrow-down text-danger me-2"></i>Витрати:
-                                <strong class="text-danger" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                            <p><i class="fas fa-arrow-down text-danger me-2"></i>
+                                <span class="text-expense">Витрати:</span>
+                                <strong class="value-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
-                            <p><i class="fas fa-arrow-up text-success me-2"></i>Доходи:
-                                <strong class="text-success" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                            <p><i class="fas fa-arrow-up text-success me-2"></i>
+                                <span class="text-income">Доходи:</span>
+                                <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
-                            <p><i class="fas fa-balance-scale me-2"></i>Баланс:
-                                <strong th:class="${budget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"
+                            <p><i class="fas fa-balance-scale me-2"></i>
+                                <span>Баланс:</span>
+                                <strong class="value-amount" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
                                         th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
 
