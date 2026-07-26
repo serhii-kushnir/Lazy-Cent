@@ -171,6 +171,11 @@
             font-weight: 600;
         }
 
+        /* ===== РЯДОК БАЛАНСУ БЕЗ ПЕРЕНОСУ ===== */
+        .card-day .balance-row {
+            white-space: nowrap;
+        }
+
         /* ===== КНОПКА ВИДАЛИТИ ===== */
         .btn-delete-day {
             padding: 0.15rem 0.5rem;
@@ -267,7 +272,7 @@
             width: 140px;
         }
 
-        /* ===== СТИЛІ ДЛЯ МОДАЛКИ ПІДТВЕРДЖЕННЯ ===== */
+        /* ===== СТИЛІ ДЛЯ МОДАЛКИ ПІДТВЕРДЖЕННЯ (З КОЛЬОРАМИ) ===== */
         .delete-details {
             background: #f8f9fa;
             border-radius: 0.5rem;
@@ -293,6 +298,55 @@
             overflow-wrap: break-word;
             white-space: normal;
             max-width: 100%;
+        }
+        /* Кольори для значень у модалці */
+        .delete-details .value.text-expense {
+            color: #dc3545;
+        }
+        .delete-details .value.text-income {
+            color: #198754;
+        }
+        .delete-details .value.text-balance-positive {
+            color: #198754;
+        }
+        .delete-details .value.text-balance-negative {
+            color: #dc3545;
+        }
+        .delete-details .value.text-starting {
+            color: #6c757d;
+        }
+        .delete-details .value.text-total {
+            color: #6c757d;
+        }
+        .delete-details .value.text-income-count {
+            color: #198754;
+        }
+        .delete-details .value.text-expense-count {
+            color: #dc3545;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-expense {
+            color: #f87171;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-income {
+            color: #6ee7b7;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-balance-positive {
+            color: #6ee7b7;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-balance-negative {
+            color: #f87171;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-starting {
+            color: #adb5bd;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-total {
+            color: #adb5bd;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-income-count {
+            color: #6ee7b7;
+        }
+        [data-bs-theme="dark"] .delete-details .value.text-expense-count {
+            color: #f87171;
         }
 
         /* ===== СТИЛІ ДЛЯ МОДАЛКИ ДОДАВАННЯ ===== */
@@ -588,7 +642,7 @@
                                 <span class="text-income">Доходи:</span>
                                 <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
                             </p>
-                            <p><i class="fas fa-balance-scale me-2"></i>
+                            <p class="balance-row"><i class="fas fa-balance-scale me-2"></i>
                                 <span>Баланс:</span>
                                 <strong class="value-amount" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
                                         th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
@@ -614,7 +668,7 @@
 
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ ДНЯ ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ ДНЯ (З КОЛЬОРАМИ) ===== -->
 <div class="modal fade no-print" id="deleteDayConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -637,15 +691,15 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Початковий баланс:</div>
-                        <div class="col-8 value" id="deleteStartingBalance"></div>
+                        <div class="col-8 value text-starting" id="deleteStartingBalance"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Витрати:</div>
-                        <div class="col-8 value" id="deleteExpenses"></div>
+                        <div class="col-8 value text-expense" id="deleteExpenses"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Доходи:</div>
-                        <div class="col-8 value" id="deleteIncomes"></div>
+                        <div class="col-8 value text-income" id="deleteIncomes"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Баланс:</div>
@@ -653,15 +707,15 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Всього транзакцій:</div>
-                        <div class="col-8 value" id="deleteTotalTransactions"></div>
+                        <div class="col-8 value text-total" id="deleteTotalTransactions"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Доходів:</div>
-                        <div class="col-8 value" id="deleteIncomeCount"></div>
+                        <div class="col-8 value text-income-count" id="deleteIncomeCount"></div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-4 label fw-bold">Витрат:</div>
-                        <div class="col-8 value" id="deleteExpenseCount"></div>
+                        <div class="col-8 value text-expense-count" id="deleteExpenseCount"></div>
                     </div>
                 </div>
             </div>
@@ -906,7 +960,7 @@
         applyFiltersAndPaginate();
 
         // ================================================================
-        // 3. ВИДАЛЕННЯ ДНЯ
+        // 3. ВИДАЛЕННЯ ДНЯ (з кольорами)
         // ================================================================
         const deleteDayModal = document.getElementById('deleteDayConfirmModal');
         const deleteDayForm = document.getElementById('deleteDayForm');
@@ -930,7 +984,18 @@
                 document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ₴';
                 document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
                 document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ₴';
-                document.getElementById('deleteBalance').textContent = balance.toFixed(2) + ' ₴';
+
+                // Баланс з кольором
+                const balanceEl = document.getElementById('deleteBalance');
+                balanceEl.textContent = balance.toFixed(2) + ' ₴';
+                balanceEl.className = 'value';
+                if (balance >= 0) {
+                    balanceEl.classList.add('text-balance-positive');
+                } else {
+                    balanceEl.classList.add('text-balance-negative');
+                }
+
+                // Кількість транзакцій з кольорами
                 document.getElementById('deleteTotalTransactions').textContent = total;
                 document.getElementById('deleteIncomeCount').textContent = incomeCount;
                 document.getElementById('deleteExpenseCount').textContent = expenseCount;

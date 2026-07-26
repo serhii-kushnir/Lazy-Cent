@@ -512,4 +512,21 @@ public class BudgetService {
                 });
         return income.getDayBudget().getDate();
     }
+
+    @Transactional
+    public void deleteDay(Long dayBudgetId) {
+        log.info("Deleting day budget with ID: {}", dayBudgetId);
+        DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
+                .orElseThrow(() -> {
+                    log.error("DayBudget not found with ID: {}", dayBudgetId);
+                    return new RuntimeException("День не знайдено");
+                });
+
+        // Видаляємо всі витрати та доходи за день (каскадне видалення)
+        dayBudgetRepository.delete(dayBudget);
+        log.info("Day budget {} deleted", dayBudgetId);
+
+        // Оновлюємо баланси наступних днів
+        updateNextDaysBalances(dayBudget.getDate());
+    }
 }

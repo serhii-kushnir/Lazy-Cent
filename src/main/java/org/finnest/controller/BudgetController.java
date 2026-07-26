@@ -407,4 +407,18 @@ public class BudgetController {
         log.info("GET /init-demo-test - Demo test endpoint called");
         return "Demo data is handled by DataLoader on startup.";
     }
+
+    @PostMapping("/day/delete/{id}")
+    public String deleteDay(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        log.info("POST /day/delete/{} - Deleting day", id);
+        try {
+            budgetService.deleteDay(id);
+            redirectAttributes.addFlashAttribute("successMessage", "День успішно видалено!");
+            log.info("Day {} deleted successfully", id);
+        } catch (Exception e) {
+            log.error("Error deleting day: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні дня: " + e.getMessage());
+        }
+        return "redirect:/all-days";
+    }
 }
