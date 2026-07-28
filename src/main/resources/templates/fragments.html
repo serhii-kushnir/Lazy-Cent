@@ -1,11 +1,15 @@
 <!-- templates/fragments.html -->
-<!-- Спільні фрагменти: навбар, футер, стилі/скрипт перемикача теми -->
+<!-- Спільні фрагменти: навбар, футер, тости, стилі/скрипт перемикача теми -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
 <!-- ===================== HEAD-АСЕТИ ===================== -->
 <th:block th:fragment="themeAssets">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <script src="/lib/chart.js/chart.umd.min.js"></script>
     <style>
         :root { --wm-transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
         body { transition: var(--wm-transition); }
@@ -41,6 +45,59 @@
             background-color: #f8f9fa !important;
             color: #1B2430 !important;
             border-top: 1px solid #e9ecef;
+        }
+
+        /* --- ТОСТИ --- */
+        .toast-container {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 9999 !important;
+            max-width: 350px;
+        }
+        .toast {
+            background: #fff;
+            border-left: 4px solid #0d6efd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 250px;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s ease;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .toast.success { border-left-color: #198754; }
+        .toast.error { border-left-color: #dc3545; }
+        .toast .toast-header {
+            background: transparent;
+            border-bottom: none;
+            padding: 0.75rem 1rem 0.25rem 1rem;
+        }
+        .toast .toast-body {
+            padding: 0.25rem 1rem 0.75rem 1rem;
+            font-size: 0.95rem;
+        }
+        [data-bs-theme="dark"] .toast {
+            background: #1d2027;
+            color: #e6e6e6;
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .toast .toast-header {
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .toast .btn-close {
+            filter: invert(1);
+        }
+
+        /* --- ГАРАНТІЯ, ЩО МОДАЛЬНІ ВІКНА ПОВЕРХ ВСЬОГО --- */
+        .modal {
+            z-index: 1060 !important;
+        }
+        .modal-backdrop {
+            z-index: 1050 !important;
         }
 
         /* --- ТЕМНА ТЕМА --- */
@@ -89,9 +146,10 @@
         [data-bs-theme="dark"] .btn-outline-primary { color: #6ea8fe; border-color: #6ea8fe; }
         [data-bs-theme="dark"] .btn-outline-primary:hover { background-color: #6ea8fe; color: #14161a; }
     </style>
+
     <script>
         (function () {
-            const saved = localStorage.getItem('webmoney-theme');
+            const saved = localStorage.getItem('finnest-theme');
             if (saved) document.documentElement.setAttribute('data-bs-theme', saved);
         })();
     </script>
@@ -99,9 +157,9 @@
 
 <!-- ===================== НАВБАР ===================== -->
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
-    <div class="container">
+    <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            <i class="fas fa-wallet me-2"></i>💰 WebMoney
+            <i class="fas fa-wallet me-2"></i>💰 FinNest
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -146,11 +204,72 @@
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
-        <p class="mb-0">© 2026 WebMoney - Ваш фінансовий помічник</p>
+        <p class="mb-0">© 2026 FinNest - Ваш фінансовий помічник</p>
     </div>
 </footer>
 
-<!-- ===================== СКРИПТ ПЕРЕМИКАЧА ===================== -->
+<!-- ===================== ТОСТ (контейнер) ===================== -->
+<div th:fragment="toastContainer">
+    <div class="toast-container">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle">Повідомлення</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Текст повідомлення
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== СКРИПТ ДЛЯ ТОСТІВ ===================== -->
+<th:block th:fragment="toastScript">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const successMessage = /*[[${successMessage}]]*/ null;
+        const errorMessage = /*[[${errorMessage}]]*/ null;
+        /*]]>*/
+
+        (function() {
+            function showToast(message, type) {
+                const toastElement = document.getElementById('liveToast');
+                if (!toastElement) return;
+
+                const toastTitle = document.getElementById('toastTitle');
+                const toastMessage = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+
+                toastElement.classList.remove('success', 'error');
+                if (type === 'success') {
+                    toastElement.classList.add('success');
+                    toastIcon.className = 'fas fa-check-circle me-2';
+                    toastTitle.textContent = 'Успішно!';
+                } else if (type === 'error') {
+                    toastElement.classList.add('error');
+                    toastIcon.className = 'fas fa-exclamation-circle me-2';
+                    toastTitle.textContent = 'Помилка!';
+                } else {
+                    toastIcon.className = 'fas fa-info-circle me-2';
+                    toastTitle.textContent = 'Інформація';
+                }
+
+                toastMessage.textContent = message;
+                const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+                toast.show();
+            }
+
+            if (successMessage) {
+                showToast(successMessage, 'success');
+            } else if (errorMessage) {
+                showToast(errorMessage, 'error');
+            }
+        })();
+    </script>
+</th:block>
+
+<!-- ===================== СКРИПТ ПЕРЕМИКАЧА ТЕМИ ===================== -->
 <th:block th:fragment="themeScript">
     <script>
         (function () {
@@ -167,11 +286,16 @@
                 const current = root.getAttribute('data-bs-theme') || 'light';
                 const next = current === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-bs-theme', next);
-                localStorage.setItem('webmoney-theme', next);
+                localStorage.setItem('finnest-theme', next);
                 updateIcon();
             });
         })();
     </script>
+</th:block>
+
+<!-- ===================== BOOTSTRAP JS ===================== -->
+<th:block th:fragment="bootstrapScript">
+    <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 </th:block>
 
 </body>

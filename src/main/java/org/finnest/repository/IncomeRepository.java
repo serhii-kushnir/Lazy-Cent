@@ -1,7 +1,6 @@
-package org.webmoney.repository;
+package org.finnest.repository;
 
-import org.webmoney.model.Income;
-import org.webmoney.model.Category;
+import org.finnest.model.Income;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

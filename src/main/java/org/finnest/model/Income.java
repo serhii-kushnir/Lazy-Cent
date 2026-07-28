@@ -1,18 +1,21 @@
-package org.webmoney.model;
+package org.finnest.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
+
 import java.time.LocalTime;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Income {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne
@@ -37,4 +40,10 @@ public class Income {
 
     @Column(nullable = true)
     private LocalTime time;
+
+    @Column(nullable = true)
+    private String buyer;
+
+    @Column(nullable = true)
+    private String seller;
 }

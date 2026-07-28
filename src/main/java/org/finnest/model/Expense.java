@@ -1,18 +1,21 @@
-package org.webmoney.model;
+package org.finnest.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
+
 import java.time.LocalTime;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Expense {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne
@@ -23,18 +26,24 @@ public class Expense {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    private String description;      // Назва (обов'язкове)
-    private Double amount;           // Сума (обов'язкове)
+    private String description;
+    private Double amount;
 
     @Column(nullable = true)
-    private Integer quantity;        // Кількість (необов'язково)
+    private Integer quantity;
 
     @Column(length = 500, nullable = true)
-    private String details;          // Додаткові деталі (необов'язково)
+    private String details;
 
     @Column(nullable = true)
-    private Boolean shareWithFamily; // Прапорець "поділитися"
+    private Boolean shareWithFamily;
 
     @Column(nullable = true)
     private LocalTime time;
+
+    @Column(nullable = true)
+    private String buyer;
+
+    @Column(nullable = true)
+    private String seller;
 }

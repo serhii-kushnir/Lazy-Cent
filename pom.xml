@@ -9,9 +9,9 @@
         <relativePath/>
     </parent>
     <groupId>org.example</groupId>
-    <artifactId>webmoney</artifactId>
+    <artifactId>FinNest</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>webmoney</name>
+    <name>finnest</name>
     <description>Budget management application</description>
 
     <properties>
@@ -19,6 +19,27 @@
     </properties>
 
     <dependencies>
+        <!-- WebJars для Bootstrap, Font Awesome, Chart.js -->
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>bootstrap</artifactId>
+            <version>5.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>font-awesome</artifactId>
+            <version>6.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>chart.js</artifactId>
+            <version>4.4.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>webjars-locator-core</artifactId>
+            <version>0.55</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WebMoney - Бюджет</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>FinNest - Бюджет</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <style>
         .feature-card { transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
         .feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
@@ -80,10 +80,13 @@
 
 <nav th:replace="~{fragments :: navbar('home')}"></nav>
 
+<!-- ===== TOAST ===== -->
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container mt-4">
     <div class="row mb-4">
         <div class="col text-center">
-            <h1 class="display-4"><i class="fas fa-coins text-warning"></i> WebMoney</h1>
+            <h1 class="display-4"><i class="fas fa-coins text-warning"></i> FinNest</h1>
             <p class="lead">Ваш особистий фінансовий помічник</p>
             <hr>
         </div>
@@ -153,7 +156,7 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО (ідентичне до all-days) ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ===== -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -165,6 +168,9 @@
             </div>
             <form id="transactionForm" method="post">
                 <div class="modal-body">
+                    <!-- ПРИХОВАНЕ ПОЛЕ ДЛЯ ТИПУ -->
+                    <input type="hidden" name="type" id="transactionType" value="EXPENSE">
+
                     <div class="mb-3">
                         <label for="transactionName" class="form-label">Назва</label>
                         <input type="text" class="form-control" id="transactionName" name="description"
@@ -181,11 +187,10 @@
                                 <i class="fas fa-arrow-up me-1"></i> Доход
                             </button>
                         </div>
-                        <input type="hidden" name="type" id="transactionType" value="EXPENSE">
                     </div>
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
-                        <select class="form-select" id="categorySelect" name="category" required>
+                        <select class="form-select" id="categorySelect" name="categoryId" required>
                             <option value="">Завантаження...</option>
                         </select>
                         <div class="invalid-feedback">Виберіть категорію</div>
@@ -196,11 +201,15 @@
                                th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
                     </div>
                     <div class="mb-3">
+                        <label for="transactionTime" class="form-label">Час (необов'язково)</label>
+                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3">
                         <label for="transactionAmount" class="form-label">Сума (₴)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
                             <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   placeholder="0.0" value="0" required>
+                                   placeholder="0.0" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
                         <div class="invalid-feedback">Введіть суму</div>
@@ -214,12 +223,13 @@
                             <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
                         </div>
                     </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="shareWithFamily" name="shareWithFamily">
-                        <label class="form-check-label" for="shareWithFamily">
-                            Поділитися з членами сім'ї
-                            <i class="fas fa-circle-question text-muted ms-1" data-bs-toggle="tooltip" title="Транзакція буде видна іншим користувачам"></i>
-                        </label>
+                    <div class="mb-3">
+                        <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
                     </div>
                     <div class="mb-3">
                         <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
@@ -231,6 +241,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                     <button type="submit" class="btn btn-primary" id="saveTransactionBtn">Зберегти транзакцію</button>
                 </div>
@@ -239,12 +250,41 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
 
 <script>
     (function() {
+        'use strict';
+
+        // ---- ЕЛЕМЕНТИ ----
+        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
+        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
+        const transactionType = document.getElementById('transactionType');
+        const transactionForm = document.getElementById('transactionForm');
+        const categorySelect = document.getElementById('categorySelect');
+        const modal = document.getElementById('transactionModal');
+        const amountInput = document.getElementById('transactionAmount');
+        const quantityInput = document.getElementById('transactionQuantity');
+        const detailsTextarea = document.getElementById('transactionDetails');
+        const charCount = document.getElementById('charCount');
+
+        // Якщо transactionType немає – створюємо його
+        if (!transactionType) {
+            console.warn('transactionType not found, creating hidden input');
+            const hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'type';
+            hidden.id = 'transactionType';
+            hidden.value = 'EXPENSE';
+            transactionForm.prepend(hidden);
+            // Оновлюємо посилання
+            transactionType = document.getElementById('transactionType');
+        }
+
+        // ---- КАТЕГОРІЇ ----
         let expenseCategories = [];
         let incomeCategories = [];
 
@@ -254,26 +294,8 @@
         if (modelExpense && modelExpense.length > 0) expenseCategories = modelExpense;
         if (modelIncome && modelIncome.length > 0) incomeCategories = modelIncome;
 
-        // Якщо категорій немає – завантажуємо через AJAX
-        if (expenseCategories.length === 0 || incomeCategories.length === 0) {
-            fetch('/categories/expense')
-                .then(r => r.json())
-                .then(data => { expenseCategories = data; if (transactionType.value === 'EXPENSE') populateCategories(expenseCategories); })
-                .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
-            fetch('/categories/income')
-                .then(r => r.json())
-                .then(data => { incomeCategories = data; if (transactionType.value === 'INCOME') populateCategories(incomeCategories); })
-                .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
-        }
-
-        // ---- Ініціалізація модального вікна (повністю аналогічно до all-days) ----
-        const categorySelect = document.getElementById('categorySelect');
-        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
-        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
-        const transactionType = document.getElementById('transactionType');
-        const transactionForm = document.getElementById('transactionForm');
-
         function populateCategories(categories) {
+            if (!categorySelect) return;
             categorySelect.innerHTML = '';
             if (!categories || categories.length === 0) {
                 const opt = document.createElement('option');
@@ -289,17 +311,56 @@
                 opt.textContent = cat.name;
                 categorySelect.appendChild(opt);
             });
+            if (categorySelect.options.length > 0 && !categorySelect.value) {
+                categorySelect.selectedIndex = 0;
+            }
         }
 
+        async function fetchExpenseCategories() {
+            try {
+                const response = await fetch('/categories/expense');
+                const data = await response.json();
+                expenseCategories = data;
+                if (transactionType && transactionType.value === 'EXPENSE') {
+                    populateCategories(expenseCategories);
+                }
+            } catch (err) {
+                console.warn('Помилка завантаження категорій витрат:', err);
+            }
+        }
+
+        async function fetchIncomeCategories() {
+            try {
+                const response = await fetch('/categories/income');
+                const data = await response.json();
+                incomeCategories = data;
+                if (transactionType && transactionType.value === 'INCOME') {
+                    populateCategories(incomeCategories);
+                }
+            } catch (err) {
+                console.warn('Помилка завантаження категорій доходів:', err);
+            }
+        }
+
+        // ---- ВСТАНОВЛЕННЯ ТИПУ ----
         function setTransactionType(type) {
+            if (!transactionType) return;
             if (type === 'EXPENSE') {
-                populateCategories(expenseCategories);
+                if (expenseCategories.length === 0) {
+                    fetchExpenseCategories();
+                } else {
+                    populateCategories(expenseCategories);
+                }
                 transactionType.value = 'EXPENSE';
                 typeExpenseBtn.className = 'btn active-expense';
                 typeIncomeBtn.className = 'btn btn-outline-success';
                 transactionForm.action = '/quick-expense';
             } else {
-                populateCategories(incomeCategories);
+                if (incomeCategories.length === 0) {
+                    fetchIncomeCategories();
+                } else {
+                    populateCategories(incomeCategories);
+                }
                 transactionType.value = 'INCOME';
                 typeIncomeBtn.className = 'btn active-income';
                 typeExpenseBtn.className = 'btn btn-outline-danger';
@@ -307,80 +368,136 @@
             }
         }
 
+        // ---- ІНІЦІАЛІЗАЦІЯ ----
+        if (expenseCategories.length === 0) {
+            fetchExpenseCategories();
+        } else {
+            populateCategories(expenseCategories);
+        }
+        if (incomeCategories.length === 0) {
+            fetchIncomeCategories();
+        }
+
         setTransactionType('EXPENSE');
 
-        typeExpenseBtn.addEventListener('click', () => setTransactionType('EXPENSE'));
-        typeIncomeBtn.addEventListener('click', () => setTransactionType('INCOME'));
+        typeExpenseBtn.addEventListener('click', function() { setTransactionType('EXPENSE'); });
+        typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
 
-        // Кнопки +/-
-        document.getElementById('amountMinus').addEventListener('click', function() {
-            let val = parseFloat(document.getElementById('transactionAmount').value) || 0;
-            if (val > 0) document.getElementById('transactionAmount').value = (val - 0.01).toFixed(2);
-        });
-        document.getElementById('amountPlus').addEventListener('click', function() {
-            let val = parseFloat(document.getElementById('transactionAmount').value) || 0;
-            document.getElementById('transactionAmount').value = (val + 0.01).toFixed(2);
-        });
-        document.getElementById('quantityMinus').addEventListener('click', function() {
-            let val = parseInt(document.getElementById('transactionQuantity').value) || 1;
-            if (val > 1) document.getElementById('transactionQuantity').value = val - 1;
-        });
-        document.getElementById('quantityPlus').addEventListener('click', function() {
-            let val = parseInt(document.getElementById('transactionQuantity').value) || 1;
-            document.getElementById('transactionQuantity').value = val + 1;
-        });
+        // ---- КНОПКИ +/- ДЛЯ СУМИ ----
+        if (amountInput) {
+            document.getElementById('amountMinus').addEventListener('click', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                if (val > 0) {
+                    val = Math.round((val - 0.01) * 100) / 100;
+                    amountInput.value = val.toFixed(2);
+                }
+            });
+            document.getElementById('amountPlus').addEventListener('click', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                val = Math.round((val + 0.01) * 100) / 100;
+                amountInput.value = val.toFixed(2);
+            });
+            amountInput.addEventListener('blur', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                amountInput.value = val.toFixed(2);
+            });
+        }
 
-        const detailsTextarea = document.getElementById('transactionDetails');
-        const charCount = document.getElementById('charCount');
-        detailsTextarea.addEventListener('input', function() {
-            const len = this.value.length;
-            charCount.textContent = len;
-            charCount.style.color = len >= 250 ? '#dc3545' : '';
-        });
-        charCount.textContent = detailsTextarea.value.length;
+        // ---- КНОПКИ +/- ДЛЯ КІЛЬКОСТІ ----
+        if (quantityInput) {
+            document.getElementById('quantityMinus').addEventListener('click', function() {
+                let val = parseInt(quantityInput.value) || 1;
+                if (val > 1) quantityInput.value = val - 1;
+            });
+            document.getElementById('quantityPlus').addEventListener('click', function() {
+                let val = parseInt(quantityInput.value) || 1;
+                quantityInput.value = val + 1;
+            });
+        }
 
-        const modal = document.getElementById('transactionModal');
-        modal.addEventListener('show.bs.modal', function() {
-            const dateInput = document.getElementById('transactionDate');
-            if (!dateInput.value) {
-                dateInput.value = new Date().toISOString().split('T')[0];
-            }
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        });
+        // ---- ЛІЧИЛЬНИК СИМВОЛІВ ----
+        if (detailsTextarea && charCount) {
+            detailsTextarea.addEventListener('input', function() {
+                const len = this.value.length;
+                charCount.textContent = len;
+                charCount.style.color = len >= 250 ? '#dc3545' : '';
+            });
+            charCount.textContent = detailsTextarea.value.length;
+        }
 
-        modal.addEventListener('hidden.bs.modal', function() {
-            document.getElementById('transactionForm').reset();
-            setTransactionType('EXPENSE');
-            document.getElementById('transactionQuantity').value = 1;
-            charCount.textContent = 0;
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-        });
+        // ---- АВТОЗАПОВНЕННЯ ЧАСУ ----
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function() {
+                const timeInput = document.getElementById('transactionTime');
+                if (timeInput && !timeInput.value) {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    timeInput.value = hours + ':' + minutes;
+                }
+                const dateInput = document.getElementById('transactionDate');
+                if (dateInput && !dateInput.value) {
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                }
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
 
-        transactionForm.addEventListener('submit', function(e) {
-            let valid = true;
-            const name = document.getElementById('transactionName');
-            if (!name.value.trim()) { name.classList.add('is-invalid'); valid = false; }
-            else name.classList.remove('is-invalid');
+            modal.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('transactionForm').reset();
+                setTransactionType('EXPENSE');
+                if (quantityInput) quantityInput.value = 1;
+                if (charCount) charCount.textContent = 0;
+                if (amountInput) amountInput.value = '0.00';
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
+        }
 
-            const amount = document.getElementById('transactionAmount');
-            if (parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; }
-            else amount.classList.remove('is-invalid');
+        // ---- ВАЛІДАЦІЯ ----
+        if (transactionForm) {
+            transactionForm.addEventListener('submit', function(e) {
+                let valid = true;
+                const name = document.getElementById('transactionName');
+                if (!name.value.trim()) {
+                    name.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    name.classList.remove('is-invalid');
+                }
 
-            if (!categorySelect.value) { categorySelect.classList.add('is-invalid'); valid = false; }
-            else categorySelect.classList.remove('is-invalid');
+                const amount = document.getElementById('transactionAmount');
+                if (parseFloat(amount.value) <= 0) {
+                    amount.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    amount.classList.remove('is-invalid');
+                }
 
-            if (!valid) {
-                e.preventDefault();
-                const firstError = document.querySelector('.is-invalid');
-                if (firstError) firstError.focus();
-            }
-        });
+                const category = document.getElementById('categorySelect');
+                if (!category.value) {
+                    category.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    category.classList.remove('is-invalid');
+                }
 
+                if (!valid) {
+                    e.preventDefault();
+                    const firstError = document.querySelector('.is-invalid');
+                    if (firstError) firstError.focus();
+                }
+            });
+        }
+
+        // ---- TOOLTIPS ----
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
-        // Оновлюємо лічильники категорій у картці інформації
-        if (expenseCategories.length > 0) document.getElementById('expenseCount').textContent = expenseCategories.length;
-        if (incomeCategories.length > 0) document.getElementById('incomeCount').textContent = incomeCategories.length;
+        // ---- ЛІЧИЛЬНИКИ КАТЕГОРІЙ ----
+        if (expenseCategories.length > 0) {
+            document.getElementById('expenseCount').textContent = expenseCategories.length;
+        }
+        if (incomeCategories.length > 0) {
+            document.getElementById('incomeCount').textContent = incomeCategories.length;
+        }
     })();
 </script>
 </body>
