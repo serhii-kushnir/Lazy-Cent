@@ -1,8 +1,8 @@
-package org.finnest.service;
+package org.lazycent.service;
 
-import org.finnest.model.*;
-import org.finnest.model.dto.TransactionRequest;
-import org.finnest.repository.*;
+import org.lazycent.model.*;
+import org.lazycent.model.dto.TransactionRequest;
+import org.lazycent.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

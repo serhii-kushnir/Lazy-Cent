@@ -1,13 +1,13 @@
-package org.finnest.config;
+package org.lazycent.config;
 
-import org.finnest.model.Category;
-import org.finnest.model.DayBudget;
-import org.finnest.model.Expense;
-import org.finnest.model.Income;
-import org.finnest.repository.CategoryRepository;
-import org.finnest.repository.DayBudgetRepository;
-import org.finnest.repository.ExpenseRepository;
-import org.finnest.repository.IncomeRepository;
+import org.lazycent.model.Category;
+import org.lazycent.model.DayBudget;
+import org.lazycent.model.Expense;
+import org.lazycent.model.Income;
+import org.lazycent.repository.CategoryRepository;
+import org.lazycent.repository.DayBudgetRepository;
+import org.lazycent.repository.ExpenseRepository;
+import org.lazycent.repository.IncomeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

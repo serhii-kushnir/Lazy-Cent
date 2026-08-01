@@ -1,7 +1,7 @@
 // DayBudgetRepository.java
-package org.finnest.repository;
+package org.lazycent.repository;
 
-import org.finnest.model.DayBudget;
+import org.lazycent.model.DayBudget;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;

@@ -1,4 +1,4 @@
-package org.finnest.model;
+package org.lazycent.model;
 
 import jakarta.persistence.*;
 import lombok.*;

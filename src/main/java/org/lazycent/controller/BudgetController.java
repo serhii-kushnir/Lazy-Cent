@@ -1,8 +1,8 @@
-package org.finnest.controller;
+package org.lazycent.controller;
 
-import org.finnest.model.*;
-import org.finnest.model.dto.TransactionRequest;
-import org.finnest.service.BudgetService;
+import org.lazycent.model.*;
+import org.lazycent.model.dto.TransactionRequest;
+import org.lazycent.service.BudgetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;

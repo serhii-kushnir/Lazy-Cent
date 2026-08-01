@@ -1,11 +1,11 @@
-package org.finnest;
+package org.lazycent;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FinNestApplication {
+public class LazyCentApplication {
     public static void main(String[] args) {
-        SpringApplication.run(FinNestApplication.class, args);
+        SpringApplication.run(LazyCentApplication.class, args);
     }
 }

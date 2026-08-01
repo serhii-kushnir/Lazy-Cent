@@ -1,4 +1,4 @@
-package org.finnest.model;
+package org.lazycent.model;
 
 public enum TransactionType {
     EXPENSE,

@@ -1,4 +1,4 @@
-package org.finnest.model;
+package org.lazycent.model;
 
 import lombok.Data;
 import java.time.LocalDate;

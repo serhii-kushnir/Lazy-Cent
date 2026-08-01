@@ -1,4 +1,4 @@
-package org.finnest.config;
+package org.lazycent.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

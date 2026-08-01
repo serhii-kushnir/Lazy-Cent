@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - FinNest'"></title>
+    <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - Lazy Cent'"></title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <script src="/lib/chart.js/chart.umd.min.js"></script>
@@ -716,7 +716,7 @@
 
     <!-- БЛОК ДЛЯ ДРУКУ -->
     <div class="print-header d-print-flex" style="display: none;">
-        <span class="logo">💰 FinNest</span>
+        <span class="logo">💰 Lazy Cent</span>
         <h2 th:text="${dayBudget.dayName} + ', ' + ${#temporals.format(dayBudget.date, 'dd/MM/yyyy')}"></h2>
     </div>
 
@@ -1032,7 +1032,7 @@
 
     <!-- ФУТЕР ПРИ ДРУЦІ -->
     <div class="print-footer d-print-block" style="display: none;">
-        © 2026 FinNest - Ваш фінансовий помічник
+        © 2026 Lazy Cent - Ваш фінансовий помічник
     </div>
 </div>
 
@@ -1480,10 +1480,10 @@
         if (!currentDate) {
             currentDate = /*[[${dayBudget.date}]]*/ '';
         }
-        const STORAGE_KEY = 'finnest_sort_day_' + currentDate;
-        const COL_WIDTH_KEY = 'finnest_col_widths_' + currentDate;
-        const FILTERS_KEY = 'finnest_filters_day_' + currentDate;
-        const CHART_VISIBLE_KEY = 'finnest_chart_visible_' + currentDate;
+        const STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
+        const COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
+        const FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
+        const CHART_VISIBLE_KEY = 'lazycent_chart_visible_' + currentDate;
 
         // ================================================================
         // 3. КАТЕГОРІЇ (для модалок)

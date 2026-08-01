@@ -1,4 +1,4 @@
-package org.finnest.model.dto;
+package org.lazycent.model.dto;
 
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;

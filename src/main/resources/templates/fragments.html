@@ -149,7 +149,7 @@
 
     <script>
         (function () {
-            const saved = localStorage.getItem('finnest-theme');
+            const saved = localStorage.getItem('lazycent-theme');
             if (saved) document.documentElement.setAttribute('data-bs-theme', saved);
         })();
     </script>
@@ -159,7 +159,7 @@
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            <i class="fas fa-wallet me-2"></i>💰 FinNest
+            <i class="fas fa-wallet me-2"></i>💰 Lazy Cent
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -204,7 +204,7 @@
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
-        <p class="mb-0">© 2026 FinNest - Ваш фінансовий помічник</p>
+        <p class="mb-0">© 2026 Lazy Cent - Ваш фінансовий помічник</p>
     </div>
 </footer>
 
@@ -286,7 +286,7 @@
                 const current = root.getAttribute('data-bs-theme') || 'light';
                 const next = current === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-bs-theme', next);
-                localStorage.setItem('finnest-theme', next);
+                localStorage.setItem('lazycent-theme', next);
                 updateIcon();
             });
         })();

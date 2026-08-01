@@ -1,6 +1,6 @@
-package org.finnest.repository;
+package org.lazycent.repository;
 
-import org.finnest.model.Income;
+import org.lazycent.model.Income;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

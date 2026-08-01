@@ -1,10 +1,10 @@
-package org.finnest;
+package org.lazycent;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class FinNestApplicationTests {
+class Lazy CentApplicationTests {
 
     @Test
     void contextLoads() {
