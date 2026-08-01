@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - Lazy Cent'"></title>
+    <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' - LazyCent'"></title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <script src="/lib/chart.js/chart.umd.min.js"></script>
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
-        /* ===== АНІМАЦІЯ ПОЯВИ ===== */
+        /* ===== АНІМАЦІЇ ===== */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(12px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -19,53 +19,34 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        .toolbar-animated {
-            animation: fadeIn 0.4s ease forwards;
-            opacity: 0;
-        }
-        .stats-animated {
-            animation: fadeIn 0.4s ease forwards;
-            opacity: 0;
-            animation-delay: 0.05s;
-        }
-        .table-wrap-animated {
-            animation: fadeIn 0.5s ease forwards;
-            opacity: 0;
-            animation-delay: 0.10s;
-        }
+        .toolbar-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; }
+        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; }
+        .table-wrap-animated { animation: fadeIn 0.5s ease forwards; opacity: 0; animation-delay: 0.10s; }
+        .row-animate { animation: fadeInRow 0.3s ease forwards; opacity: 0; }
 
-        .row-animate {
-            animation: fadeInRow 0.3s ease forwards;
-            opacity: 0;
-        }
-
-        /* ===== КОМПАКТНІ ВІДСТУПИ ===== */
-        .card-body {
-            flex: 1 1 auto;
-            padding: 5px !important;
-            color: var(--bs-card-color);
-        }
-        .card-header {
-            padding: 5px !important;
-        }
-        .mt-4 {
-            margin-top: 0.5rem !important;
-        }
-        .mt-5 {
-            margin-top: 1rem !important;
-        }
+        /* ===== ЗАГАЛЬНІ ВІДСТУПИ ===== */
+        .card-body { padding: 5px !important; }
+        .card-header { padding: 5px !important; }
+        .mt-4 { margin-top: 0.5rem !important; }
+        .mt-5 { margin-top: 1rem !important; }
 
         /* ===== КНОПКИ ===== */
         .btn-xs { padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 0.2rem; line-height: 1.2; }
         .btn-rounded { border-radius: 50px !important; }
-        .btn-xs.btn-rounded { border-radius: 50px !important; }
-
         .btn:not(.btn-close):not(.navbar-toggler) {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .btn:not(.btn-close):not(.navbar-toggler):hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="dark"] .btn-outline-secondary {
+            color: #e6e6e6;
+            border-color: #495057;
+        }
+        [data-bs-theme="dark"] .btn-outline-secondary:hover {
+            background-color: #2a2e37;
+            color: #fff;
         }
 
         .custom-container {
@@ -75,63 +56,36 @@
             padding-right: 15px;
         }
 
-        .balance-card { border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: #fff; }
-        [data-bs-theme="dark"] .balance-card { background: #1d2027; border: 1px solid #2a2e37; }
-        .balance-card .col-3 { border-right: 1px solid #dee2e6; }
+        /* ===== КАРТКА БАЛАНСУ ===== */
+        .balance-card {
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #fff;
+        }
+        [data-bs-theme="dark"] .balance-card {
+            background: #1d2027;
+            border: 1px solid #2a2e37;
+        }
+        .balance-card .col-3 {
+            border-right: 1px solid #dee2e6;
+        }
         .balance-card .col-3:last-child { border-right: none; }
-        [data-bs-theme="dark"] .balance-card .col-3 { border-right-color: #2a2e37; }
-        .balance-card .icon-circle { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.05); margin-bottom: 0.5rem; }
-        [data-bs-theme="dark"] .balance-card .icon-circle { background: rgba(255,255,255,0.05); }
-
-        /* ===== ВИДАЛЕНО ФОН У ТИП ТА КАТЕГОРІЯ ===== */
-        .badge-type {
-            font-size: 0.7rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 20px;
-            font-weight: 600;
-            background-color: transparent !important;
+        [data-bs-theme="dark"] .balance-card .col-3 {
+            border-right-color: #2a2e37;
         }
-        .badge-type.bg-danger {
-            color: #dc3545;
+        .balance-card .icon-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.05);
+            margin-bottom: 0.5rem;
         }
-        .badge-type.bg-success {
-            color: #198754;
+        [data-bs-theme="dark"] .balance-card .icon-circle {
+            background: rgba(255,255,255,0.05);
         }
-        .badge-category {
-            font-size: 0.75rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 20px;
-            background-color: transparent !important;
-            color: #495057;
-            border: 1px solid #dee2e6;
-        }
-        [data-bs-theme="dark"] .badge-category {
-            border-color: #495057;
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .badge-type.bg-danger {
-            color: #f87171;
-        }
-        [data-bs-theme="dark"] .badge-type.bg-success {
-            color: #6ee7b7;
-        }
-
-        .modal-content { border-radius: 1rem; }
-        .transaction-type-toggle { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
-        .transaction-type-toggle .btn { flex: 1; padding: 0.6rem; font-weight: 600; border-radius: 0.5rem; }
-        .transaction-type-toggle .btn.active-expense { background-color: #dc3545; color: #fff; border-color: #dc3545; }
-        .transaction-type-toggle .btn.active-income { background-color: #198754; color: #fff; border-color: #198754; }
-        .input-group-number { display: flex; gap: 0.5rem; align-items: center; }
-        .input-group-number .btn { flex: 0 0 40px; }
-        .input-group-number input { flex: 1; text-align: center; }
-        .char-counter { font-size: 0.8rem; color: #6c757d; text-align: right; margin-top: 0.25rem; }
-        [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
-        [data-bs-theme="dark"] .modal-content { background-color: #1d2027; color: #e6e6e6; }
-        [data-bs-theme="dark"] .modal-header { border-bottom-color: #2a2e37; }
-        [data-bs-theme="dark"] .modal-footer { border-top-color: #2a2e37; }
-        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background-color: #23262e; color: #e6e6e6; border-color: #3a3f4a; }
-        [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus { background-color: #2a2e37; color: #fff; }
-        [data-bs-theme="dark"] .btn-close { filter: invert(1); }
 
         /* ===== ТАБЛИЦЯ ===== */
         .table-transactions {
@@ -182,11 +136,6 @@
         [data-bs-theme="dark"] .table-transactions th .resize-handle.active {
             background: #5a8ac5;
         }
-
-        /* Плавне підсвічування рядків */
-        .table-transactions tbody tr {
-            transition: background-color 0.25s ease;
-        }
         .table-transactions tbody tr:hover {
             background-color: rgba(13, 110, 253, 0.08);
         }
@@ -194,113 +143,25 @@
             background-color: rgba(90, 138, 197, 0.18);
         }
 
-        /* ===== ШИРИНИ КОЛОНОК ===== */
-        .table-transactions .col-num {
-            width: 50px;
-            min-width: 50px;
-            max-width: 50px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .table-transactions .col-type {
-            width: 90px;
-            min-width: 90px;
-            max-width: 90px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        .table-transactions .col-center {
-            width: auto;
-            white-space: nowrap;
-            text-align: center;
-        }
-        .table-transactions .col-name {
-            width: auto;
-            min-width: 140px;
-            max-width: 220px;
-            word-break: break-word;
-            text-align: left;
-        }
-        .table-transactions .col-amount {
-            width: auto;
-            white-space: nowrap;
-            text-align: center;
-        }
-        .table-transactions .col-buyer-seller {
-            width: 140px;
-            min-width: 100px;
-            max-width: 160px;
-            white-space: normal;
-            word-break: break-word;
-            text-align: center;
-        }
-        .table-transactions .col-details {
-            width: 150px;
-            min-width: 100px;
-            max-width: 180px;
-            white-space: normal;
-            word-break: break-word;
-            text-align: center;
-        }
-        .table-transactions .col-category {
-            width: 130px;
-            min-width: 130px;
-            max-width: 130px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            text-align: center;
-        }
-        .table-transactions .col-category .badge {
-            display: inline-block;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            transition: background-color 0.2s ease;
-        }
-
-        /* ===== КОЛОНКА ДІЙ – КНОПКИ ЗАВЖДИ ВИДИМІ ===== */
-        .table-transactions .col-actions {
-            width: 120px !important;
-            min-width: 120px !important;
-            max-width: 120px !important;
-            white-space: normal !important;
-            text-align: center !important;
-        }
-        td.col-actions {
-            display: table-cell !important;  /* забезпечує стандартну поведінку */
-            white-space: nowrap !important;
-        }
-        /* Контейнер для кнопок у колонці дій */
-        td.col-actions .btn-group,
-        td.col-actions .btn-action-wrapper {
-            display: inline-flex !important;
-            flex-wrap: nowrap !important;
-            gap: 2px;
-            align-items: center;
-            justify-content: center;
-            white-space: nowrap !important;
-        }
-
-        /* ===== КНОПКИ ДІЙ ===== */
-        .btn-action {
-            padding: 0.15rem 0.4rem;
-            font-size: 0.7rem;
-            margin: 0 1px;
-            display: inline-block !important;
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
-        }
-        .btn-action i {
-            font-size: 0.8rem;
-        }
+        .table-transactions .col-num { width: 50px; min-width: 50px; max-width: 50px; text-align: center; white-space: nowrap; }
+        .table-transactions .col-type { width: 90px; min-width: 90px; max-width: 90px; text-align: center; white-space: nowrap; }
+        .table-transactions .col-center { width: auto; white-space: nowrap; text-align: center; }
+        .table-transactions .col-name { width: auto; min-width: 140px; max-width: 220px; word-break: break-word; text-align: left; }
+        .table-transactions .col-amount { width: auto; white-space: nowrap; text-align: center; }
+        .table-transactions .col-actions { width: 110px; min-width: 110px; max-width: 110px; text-align: center; white-space: nowrap; }
+        .table-transactions .col-buyer-seller { width: 140px; min-width: 100px; max-width: 160px; white-space: normal; word-break: break-word; text-align: center; }
+        .table-transactions .col-details { width: 150px; min-width: 100px; max-width: 180px; white-space: normal; word-break: break-word; text-align: center; }
+        .table-transactions .col-category { width: 130px; min-width: 130px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 
         .sortable { cursor: pointer; user-select: none; position: relative; }
         .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; transition: opacity 0.2s; }
         .sortable:hover .sort-icon { opacity: 1; }
         .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
         .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
+
+        .badge-type { font-size: 0.7rem; padding: 0.25rem 0.6rem; border-radius: 20px; font-weight: 600; }
+        .badge-type.bg-danger { background-color: #dc3545; color: #fff; }
+        .badge-type.bg-success { background-color: #198754; color: #fff; }
 
         [data-bs-theme="dark"] .card-header.bg-primary {
             background-color: #1e2a36 !important;
@@ -322,74 +183,252 @@
             border-bottom: 1px solid #dee2e6;
             margin-bottom: 0.5rem;
         }
-        [data-bs-theme="dark"] .table-toolbar {
+        [data-bs-theme="dark"] .table-toolbar { border-bottom-color: #2a2e37; }
+        .search-input { flex: 1; min-width: 150px; }
+        .search-input .input-group-text { background: transparent; border-right: none; }
+        .search-input .form-control { border-left: none; }
+        .filter-select { max-width: 150px; flex: 0 0 auto; }
+        .category-filter { max-width: 160px; flex: 0 0 auto; }
+        .page-size-select { max-width: 100px; flex: 0 0 auto; }
+        .load-more-btn { flex: 0 0 auto; }
+        .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
+        [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
+
+        /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ ===== */
+        .view-toggle {
+            display: flex;
+            gap: 0.25rem;
+            background: #e9ecef;
+            border-radius: 0.375rem;
+            padding: 0.15rem;
+            flex-shrink: 0;
+        }
+        [data-bs-theme="dark"] .view-toggle { background: #2a2e37; }
+        .view-toggle .btn {
+            border: none;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 0.25rem;
+            background: transparent;
+            color: #495057;
+        }
+        .view-toggle .btn.active {
+            background: #fff;
+            color: #0d6efd;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="dark"] .view-toggle .btn { color: #adb5bd; }
+        [data-bs-theme="dark"] .view-toggle .btn.active {
+            background: #1d2027;
+            color: #6ea8fe;
+        }
+
+        /* ===== КАРТКИ У ВИГЛЯДІ ТАБЛИЦІ ===== */
+        .transaction-card-wrapper {
+            padding-left: 0;
+            padding-right: 0;
+            margin-bottom: 0.75rem;
+        }
+
+        .transaction-card {
+            background: #fff;
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .transaction-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        [data-bs-theme="dark"] .transaction-card {
+            background: #1d2027;
+            border-color: #2a2e37;
+        }
+
+        /* Заголовок картки – як заголовок таблиці */
+        .transaction-card .card-header {
+            padding: 0.4rem 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #dee2e6;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            background: #f1f3f5;
+            font-weight: 600;
+        }
+        [data-bs-theme="dark"] .transaction-card .card-header {
+            border-bottom-color: #3a3f4a;
+            background: #23262e;
+        }
+
+        .transaction-card .card-header .type-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .type-badge.expense {
+            color: #dc3545;
+            background: rgba(220,53,69,0.1);
+        }
+        .type-badge.income {
+            color: #198754;
+            background: rgba(25,135,84,0.1);
+        }
+        [data-bs-theme="dark"] .type-badge.expense {
+            color: #f87171;
+            background: rgba(248,113,113,0.15);
+        }
+        [data-bs-theme="dark"] .type-badge.income {
+            color: #6ee7b7;
+            background: rgba(110,231,183,0.15);
+        }
+
+        .transaction-card .card-header .card-time {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        [data-bs-theme="dark"] .transaction-card .card-header .card-time {
+            color: #9aa3b2;
+        }
+
+        /* Тіло картки – рядки, як у таблиці */
+        .transaction-card .card-body {
+            padding: 0;
+        }
+        .transaction-card .card-body .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.35rem 0.75rem;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 0.85rem;
+            margin: 0;
+        }
+        .transaction-card .card-body .row:last-child {
+            border-bottom: none;
+        }
+        .transaction-card .card-body .row:nth-child(even) {
+            background: rgba(0,0,0,0.02);
+        }
+        [data-bs-theme="dark"] .transaction-card .card-body .row {
             border-bottom-color: #2a2e37;
         }
-        .search-input {
-            flex: 1;
-            min-width: 150px;
+        [data-bs-theme="dark"] .transaction-card .card-body .row:nth-child(even) {
+            background: rgba(255,255,255,0.03);
         }
-        .search-input .input-group-text {
-            background: transparent;
-            border-right: none;
+        .transaction-card .card-body .row .label {
+            color: #6c757d;
+            font-weight: 500;
+            flex: 0 0 35%;
+            font-size: 0.8rem;
         }
-        .search-input .form-control {
-            border-left: none;
-        }
-        .filter-select {
-            max-width: 150px;
-            flex: 0 0 auto;
-        }
-        .category-filter {
-            max-width: 160px;
-            flex: 0 0 auto;
-        }
-        .page-size-select {
-            max-width: 100px;
-            flex: 0 0 auto;
-        }
-        .load-more-btn {
-            flex: 0 0 auto;
-        }
-        .info-text {
-            font-size: 0.85rem;
-            color: #666;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-        [data-bs-theme="dark"] .info-text {
+        [data-bs-theme="dark"] .transaction-card .card-body .row .label {
             color: #9aa3b2;
         }
-
-        /* ===== СТИЛІ ДЛЯ ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ ===== */
-        .delete-details {
-            background: #f8f9fa;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin: 0.5rem 0;
-        }
-        [data-bs-theme="dark"] .delete-details {
-            background: #2a2e37;
-        }
-        .delete-details .row {
-            margin-bottom: 0.3rem;
-        }
-        .delete-details .label {
+        .transaction-card .card-body .row .value {
             font-weight: 600;
-            color: #555;
-        }
-        [data-bs-theme="dark"] .delete-details .label {
-            color: #9aa3b2;
-        }
-        .delete-details .value {
-            color: var(--text-primary);
+            text-align: right;
+            flex: 0 0 60%;
             word-break: break-word;
-            overflow-wrap: break-word;
-            white-space: normal;
-            max-width: 100%;
+            font-size: 0.85rem;
+        }
+        .transaction-card .card-body .row .value.text-danger {
+            color: #dc3545;
+        }
+        .transaction-card .card-body .row .value.text-success {
+            color: #198754;
+        }
+        [data-bs-theme="dark"] .transaction-card .card-body .row .value.text-danger {
+            color: #f87171;
+        }
+        [data-bs-theme="dark"] .transaction-card .card-body .row .value.text-success {
+            color: #6ee7b7;
         }
 
-        /* ===== TOAST КОНТЕЙНЕР ===== */
+        .transaction-card .card-footer {
+            padding: 0.3rem 0.75rem;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            gap: 0.3rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+        }
+        [data-bs-theme="dark"] .transaction-card .card-footer {
+            border-top-color: #2a2e37;
+            background: #23262e;
+        }
+        .transaction-card .card-footer .btn-action {
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem;
+        }
+        .transaction-card .card-footer .btn-action i {
+            font-size: 0.75rem;
+        }
+
+        /* АДАПТИВНІСТЬ – на малих екранах рядки стають вертикальними */
+        @media (max-width: 575.98px) {
+            .transaction-card .card-body .row {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            .transaction-card .card-body .row .label {
+                flex: 0 0 100%;
+                margin-bottom: 0.05rem;
+                font-size: 0.7rem;
+            }
+            .transaction-card .card-body .row .value {
+                flex: 0 0 100%;
+                text-align: left;
+                padding-left: 0.5rem;
+                font-size: 0.8rem;
+            }
+            .transaction-card .card-header {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.5rem;
+            }
+            .transaction-card .card-footer .btn {
+                font-size: 0.6rem;
+                padding: 0.1rem 0.3rem;
+            }
+            .transaction-card .card-footer .btn i {
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .table-transactions { font-size: 0.7rem; }
+            .table-transactions th, .table-transactions td { padding: 0.3rem 0.2rem; }
+            .table-transactions .col-num { width: 30px; min-width: 30px; max-width: 30px; }
+            .table-transactions .col-type { width: 70px; min-width: 70px; max-width: 70px; }
+            .table-transactions .col-name { min-width: 80px; max-width: 120px; }
+            .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
+            .table-transactions .col-details { min-width: 60px; max-width: 80px; }
+            .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
+            .table-transactions .col-actions { width: 90px; min-width: 90px; max-width: 90px; }
+            .table-transactions .col-actions .btn { font-size: 0.6rem; padding: 0.15rem 0.3rem; }
+
+            .table-toolbar { gap: 0.4rem; }
+            .table-toolbar .search-input { min-width: 100px; }
+            .table-toolbar .filter-select { max-width: 100px; }
+            .table-toolbar .category-filter { max-width: 110px; }
+            .table-toolbar .page-size-select { max-width: 70px; }
+            .table-toolbar .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+            .table-toolbar .info-text { font-size: 0.7rem; }
+
+            .view-toggle .btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+        }
+
+        .table-view-container { display: block; }
+        .table-view-container.hidden { display: none; }
+        .cards-view-container { display: none; }
+        .cards-view-container.show { display: block; }
+
+        /* ===== ТОСТИ ===== */
         .toast-container {
             position: fixed;
             top: 70px;
@@ -407,42 +446,25 @@
             transform: translateX(100%);
             transition: all 0.5s ease;
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        .toast.show { opacity: 1; transform: translateX(0); }
         .toast.success { border-left-color: #198754; }
         .toast.error { border-left-color: #dc3545; }
-        .toast .toast-header {
-            background: transparent;
-            border-bottom: none;
-            padding: 0.75rem 1rem 0.25rem 1rem;
-        }
-        .toast .toast-body {
-            padding: 0.25rem 1rem 0.75rem 1rem;
-            font-size: 0.95rem;
-        }
+        .toast .toast-header { background: transparent; border-bottom: none; padding: 0.75rem 1rem 0.25rem 1rem; }
+        .toast .toast-body { padding: 0.25rem 1rem 0.75rem 1rem; font-size: 0.95rem; }
         [data-bs-theme="dark"] .toast {
             background: #1d2027;
             color: #e6e6e6;
             border-color: #2a2e37;
         }
-        [data-bs-theme="dark"] .toast .toast-header {
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .toast .btn-close {
-            filter: invert(1);
-        }
+        [data-bs-theme="dark"] .toast .toast-header { color: #e6e6e6; }
+        [data-bs-theme="dark"] .toast .btn-close { filter: invert(1); }
 
-        /* ===== ПІДКАЗКА КЛАВІШ ===== */
         .keyboard-hint {
             font-size: 0.9rem;
             color: #6c757d;
             margin-right: 1rem;
         }
-        [data-bs-theme="dark"] .keyboard-hint {
-            color: #9aa3b2;
-        }
+        [data-bs-theme="dark"] .keyboard-hint { color: #9aa3b2; }
         .keyboard-hint kbd {
             background: #e9ecef;
             color: #212529;
@@ -458,217 +480,69 @@
         }
 
         /* ===== ДІАГРАМИ ===== */
-        .chart-section {
-            transition: all 0.3s ease;
-        }
-        .chart-section.collapsed {
-            display: none;
-        }
-        .chart-toggle-btn {
-            cursor: pointer;
-            user-select: none;
-            transition: transform 0.3s ease;
-        }
-        .chart-toggle-btn .toggle-icon {
-            transition: transform 0.3s ease;
-            display: inline-block;
-        }
-        .chart-toggle-btn .toggle-icon.rotated {
-            transform: rotate(180deg);
-        }
-        .chart-card .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .chart-card .card-header .badge-chart {
-            font-size: 0.7rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 20px;
-        }
+        .chart-section { transition: all 0.3s ease; }
+        .chart-section.collapsed { display: none; }
+        .chart-toggle-btn { cursor: pointer; user-select: none; transition: transform 0.3s ease; }
+        .chart-toggle-btn .toggle-icon { transition: transform 0.3s ease; display: inline-block; }
+        .chart-toggle-btn .toggle-icon.rotated { transform: rotate(180deg); }
+        .chart-card .card-header { display: flex; justify-content: space-between; align-items: center; }
+        .chart-card .card-header .badge-chart { font-size: 0.7rem; padding: 0.3rem 0.6rem; border-radius: 20px; }
 
-        .chart-row-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0;
-        }
-        .chart-col {
-            flex: 0 0 auto;
-            max-width: 50%;
-            padding: 0 0.5rem;
-            min-width: 280px;
-        }
-        .chart-flex {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .chart-container {
-            max-height: 200px;
-            max-width: 200px;
-            flex-shrink: 0;
-        }
-        .chart-container canvas {
-            max-height: 200px;
-            max-width: 200px;
-            cursor: pointer;
-        }
-        .chart-legend-table {
-            font-size: 0.8rem;
-            flex: 0 0 auto;
-            min-width: 120px;
-            text-align: left;
-        }
-        .chart-legend-table td {
-            padding: 0.1rem 0.3rem;
-        }
-        .chart-legend-table .color-dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 4px;
-        }
-        .chart-legend-table .amount-col {
-            text-align: right;
-            font-weight: 600;
-        }
-        .chart-legend-table .category-col {
-            text-align: left;
-        }
+        .chart-row-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; }
+        .chart-col { flex: 0 0 auto; max-width: 50%; padding: 0 0.5rem; min-width: 280px; }
+        .chart-flex { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+        .chart-container { max-height: 200px; max-width: 200px; flex-shrink: 0; }
+        .chart-container canvas { max-height: 200px; max-width: 200px; cursor: pointer; }
+        .chart-legend-table { font-size: 0.8rem; flex: 0 0 auto; min-width: 120px; text-align: left; }
+        .chart-legend-table td { padding: 0.1rem 0.3rem; }
+        .chart-legend-table .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; }
+        .chart-legend-table .amount-col { text-align: right; font-weight: 600; }
 
-        /* ===== ТЕМНА ТЕМА ДЛЯ ДІАГРАМ ===== */
         [data-bs-theme="dark"] .chart-card .card-header {
             background-color: #2a2e37 !important;
             color: #e6e6e6 !important;
             border-bottom-color: #3a3f4a !important;
         }
-        [data-bs-theme="dark"] .chart-card .card-body {
-            background-color: #1d2027 !important;
+        [data-bs-theme="dark"] .chart-card .card-body { background-color: #1d2027 !important; }
+        [data-bs-theme="dark"] .chart-legend-table td { color: #e6e6e6 !important; }
+        [data-bs-theme="dark"] .chart-legend-table .amount-col { color: #9aa3b2 !important; }
+
+        /* ===== МОДАЛЬНІ ВІКНА ===== */
+        .delete-details {
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
         }
-        [data-bs-theme="dark"] .chart-legend-table td {
-            color: #e6e6e6 !important;
+        [data-bs-theme="dark"] .delete-details { background: #2a2e37; }
+        .delete-details .row { margin-bottom: 0.3rem; }
+        .delete-details .label { font-weight: 600; color: #555; }
+        [data-bs-theme="dark"] .delete-details .label { color: #9aa3b2; }
+        .delete-details .value { color: var(--text-primary); word-break: break-word; }
+
+        .modal-content { border-radius: 1rem; }
+        .transaction-type-toggle { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+        .transaction-type-toggle .btn { flex: 1; padding: 0.6rem; font-weight: 600; border-radius: 0.5rem; }
+        .transaction-type-toggle .btn.active-expense { background-color: #dc3545; color: #fff; border-color: #dc3545; }
+        .transaction-type-toggle .btn.active-income { background-color: #198754; color: #fff; border-color: #198754; }
+        .input-group-number { display: flex; gap: 0.5rem; align-items: center; }
+        .input-group-number .btn { flex: 0 0 40px; }
+        .input-group-number input { flex: 1; text-align: center; }
+        .char-counter { font-size: 0.8rem; color: #6c757d; text-align: right; margin-top: 0.25rem; }
+        [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
+        [data-bs-theme="dark"] .modal-content { background-color: #1d2027; color: #e6e6e6; }
+        [data-bs-theme="dark"] .modal-header { border-bottom-color: #2a2e37; }
+        [data-bs-theme="dark"] .modal-footer { border-top-color: #2a2e37; }
+        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select {
+            background-color: #23262e;
+            color: #e6e6e6;
+            border-color: #3a3f4a;
         }
-        [data-bs-theme="dark"] .chart-legend-table .amount-col {
-            color: #9aa3b2 !important;
+        [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus {
+            background-color: #2a2e37;
+            color: #fff;
         }
-
-        /* ===== АДАПТИВНІСТЬ (КНОПКИ ЗАВЖДИ ВИДИМІ) ===== */
-        @media (max-width: 768px) {
-            body { font-size: 14px; }
-            .custom-container { padding-left: 8px; padding-right: 8px; }
-            .card-body { padding: 4px !important; }
-            .card-header { padding: 4px !important; }
-            .card-header h5 { font-size: 1rem; }
-            .balance-card .icon-circle { width: 32px; height: 32px; }
-            .balance-card .icon-circle i { font-size: 1.2rem; }
-            .balance-card h6 { font-size: 0.6rem; }
-            .balance-card h4 { font-size: 0.8rem; }
-
-            .table-transactions { font-size: 0.7rem; }
-            .table-transactions th, .table-transactions td { padding: 0.3rem 0.2rem; }
-            .table-transactions .col-num { width: 30px; min-width: 30px; max-width: 30px; }
-            .table-transactions .col-type { width: 70px; min-width: 70px; max-width: 70px; }
-            .table-transactions .col-name { min-width: 80px; max-width: 120px; }
-            .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
-            .table-transactions .col-details { min-width: 60px; max-width: 80px; }
-            .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
-
-            /* ===== КОЛОНКА ДІЙ – ЗБІЛЬШУЄМО ШИРИНУ, ЩОБ КНОПКИ ВМІЩУВАЛИСЬ ===== */
-            .table-transactions .col-actions {
-                width: 90px !important;
-                min-width: 90px !important;
-                max-width: 90px !important;
-                white-space: normal !important;
-            }
-            td.col-actions {
-                display: table-cell !important;
-                white-space: normal !important;
-            }
-            td.col-actions .btn-action {
-                display: inline-block !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                padding: 0.2rem 0.4rem !important;
-                font-size: 0.75rem !important;
-                margin: 0 2px !important;
-                white-space: nowrap !important;
-                border: 1px solid !important; /* тимчасово, щоб побачити межі */
-            }
-
-            td.col-actions .btn-action i {
-                font-size: 0.85rem !important;
-            }
-
-            td.col-actions .btn-group,
-            td.col-actions .btn-action-wrapper {
-                display: inline-flex !important;
-                flex-wrap: wrap !important;
-                gap: 1px !important;
-                justify-content: center !important;
-                align-items: center !important;
-            }
-            .btn-action {
-                padding: 0.1rem 0.2rem !important;
-                font-size: 0.55rem !important;
-                margin: 1px 0 !important;
-                flex-shrink: 1 !important;
-            }
-            .btn-action i {
-                font-size: 0.65rem !important;
-            }
-
-            .table-toolbar { gap: 0.4rem; }
-            .table-toolbar .search-input { min-width: 100px; }
-            .table-toolbar .filter-select { max-width: 100px; }
-            .table-toolbar .category-filter { max-width: 110px; }
-            .table-toolbar .page-size-select { max-width: 70px; }
-            .table-toolbar .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
-            .table-toolbar .info-text { font-size: 0.7rem; }
-
-            .modal-dialog { margin: 0.5rem; }
-            .modal-content { font-size: 0.85rem; }
-            .modal-body { padding: 1rem; }
-            .transaction-type-toggle .btn { font-size: 0.8rem; padding: 0.4rem; }
-            .input-group-number .btn { flex: 0 0 30px; font-size: 0.8rem; }
-            .input-group-number input { font-size: 0.8rem; }
-            .delete-details { padding: 0.5rem; }
-            .delete-details .row { margin-bottom: 0.15rem; }
-            .delete-details .label { font-size: 0.75rem; }
-            .delete-details .value { font-size: 0.8rem; }
-            .keyboard-hint { font-size: 0.7rem; }
-            .keyboard-hint kbd { font-size: 0.7rem; padding: 0.12rem 0.4rem; }
-            .chart-container { max-height: 140px; max-width: 140px; }
-            .chart-container canvas { max-height: 140px; max-width: 140px; }
-            .chart-col { flex: 0 0 100%; max-width: 100%; }
-            .chart-flex { flex-direction: column; align-items: center; }
-        }
-
-        @media (max-width: 480px) {
-            .table-transactions { font-size: 0.6rem; }
-            .table-transactions th, .table-transactions td { padding: 0.2rem 0.1rem; }
-            .table-transactions .col-actions {
-                width: 75px !important;
-                min-width: 75px !important;
-                max-width: 75px !important;
-            }
-            td.col-actions .btn-group,
-            td.col-actions .btn-action-wrapper {
-                gap: 1px !important;
-            }
-            .btn-action {
-                padding: 0.05rem 0.1rem !important;
-                font-size: 0.45rem !important;
-            }
-            .btn-action i {
-                font-size: 0.5rem !important;
-            }
-            .badge-type { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
-            .badge-category { font-size: 0.5rem; padding: 0.1rem 0.3rem; }
-        }
+        [data-bs-theme="dark"] .btn-close { filter: invert(1); }
 
         /* ===== ДРУК ===== */
         @media print {
@@ -683,7 +557,7 @@
             .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
             .table-transactions th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; padding: 2px 4px !important; font-size: 0.6rem !important; }
             .table-transactions td { border-color: #ddd !important; padding: 1px 4px !important; font-size: 0.6rem !important; }
-            .badge-category { font-size: 0.5rem !important; padding: 1px 3px !important; border: 0 !important; }
+            .table-transactions .badge-category { font-size: 0.5rem !important; padding: 1px 3px !important; }
             .table-transactions .col-name { min-width: 80px !important; max-width: 120px !important; }
             .table-transactions .col-buyer-seller { min-width: 60px !important; max-width: 60px !important; }
             .table-transactions .col-details { min-width: 80px !important; max-width: 80px !important; }
@@ -708,15 +582,13 @@
 <body>
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
 
-<!-- ===== TOAST ===== -->
 <div th:replace="~{fragments :: toastContainer}"></div>
 
-<!-- ===== КОНТЕЙНЕР ===== -->
 <div class="container-fluid custom-container mt-4">
 
     <!-- БЛОК ДЛЯ ДРУКУ -->
     <div class="print-header d-print-flex" style="display: none;">
-        <span class="logo">💰 Lazy Cent</span>
+        <span class="logo">💰 LazyCent</span>
         <h2 th:text="${dayBudget.dayName} + ', ' + ${#temporals.format(dayBudget.date, 'dd/MM/yyyy')}"></h2>
     </div>
 
@@ -782,7 +654,7 @@
         </div>
     </div>
 
-    <!-- ===== ДІАГРАМИ ===== -->
+    <!-- ДІАГРАМИ -->
     <div class="chart-section" id="chartSection">
         <div class="row mb-4 stats-animated">
             <div class="col-12">
@@ -798,26 +670,20 @@
                     </div>
                     <div class="card-body" id="chartBody">
                         <div class="chart-row-container">
-                            <!-- Доходи (зліва) -->
                             <div class="chart-col" id="incomeChartCol" th:unless="${dayBudget.incomes.empty}">
                                 <div class="text-center">
                                     <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи</h6>
                                     <div class="chart-flex">
-                                        <div class="chart-container mx-auto">
-                                            <canvas id="incomeChart"></canvas>
-                                        </div>
+                                        <div class="chart-container mx-auto"><canvas id="incomeChart"></canvas></div>
                                         <div class="chart-legend-table" id="incomeLegend"></div>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Витрати (справа) -->
                             <div class="chart-col" id="expenseChartCol" th:unless="${dayBudget.expenses.empty}">
                                 <div class="text-center">
                                     <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
                                     <div class="chart-flex">
-                                        <div class="chart-container mx-auto">
-                                            <canvas id="expenseChart"></canvas>
-                                        </div>
+                                        <div class="chart-container mx-auto"><canvas id="expenseChart"></canvas></div>
                                         <div class="chart-legend-table" id="expenseLegend"></div>
                                     </div>
                                 </div>
@@ -832,15 +698,25 @@
         </div>
     </div>
 
-    <!-- ===== ТАБЛИЦЯ ===== -->
+    <!-- ТАБЛИЦЯ / КАРТКИ -->
     <div class="card shadow mt-4 table-wrap-animated">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5><i class="fas fa-list-ul me-2"></i>Транзакції за день</h5>
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="mb-0"><i class="fas fa-list-ul me-2"></i>Транзакції за день</h5>
+                <div class="view-toggle" id="viewToggle">
+                    <button class="btn active" data-view="table" title="Таблиця">
+                        <i class="fas fa-table"></i> <span class="d-none d-sm-inline">Таблиця</span>
+                    </button>
+                    <button class="btn" data-view="cards" title="Картки">
+                        <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline">Картки</span>
+                    </button>
+                </div>
+            </div>
             <span class="badge bg-light text-dark" style="font-size: 1rem; padding: 0.5rem 0.8rem;">Всього: <span id="totalRowsCount">0</span></span>
         </div>
         <div class="card-body">
 
-            <!-- ===== ПАНЕЛЬ ІНСТРУМЕНТІВ ===== -->
+            <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
             <div class="table-toolbar no-print">
                 <div class="input-group search-input">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -866,178 +742,135 @@
                 <span class="info-text" id="visibleInfo">Показано: 0 з 0</span>
             </div>
 
-            <!-- Таблиця -->
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 table-transactions" id="transactionsTable">
-                    <thead>
-                    <tr>
-                        <th class="col-num">№</th>
-                        <th class="col-type">Тип</th>
-                        <th class="col-center sortable active-desc" data-sort="time" data-type="string">Час <i class="fas fa-sort-down sort-icon"></i></th>
-                        <th class="col-name sortable" data-sort="name" data-type="string">Найменування <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="col-center sortable" data-sort="quantity" data-type="number">Кол-во <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="col-center sortable" data-sort="amount" data-type="number">Сума <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="col-buyer-seller sortable" data-sort="buyer" data-type="string">Покупець <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="col-buyer-seller sortable" data-sort="seller" data-type="string">Продавець <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="col-details">Деталі</th>
-                        <th class="col-category sortable" data-sort="category" data-type="string">Категорія <i class="fas fa-sort sort-icon"></i></th>
-                        <th class="col-actions no-print">Дії</th>
-                    </tr>
-                    </thead>
-                    <tbody id="transactionsBody">
+            <!-- ТАБЛИЦЯ -->
+            <div id="tableView" class="table-view-container">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 table-transactions" id="transactionsTable">
+                        <thead>
+                        <tr>
+                            <th class="col-num">№</th>
+                            <th class="col-type">Тип</th>
+                            <th class="col-center sortable active-desc" data-sort="time" data-type="string">Час <i class="fas fa-sort-down sort-icon"></i></th>
+                            <th class="col-name sortable" data-sort="name" data-type="string">Найменування <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-center sortable" data-sort="quantity" data-type="number">Кол-во <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-center sortable" data-sort="amount" data-type="number">Сума <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-buyer-seller sortable" data-sort="buyer" data-type="string">Покупець <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-buyer-seller sortable" data-sort="seller" data-type="string">Продавець <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-details">Деталі</th>
+                            <th class="col-category sortable" data-sort="category" data-type="string">Категорія <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-actions no-print">Дії</th>
+                        </tr>
+                        </thead>
+                        <tbody id="transactionsBody">
+                        <tr th:each="expense : ${dayBudget.expenses}" class="transaction-row" data-type="expense" th:data-id="${expense.id}">
+                            <td class="col-num"></td>
+                            <td class="col-type"><span class="badge-type bg-danger">Витрата</span></td>
+                            <td class="col-center"><span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span><span th:unless="${expense.time != null}" class="text-muted">—</span></td>
+                            <td class="col-name" th:text="${expense.description}"></td>
+                            <td class="col-center" th:text="${expense.quantity ?: 1}"></td>
+                            <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></td>
+                            <td class="col-buyer-seller" th:text="${expense.buyer}"></td>
+                            <td class="col-buyer-seller" th:text="${expense.seller}"></td>
+                            <td class="col-details"><span th:if="${expense.details != null and expense.details.length() > 0}" th:text="${expense.details}" th:title="${expense.details}"></span><span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span></td>
+                            <td class="col-category"><span class="badge badge-category" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
+                            <td class="col-actions no-print">
+                                <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" title="Редагувати"><i class="fas fa-edit"></i></a>
+                                <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" title="Дублювати"><i class="fas fa-copy"></i></a>
+                                <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${expense.id}" data-type="expense" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-category="${expense.category.name}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-quantity="${expense.quantity}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" title="Видалити"><i class="fas fa-trash"></i></a>
+                            </td>
+                        </tr>
+                        <tr th:each="income : ${dayBudget.incomes}" class="transaction-row" data-type="income" th:data-id="${income.id}">
+                            <td class="col-num"></td>
+                            <td class="col-type"><span class="badge-type bg-success">Дохід</span></td>
+                            <td class="col-center"><span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span><span th:unless="${income.time != null}" class="text-muted">—</span></td>
+                            <td class="col-name" th:text="${income.description}"></td>
+                            <td class="col-center" th:text="${income.quantity ?: 1}"></td>
+                            <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></td>
+                            <td class="col-buyer-seller" th:text="${income.buyer}"></td>
+                            <td class="col-buyer-seller" th:text="${income.seller}"></td>
+                            <td class="col-details"><span th:if="${income.details != null and income.details.length() > 0}" th:text="${income.details}" th:title="${income.details}"></span><span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span></td>
+                            <td class="col-category"><span class="badge badge-category" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
+                            <td class="col-actions no-print">
+                                <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" title="Редагувати"><i class="fas fa-edit"></i></a>
+                                <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" title="Дублювати"><i class="fas fa-copy"></i></a>
+                                <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${income.id}" data-type="income" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-category="${income.category.name}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-quantity="${income.quantity}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" title="Видалити"><i class="fas fa-trash"></i></a>
+                            </td>
+                        </tr>
+                        <tr th:if="${dayBudget.expenses.empty and dayBudget.incomes.empty}" id="emptyRow">
+                            <td colspan="11" class="text-center text-muted py-3">Немає транзакцій за цей день</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- КАРТКИ У ВИГЛЯДІ ТАБЛИЦІ (одна картка на рядок) -->
+            <div id="cardsView" class="cards-view-container">
+                <div class="row" id="cardsContainer">
                     <!-- Витрати -->
-                    <tr th:each="expense : ${dayBudget.expenses}" class="transaction-row" data-type="expense" th:data-id="${expense.id}">
-                        <td class="col-num"></td>
-                        <td class="col-type"><span class="badge-type bg-danger">Витрата</span></td>
-                        <td class="col-center">
-                            <span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span>
-                            <span th:unless="${expense.time != null}" class="text-muted">—</span>
-                        </td>
-                        <td class="col-name" th:text="${expense.description}"></td>
-                        <td class="col-center" th:text="${expense.quantity ?: 1}"></td>
-                        <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></td>
-                        <td class="col-buyer-seller" th:text="${expense.buyer}"></td>
-                        <td class="col-buyer-seller" th:text="${expense.seller}"></td>
-                        <td class="col-details">
-                            <span th:if="${expense.details != null and expense.details.length() > 0}" th:text="${expense.details}" th:title="${expense.details}"></span>
-                            <span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span>
-                        </td>
-                        <td class="col-category"><span class="badge badge-category" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
-                        <td class="col-actions no-print">
-                            <!-- ПРЯМІ КНОПКИ БЕЗ DROPDOWN -->
-                            <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#"
-                               th:data-id="${expense.id}"
-                               th:data-category="${expense.category.id}"
-                               th:data-description="${expense.description}"
-                               th:data-amount="${expense.amount}"
-                               th:data-quantity="${expense.quantity}"
-                               th:data-details="${expense.details}"
-                               th:data-time="${expense.time}"
-                               th:data-buyer="${expense.buyer}"
-                               th:data-seller="${expense.seller}"
-                               th:data-category-name="${expense.category.name}"
-                               data-type="expense"
-                               title="Редагувати">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#"
-                               th:data-id="${expense.id}"
-                               th:data-category="${expense.category.id}"
-                               th:data-description="${expense.description}"
-                               th:data-amount="${expense.amount}"
-                               th:data-quantity="${expense.quantity}"
-                               th:data-details="${expense.details}"
-                               th:data-time="${expense.time}"
-                               th:data-buyer="${expense.buyer}"
-                               th:data-seller="${expense.seller}"
-                               th:data-category-name="${expense.category.name}"
-                               data-type="expense"
-                               title="Дублювати">
-                                <i class="fas fa-copy"></i>
-                            </a>
-                            <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#"
-                               th:data-id="${expense.id}"
-                               data-type="expense"
-                               th:data-description="${expense.description}"
-                               th:data-amount="${expense.amount}"
-                               th:data-category="${expense.category.name}"
-                               th:data-details="${expense.details}"
-                               th:data-time="${expense.time}"
-                               th:data-quantity="${expense.quantity}"
-                               th:data-buyer="${expense.buyer}"
-                               th:data-seller="${expense.seller}"
-                               title="Видалити">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-
+                    <th:block th:each="expense : ${dayBudget.expenses}">
+                        <div class="col-12 transaction-card-wrapper" data-type="expense" th:data-id="${expense.id}">
+                            <div class="transaction-card">
+                                <div class="card-header">
+                                    <span class="type-badge expense"><i class="fas fa-arrow-down me-1"></i>Витрата</span>
+                                    <span class="card-time" th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span>
+                                    <span class="card-time" th:unless="${expense.time != null}">—</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row"><span class="label"><i class="fas fa-tag me-1"></i>Найменування</span><span class="value" th:text="${expense.description} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-coins me-1"></i>Сума</span><span class="value text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-hashtag me-1"></i>Кількість</span><span class="value" th:text="${expense.quantity != null ? expense.quantity : '—'}"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-user me-1"></i>Покупець</span><span class="value" th:text="${expense.buyer} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-store me-1"></i>Продавець</span><span class="value" th:text="${expense.seller} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-file-alt me-1"></i>Деталі</span><span class="value" th:text="${expense.details} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-folder me-1"></i>Категорія</span><span class="value"><span class="badge badge-category" th:text="${expense.category.name}" style="background: transparent; border: 1px solid #dee2e6;"></span></span></div>
+                                </div>
+                                <div class="card-footer">
+                                    <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" title="Редагувати"><i class="fas fa-edit"></i></a>
+                                    <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" title="Дублювати"><i class="fas fa-copy"></i></a>
+                                    <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${expense.id}" data-type="expense" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-category="${expense.category.name}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-quantity="${expense.quantity}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" title="Видалити"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
                     <!-- Доходи -->
-                    <tr th:each="income : ${dayBudget.incomes}" class="transaction-row" data-type="income" th:data-id="${income.id}">
-                        <td class="col-num"></td>
-                        <td class="col-type"><span class="badge-type bg-success">Дохід</span></td>
-                        <td class="col-center">
-                            <span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span>
-                            <span th:unless="${income.time != null}" class="text-muted">—</span>
-                        </td>
-                        <td class="col-name" th:text="${income.description}"></td>
-                        <td class="col-center" th:text="${income.quantity ?: 1}"></td>
-                        <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></td>
-                        <td class="col-buyer-seller" th:text="${income.buyer}"></td>
-                        <td class="col-buyer-seller" th:text="${income.seller}"></td>
-                        <td class="col-details">
-                            <span th:if="${income.details != null and income.details.length() > 0}" th:text="${income.details}" th:title="${income.details}"></span>
-                            <span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span>
-                        </td>
-                        <td class="col-category"><span class="badge badge-category" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
-                        <td class="col-actions no-print">
-                            <!-- ПРЯМІ КНОПКИ БЕЗ DROPDOWN -->
-                            <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#"
-                               th:data-id="${income.id}"
-                               th:data-category="${income.category.id}"
-                               th:data-description="${income.description}"
-                               th:data-amount="${income.amount}"
-                               th:data-quantity="${income.quantity}"
-                               th:data-details="${income.details}"
-                               th:data-time="${income.time}"
-                               th:data-buyer="${income.buyer}"
-                               th:data-seller="${income.seller}"
-                               th:data-category-name="${income.category.name}"
-                               data-type="income"
-                               title="Редагувати">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#"
-                               th:data-id="${income.id}"
-                               th:data-category="${income.category.id}"
-                               th:data-description="${income.description}"
-                               th:data-amount="${income.amount}"
-                               th:data-quantity="${income.quantity}"
-                               th:data-details="${income.details}"
-                               th:data-time="${income.time}"
-                               th:data-buyer="${income.buyer}"
-                               th:data-seller="${income.seller}"
-                               th:data-category-name="${income.category.name}"
-                               data-type="income"
-                               title="Дублювати">
-                                <i class="fas fa-copy"></i>
-                            </a>
-                            <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#"
-                               th:data-id="${income.id}"
-                               data-type="income"
-                               th:data-description="${income.description}"
-                               th:data-amount="${income.amount}"
-                               th:data-category="${income.category.name}"
-                               th:data-details="${income.details}"
-                               th:data-time="${income.time}"
-                               th:data-quantity="${income.quantity}"
-                               th:data-buyer="${income.buyer}"
-                               th:data-seller="${income.seller}"
-                               title="Видалити">
-                                <i class="fas fa-trash"></i>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <!-- Якщо порожньо -->
-                    <tr th:if="${dayBudget.expenses.empty and dayBudget.incomes.empty}" id="emptyRow">
-                        <td colspan="11" class="text-center text-muted py-3">Немає транзакцій за цей день</td>
-                    </tr>
-                    </tbody>
-                </table>
+                    <th:block th:each="income : ${dayBudget.incomes}">
+                        <div class="col-12 transaction-card-wrapper" data-type="income" th:data-id="${income.id}">
+                            <div class="transaction-card">
+                                <div class="card-header">
+                                    <span class="type-badge income"><i class="fas fa-arrow-up me-1"></i>Дохід</span>
+                                    <span class="card-time" th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span>
+                                    <span class="card-time" th:unless="${income.time != null}">—</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row"><span class="label"><i class="fas fa-tag me-1"></i>Найменування</span><span class="value" th:text="${income.description} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-coins me-1"></i>Сума</span><span class="value text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-hashtag me-1"></i>Кількість</span><span class="value" th:text="${income.quantity != null ? income.quantity : '—'}"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-user me-1"></i>Покупець</span><span class="value" th:text="${income.buyer} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-store me-1"></i>Продавець</span><span class="value" th:text="${income.seller} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-file-alt me-1"></i>Деталі</span><span class="value" th:text="${income.details} ?: '—'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-folder me-1"></i>Категорія</span><span class="value"><span class="badge badge-category" th:text="${income.category.name}" style="background: transparent; border: 1px solid #dee2e6;"></span></span></div>
+                                </div>
+                                <div class="card-footer">
+                                    <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" title="Редагувати"><i class="fas fa-edit"></i></a>
+                                    <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" title="Дублювати"><i class="fas fa-copy"></i></a>
+                                    <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${income.id}" data-type="income" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-category="${income.category.name}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-quantity="${income.quantity}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" title="Видалити"><i class="fas fa-trash"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
             </div>
 
         </div>
     </div>
 
-    <!-- ФУТЕР ПРИ ДРУЦІ -->
     <div class="print-footer d-print-block" style="display: none;">
-        © 2026 Lazy Cent - Ваш фінансовий помічник
+        © 2026 LazyCent - Ваш фінансовий помічник
     </div>
 </div>
 
-<!-- ===== ВСІ МОДАЛЬНІ ВІКНА ===== -->
-<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ===== -->
+<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1050,12 +883,8 @@
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
-                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> Витрата
-                            </button>
-                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> Дохід
-                            </button>
+                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn"><i class="fas fa-arrow-down me-1"></i> Витрата</button>
+                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn"><i class="fas fa-arrow-up me-1"></i> Дохід</button>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -1120,7 +949,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ ===== -->
 <div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1133,42 +961,15 @@
                 <p class="text-muted small text-center">Цю дію не можна скасувати.</p>
                 <hr>
                 <div class="delete-details">
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Тип:</div>
-                        <div class="col-8 value" id="deleteType"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Час:</div>
-                        <div class="col-8 value" id="deleteTime"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Найменування:</div>
-                        <div class="col-8 value" id="deleteDescription"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Кількість:</div>
-                        <div class="col-8 value" id="deleteQuantity"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Сума:</div>
-                        <div class="col-8 value" id="deleteAmount"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Покупець:</div>
-                        <div class="col-8 value" id="deleteBuyer"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Продавець:</div>
-                        <div class="col-8 value" id="deleteSeller"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Категорія:</div>
-                        <div class="col-8 value" id="deleteCategory"></div>
-                    </div>
-                    <div class="row mb-2" id="deleteDetailsRow">
-                        <div class="col-4 label fw-bold">Деталі:</div>
-                        <div class="col-8 value" id="deleteDetails"></div>
-                    </div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Тип:</div><div class="col-8 value" id="deleteType"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Час:</div><div class="col-8 value" id="deleteTime"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Найменування:</div><div class="col-8 value" id="deleteDescription"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Кількість:</div><div class="col-8 value" id="deleteQuantity"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Сума:</div><div class="col-8 value" id="deleteAmount"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Покупець:</div><div class="col-8 value" id="deleteBuyer"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Продавець:</div><div class="col-8 value" id="deleteSeller"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Категорія:</div><div class="col-8 value" id="deleteCategory"></div></div>
+                    <div class="row mb-2" id="deleteDetailsRow"><div class="col-4 label fw-bold">Деталі:</div><div class="col-8 value" id="deleteDetails"></div></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1181,7 +982,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ ВИТРАТИ ===== -->
 <div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1192,41 +992,14 @@
             <form id="editExpenseForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
-                    <div class="mb-3">
-                        <label class="form-label">Категорія</label>
-                        <select name="categoryId" class="form-select" id="editExpenseCategory" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="editExpenseDescription" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="editExpenseBuyer">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="editExpenseSeller">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Сума (₴)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Час</label>
-                        <input type="time" class="form-control" id="editExpenseTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Додаткові деталі</label>
-                        <textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editExpenseCategory" required><option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
+                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="editExpenseDescription" required></div>
+                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="editExpenseBuyer"></div>
+                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="editExpenseSeller"></div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required></div>
+                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1"></div>
+                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="editExpenseTime" name="time" step="60"></div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1238,7 +1011,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ ДОХОДУ ===== -->
 <div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1249,41 +1021,14 @@
             <form id="editIncomeForm" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
-                    <div class="mb-3">
-                        <label class="form-label">Категорія</label>
-                        <select name="categoryId" class="form-select" id="editIncomeCategory" required>
-                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="editIncomeDescription" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="editIncomeBuyer">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="editIncomeSeller">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Сума (₴)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Час</label>
-                        <input type="time" class="form-control" id="editIncomeTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Додаткові деталі</label>
-                        <textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editIncomeCategory" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
+                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="editIncomeDescription" required></div>
+                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="editIncomeBuyer"></div>
+                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="editIncomeSeller"></div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required></div>
+                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1"></div>
+                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="editIncomeTime" name="time" step="60"></div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1295,7 +1040,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДУБЛЮВАННЯ ВИТРАТИ ===== -->
 <div class="modal fade no-print" id="cloneExpenseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1305,41 +1049,14 @@
             </div>
             <form id="cloneExpenseForm" method="post" th:action="@{/day/{date}/expense(date=${dayBudget.date})}">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Категорія</label>
-                        <select name="categoryId" class="form-select" id="cloneExpenseCategory" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="cloneExpenseDescription" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="cloneExpenseBuyer">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="cloneExpenseSeller">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Сума (₴)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneExpenseAmount" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="cloneExpenseQuantity" min="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Час</label>
-                        <input type="time" class="form-control" id="cloneExpenseTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Додаткові деталі</label>
-                        <textarea name="details" class="form-control" id="cloneExpenseDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="cloneExpenseCharCount">0</span> / 250</div>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="cloneExpenseCategory" required><option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
+                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="cloneExpenseDescription" required></div>
+                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneExpenseBuyer"></div>
+                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="cloneExpenseSeller"></div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneExpenseAmount" required></div>
+                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneExpenseQuantity" min="1"></div>
+                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="cloneExpenseTime" name="time" step="60"></div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneExpenseCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1351,7 +1068,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДУБЛЮВАННЯ ДОХОДУ ===== -->
 <div class="modal fade no-print" id="cloneIncomeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1361,41 +1077,14 @@
             </div>
             <form id="cloneIncomeForm" method="post" th:action="@{/day/{date}/income(date=${dayBudget.date})}">
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Категорія</label>
-                        <select name="categoryId" class="form-select" id="cloneIncomeCategory" required>
-                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="cloneIncomeDescription" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="cloneIncomeBuyer">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="cloneIncomeSeller">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Сума (₴)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneIncomeAmount" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="cloneIncomeQuantity" min="1">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Час</label>
-                        <input type="time" class="form-control" id="cloneIncomeTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Додаткові деталі</label>
-                        <textarea name="details" class="form-control" id="cloneIncomeDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="cloneIncomeCharCount">0</span> / 250</div>
-                    </div>
+                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="cloneIncomeCategory" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
+                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="cloneIncomeDescription" required></div>
+                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneIncomeBuyer"></div>
+                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="cloneIncomeSeller"></div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneIncomeAmount" required></div>
+                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneIncomeQuantity" min="1"></div>
+                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="cloneIncomeTime" name="time" step="60"></div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneIncomeCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1414,147 +1103,96 @@
 
 <script>
     (function() {
-        // ================================================================
-        // 0. КОЛІРНА ПАЛІТРА
-        // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
-
         function getCategoryColor(name, index) {
             if (!name) return '#6c757d';
-            if (index !== undefined && index < CHART_PALETTE.length) {
-                return CHART_PALETTE[index];
-            }
+            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
             let hash = 0;
-            for (let i = 0; i < name.length; i++) {
-                hash = name.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const idx = Math.abs(hash % CHART_PALETTE.length);
-            return CHART_PALETTE[idx];
+            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
         }
 
-        // ================================================================
-        // 1. TOAST ПОВІДОМЛЕННЯ (для AJAX)
-        // ================================================================
         function showToast(message, type) {
-            const toastElement = document.getElementById('liveToast');
-            if (!toastElement) return;
-
-            const toastTitle = document.getElementById('toastTitle');
-            const toastMessage = document.getElementById('toastMessage');
-            const toastIcon = document.getElementById('toastIcon');
-
-            toastElement.classList.remove('success', 'error');
+            const el = document.getElementById('liveToast');
+            if (!el) return;
+            const title = document.getElementById('toastTitle');
+            const body = document.getElementById('toastMessage');
+            const icon = document.getElementById('toastIcon');
+            el.classList.remove('success', 'error');
             if (type === 'success') {
-                toastElement.classList.add('success');
-                toastIcon.className = 'fas fa-check-circle me-2';
-                toastTitle.textContent = 'Успішно!';
+                el.classList.add('success');
+                icon.className = 'fas fa-check-circle me-2';
+                title.textContent = 'Успішно!';
             } else if (type === 'error') {
-                toastElement.classList.add('error');
-                toastIcon.className = 'fas fa-exclamation-circle me-2';
-                toastTitle.textContent = 'Помилка!';
+                el.classList.add('error');
+                icon.className = 'fas fa-exclamation-circle me-2';
+                title.textContent = 'Помилка!';
             } else {
-                toastIcon.className = 'fas fa-info-circle me-2';
-                toastTitle.textContent = 'Інформація';
+                icon.className = 'fas fa-info-circle me-2';
+                title.textContent = 'Інформація';
             }
-
-            toastMessage.textContent = message;
-            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
-            toast.show();
+            body.textContent = message;
+            new bootstrap.Toast(el, { autohide: true, delay: 5000 }).show();
         }
 
-        // ================================================================
-        // 2. ДАТА для ключів localStorage
-        // ================================================================
         const dateElem = document.querySelector('h5.no-print span');
         let currentDate = '';
         if (dateElem) {
             const parts = dateElem.textContent.trim().split(',');
             if (parts.length > 1) {
-                const datePart = parts[1].trim();
-                const parts2 = datePart.split('/');
-                if (parts2.length === 3) {
-                    currentDate = parts2[2] + '-' + parts2[1] + '-' + parts2[0];
-                }
+                const datePart = parts[1].trim().split('/');
+                if (datePart.length === 3) currentDate = datePart[2] + '-' + datePart[1] + '-' + datePart[0];
             }
         }
-        if (!currentDate) {
-            currentDate = /*[[${dayBudget.date}]]*/ '';
-        }
+        if (!currentDate) currentDate = /*[[${dayBudget.date}]]*/ '';
         const STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
         const COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
         const FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
         const CHART_VISIBLE_KEY = 'lazycent_chart_visible_' + currentDate;
+        const VIEW_MODE_KEY = 'lazycent_view_mode_' + currentDate;
 
-        // ================================================================
-        // 3. КАТЕГОРІЇ (для модалок)
-        // ================================================================
         let expenseCategories = /*[[${expenseCategories}]]*/ null;
         let incomeCategories = /*[[${incomeCategories}]]*/ null;
+        const categorySelect = document.getElementById('categorySelect');
 
-        function populateAllSelects(categories, type) {
-            const selectors = [];
-            if (type === 'EXPENSE') {
-                selectors.push('#categorySelect', '#editExpenseCategory', '#cloneExpenseCategory');
-            } else {
-                selectors.push('#categorySelect', '#editIncomeCategory', '#cloneIncomeCategory');
+        function populateCategories(cats) {
+            if (!categorySelect) return;
+            categorySelect.innerHTML = '';
+            if (!cats || cats.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Немає категорій';
+                opt.disabled = true;
+                categorySelect.appendChild(opt);
+                return;
             }
-            selectors.forEach(selector => {
-                const select = document.querySelector(selector);
-                if (!select) return;
-                select.innerHTML = '';
-                if (!categories || categories.length === 0) {
-                    const opt = document.createElement('option');
-                    opt.value = '';
-                    opt.textContent = 'Немає категорій';
-                    opt.disabled = true;
-                    select.appendChild(opt);
-                    return;
-                }
-                categories.forEach(cat => {
-                    const opt = document.createElement('option');
-                    opt.value = cat.id;
-                    opt.textContent = cat.name;
-                    select.appendChild(opt);
-                });
+            cats.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                categorySelect.appendChild(opt);
             });
         }
 
         function fetchExpenseCategories() {
-            fetch('/categories/expense')
-                .then(r => r.json())
-                .then(data => {
-                    expenseCategories = data;
-                    const typeInput = document.getElementById('transactionType');
-                    if (typeInput && typeInput.value === 'EXPENSE') {
-                        populateAllSelects(expenseCategories, 'EXPENSE');
-                    }
-                })
-                .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
+            fetch('/categories/expense').then(r => r.json()).then(data => {
+                expenseCategories = data;
+                const typeInput = document.getElementById('transactionType');
+                if (typeInput && typeInput.value === 'EXPENSE') populateCategories(expenseCategories);
+            }).catch(err => console.warn('Помилка завантаження категорій витрат:', err));
         }
 
         function fetchIncomeCategories() {
-            fetch('/categories/income')
-                .then(r => r.json())
-                .then(data => {
-                    incomeCategories = data;
-                    const typeInput = document.getElementById('transactionType');
-                    if (typeInput && typeInput.value === 'INCOME') {
-                        populateAllSelects(incomeCategories, 'INCOME');
-                    }
-                })
-                .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
+            fetch('/categories/income').then(r => r.json()).then(data => {
+                incomeCategories = data;
+                const typeInput = document.getElementById('transactionType');
+                if (typeInput && typeInput.value === 'INCOME') populateCategories(incomeCategories);
+            }).catch(err => console.warn('Помилка завантаження категорій доходів:', err));
         }
 
-        if (!expenseCategories || expenseCategories.length === 0) {
-            fetchExpenseCategories();
-        } else {
-            populateAllSelects(expenseCategories, 'EXPENSE');
-        }
-        if (!incomeCategories || incomeCategories.length === 0) {
-            fetchIncomeCategories();
-        }
+        if (!expenseCategories || expenseCategories.length === 0) fetchExpenseCategories(); else populateCategories(expenseCategories);
+        if (!incomeCategories || incomeCategories.length === 0) fetchIncomeCategories();
 
-        // ---- ТИП У МОДАЛЦІ ДОДАВАННЯ ----
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
         const transactionType = document.getElementById('transactionType');
@@ -1563,14 +1201,14 @@
         if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
             function setTransactionType(type) {
                 if (type === 'EXPENSE') {
-                    populateAllSelects(expenseCategories, 'EXPENSE');
+                    populateCategories(expenseCategories);
                     transactionType.value = 'EXPENSE';
                     typeExpenseBtn.className = 'btn active-expense';
                     typeIncomeBtn.className = 'btn btn-outline-success';
                     const dateInput = document.getElementById('transactionDate');
                     transactionForm.action = '/day/' + (dateInput ? dateInput.value : '') + '/expense';
                 } else {
-                    populateAllSelects(incomeCategories, 'INCOME');
+                    populateCategories(incomeCategories);
                     transactionType.value = 'INCOME';
                     typeIncomeBtn.className = 'btn active-income';
                     typeExpenseBtn.className = 'btn btn-outline-danger';
@@ -1583,36 +1221,23 @@
             typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
         }
 
-        // ---- ФОРМАТУВАННЯ СУМИ (головна модалка) ----
-        function formatAmountField() {
-            const amountInput = document.getElementById('transactionAmount');
-            if (!amountInput) return;
-            let val = parseFloat(amountInput.value);
-            if (isNaN(val) || val < 0) val = 0;
-            amountInput.value = val.toFixed(2);
-        }
-
         const amountInput = document.getElementById('transactionAmount');
         if (amountInput) {
             document.getElementById('amountMinus')?.addEventListener('click', function() {
                 let val = parseFloat(amountInput.value) || 0;
-                if (val > 0) {
-                    val = Math.round((val - 0.01) * 100) / 100;
-                    amountInput.value = val.toFixed(2);
-                }
-                formatAmountField();
+                if (val > 0) { val = Math.round((val - 0.01) * 100) / 100; amountInput.value = val.toFixed(2); }
             });
             document.getElementById('amountPlus')?.addEventListener('click', function() {
                 let val = parseFloat(amountInput.value) || 0;
                 val = Math.round((val + 0.01) * 100) / 100;
                 amountInput.value = val.toFixed(2);
-                formatAmountField();
             });
-            amountInput.addEventListener('blur', formatAmountField);
-            amountInput.addEventListener('change', formatAmountField);
+            amountInput.addEventListener('blur', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                amountInput.value = val.toFixed(2);
+            });
         }
 
-        // ---- КНОПКИ +/- ДЛЯ КІЛЬКОСТІ ----
         const quantityInput = document.getElementById('transactionQuantity');
         if (quantityInput) {
             document.getElementById('quantityMinus')?.addEventListener('click', function() {
@@ -1625,7 +1250,6 @@
             });
         }
 
-        // ---- ЛІЧИЛЬНИК СИМВОЛІВ (головна модалка) ----
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
         if (detailsTextarea && charCount) {
@@ -1637,7 +1261,6 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ---- СКИДАННЯ МОДАЛКИ ДОДАВАННЯ ----
         document.getElementById('transactionModal')?.addEventListener('hidden.bs.modal', function() {
             const form = document.getElementById('transactionForm');
             if (form) form.reset();
@@ -1648,7 +1271,6 @@
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });
 
-        // ---- ВАЛІДАЦІЯ ДОДАВАННЯ ----
         transactionForm?.addEventListener('submit', function(e) {
             let valid = true;
             const name = document.getElementById('transactionName');
@@ -1663,34 +1285,9 @@
             }
         });
 
-        // ---- ФОРМАТУВАННЯ СУМИ В МОДАЛКАХ РЕДАГУВАННЯ ----
-        function formatEditAmount(inputId) {
-            const el = document.getElementById(inputId);
-            if (!el) return;
-            let val = parseFloat(el.value);
-            if (isNaN(val) || val < 0) val = 0;
-            el.value = val.toFixed(2);
-        }
-        const editExpAmount = document.getElementById('editExpenseAmount');
-        if (editExpAmount) {
-            editExpAmount.addEventListener('blur', function() { formatEditAmount('editExpenseAmount'); });
-            editExpAmount.addEventListener('change', function() { formatEditAmount('editExpenseAmount'); });
-        }
-        const editIncAmount = document.getElementById('editIncomeAmount');
-        if (editIncAmount) {
-            editIncAmount.addEventListener('blur', function() { formatEditAmount('editIncomeAmount'); });
-            editIncAmount.addEventListener('change', function() { formatEditAmount('editIncomeAmount'); });
-        }
-
-        // ================================================================
-        // 4. ОБРОБНИКИ ДЛЯ ПУНКТІВ МЕНЮ
-        // ================================================================
-
-        // ---- РЕДАГУВАННЯ ----
         document.querySelectorAll('.action-edit').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-
                 const type = this.dataset.type;
                 const id = this.dataset.id;
                 const category = this.dataset.category;
@@ -1701,7 +1298,6 @@
                 const time = this.dataset.time || '';
                 const buyer = this.dataset.buyer || '';
                 const seller = this.dataset.seller || '';
-
                 if (type === 'expense') {
                     const modal = document.getElementById('editExpenseModal');
                     document.getElementById('editExpenseId').value = id;
@@ -1715,8 +1311,7 @@
                     document.getElementById('editExpenseSeller').value = seller;
                     document.getElementById('editExpenseCharCount').textContent = details.length;
                     document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
+                    new bootstrap.Modal(modal).show();
                 } else {
                     const modal = document.getElementById('editIncomeModal');
                     document.getElementById('editIncomeId').value = id;
@@ -1730,17 +1325,14 @@
                     document.getElementById('editIncomeSeller').value = seller;
                     document.getElementById('editIncomeCharCount').textContent = details.length;
                     document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
+                    new bootstrap.Modal(modal).show();
                 }
             });
         });
 
-        // ---- ДУБЛЮВАННЯ ----
         document.querySelectorAll('.action-duplicate').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-
                 const type = this.dataset.type;
                 const category = this.dataset.category;
                 const description = this.dataset.description || '';
@@ -1750,9 +1342,7 @@
                 const time = this.dataset.time || '';
                 const buyer = this.dataset.buyer || '';
                 const seller = this.dataset.seller || '';
-
                 if (type === 'expense') {
-                    const modal = document.getElementById('cloneExpenseModal');
                     document.getElementById('cloneExpenseCategory').value = category;
                     document.getElementById('cloneExpenseDescription').value = description;
                     document.getElementById('cloneExpenseAmount').value = amount.toFixed(2);
@@ -1762,10 +1352,8 @@
                     document.getElementById('cloneExpenseBuyer').value = buyer;
                     document.getElementById('cloneExpenseSeller').value = seller;
                     document.getElementById('cloneExpenseCharCount').textContent = details.length;
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
+                    new bootstrap.Modal(document.getElementById('cloneExpenseModal')).show();
                 } else {
-                    const modal = document.getElementById('cloneIncomeModal');
                     document.getElementById('cloneIncomeCategory').value = category;
                     document.getElementById('cloneIncomeDescription').value = description;
                     document.getElementById('cloneIncomeAmount').value = amount.toFixed(2);
@@ -1775,13 +1363,11 @@
                     document.getElementById('cloneIncomeBuyer').value = buyer;
                     document.getElementById('cloneIncomeSeller').value = seller;
                     document.getElementById('cloneIncomeCharCount').textContent = details.length;
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
+                    new bootstrap.Modal(document.getElementById('cloneIncomeModal')).show();
                 }
             });
         });
 
-        // ---- ВИДАЛЕННЯ ----
         document.querySelectorAll('.action-delete').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1795,10 +1381,8 @@
                 const quantity = this.dataset.quantity || '1';
                 const buyer = this.dataset.buyer || '';
                 const seller = this.dataset.seller || '';
-
                 const deleteForm = document.getElementById('deleteForm');
                 deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
-
                 document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
                 document.getElementById('deleteTime').textContent = time || '—';
                 document.getElementById('deleteDescription').textContent = description || '—';
@@ -1807,7 +1391,6 @@
                 document.getElementById('deleteBuyer').textContent = buyer || '—';
                 document.getElementById('deleteSeller').textContent = seller || '—';
                 document.getElementById('deleteCategory').textContent = category || '—';
-
                 const detailsRow = document.getElementById('deleteDetailsRow');
                 if (details && details.trim().length > 0) {
                     document.getElementById('deleteDetails').textContent = details;
@@ -1815,80 +1398,47 @@
                 } else {
                     detailsRow.style.display = 'none';
                 }
-
-                const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-                modal.show();
+                new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
             });
         });
 
-        // ---- TOOLTIPS ----
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
-
-        // ================================================================
-        // 5. АВТОЗБЕРЕЖЕННЯ ЧАСУ
-        // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
             if (timeInput && !timeInput.value) {
                 const now = new Date();
-                const hours = String(now.getHours()).padStart(2, '0');
-                const minutes = String(now.getMinutes()).padStart(2, '0');
-                timeInput.value = hours + ':' + minutes;
+                timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
             }
-            if (amountInput && (!amountInput.value || parseFloat(amountInput.value) === 0)) {
-                amountInput.value = '0.00';
-            } else if (amountInput) {
-                formatAmountField();
-            }
+            if (amountInput && (!amountInput.value || parseFloat(amountInput.value) === 0)) amountInput.value = '0.00';
         });
 
-        // ================================================================
-        // 6. ТЕПЛІ КЛАВІШІ
-        // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
-
             if (e.key === 'Escape') {
-                openModals.forEach(modal => {
-                    const bsModal = bootstrap.Modal.getInstance(modal);
-                    if (bsModal) bsModal.hide();
-                });
+                openModals.forEach(modal => { const bsModal = bootstrap.Modal.getInstance(modal); if (bsModal) bsModal.hide(); });
                 e.preventDefault();
                 return;
             }
-
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 for (const modal of openModals) {
                     const form = modal.querySelector('form:not(#deleteForm)');
                     if (form) {
                         const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.click();
-                            e.preventDefault();
-                            break;
-                        } else {
-                            form.submit();
-                            e.preventDefault();
-                            break;
-                        }
+                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
+                        else { form.submit(); e.preventDefault(); break; }
                     }
                 }
             }
         });
 
-        // ================================================================
-        // 7. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ у localStorage
-        // ================================================================
         function saveFilters() {
             try {
-                const filters = {
+                localStorage.setItem(FILTERS_KEY, JSON.stringify({
                     type: typeFilter.value,
                     category: categoryFilter.value,
                     search: searchInput.value,
                     pageSize: pageSizeSelect.value
-                };
-                localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+                }));
             } catch(e) {}
         }
 
@@ -1907,51 +1457,58 @@
             return false;
         }
 
-        // ================================================================
-        // 8. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
-        // ================================================================
         function saveChartVisibility(visible) {
-            try {
-                localStorage.setItem(CHART_VISIBLE_KEY, JSON.stringify({ visible: visible }));
-            } catch(e) {}
+            try { localStorage.setItem(CHART_VISIBLE_KEY, JSON.stringify({ visible: visible })); } catch(e) {}
         }
-
         function restoreChartVisibility() {
             try {
                 const stored = localStorage.getItem(CHART_VISIBLE_KEY);
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    return data.visible;
-                }
+                if (stored) return JSON.parse(stored).visible;
             } catch(e) {}
             return true;
         }
 
-        // ================================================================
-        // 9. ДІАГРАМИ
-        // ================================================================
+        const viewToggle = document.getElementById('viewToggle');
+        const tableView = document.getElementById('tableView');
+        const cardsView = document.getElementById('cardsView');
+
+        function setViewMode(mode) {
+            if (mode === 'cards') {
+                tableView.classList.add('hidden');
+                cardsView.classList.add('show');
+                viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                viewToggle.querySelector('[data-view="cards"]').classList.add('active');
+                localStorage.setItem(VIEW_MODE_KEY, 'cards');
+            } else {
+                tableView.classList.remove('hidden');
+                cardsView.classList.remove('show');
+                viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                viewToggle.querySelector('[data-view="table"]').classList.add('active');
+                localStorage.setItem(VIEW_MODE_KEY, 'table');
+            }
+        }
+
+        const savedViewMode = localStorage.getItem(VIEW_MODE_KEY);
+        if (savedViewMode === 'cards') setViewMode('cards'); else setViewMode('table');
+
+        viewToggle.addEventListener('click', function(e) {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            setViewMode(btn.dataset.view);
+        });
+
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
             const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
             const chartCanvas = document.getElementById(canvasId);
             const legendContainer = document.getElementById(legendId);
-            if (!chartCanvas) {
-                console.warn('Canvas #' + canvasId + ' не знайдено');
-                return;
-            }
-
+            if (!chartCanvas) return;
             if (typeof Chart === 'undefined') {
-                console.warn('Chart.js не завантажено');
-                const container = chartCanvas.parentElement;
-                if (container) {
-                    container.innerHTML = '<p class="text-muted">Бібліотека Chart.js не завантажилась. Спробуйте перезавантажити сторінку.</p>';
-                }
+                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
                 return;
             }
-
             const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
             const categoryMap = new Map();
-
             rows.forEach(row => {
                 const badge = row.querySelector('.col-category .badge');
                 if (!badge) return;
@@ -1960,45 +1517,21 @@
                 if (!amountCell) return;
                 const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
                 const amount = parseFloat(amountText) || 0;
-                if (amount > 0) {
-                    categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
-                }
+                if (amount > 0) categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
             });
-
-            const entries = Array.from(categoryMap.entries());
-            entries.sort((a, b) => b[1] - a[1]);
-
+            const entries = Array.from(categoryMap.entries()).sort((a,b) => b[1] - a[1]);
             const labels = entries.map(e => e[0]);
             const data = entries.map(e => e[1]);
-
             const chartCol = document.getElementById(type + 'ChartCol');
-            if (data.length === 0) {
-                if (chartCol) chartCol.style.display = 'none';
-                return;
-            } else {
-                if (chartCol) chartCol.style.display = '';
-            }
-
-            const colors = labels.map((name, index) => getCategoryColor(name, index));
-
+            if (data.length === 0) { if (chartCol) chartCol.style.display = 'none'; return; }
+            else { if (chartCol) chartCol.style.display = ''; }
+            const colors = labels.map((name, idx) => getCategoryColor(name, idx));
             const chartKey = type + 'ChartInstance';
-            if (window[chartKey]) {
-                try { window[chartKey].destroy(); } catch(e) {}
-                window[chartKey] = null;
-            }
-
+            if (window[chartKey]) { try { window[chartKey].destroy(); } catch(e) {} window[chartKey] = null; }
             try {
                 window[chartKey] = new Chart(chartCanvas, {
                     type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors,
-                            borderColor: '#ffffff',
-                            borderWidth: 2
-                        }]
-                    },
+                    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
                     options: {
                         responsive: true,
                         maintainAspectRatio: true,
@@ -2010,58 +1543,35 @@
                                 categoryFilter.dispatchEvent(new Event('change'));
                             }
                         },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
+                        plugins: { legend: { display: false } },
                         cutout: '55%'
                     }
                 });
-
                 if (legendContainer) {
-                    const total = data.reduce((a, b) => a + b, 0);
+                    const total = data.reduce((a,b) => a+b, 0);
                     let html = '<table class="chart-legend-table"><tbody>';
                     entries.forEach(([name, amount], idx) => {
                         const color = getCategoryColor(name, idx);
                         const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                        html += '<tr>' +
-                            '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
-                            '<td class="category-col">' + name + '</td>' +
-                            '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
-                            '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
-                            '</tr>';
+                        html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ₴</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
                     });
                     html += '</tbody></table>';
                     legendContainer.innerHTML = html;
                 }
-
                 const totalLabel = document.getElementById('chartTotalLabel');
                 if (totalLabel) {
                     const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
                     const incomeTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="income"]');
-                    const totalCount = expenseTotal.length + incomeTotal.length;
-                    totalLabel.textContent = 'Всього: ' + totalCount;
+                    totalLabel.textContent = 'Всього: ' + (expenseTotal.length + incomeTotal.length);
                 }
-
-                console.log('Діаграма ' + type + ' успішно створена');
-            } catch (e) {
-                console.error('Помилка при створенні діаграми ' + type + ':', e);
-                const container = chartCanvas.parentElement;
-                if (container) {
-                    container.innerHTML = '<p class="text-muted">Помилка створення діаграми. Перевірте консоль.</p>';
-                }
+            } catch(e) {
+                console.error('Помилка діаграми ' + type + ':', e);
+                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Помилка створення діаграми.</p>';
             }
         }
 
-        function renderAllCharts() {
-            renderChart('expense');
-            renderChart('income');
-        }
+        function renderAllCharts() { renderChart('expense'); renderChart('income'); }
 
-        // ================================================================
-        // 10. ПРИСВОЄННЯ КОЛЬОРІВ КАТЕГОРІЯМ
-        // ================================================================
         function assignCategoryColors() {
             document.querySelectorAll('.badge-category').forEach(badge => {
                 const name = badge.getAttribute('data-category');
@@ -2073,16 +1583,10 @@
             });
         }
 
-        // ================================================================
-        // 11. ТОГЛ ДІАГРАМ
-        // ================================================================
         function toggleCharts() {
             const chartBody = document.getElementById('chartBody');
             const icon = document.getElementById('chartToggleIcon');
-            const section = document.getElementById('chartSection');
-
             if (!chartBody) return;
-
             const isHidden = chartBody.style.display === 'none';
             if (isHidden) {
                 chartBody.style.display = '';
@@ -2096,13 +1600,6 @@
             }
         }
 
-        // ================================================================
-        // 12. ПОРТАЛЬНИЙ ПІДХІД ДЛЯ DROPDOWN – ВИДАЛЕНО (використовуються прямі кнопки)
-        // ================================================================
-
-        // ================================================================
-        // 13. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
-        // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
         const categoryFilter = document.getElementById('categoryFilter');
@@ -2111,14 +1608,9 @@
         const visibleInfo = document.getElementById('visibleInfo');
         const totalRowsSpan = document.getElementById('totalRowsCount');
         const tableBody = document.getElementById('transactionsBody');
+        const cardsContainer = document.getElementById('cardsContainer');
 
-        let allRows = [];
-        let currentPage = 1;
-        let pageSize = 20;
-        let filterType = 'all';
-        let filterCategory = '';
-        let searchText = '';
-        let visibleRows = [];
+        let allRows = [], currentPage = 1, pageSize = 20, filterType = 'all', filterCategory = '', searchText = '', visibleRows = [];
 
         function populateCategoryFilter() {
             const rows = tableBody.querySelectorAll('.transaction-row');
@@ -2132,101 +1624,55 @@
             });
             const currentVal = categoryFilter.value;
             categoryFilter.innerHTML = '<option value="">Всі категорії</option>';
-            const sorted = Array.from(categories).sort();
-            sorted.forEach(cat => {
+            Array.from(categories).sort().forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
                 opt.textContent = cat;
                 categoryFilter.appendChild(opt);
             });
-            if (currentVal && categories.has(currentVal)) {
-                categoryFilter.value = currentVal;
-            }
+            if (currentVal && categories.has(currentVal)) categoryFilter.value = currentVal;
         }
 
-        function init() {
-            allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
-
-            const filtersRestored = restoreFilters();
-
-            pageSize = parseInt(pageSizeSelect.value) || 0;
-            filterType = typeFilter.value;
-            filterCategory = categoryFilter.value;
-            searchText = searchInput.value.toLowerCase().trim();
-
-            populateCategoryFilter();
-            applyStoredSort();
-            assignCategoryColors();
-
-            const chartVisible = restoreChartVisibility();
-            const chartBody = document.getElementById('chartBody');
-            const icon = document.getElementById('chartToggleIcon');
-            if (!chartVisible && chartBody) {
-                chartBody.style.display = 'none';
-                if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
-            }
-
-            setTimeout(() => {
-                restoreColumnWidths();
-                initColumnResize();
-            }, 50);
-
-            if (!filtersRestored) {
-                applyFiltersAndLoad();
-            }
-
-            setTimeout(function() {
-                if (typeof Chart !== 'undefined') {
-                    renderAllCharts();
-                } else {
-                    console.warn('Chart.js не завантажено, спробуйте перезавантажити сторінку');
-                    setTimeout(function() {
-                        if (typeof Chart !== 'undefined') {
-                            renderAllCharts();
-                        }
-                    }, 2000);
-                }
-            }, 300);
-        }
-
-        function getFilteredRows() {
-            return allRows.filter(row => {
-                const type = row.dataset.type;
-                const rowText = row.textContent.toLowerCase();
-                const catCell = row.querySelector('.col-category .badge');
-                const rowCategory = catCell ? catCell.textContent.trim() : '';
-
-                let typeMatch = (filterType === 'all' || type === filterType);
-                let searchMatch = true;
-                if (searchText !== '') {
-                    searchMatch = rowText.includes(searchText);
-                }
-                let categoryMatch = true;
-                if (filterCategory !== '') {
-                    categoryMatch = (rowCategory === filterCategory);
-                }
-                return typeMatch && searchMatch && categoryMatch;
+        function updateCards() {
+            const wrappers = cardsContainer.querySelectorAll('.transaction-card-wrapper');
+            totalRowsSpan.textContent = visibleRows.length;
+            wrappers.forEach(wrapper => {
+                const id = wrapper.dataset.id;
+                const type = wrapper.dataset.type;
+                const isVisible = visibleRows.some(row => row.dataset.id === id && row.dataset.type === type);
+                wrapper.style.display = isVisible ? '' : 'none';
             });
+            if (visibleRows.length === 0) {
+                let emptyMsg = cardsContainer.querySelector('.empty-cards-message');
+                if (!emptyMsg) {
+                    emptyMsg = document.createElement('div');
+                    emptyMsg.className = 'col-12 text-center text-muted py-3 empty-cards-message';
+                    emptyMsg.textContent = 'Немає транзакцій за цей день';
+                    cardsContainer.appendChild(emptyMsg);
+                }
+            } else {
+                const emptyMsg = cardsContainer.querySelector('.empty-cards-message');
+                if (emptyMsg) emptyMsg.remove();
+            }
         }
 
         function updateUI() {
             const total = visibleRows.length;
             totalRowsSpan.textContent = total;
             allRows.forEach(row => row.style.display = 'none');
-
             if (pageSize === 0) {
-                visibleRows.forEach((row, index) => {
+                visibleRows.forEach((row, idx) => {
                     row.style.display = '';
                     const numCell = row.querySelector('td:first-child');
-                    if (numCell) numCell.textContent = index + 1;
+                    if (numCell) numCell.textContent = idx + 1;
                 });
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> Всі завантажено';
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 applyRowAnimation(visibleRows);
+                updateCards();
                 return;
             }
-
             const shown = Math.min(currentPage * pageSize, total);
             for (let i = 0; i < shown; i++) {
                 if (visibleRows[i]) {
@@ -2235,20 +1681,20 @@
                     if (numCell) numCell.textContent = i + 1;
                 }
             }
-
             const allShown = (shown >= total);
             loadMoreBtn.disabled = allShown;
             loadMoreBtn.innerHTML = allShown ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             visibleInfo.textContent = 'Показано: ' + shown + ' з ' + total;
             applyRowAnimation(visibleRows.slice(0, shown));
+            updateCards();
         }
 
         function applyRowAnimation(rows) {
             if (!rows || rows.length === 0) return;
-            rows.forEach((row, index) => {
+            rows.forEach((row, idx) => {
                 row.classList.remove('row-animate');
                 void row.offsetWidth;
-                row.style.animationDelay = (index * 0.05) + 's';
+                row.style.animationDelay = (idx * 0.05) + 's';
                 row.classList.add('row-animate');
             });
         }
@@ -2262,69 +1708,81 @@
             setTimeout(assignCategoryColors, 50);
         }
 
+        function getFilteredRows() {
+            return allRows.filter(row => {
+                const type = row.dataset.type;
+                const rowText = row.textContent.toLowerCase();
+                const catCell = row.querySelector('.col-category .badge');
+                const rowCategory = catCell ? catCell.textContent.trim() : '';
+                let typeMatch = (filterType === 'all' || type === filterType);
+                let searchMatch = true;
+                if (searchText !== '') searchMatch = rowText.includes(searchText);
+                let categoryMatch = true;
+                if (filterCategory !== '') categoryMatch = (rowCategory === filterCategory);
+                return typeMatch && searchMatch && categoryMatch;
+            });
+        }
+
         function loadMore() {
             if (pageSize === 0) return;
             const total = visibleRows.length;
             const shown = Math.min(currentPage * pageSize, total);
-            if (shown >= total) {
-                loadMoreBtn.disabled = true;
-                return;
-            }
+            if (shown >= total) { loadMoreBtn.disabled = true; return; }
             currentPage++;
             updateUI();
         }
 
-        searchInput.addEventListener('input', function() {
-            searchText = this.value.toLowerCase().trim();
-            applyFiltersAndLoad();
-        });
+        function init() {
+            allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
+            const filtersRestored = restoreFilters();
+            pageSize = parseInt(pageSizeSelect.value) || 0;
+            filterType = typeFilter.value;
+            filterCategory = categoryFilter.value;
+            searchText = searchInput.value.toLowerCase().trim();
+            populateCategoryFilter();
+            applyStoredSort();
+            assignCategoryColors();
 
-        typeFilter.addEventListener('change', function() {
-            filterType = this.value;
-            applyFiltersAndLoad();
-        });
+            const chartVisible = restoreChartVisibility();
+            const chartBody = document.getElementById('chartBody');
+            const icon = document.getElementById('chartToggleIcon');
+            if (!chartVisible && chartBody) {
+                chartBody.style.display = 'none';
+                if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
+            }
 
-        categoryFilter.addEventListener('change', function() {
-            filterCategory = this.value;
-            applyFiltersAndLoad();
-        });
+            setTimeout(() => { restoreColumnWidths(); initColumnResize(); }, 50);
 
-        pageSizeSelect.addEventListener('change', function() {
-            pageSize = parseInt(this.value) || 0;
-            applyFiltersAndLoad();
-        });
+            if (!filtersRestored) applyFiltersAndLoad();
 
+            setTimeout(function() {
+                if (typeof Chart !== 'undefined') renderAllCharts();
+                else setTimeout(() => { if (typeof Chart !== 'undefined') renderAllCharts(); }, 2000);
+            }, 300);
+        }
+
+        searchInput.addEventListener('input', function() { searchText = this.value.toLowerCase().trim(); applyFiltersAndLoad(); });
+        typeFilter.addEventListener('change', function() { filterType = this.value; applyFiltersAndLoad(); });
+        categoryFilter.addEventListener('change', function() { filterCategory = this.value; applyFiltersAndLoad(); });
+        pageSizeSelect.addEventListener('change', function() { pageSize = parseInt(this.value) || 0; applyFiltersAndLoad(); });
         loadMoreBtn.addEventListener('click', loadMore);
-
-        // ---- ТОГЛ ДІАГРАМ ----
         document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
 
-        // ================================================================
-        // 14. СОРТУВАННЯ З ПАМ'ЯТТЮ
-        // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({ column, direction }));
-            } catch (e) { /* ignore */ }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ column, direction })); } catch(e) {}
         }
 
         function applyStoredSort() {
-            if (!currentDate) {
-                setTimeout(() => sortRowsBy('time', 'desc'), 50);
-                return;
-            }
+            if (!currentDate) { setTimeout(() => sortRowsBy('time', 'desc'), 50); return; }
             try {
                 const stored = localStorage.getItem(STORAGE_KEY);
                 if (stored) {
                     const { column, direction } = JSON.parse(stored);
                     const th = document.querySelector(`.sortable[data-sort="${column}"]`);
-                    if (th) {
-                        setTimeout(() => sortRowsBy(column, direction), 50);
-                        return;
-                    }
+                    if (th) { setTimeout(() => sortRowsBy(column, direction), 50); return; }
                 }
-            } catch (e) { /* ignore */ }
+            } catch(e) {}
             setTimeout(() => sortRowsBy('time', 'desc'), 50);
         }
 
@@ -2333,17 +1791,8 @@
             const rowsArray = Array.from(allRows);
             const th = document.querySelector(`.sortable[data-sort="${column}"]`);
             const dataType = th ? th.dataset.type : 'string';
-
-            const indexMap = {
-                'time': 2,
-                'name': 3,
-                'quantity': 4,
-                'amount': 5,
-                'buyer': 6,
-                'seller': 7,
-                'category': 9
-            };
-            const idx = indexMap[column];
+            const idxMap = { 'time': 2, 'name': 3, 'quantity': 4, 'amount': 5, 'buyer': 6, 'seller': 7, 'category': 9 };
+            const idx = idxMap[column];
             if (idx === undefined) return;
 
             rowsArray.sort((a, b) => {
@@ -2351,7 +1800,6 @@
                 const bCell = b.querySelector(`td:nth-child(${idx+1})`);
                 let aVal = aCell ? aCell.textContent.trim() : '';
                 let bVal = bCell ? bCell.textContent.trim() : '';
-
                 if (dataType === 'number') {
                     const cleanA = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
                     const cleanB = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
@@ -2378,7 +1826,6 @@
                 const icon = th.querySelector('.sort-icon');
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
-
             saveSortState(column, direction);
             applyFiltersAndLoad();
         }
@@ -2394,22 +1841,15 @@
             });
         });
 
-        // ================================================================
-        // 15. РЕСАЙЗ КОЛОНОК
-        // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
             if (!table) return;
             const headers = table.querySelectorAll('thead th');
             let widths = {};
-            try {
-                const stored = localStorage.getItem(COL_WIDTH_KEY);
-                if (stored) widths = JSON.parse(stored);
-            } catch(e) { /* ignore */ }
-
-            headers.forEach((th, index) => {
+            try { const stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) widths = JSON.parse(stored); } catch(e) {}
+            headers.forEach((th, idx) => {
                 if (th.classList.contains('col-actions')) return;
-                const colKey = 'col-' + index;
+                const colKey = 'col-' + idx;
                 if (widths[colKey]) {
                     const w = Math.max(30, widths[colKey]);
                     th.style.width = w + 'px';
@@ -2424,23 +1864,18 @@
             if (!table) return;
             const headers = table.querySelectorAll('thead th');
             let colWidths = {};
-            try {
-                const stored = localStorage.getItem(COL_WIDTH_KEY);
-                if (stored) colWidths = JSON.parse(stored);
-            } catch(e) { /* ignore */ }
+            try { const stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) colWidths = JSON.parse(stored); } catch(e) {}
 
-            headers.forEach((th, index) => {
+            headers.forEach((th, idx) => {
                 if (th.classList.contains('col-actions')) return;
                 if (th.querySelector('.resize-handle')) return;
-
                 const handle = document.createElement('div');
                 handle.className = 'resize-handle';
-                handle.dataset.index = index;
+                handle.dataset.index = idx;
                 th.appendChild(handle);
                 th.style.position = 'relative';
 
                 let startX, startWidth;
-
                 function onMouseDown(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -2450,7 +1885,6 @@
                     document.addEventListener('mouseup', onMouseUp);
                     handle.classList.add('active');
                 }
-
                 function onMouseMove(e) {
                     const deltaX = e.clientX - startX;
                     let newWidth = startWidth + deltaX;
@@ -2458,26 +1892,18 @@
                     th.style.width = newWidth + 'px';
                     th.style.minWidth = newWidth + 'px';
                     th.style.maxWidth = newWidth + 'px';
-                    const colKey = 'col-' + index;
-                    colWidths[colKey] = newWidth;
+                    colWidths['col-' + idx] = newWidth;
                 }
-
                 function onMouseUp() {
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                     handle.classList.remove('active');
-                    try {
-                        localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths));
-                    } catch(e) { /* ignore */ }
+                    try { localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths)); } catch(e) {}
                 }
-
                 handle.addEventListener('mousedown', onMouseDown);
             });
         }
 
-        // ================================================================
-        // 16. ЗАПУСК
-        // ================================================================
         init();
     })();
 </script>

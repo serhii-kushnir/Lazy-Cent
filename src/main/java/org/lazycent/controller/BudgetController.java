@@ -376,11 +376,91 @@ public class BudgetController {
         DayBudget dayBudget = budgetService.getOrCreateDayBudget(date);
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-        // ... решта коду експорту без змін ...
-        // (для економії місця я не повторюю весь код експорту, він залишається без змін)
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("День " + dateFormatter.format(date));
 
-        log.info("Excel export completed for date: {}", date);
-        return ResponseEntity.ok().build(); // замініть на реальний return
+            // Стиль заголовків
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            // Заголовки
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"№", "Тип", "Час", "Найменування", "Кількість", "Сума", "Покупець", "Продавець", "Деталі", "Категорія"};
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+                sheet.setColumnWidth(i, 4000);
+            }
+
+            int rowNum = 1;
+            int index = 1;
+
+            // Витрати
+            for (Expense exp : dayBudget.getExpenses()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(index++);
+                row.createCell(1).setCellValue("Витрата");
+                row.createCell(2).setCellValue(exp.getTime() != null ? exp.getTime().toString() : "");
+                row.createCell(3).setCellValue(exp.getDescription() != null ? exp.getDescription() : "");
+                row.createCell(4).setCellValue(exp.getQuantity() != null ? exp.getQuantity() : 1);
+                row.createCell(5).setCellValue(exp.getAmount() != null ? exp.getAmount() : 0);
+                row.createCell(6).setCellValue(exp.getBuyer() != null ? exp.getBuyer() : "");
+                row.createCell(7).setCellValue(exp.getSeller() != null ? exp.getSeller() : "");
+                row.createCell(8).setCellValue(exp.getDetails() != null ? exp.getDetails() : "");
+                row.createCell(9).setCellValue(exp.getCategory() != null ? exp.getCategory().getName() : "");
+            }
+
+            // Доходи
+            for (Income inc : dayBudget.getIncomes()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(index++);
+                row.createCell(1).setCellValue("Дохід");
+                row.createCell(2).setCellValue(inc.getTime() != null ? inc.getTime().toString() : "");
+                row.createCell(3).setCellValue(inc.getDescription() != null ? inc.getDescription() : "");
+                row.createCell(4).setCellValue(inc.getQuantity() != null ? inc.getQuantity() : 1);
+                row.createCell(5).setCellValue(inc.getAmount() != null ? inc.getAmount() : 0);
+                row.createCell(6).setCellValue(inc.getBuyer() != null ? inc.getBuyer() : "");
+                row.createCell(7).setCellValue(inc.getSeller() != null ? inc.getSeller() : "");
+                row.createCell(8).setCellValue(inc.getDetails() != null ? inc.getDetails() : "");
+                row.createCell(9).setCellValue(inc.getCategory() != null ? inc.getCategory().getName() : "");
+            }
+
+            // Підсумок
+            Row summaryRow = sheet.createRow(rowNum);
+            CellStyle boldStyle = workbook.createCellStyle();
+            Font boldFont = workbook.createFont();
+            boldFont.setBold(true);
+            boldStyle.setFont(boldFont);
+            Cell sumCell = summaryRow.createCell(0);
+            sumCell.setCellValue("Підсумки:");
+            sumCell.setCellStyle(boldStyle);
+            summaryRow.createCell(5).setCellValue(dayBudget.getTotalExpenses() != null ? dayBudget.getTotalExpenses() : 0);
+            summaryRow.createCell(5).setCellStyle(boldStyle);
+            // Доходи та баланс — наступний рядок
+            Row incomeSummaryRow = sheet.createRow(rowNum + 1);
+            incomeSummaryRow.createCell(0).setCellValue("Доходи:");
+            incomeSummaryRow.createCell(5).setCellValue(dayBudget.getTotalIncomes() != null ? dayBudget.getTotalIncomes() : 0);
+
+            Row balanceRow = sheet.createRow(rowNum + 2);
+            balanceRow.createCell(0).setCellValue("Баланс:");
+            balanceRow.createCell(5).setCellValue(dayBudget.getRemainingBalance() != null ? dayBudget.getRemainingBalance() : 0);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            byte[] bytes = out.toByteArray();
+
+            HttpHeaders headers2 = new HttpHeaders();
+            headers2.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers2.setContentDispositionFormData("attachment", "day_" + dateFormatter.format(date) + ".xlsx");
+            headers2.setContentLength(bytes.length);
+
+            return ResponseEntity.ok().headers(headers2).body(bytes);
+        }
     }
 
     // ==================== AJAX ДЛЯ КАТЕГОРІЙ ====================

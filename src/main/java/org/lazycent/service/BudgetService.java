@@ -517,16 +517,32 @@ public class BudgetService {
     public void deleteDay(Long dayBudgetId) {
         log.info("Deleting day budget with ID: {}", dayBudgetId);
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
-                .orElseThrow(() -> {
-                    log.error("DayBudget not found with ID: {}", dayBudgetId);
-                    return new RuntimeException("День не знайдено");
-                });
+                .orElseThrow(() -> new RuntimeException("День не знайдено"));
 
-        // Видаляємо всі витрати та доходи за день (каскадне видалення)
+        LocalDate deletedDate = dayBudget.getDate();
         dayBudgetRepository.delete(dayBudget);
         log.info("Day budget {} deleted", dayBudgetId);
 
-        // Оновлюємо баланси наступних днів
-        updateNextDaysBalances(dayBudget.getDate());
+        // Перераховуємо баланси для всіх наступних днів
+        List<DayBudget> nextBudgets = dayBudgetRepository.findAllByOrderByDateAsc().stream()
+                .filter(b -> b.getDate().isAfter(deletedDate))
+                .toList();
+
+        if (nextBudgets.isEmpty()) return;
+
+        // Знаходимо попередній день перед першим з наступних
+        DayBudget previousDay = dayBudgetRepository.findByDate(deletedDate.minusDays(1)).orElse(null);
+        Double previousBalance = previousDay != null ? previousDay.getRemainingBalance() : 0.0;
+
+        for (DayBudget budget : nextBudgets) {
+            budget.setStartingBalance(previousBalance);
+            Double totalExpenses = expenseRepository.sumExpensesByDate(budget.getDate());
+            Double totalIncomes = incomeRepository.sumIncomesByDate(budget.getDate());
+            if (totalExpenses == null) totalExpenses = 0.0;
+            if (totalIncomes == null) totalIncomes = 0.0;
+            budget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
+            dayBudgetRepository.save(budget);
+            previousBalance = budget.getRemainingBalance();
+        }
     }
 }
