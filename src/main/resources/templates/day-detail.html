@@ -249,8 +249,6 @@
         [data-bs-theme="dark"] .view-toggle { background: #2a2e37; }
         .view-toggle .btn {
             border: none;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.8rem;
             border-radius: 0.25rem;
             background: transparent;
             color: #495057;
@@ -374,7 +372,6 @@
         }
         .transaction-card .card-body .row .value {
             font-weight: 600;
-            text-align: right;
             flex: 0 0 60%;
             word-break: break-word;
             font-size: 0.85rem;
@@ -429,7 +426,6 @@
             }
             .transaction-card .card-body .row .value {
                 flex: 0 0 100%;
-                text-align: left;
                 padding-left: 0.5rem;
                 font-size: 0.8rem;
             }
@@ -477,8 +473,6 @@
             .table-toolbar .page-size-select { max-width: 70px; }
             .table-toolbar .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
             .table-toolbar .info-text { font-size: 0.7rem; }
-
-            .view-toggle .btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
         }
 
         /* ===== МОБІЛЬНІ ДУЖЕ МАЛІ ЕКРАНИ (до 400px) ===== */
@@ -1137,23 +1131,75 @@
     </div>
 </div>
 
-<div class="modal fade no-print" id="cloneExpenseModal" tabindex="-1">
+<!-- ===== МОДАЛЬНЕ ВІКНО ДУБЛЮВАННЯ (універсальне) ===== -->
+<div class="modal fade no-print" id="cloneModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-copy me-2"></i>Дублювати витрату</h5>
+                <h5 class="modal-title"><i class="fas fa-copy me-2"></i>Дублювати транзакцію</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="cloneExpenseForm" method="post" th:action="@{/day/{date}/expense(date=${dayBudget.date})}">
+            <form id="cloneForm" method="post">
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="cloneExpenseCategory" required><option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
-                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="cloneExpenseDescription" required></div>
-                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneExpenseBuyer"></div>
-                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="cloneExpenseSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneExpenseAmount" required></div>
-                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneExpenseQuantity" min="1"></div>
-                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="cloneExpenseTime" name="time" step="60"></div>
-                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneExpenseCharCount">0</span> / 250</div></div>
+                    <!-- Приховане поле для типу -->
+                    <input type="hidden" name="type" id="cloneType" value="EXPENSE">
+
+                    <!-- Перемикач типу -->
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <div class="transaction-type-toggle">
+                            <button type="button" class="btn btn-outline-danger active-expense" id="cloneTypeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i> Витрата
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="cloneTypeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i> Дохід
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="cloneCategory" required>
+                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                        <div class="invalid-feedback">Виберіть категорію</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="cloneDescription" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="cloneBuyer">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="cloneSeller">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="cloneTime" name="time" step="60">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="cloneCharCount">0</span> / 250</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1200,66 +1246,84 @@
 
 <script>
     (function() {
-        // КОЛІРНА ПАЛІТРА ДЛЯ КАТЕГОРІЙ (тільки текстовий колір)
+        // ================================================================
+        // 0. КОЛІРНА ПАЛІТРА ДЛЯ КАТЕГОРІЙ
+        // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
         function getCategoryColor(name, index) {
             if (!name) return '#6c757d';
             if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
             let hash = 0;
-            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
             return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
         }
 
-        // TOAST
+        // ================================================================
+        // 1. TOAST ПОВІДОМЛЕННЯ
+        // ================================================================
         function showToast(message, type) {
-            const el = document.getElementById('liveToast');
-            if (!el) return;
-            const title = document.getElementById('toastTitle');
-            const body = document.getElementById('toastMessage');
-            const icon = document.getElementById('toastIcon');
-            el.classList.remove('success', 'error');
+            const toastElement = document.getElementById('liveToast');
+            if (!toastElement) return;
+
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastElement.classList.remove('success', 'error');
             if (type === 'success') {
-                el.classList.add('success');
-                icon.className = 'fas fa-check-circle me-2';
-                title.textContent = 'Успішно!';
+                toastElement.classList.add('success');
+                toastIcon.className = 'fas fa-check-circle me-2';
+                toastTitle.textContent = 'Успішно!';
             } else if (type === 'error') {
-                el.classList.add('error');
-                icon.className = 'fas fa-exclamation-circle me-2';
-                title.textContent = 'Помилка!';
+                toastElement.classList.add('error');
+                toastIcon.className = 'fas fa-exclamation-circle me-2';
+                toastTitle.textContent = 'Помилка!';
             } else {
-                icon.className = 'fas fa-info-circle me-2';
-                title.textContent = 'Інформація';
+                toastIcon.className = 'fas fa-info-circle me-2';
+                toastTitle.textContent = 'Інформація';
             }
-            body.textContent = message;
-            new bootstrap.Toast(el, { autohide: true, delay: 5000 }).show();
+
+            toastMessage.textContent = message;
+            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+            toast.show();
         }
 
-        // ДАТА ДЛЯ ЗБЕРЕЖЕННЯ
+        // ================================================================
+        // 2. ДАТА ДЛЯ КЛЮЧІВ localStorage
+        // ================================================================
         const dateElem = document.querySelector('h5.no-print span');
         let currentDate = '';
         if (dateElem) {
             const parts = dateElem.textContent.trim().split(',');
             if (parts.length > 1) {
                 const datePart = parts[1].trim().split('/');
-                if (datePart.length === 3) currentDate = datePart[2] + '-' + datePart[1] + '-' + datePart[0];
+                if (datePart.length === 3) {
+                    currentDate = datePart[2] + '-' + datePart[1] + '-' + datePart[0];
+                }
             }
         }
-        if (!currentDate) currentDate = /*[[${dayBudget.date}]]*/ '';
+        if (!currentDate) {
+            currentDate = /*[[${dayBudget.date}]]*/ '';
+        }
         const STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
         const COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
         const FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
         const CHART_VISIBLE_KEY = 'lazycent_chart_visible_' + currentDate;
         const VIEW_MODE_KEY = 'lazycent_view_mode_' + currentDate;
 
-        // КАТЕГОРІЇ
+        // ================================================================
+        // 3. КАТЕГОРІЇ ДЛЯ МОДАЛКИ ДОДАВАННЯ
+        // ================================================================
         let expenseCategories = /*[[${expenseCategories}]]*/ null;
         let incomeCategories = /*[[${incomeCategories}]]*/ null;
         const categorySelect = document.getElementById('categorySelect');
 
-        function populateCategories(cats) {
+        function populateCategories(categories) {
             if (!categorySelect) return;
             categorySelect.innerHTML = '';
-            if (!cats || cats.length === 0) {
+            if (!categories || categories.length === 0) {
                 const opt = document.createElement('option');
                 opt.value = '';
                 opt.textContent = 'Немає категорій';
@@ -1267,7 +1331,7 @@
                 categorySelect.appendChild(opt);
                 return;
             }
-            cats.forEach(cat => {
+            categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat.id;
                 opt.textContent = cat.name;
@@ -1276,25 +1340,41 @@
         }
 
         function fetchExpenseCategories() {
-            fetch('/categories/expense').then(r => r.json()).then(data => {
-                expenseCategories = data;
-                const typeInput = document.getElementById('transactionType');
-                if (typeInput && typeInput.value === 'EXPENSE') populateCategories(expenseCategories);
-            }).catch(err => console.warn('Помилка завантаження категорій витрат:', err));
+            fetch('/categories/expense')
+                .then(r => r.json())
+                .then(data => {
+                    expenseCategories = data;
+                    const typeInput = document.getElementById('transactionType');
+                    if (typeInput && typeInput.value === 'EXPENSE') {
+                        populateCategories(expenseCategories);
+                    }
+                })
+                .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
         }
 
         function fetchIncomeCategories() {
-            fetch('/categories/income').then(r => r.json()).then(data => {
-                incomeCategories = data;
-                const typeInput = document.getElementById('transactionType');
-                if (typeInput && typeInput.value === 'INCOME') populateCategories(incomeCategories);
-            }).catch(err => console.warn('Помилка завантаження категорій доходів:', err));
+            fetch('/categories/income')
+                .then(r => r.json())
+                .then(data => {
+                    incomeCategories = data;
+                    const typeInput = document.getElementById('transactionType');
+                    if (typeInput && typeInput.value === 'INCOME') {
+                        populateCategories(incomeCategories);
+                    }
+                })
+                .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
         }
 
-        if (!expenseCategories || expenseCategories.length === 0) fetchExpenseCategories(); else populateCategories(expenseCategories);
-        if (!incomeCategories || incomeCategories.length === 0) fetchIncomeCategories();
+        if (!expenseCategories || expenseCategories.length === 0) {
+            fetchExpenseCategories();
+        } else {
+            populateCategories(expenseCategories);
+        }
+        if (!incomeCategories || incomeCategories.length === 0) {
+            fetchIncomeCategories();
+        }
 
-        // ТИП У МОДАЛЦІ
+        // ---- ТИП У МОДАЛЦІ ДОДАВАННЯ ----
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
         const transactionType = document.getElementById('transactionType');
@@ -1323,24 +1403,36 @@
             typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
         }
 
-        // СУМА ТА КІЛЬКІСТЬ
+        // ---- ФОРМАТУВАННЯ СУМИ ----
+        function formatAmountField() {
+            const amountInput = document.getElementById('transactionAmount');
+            if (!amountInput) return;
+            let val = parseFloat(amountInput.value);
+            if (isNaN(val) || val < 0) val = 0;
+            amountInput.value = val.toFixed(2);
+        }
+
         const amountInput = document.getElementById('transactionAmount');
         if (amountInput) {
             document.getElementById('amountMinus')?.addEventListener('click', function() {
                 let val = parseFloat(amountInput.value) || 0;
-                if (val > 0) { val = Math.round((val - 0.01) * 100) / 100; amountInput.value = val.toFixed(2); }
+                if (val > 0) {
+                    val = Math.round((val - 0.01) * 100) / 100;
+                    amountInput.value = val.toFixed(2);
+                }
+                formatAmountField();
             });
             document.getElementById('amountPlus')?.addEventListener('click', function() {
                 let val = parseFloat(amountInput.value) || 0;
                 val = Math.round((val + 0.01) * 100) / 100;
                 amountInput.value = val.toFixed(2);
+                formatAmountField();
             });
-            amountInput.addEventListener('blur', function() {
-                let val = parseFloat(amountInput.value) || 0;
-                amountInput.value = val.toFixed(2);
-            });
+            amountInput.addEventListener('blur', formatAmountField);
+            amountInput.addEventListener('change', formatAmountField);
         }
 
+        // ---- КНОПКИ +/- ДЛЯ КІЛЬКОСТІ ----
         const quantityInput = document.getElementById('transactionQuantity');
         if (quantityInput) {
             document.getElementById('quantityMinus')?.addEventListener('click', function() {
@@ -1353,7 +1445,7 @@
             });
         }
 
-        // ЛІЧИЛЬНИК СИМВОЛІВ
+        // ---- ЛІЧИЛЬНИК СИМВОЛІВ (головна модалка) ----
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
         if (detailsTextarea && charCount) {
@@ -1365,7 +1457,7 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // СКИДАННЯ МОДАЛКИ
+        // ---- СКИДАННЯ МОДАЛКИ ДОДАВАННЯ ----
         document.getElementById('transactionModal')?.addEventListener('hidden.bs.modal', function() {
             const form = document.getElementById('transactionForm');
             if (form) form.reset();
@@ -1376,7 +1468,7 @@
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });
 
-        // ВАЛІДАЦІЯ
+        // ---- ВАЛІДАЦІЯ ДОДАВАННЯ ----
         transactionForm?.addEventListener('submit', function(e) {
             let valid = true;
             const name = document.getElementById('transactionName');
@@ -1391,10 +1483,34 @@
             }
         });
 
-        // ПОДІЇ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
+        // ---- ФОРМАТУВАННЯ СУМИ В МОДАЛКАХ РЕДАГУВАННЯ ----
+        function formatEditAmount(inputId) {
+            const el = document.getElementById(inputId);
+            if (!el) return;
+            let val = parseFloat(el.value);
+            if (isNaN(val) || val < 0) val = 0;
+            el.value = val.toFixed(2);
+        }
+        const editExpAmount = document.getElementById('editExpenseAmount');
+        if (editExpAmount) {
+            editExpAmount.addEventListener('blur', function() { formatEditAmount('editExpenseAmount'); });
+            editExpAmount.addEventListener('change', function() { formatEditAmount('editExpenseAmount'); });
+        }
+        const editIncAmount = document.getElementById('editIncomeAmount');
+        if (editIncAmount) {
+            editIncAmount.addEventListener('blur', function() { formatEditAmount('editIncomeAmount'); });
+            editIncAmount.addEventListener('change', function() { formatEditAmount('editIncomeAmount'); });
+        }
+
+        // ================================================================
+        // 4. ОБРОБНИКИ ДЛЯ ПУНКТІВ МЕНЮ (EDIT, DELETE, DUPLICATE)
+        // ================================================================
+
+        // ---- РЕДАГУВАННЯ ----
         document.querySelectorAll('.action-edit').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
+
                 const type = this.dataset.type;
                 const id = this.dataset.id;
                 const category = this.dataset.category;
@@ -1405,6 +1521,7 @@
                 const time = this.dataset.time || '';
                 const buyer = this.dataset.buyer || '';
                 const seller = this.dataset.seller || '';
+
                 if (type === 'expense') {
                     const modal = document.getElementById('editExpenseModal');
                     document.getElementById('editExpenseId').value = id;
@@ -1418,7 +1535,8 @@
                     document.getElementById('editExpenseSeller').value = seller;
                     document.getElementById('editExpenseCharCount').textContent = details.length;
                     document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                    new bootstrap.Modal(modal).show();
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
                 } else {
                     const modal = document.getElementById('editIncomeModal');
                     document.getElementById('editIncomeId').value = id;
@@ -1432,49 +1550,13 @@
                     document.getElementById('editIncomeSeller').value = seller;
                     document.getElementById('editIncomeCharCount').textContent = details.length;
                     document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                    new bootstrap.Modal(modal).show();
+                    const bsModal = new bootstrap.Modal(modal);
+                    bsModal.show();
                 }
             });
         });
 
-        document.querySelectorAll('.action-duplicate').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const type = this.dataset.type;
-                const category = this.dataset.category;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1;
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-                if (type === 'expense') {
-                    document.getElementById('cloneExpenseCategory').value = category;
-                    document.getElementById('cloneExpenseDescription').value = description;
-                    document.getElementById('cloneExpenseAmount').value = amount.toFixed(2);
-                    document.getElementById('cloneExpenseQuantity').value = quantity;
-                    document.getElementById('cloneExpenseTime').value = time;
-                    document.getElementById('cloneExpenseDetails').value = details;
-                    document.getElementById('cloneExpenseBuyer').value = buyer;
-                    document.getElementById('cloneExpenseSeller').value = seller;
-                    document.getElementById('cloneExpenseCharCount').textContent = details.length;
-                    new bootstrap.Modal(document.getElementById('cloneExpenseModal')).show();
-                } else {
-                    document.getElementById('cloneIncomeCategory').value = category;
-                    document.getElementById('cloneIncomeDescription').value = description;
-                    document.getElementById('cloneIncomeAmount').value = amount.toFixed(2);
-                    document.getElementById('cloneIncomeQuantity').value = quantity;
-                    document.getElementById('cloneIncomeTime').value = time;
-                    document.getElementById('cloneIncomeDetails').value = details;
-                    document.getElementById('cloneIncomeBuyer').value = buyer;
-                    document.getElementById('cloneIncomeSeller').value = seller;
-                    document.getElementById('cloneIncomeCharCount').textContent = details.length;
-                    new bootstrap.Modal(document.getElementById('cloneIncomeModal')).show();
-                }
-            });
-        });
-
+        // ---- ВИДАЛЕННЯ ----
         document.querySelectorAll('.action-delete').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1488,8 +1570,10 @@
                 const quantity = this.dataset.quantity || '1';
                 const buyer = this.dataset.buyer || '';
                 const seller = this.dataset.seller || '';
+
                 const deleteForm = document.getElementById('deleteForm');
                 deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
+
                 document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
                 document.getElementById('deleteTime').textContent = time || '—';
                 document.getElementById('deleteDescription').textContent = description || '—';
@@ -1498,6 +1582,7 @@
                 document.getElementById('deleteBuyer').textContent = buyer || '—';
                 document.getElementById('deleteSeller').textContent = seller || '—';
                 document.getElementById('deleteCategory').textContent = category || '—';
+
                 const detailsRow = document.getElementById('deleteDetailsRow');
                 if (details && details.trim().length > 0) {
                     document.getElementById('deleteDetails').textContent = details;
@@ -1505,50 +1590,190 @@
                 } else {
                     detailsRow.style.display = 'none';
                 }
-                new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+
+                const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                modal.show();
             });
         });
 
-        // АВТОЗАПОВНЕННЯ ЧАСУ
+        // ---- ДУБЛЮВАННЯ (оновлене) ----
+        // Завантаження категорій для дублювання
+        function loadCloneCategories(type) {
+            const categorySelect = document.getElementById('cloneCategory');
+            if (!categorySelect) return;
+
+            const url = type === 'expense' ? '/categories/expense' : '/categories/income';
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    categorySelect.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'Немає категорій';
+                        opt.disabled = true;
+                        categorySelect.appendChild(opt);
+                        return;
+                    }
+                    data.forEach(cat => {
+                        const opt = document.createElement('option');
+                        opt.value = cat.id;
+                        opt.textContent = cat.name;
+                        categorySelect.appendChild(opt);
+                    });
+                })
+                .catch(err => console.warn('Помилка завантаження категорій:', err));
+        }
+
+        // Встановлення типу для дублювання
+        function setCloneType(type) {
+            const typeInput = document.getElementById('cloneType');
+            const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
+            const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
+            const form = document.getElementById('cloneForm');
+
+            if (type === 'EXPENSE') {
+                typeInput.value = 'EXPENSE';
+                expenseBtn.className = 'btn active-expense';
+                incomeBtn.className = 'btn btn-outline-success';
+                loadCloneCategories('expense');
+                form.action = '/day/' + currentDate + '/expense';
+            } else {
+                typeInput.value = 'INCOME';
+                incomeBtn.className = 'btn active-income';
+                expenseBtn.className = 'btn btn-outline-danger';
+                loadCloneCategories('income');
+                form.action = '/day/' + currentDate + '/income';
+            }
+        }
+
+        // Кнопки перемикання типу в модалці дублювання
+        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
+            setCloneType('EXPENSE');
+        });
+        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
+            setCloneType('INCOME');
+        });
+
+        // Лічильник символів для дублювання
+        const cloneDetailsTextarea = document.getElementById('cloneDetails');
+        const cloneCharCount = document.getElementById('cloneCharCount');
+        if (cloneDetailsTextarea && cloneCharCount) {
+            cloneDetailsTextarea.addEventListener('input', function() {
+                const len = this.value.length;
+                cloneCharCount.textContent = len;
+                cloneCharCount.style.color = len >= 250 ? '#dc3545' : '';
+            });
+        }
+
+        // Скидання модалки дублювання при закритті
+        document.getElementById('cloneModal')?.addEventListener('hidden.bs.modal', function() {
+            document.getElementById('cloneForm').reset();
+            document.getElementById('cloneCharCount').textContent = '0';
+        });
+
+        // Обробник кнопок дублювання
+        document.querySelectorAll('.action-duplicate').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const type = this.dataset.type;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+
+                document.getElementById('cloneCategory').value = category;
+                document.getElementById('cloneDescription').value = description;
+                document.getElementById('cloneAmount').value = amount.toFixed(2);
+                document.getElementById('cloneQuantity').value = quantity;
+                document.getElementById('cloneTime').value = time;
+                document.getElementById('cloneDetails').value = details;
+                document.getElementById('cloneBuyer').value = buyer;
+                document.getElementById('cloneSeller').value = seller;
+                document.getElementById('cloneCharCount').textContent = details.length;
+
+                setCloneType(initialType);
+
+                const modal = new bootstrap.Modal(document.getElementById('cloneModal'));
+                modal.show();
+            });
+        });
+
+        // ---- TOOLTIPS ----
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+
+        // ================================================================
+        // 5. АВТОЗАПОВНЕННЯ ЧАСУ
+        // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
             if (timeInput && !timeInput.value) {
                 const now = new Date();
-                timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                timeInput.value = hours + ':' + minutes;
             }
-            if (amountInput && (!amountInput.value || parseFloat(amountInput.value) === 0)) amountInput.value = '0.00';
+            if (amountInput && (!amountInput.value || parseFloat(amountInput.value) === 0)) {
+                amountInput.value = '0.00';
+            } else if (amountInput) {
+                formatAmountField();
+            }
         });
 
-        // ТЕПЛІ КЛАВІШІ
+        // ================================================================
+        // 6. ТЕПЛІ КЛАВІШІ
+        // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
+
             if (e.key === 'Escape') {
-                openModals.forEach(modal => { const bsModal = bootstrap.Modal.getInstance(modal); if (bsModal) bsModal.hide(); });
+                openModals.forEach(modal => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                });
                 e.preventDefault();
                 return;
             }
+
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 for (const modal of openModals) {
                     const form = modal.querySelector('form:not(#deleteForm)');
                     if (form) {
                         const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
-                        else { form.submit(); e.preventDefault(); break; }
+                        if (submitBtn) {
+                            submitBtn.click();
+                            e.preventDefault();
+                            break;
+                        } else {
+                            form.submit();
+                            e.preventDefault();
+                            break;
+                        }
                     }
                 }
             }
         });
 
-        // ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
+        // ================================================================
+        // 7. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ У localStorage
+        // ================================================================
         function saveFilters() {
             try {
-                localStorage.setItem(FILTERS_KEY, JSON.stringify({
+                const filters = {
                     type: typeFilter.value,
                     category: categoryFilter.value,
                     search: searchInput.value,
                     pageSize: pageSizeSelect.value
-                }));
+                };
+                localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
             } catch(e) {}
         }
 
@@ -1567,19 +1792,29 @@
             return false;
         }
 
-        // ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // ================================================================
+        // 8. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // ================================================================
         function saveChartVisibility(visible) {
-            try { localStorage.setItem(CHART_VISIBLE_KEY, JSON.stringify({ visible: visible })); } catch(e) {}
+            try {
+                localStorage.setItem(CHART_VISIBLE_KEY, JSON.stringify({ visible: visible }));
+            } catch(e) {}
         }
+
         function restoreChartVisibility() {
             try {
                 const stored = localStorage.getItem(CHART_VISIBLE_KEY);
-                if (stored) return JSON.parse(stored).visible;
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    return data.visible;
+                }
             } catch(e) {}
             return true;
         }
 
-        // ПЕРЕМИКАЧ ВИГЛЯДУ
+        // ================================================================
+        // 9. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // ================================================================
         const viewToggle = document.getElementById('viewToggle');
         const tableView = document.getElementById('tableView');
         const cardsView = document.getElementById('cardsView');
@@ -1601,27 +1836,44 @@
         }
 
         const savedViewMode = localStorage.getItem(VIEW_MODE_KEY);
-        if (savedViewMode === 'cards') setViewMode('cards'); else setViewMode('table');
+        if (savedViewMode === 'cards') {
+            setViewMode('cards');
+        } else {
+            setViewMode('table');
+        }
 
         viewToggle.addEventListener('click', function(e) {
             const btn = e.target.closest('button');
             if (!btn) return;
-            setViewMode(btn.dataset.view);
+            const view = btn.dataset.view;
+            setViewMode(view);
         });
 
-        // ДІАГРАМИ
+        // ================================================================
+        // 10. ДІАГРАМИ
+        // ================================================================
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
             const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
             const chartCanvas = document.getElementById(canvasId);
             const legendContainer = document.getElementById(legendId);
-            if (!chartCanvas) return;
-            if (typeof Chart === 'undefined') {
-                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+            if (!chartCanvas) {
+                console.warn('Canvas #' + canvasId + ' не знайдено');
                 return;
             }
+
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js не завантажено');
+                const container = chartCanvas.parentElement;
+                if (container) {
+                    container.innerHTML = '<p class="text-muted">Бібліотека Chart.js не завантажилась. Спробуйте перезавантажити сторінку.</p>';
+                }
+                return;
+            }
+
             const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
             const categoryMap = new Map();
+
             rows.forEach(row => {
                 const catCell = row.querySelector('.col-category .category-text');
                 if (!catCell) return;
@@ -1630,21 +1882,45 @@
                 if (!amountCell) return;
                 const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
                 const amount = parseFloat(amountText) || 0;
-                if (amount > 0) categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
+                if (amount > 0) {
+                    categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
+                }
             });
-            const entries = Array.from(categoryMap.entries()).sort((a,b) => b[1] - a[1]);
+
+            const entries = Array.from(categoryMap.entries());
+            entries.sort((a, b) => b[1] - a[1]);
+
             const labels = entries.map(e => e[0]);
             const data = entries.map(e => e[1]);
+
             const chartCol = document.getElementById(type + 'ChartCol');
-            if (data.length === 0) { if (chartCol) chartCol.style.display = 'none'; return; }
-            else { if (chartCol) chartCol.style.display = ''; }
-            const colors = labels.map((name, idx) => getCategoryColor(name, idx));
+            if (data.length === 0) {
+                if (chartCol) chartCol.style.display = 'none';
+                return;
+            } else {
+                if (chartCol) chartCol.style.display = '';
+            }
+
+            const colors = labels.map((name, index) => getCategoryColor(name, index));
+
             const chartKey = type + 'ChartInstance';
-            if (window[chartKey]) { try { window[chartKey].destroy(); } catch(e) {} window[chartKey] = null; }
+            if (window[chartKey]) {
+                try { window[chartKey].destroy(); } catch(e) {}
+                window[chartKey] = null;
+            }
+
             try {
                 window[chartKey] = new Chart(chartCanvas, {
                     type: 'doughnut',
-                    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
                     options: {
                         responsive: true,
                         maintainAspectRatio: true,
@@ -1656,34 +1932,54 @@
                                 categoryFilter.dispatchEvent(new Event('change'));
                             }
                         },
-                        plugins: { legend: { display: false } },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
                         cutout: '55%'
                     }
                 });
+
                 if (legendContainer) {
-                    const total = data.reduce((a,b) => a+b, 0);
+                    const total = data.reduce((a, b) => a + b, 0);
                     let html = '<table class="chart-legend-table"><tbody>';
                     entries.forEach(([name, amount], idx) => {
                         const color = getCategoryColor(name, idx);
                         const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                        html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ₴</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
+                        html += '<tr>' +
+                            '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
+                            '<td class="category-col">' + name + '</td>' +
+                            '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                            '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
+                            '</tr>';
                     });
                     html += '</tbody></table>';
                     legendContainer.innerHTML = html;
                 }
+
                 const totalLabel = document.getElementById('chartTotalLabel');
                 if (totalLabel) {
                     const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
                     const incomeTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="income"]');
-                    totalLabel.textContent = 'Всього: ' + (expenseTotal.length + incomeTotal.length);
+                    const totalCount = expenseTotal.length + incomeTotal.length;
+                    totalLabel.textContent = 'Всього: ' + totalCount;
                 }
-            } catch(e) {
-                console.error('Помилка діаграми ' + type + ':', e);
-                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Помилка створення діаграми.</p>';
+
+                console.log('Діаграма ' + type + ' успішно створена');
+            } catch (e) {
+                console.error('Помилка при створенні діаграми ' + type + ':', e);
+                const container = chartCanvas.parentElement;
+                if (container) {
+                    container.innerHTML = '<p class="text-muted">Помилка створення діаграми. Перевірте консоль.</p>';
+                }
             }
         }
 
-        function renderAllCharts() { renderChart('expense'); renderChart('income'); }
+        function renderAllCharts() {
+            renderChart('expense');
+            renderChart('income');
+        }
 
         function assignCategoryColors() {
             document.querySelectorAll('.category-text').forEach(el => {
@@ -1694,11 +1990,14 @@
             });
         }
 
-        // ТОГЛ ДІАГРАМ
+        // ================================================================
+        // 11. ТОГЛ ДІАГРАМ
+        // ================================================================
         function toggleCharts() {
             const chartBody = document.getElementById('chartBody');
             const icon = document.getElementById('chartToggleIcon');
             if (!chartBody) return;
+
             const isHidden = chartBody.style.display === 'none';
             if (isHidden) {
                 chartBody.style.display = '';
@@ -1712,7 +2011,11 @@
             }
         }
 
-        // ЛОГІКА ТАБЛИЦІ
+        document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
+
+        // ================================================================
+        // 12. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
         const categoryFilter = document.getElementById('categoryFilter');
@@ -1723,7 +2026,13 @@
         const tableBody = document.getElementById('transactionsBody');
         const cardsContainer = document.getElementById('cardsContainer');
 
-        let allRows = [], currentPage = 1, pageSize = 20, filterType = 'all', filterCategory = '', searchText = '', visibleRows = [];
+        let allRows = [];
+        let currentPage = 1;
+        let pageSize = 20;
+        let filterType = 'all';
+        let filterCategory = '';
+        let searchText = '';
+        let visibleRows = [];
 
         function populateCategoryFilter() {
             const rows = tableBody.querySelectorAll('.transaction-row');
@@ -1737,19 +2046,22 @@
             });
             const currentVal = categoryFilter.value;
             categoryFilter.innerHTML = '<option value="">Всі категорії</option>';
-            Array.from(categories).sort().forEach(cat => {
+            const sorted = Array.from(categories).sort();
+            sorted.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
                 opt.textContent = cat;
                 categoryFilter.appendChild(opt);
             });
-            if (currentVal && categories.has(currentVal)) categoryFilter.value = currentVal;
+            if (currentVal && categories.has(currentVal)) {
+                categoryFilter.value = currentVal;
+            }
         }
 
         function updateCards(rowsToShow) {
             const wrappers = cardsContainer.querySelectorAll('.transaction-card-wrapper');
-            // Якщо rowsToShow не передано, показуємо всі (для початкового стану)
             const rows = rowsToShow || visibleRows;
+            totalRowsSpan.textContent = visibleRows.length;
 
             wrappers.forEach(wrapper => {
                 const id = wrapper.dataset.id;
@@ -1758,7 +2070,6 @@
                 wrapper.style.display = isVisible ? '' : 'none';
             });
 
-            // Повідомлення про порожнечу
             if (visibleRows.length === 0) {
                 let emptyMsg = cardsContainer.querySelector('.empty-cards-message');
                 if (!emptyMsg) {
@@ -1773,13 +2084,22 @@
             }
         }
 
+        function applyRowAnimation(rows) {
+            if (!rows || rows.length === 0) return;
+            rows.forEach((row, index) => {
+                row.classList.remove('row-animate');
+                void row.offsetWidth;
+                row.style.animationDelay = (index * 0.05) + 's';
+                row.classList.add('row-animate');
+            });
+        }
+
         function updateUI() {
             const total = visibleRows.length;
             totalRowsSpan.textContent = total;
             allRows.forEach(row => row.style.display = 'none');
 
             if (pageSize === 0) {
-                // Всі записи
                 visibleRows.forEach((row, idx) => {
                     row.style.display = '';
                     const numCell = row.querySelector('td:first-child');
@@ -1789,12 +2109,12 @@
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> Всі завантажено';
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 applyRowAnimation(visibleRows);
-                updateCards(visibleRows); // всі
+                updateCards(visibleRows);
                 return;
             }
 
             const shown = Math.min(currentPage * pageSize, total);
-            const rowsToShow = visibleRows.slice(0, shown); // ← беремо тільки для поточної сторінки
+            const rowsToShow = visibleRows.slice(0, shown);
 
             for (let i = 0; i < shown; i++) {
                 if (visibleRows[i]) {
@@ -1806,21 +2126,29 @@
 
             const allShown = (shown >= total);
             loadMoreBtn.disabled = allShown;
-            loadMoreBtn.innerHTML = allShown
-                ? '<i class="fas fa-check me-1"></i> Всі завантажено'
-                : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
+            loadMoreBtn.innerHTML = allShown ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             visibleInfo.textContent = 'Показано: ' + shown + ' з ' + total;
             applyRowAnimation(rowsToShow);
-            updateCards(rowsToShow); // ← передаємо тільки поточну сторінку
+            updateCards(rowsToShow);
         }
 
-        function applyRowAnimation(rows) {
-            if (!rows || rows.length === 0) return;
-            rows.forEach((row, idx) => {
-                row.classList.remove('row-animate');
-                void row.offsetWidth;
-                row.style.animationDelay = (idx * 0.05) + 's';
-                row.classList.add('row-animate');
+        function getFilteredRows() {
+            return allRows.filter(row => {
+                const type = row.dataset.type;
+                const rowText = row.textContent.toLowerCase();
+                const catCell = row.querySelector('.col-category .category-text');
+                const rowCategory = catCell ? catCell.textContent.trim() : '';
+
+                let typeMatch = (filterType === 'all' || type === filterType);
+                let searchMatch = true;
+                if (searchText !== '') {
+                    searchMatch = rowText.includes(searchText);
+                }
+                let categoryMatch = true;
+                if (filterCategory !== '') {
+                    categoryMatch = (rowCategory === filterCategory);
+                }
+                return typeMatch && searchMatch && categoryMatch;
             });
         }
 
@@ -1833,37 +2161,28 @@
             setTimeout(assignCategoryColors, 50);
         }
 
-        function getFilteredRows() {
-            return allRows.filter(row => {
-                const type = row.dataset.type;
-                const rowText = row.textContent.toLowerCase();
-                const catCell = row.querySelector('.col-category .category-text');
-                const rowCategory = catCell ? catCell.textContent.trim() : '';
-                let typeMatch = (filterType === 'all' || type === filterType);
-                let searchMatch = true;
-                if (searchText !== '') searchMatch = rowText.includes(searchText);
-                let categoryMatch = true;
-                if (filterCategory !== '') categoryMatch = (rowCategory === filterCategory);
-                return typeMatch && searchMatch && categoryMatch;
-            });
-        }
-
         function loadMore() {
             if (pageSize === 0) return;
             const total = visibleRows.length;
             const shown = Math.min(currentPage * pageSize, total);
-            if (shown >= total) { loadMoreBtn.disabled = true; return; }
+            if (shown >= total) {
+                loadMoreBtn.disabled = true;
+                return;
+            }
             currentPage++;
             updateUI();
         }
 
         function init() {
             allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
+
             const filtersRestored = restoreFilters();
+
             pageSize = parseInt(pageSizeSelect.value) || 0;
             filterType = typeFilter.value;
             filterCategory = categoryFilter.value;
             searchText = searchInput.value.toLowerCase().trim();
+
             populateCategoryFilter();
             applyStoredSort();
             assignCategoryColors();
@@ -1876,39 +2195,77 @@
                 if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
             }
 
-            setTimeout(() => { restoreColumnWidths(); initColumnResize(); }, 50);
+            setTimeout(() => {
+                restoreColumnWidths();
+                initColumnResize();
+            }, 50);
 
-            if (!filtersRestored) applyFiltersAndLoad();
+            if (!filtersRestored) {
+                applyFiltersAndLoad();
+            }
 
             setTimeout(function() {
-                if (typeof Chart !== 'undefined') renderAllCharts();
-                else setTimeout(() => { if (typeof Chart !== 'undefined') renderAllCharts(); }, 2000);
+                if (typeof Chart !== 'undefined') {
+                    renderAllCharts();
+                } else {
+                    console.warn('Chart.js не завантажено, спробуйте перезавантажити сторінку');
+                    setTimeout(function() {
+                        if (typeof Chart !== 'undefined') {
+                            renderAllCharts();
+                        }
+                    }, 2000);
+                }
             }, 300);
         }
 
-        searchInput.addEventListener('input', function() { searchText = this.value.toLowerCase().trim(); applyFiltersAndLoad(); });
-        typeFilter.addEventListener('change', function() { filterType = this.value; applyFiltersAndLoad(); });
-        categoryFilter.addEventListener('change', function() { filterCategory = this.value; applyFiltersAndLoad(); });
-        pageSizeSelect.addEventListener('change', function() { pageSize = parseInt(this.value) || 0; applyFiltersAndLoad(); });
-        loadMoreBtn.addEventListener('click', loadMore);
-        document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
+        searchInput.addEventListener('input', function() {
+            searchText = this.value.toLowerCase().trim();
+            applyFiltersAndLoad();
+        });
 
-        // СОРТУВАННЯ
+        typeFilter.addEventListener('change', function() {
+            filterType = this.value;
+            applyFiltersAndLoad();
+        });
+
+        categoryFilter.addEventListener('change', function() {
+            filterCategory = this.value;
+            applyFiltersAndLoad();
+        });
+
+        pageSizeSelect.addEventListener('change', function() {
+            pageSize = parseInt(this.value) || 0;
+            applyFiltersAndLoad();
+        });
+
+        loadMoreBtn.addEventListener('click', loadMore);
+
+        // ================================================================
+        // 13. СОРТУВАННЯ З ПАМ'ЯТТЮ
+        // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ column, direction })); } catch(e) {}
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({ column, direction }));
+            } catch (e) { /* ignore */ }
         }
 
         function applyStoredSort() {
-            if (!currentDate) { setTimeout(() => sortRowsBy('time', 'desc'), 50); return; }
+            if (!currentDate) {
+                setTimeout(() => sortRowsBy('time', 'desc'), 50);
+                return;
+            }
             try {
                 const stored = localStorage.getItem(STORAGE_KEY);
                 if (stored) {
                     const { column, direction } = JSON.parse(stored);
                     const th = document.querySelector(`.sortable[data-sort="${column}"]`);
-                    if (th) { setTimeout(() => sortRowsBy(column, direction), 50); return; }
+                    if (th) {
+                        setTimeout(() => sortRowsBy(column, direction), 50);
+                        return;
+                    }
                 }
-            } catch(e) {}
+            } catch (e) { /* ignore */ }
             setTimeout(() => sortRowsBy('time', 'desc'), 50);
         }
 
@@ -1917,15 +2274,26 @@
             const rowsArray = Array.from(allRows);
             const th = document.querySelector(`.sortable[data-sort="${column}"]`);
             const dataType = th ? th.dataset.type : 'string';
-            const idxMap = { 'time': 2, 'name': 3, 'quantity': 4, 'amount': 5, 'buyer': 6, 'seller': 7, 'category': 9 };
-            const idx = idxMap[column];
+
+            const indexMap = {
+                'time': 2,
+                'name': 3,
+                'quantity': 4,
+                'amount': 5,
+                'buyer': 6,
+                'seller': 7,
+                'category': 9
+            };
+            const idx = indexMap[column];
             if (idx === undefined) return;
 
+            // Сортуємо рядки
             rowsArray.sort((a, b) => {
                 const aCell = a.querySelector(`td:nth-child(${idx+1})`);
                 const bCell = b.querySelector(`td:nth-child(${idx+1})`);
                 let aVal = aCell ? aCell.textContent.trim() : '';
                 let bVal = bCell ? bCell.textContent.trim() : '';
+
                 if (dataType === 'number') {
                     const cleanA = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
                     const cleanB = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
@@ -1939,9 +2307,29 @@
                 }
             });
 
+            // Оновлюємо таблицю
             rowsArray.forEach(row => tableBody.appendChild(row));
             allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
 
+            // ===== ОНОВЛЮЄМО КАРТКИ В ТОМУ Ж ПОРЯДКУ =====
+            const cardWrappers = Array.from(cardsContainer.querySelectorAll('.transaction-card-wrapper'));
+            const cardMap = new Map();
+            cardWrappers.forEach(w => {
+                // Ключ: тип + id (наприклад, "expense-123")
+                const key = w.dataset.type + '-' + w.dataset.id;
+                cardMap.set(key, w);
+            });
+
+            // Проходимо по відсортованих рядках і додаємо картки в тому ж порядку
+            rowsArray.forEach(row => {
+                const key = row.dataset.type + '-' + row.dataset.id;
+                const card = cardMap.get(key);
+                if (card) {
+                    cardsContainer.appendChild(card);
+                }
+            });
+
+            // Оновлюємо іконки сортування
             document.querySelectorAll('.sortable').forEach(th => {
                 th.classList.remove('active-asc', 'active-desc');
                 const icon = th.querySelector('.sort-icon');
@@ -1952,6 +2340,7 @@
                 const icon = th.querySelector('.sort-icon');
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
+
             saveSortState(column, direction);
             applyFiltersAndLoad();
         }
@@ -1967,16 +2356,22 @@
             });
         });
 
-        // РЕСАЙЗ КОЛОНОК
+        // ================================================================
+        // 14. РЕСАЙЗ КОЛОНОК
+        // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
             if (!table) return;
             const headers = table.querySelectorAll('thead th');
             let widths = {};
-            try { const stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) widths = JSON.parse(stored); } catch(e) {}
-            headers.forEach((th, idx) => {
+            try {
+                const stored = localStorage.getItem(COL_WIDTH_KEY);
+                if (stored) widths = JSON.parse(stored);
+            } catch(e) { /* ignore */ }
+
+            headers.forEach((th, index) => {
                 if (th.classList.contains('col-actions')) return;
-                const colKey = 'col-' + idx;
+                const colKey = 'col-' + index;
                 if (widths[colKey]) {
                     const w = Math.max(30, widths[colKey]);
                     th.style.width = w + 'px';
@@ -1991,18 +2386,23 @@
             if (!table) return;
             const headers = table.querySelectorAll('thead th');
             let colWidths = {};
-            try { const stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) colWidths = JSON.parse(stored); } catch(e) {}
+            try {
+                const stored = localStorage.getItem(COL_WIDTH_KEY);
+                if (stored) colWidths = JSON.parse(stored);
+            } catch(e) { /* ignore */ }
 
-            headers.forEach((th, idx) => {
+            headers.forEach((th, index) => {
                 if (th.classList.contains('col-actions')) return;
                 if (th.querySelector('.resize-handle')) return;
+
                 const handle = document.createElement('div');
                 handle.className = 'resize-handle';
-                handle.dataset.index = idx;
+                handle.dataset.index = index;
                 th.appendChild(handle);
                 th.style.position = 'relative';
 
                 let startX, startWidth;
+
                 function onMouseDown(e) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -2012,6 +2412,7 @@
                     document.addEventListener('mouseup', onMouseUp);
                     handle.classList.add('active');
                 }
+
                 function onMouseMove(e) {
                     const deltaX = e.clientX - startX;
                     let newWidth = startWidth + deltaX;
@@ -2019,19 +2420,26 @@
                     th.style.width = newWidth + 'px';
                     th.style.minWidth = newWidth + 'px';
                     th.style.maxWidth = newWidth + 'px';
-                    colWidths['col-' + idx] = newWidth;
+                    const colKey = 'col-' + index;
+                    colWidths[colKey] = newWidth;
                 }
+
                 function onMouseUp() {
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                     handle.classList.remove('active');
-                    try { localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths)); } catch(e) {}
+                    try {
+                        localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths));
+                    } catch(e) { /* ignore */ }
                 }
+
                 handle.addEventListener('mousedown', onMouseDown);
             });
         }
 
-        // ЗАПУСК
+        // ================================================================
+        // 15. ЗАПУСК
+        // ================================================================
         init();
     })();
 </script>

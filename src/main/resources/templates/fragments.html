@@ -47,7 +47,7 @@
             border-top: 1px solid #e9ecef;
         }
 
-        /* --- ТОСТИ --- */
+        /* ===== ТОСТИ (з кольорами) ===== */
         .toast-container {
             position: fixed;
             top: 70px;
@@ -69,8 +69,25 @@
             opacity: 1;
             transform: translateX(0);
         }
-        .toast.success { border-left-color: #198754; }
-        .toast.error { border-left-color: #dc3545; }
+        /* Кольори для успіху та помилки */
+        .toast.success {
+            border-left-color: #198754 !important; /* зелений */
+        }
+        .toast.success .toast-header {
+            color: #198754;
+        }
+        .toast.success .toast-header i {
+            color: #198754;
+        }
+        .toast.error {
+            border-left-color: #dc3545 !important; /* червоний */
+        }
+        .toast.error .toast-header {
+            color: #dc3545;
+        }
+        .toast.error .toast-header i {
+            color: #dc3545;
+        }
         .toast .toast-header {
             background: transparent;
             border-bottom: none;
@@ -90,6 +107,12 @@
         }
         [data-bs-theme="dark"] .toast .btn-close {
             filter: invert(1);
+        }
+        [data-bs-theme="dark"] .toast.success .toast-header {
+            color: #6ee7b7;
+        }
+        [data-bs-theme="dark"] .toast.error .toast-header {
+            color: #f87171;
         }
 
         /* --- ГАРАНТІЯ, ЩО МОДАЛЬНІ ВІКНА ПОВЕРХ ВСЬОГО --- */
@@ -241,7 +264,9 @@
                 const toastMessage = document.getElementById('toastMessage');
                 const toastIcon = document.getElementById('toastIcon');
 
+                // Видаляємо старі класи
                 toastElement.classList.remove('success', 'error');
+
                 if (type === 'success') {
                     toastElement.classList.add('success');
                     toastIcon.className = 'fas fa-check-circle me-2';

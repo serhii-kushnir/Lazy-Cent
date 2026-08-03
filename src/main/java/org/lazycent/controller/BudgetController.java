@@ -1,7 +1,9 @@
 package org.lazycent.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.TransactionRequest;
+import org.lazycent.model.dto.TransactionSummary;
 import org.lazycent.service.BudgetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -114,11 +116,13 @@ public class BudgetController {
 
     @GetMapping("/all-days")
     public String viewAllDays(Model model) {
-        log.info("GET /all-days - Viewing all days");
         List<DayBudget> allBudgets = budgetService.getAllBudgets();
+
+        // Для таблиці днів – використовуємо ті ж дані, що й для карток
         model.addAttribute("allBudgets", allBudgets);
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories());
         model.addAttribute("incomeCategories", budgetService.getIncomeCategories());
+
         return "all-days";
     }
 
@@ -219,7 +223,8 @@ public class BudgetController {
     public String quickAddExpense(
             @Valid @ModelAttribute TransactionRequest request,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest httpServletRequest) {
 
         log.info("POST /quick-expense - Quick add expense: {}", request);
 
@@ -230,12 +235,23 @@ public class BudgetController {
                     .orElse("Невірні дані");
             log.warn("Validation errors for quick expense: {}", errorMessage);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            // Повертаємось на попередню сторінку навіть при помилці
+            String referer = httpServletRequest.getHeader("Referer");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
             return "redirect:/";
         }
 
         budgetService.addTransaction(request, TransactionType.EXPENSE);
         redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
         log.info("Quick expense added successfully");
+
+        // Повертаємось на сторінку, звідки прийшов запит
+        String referer = httpServletRequest.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
         return "redirect:/budget";
     }
 
@@ -243,7 +259,8 @@ public class BudgetController {
     public String quickAddIncome(
             @Valid @ModelAttribute TransactionRequest request,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest httpServletRequest) {
 
         log.info("POST /quick-income - Quick add income: {}", request);
 
@@ -254,14 +271,24 @@ public class BudgetController {
                     .orElse("Невірні дані");
             log.warn("Validation errors for quick income: {}", errorMessage);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            String referer = httpServletRequest.getHeader("Referer");
+            if (referer != null && !referer.isEmpty()) {
+                return "redirect:" + referer;
+            }
             return "redirect:/";
         }
 
         budgetService.addTransaction(request, TransactionType.INCOME);
         redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
         log.info("Quick income added successfully");
+
+        String referer = httpServletRequest.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
         return "redirect:/budget";
     }
+
 
     // ==================== РЕДАГУВАННЯ / ВИДАЛЕННЯ ====================
 
