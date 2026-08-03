@@ -102,11 +102,17 @@
         }
 
         /* ===== ТАБЛИЦЯ ===== */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .table-transactions {
             table-layout: fixed;
             width: 100%;
             font-size: 0.8rem;
             border-collapse: collapse;
+            min-width: 800px; /* Щоб не стискалася на малих екранах */
         }
         .table-transactions th, .table-transactions td {
             border-bottom: none !important;
@@ -157,15 +163,34 @@
             background-color: rgba(90, 138, 197, 0.18);
         }
 
+        /* Ширина колонок */
         .table-transactions .col-num { width: 50px; min-width: 50px; max-width: 50px; text-align: center; white-space: nowrap; }
         .table-transactions .col-type { width: 90px; min-width: 90px; max-width: 90px; text-align: center; white-space: nowrap; }
         .table-transactions .col-center { width: auto; white-space: nowrap; text-align: center; }
         .table-transactions .col-name { width: auto; min-width: 140px; max-width: 220px; word-break: break-word; text-align: left; }
         .table-transactions .col-amount { width: auto; white-space: nowrap; text-align: center; }
-        .table-transactions .col-actions { width: 110px; min-width: 110px; max-width: 110px; text-align: center; white-space: nowrap; }
+        /* КОЛОНКА ДІЙ – достатня ширина для всіх кнопок */
+        .table-transactions .col-actions {
+            width: 120px;
+            min-width: 120px;
+            max-width: 120px;
+            text-align: center;
+            white-space: nowrap;
+        }
         .table-transactions .col-buyer-seller { width: 140px; min-width: 100px; max-width: 160px; white-space: normal; word-break: break-word; text-align: center; }
         .table-transactions .col-details { width: 150px; min-width: 100px; max-width: 180px; white-space: normal; word-break: break-word; text-align: center; }
         .table-transactions .col-category { width: 130px; min-width: 130px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+
+        /* Кнопки дій у таблиці – компактні та завжди видимі */
+        .table-transactions .col-actions .btn {
+            padding: 0.15rem 0.3rem;
+            font-size: 0.65rem;
+            line-height: 1.2;
+            margin: 0 1px;
+        }
+        .table-transactions .col-actions .btn i {
+            font-size: 0.7rem;
+        }
 
         .sortable { cursor: pointer; user-select: none; position: relative; }
         .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; transition: opacity 0.2s; }
@@ -173,14 +198,12 @@
         .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
         .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
 
-        /* НОВИЙ СТИЛЬ ДЛЯ ТИПУ - ТІЛЬКИ ТЕКСТ */
         .type-text { font-weight: 600; }
         .type-text.expense { color: #dc3545; }
         .type-text.income { color: #198754; }
         [data-bs-theme="dark"] .type-text.expense { color: #f87171; }
         [data-bs-theme="dark"] .type-text.income { color: #6ee7b7; }
 
-        /* НОВИЙ СТИЛЬ ДЛЯ КАТЕГОРІЇ - ТІЛЬКИ ТЕКСТ */
         .category-text { font-weight: 500; }
 
         [data-bs-theme="dark"] .card-header.bg-primary {
@@ -243,11 +266,10 @@
             color: #6ea8fe;
         }
 
-        /* ===== КАРТКИ ТРАНЗАКЦІЙ (одна колонка, як таблиця) ===== */
+        /* ===== КАРТКИ ТРАНЗАКЦІЙ ===== */
         .transaction-cards-container { display: none; }
         .transaction-cards-container.show { display: block; }
 
-        /* ВИПРАВЛЕНО: видалено padding-left/right, залишено тільки margin-bottom */
         .transaction-card-wrapper {
             margin-bottom: 0.75rem;
             width: 100%;
@@ -294,7 +316,6 @@
             border-radius: 20px;
             font-weight: 600;
         }
-        /* БЕЗ ФОНУ – ТІЛЬКИ ТЕКСТ З КОЛЬОРОМ */
         .type-badge.expense {
             color: #dc3545;
             background: transparent;
@@ -425,8 +446,9 @@
             }
         }
 
+        /* ===== АДАПТИВНІСТЬ ТАБЛИЦІ (мобільна) ===== */
         @media (max-width: 768px) {
-            .table-transactions { font-size: 0.7rem; }
+            .table-transactions { font-size: 0.7rem; min-width: 700px; }
             .table-transactions th, .table-transactions td { padding: 0.3rem 0.2rem; }
             .table-transactions .col-num { width: 30px; min-width: 30px; max-width: 30px; }
             .table-transactions .col-type { width: 70px; min-width: 70px; max-width: 70px; }
@@ -434,8 +456,19 @@
             .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
             .table-transactions .col-details { min-width: 60px; max-width: 80px; }
             .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
-            .table-transactions .col-actions { width: 90px; min-width: 90px; max-width: 90px; }
-            .table-transactions .col-actions .btn { font-size: 0.6rem; padding: 0.15rem 0.3rem; }
+            /* Колонка дій на мобільних – ширша, щоб помістити всі кнопки */
+            .table-transactions .col-actions {
+                width: 100px;
+                min-width: 100px;
+                max-width: 100px;
+            }
+            .table-transactions .col-actions .btn {
+                padding: 0.1rem 0.2rem;
+                font-size: 0.55rem;
+            }
+            .table-transactions .col-actions .btn i {
+                font-size: 0.6rem;
+            }
 
             .table-toolbar { gap: 0.4rem; }
             .table-toolbar .search-input { min-width: 100px; }
@@ -446,6 +479,23 @@
             .table-toolbar .info-text { font-size: 0.7rem; }
 
             .view-toggle .btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+        }
+
+        /* ===== МОБІЛЬНІ ДУЖЕ МАЛІ ЕКРАНИ (до 400px) ===== */
+        @media (max-width: 400px) {
+            .table-transactions { font-size: 0.6rem; min-width: 600px; }
+            .table-transactions .col-actions {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+            }
+            .table-transactions .col-actions .btn {
+                padding: 0.05rem 0.15rem;
+                font-size: 0.5rem;
+            }
+            .table-transactions .col-actions .btn i {
+                font-size: 0.5rem;
+            }
         }
 
         .table-view-container { display: block; }
@@ -637,38 +687,42 @@
         </div>
     </div>
 
-    <!-- КАРТКА БАЛАНСУ -->
-    <div class="row mb-4 stats-animated">
+    <!-- ===== КАРТКА БАЛАНСУ (адаптивна) ===== -->
+    <div class="row mb-3 stats-animated">
         <div class="col-12">
             <div class="card balance-card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-3 d-flex align-items-center justify-content-center gap-2">
-                            <div class="icon-circle"><i class="fas fa-flag-checkered text-secondary fa-2x"></i></div>
-                            <div>
-                                <h6 class="text-muted mb-0">Поч. баланс</h6>
-                                <h4 class="mb-0" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></h4>
+                <div class="card-body p-2 p-sm-3">
+                    <div class="row g-1 g-sm-2">
+                        <!-- Початковий баланс -->
+                        <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
+                            <div class="icon-circle"><i class="fas fa-flag-checkered text-secondary fa-1x fa-sm-2x"></i></div>
+                            <div class="text-truncate" style="min-width:0;">
+                                <h6 class="text-muted mb-0 small">Поч. баланс</h6>
+                                <h5 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
-                        <div class="col-3 d-flex align-items-center justify-content-center gap-2">
-                            <div class="icon-circle"><i class="fas fa-arrow-up text-success fa-2x"></i></div>
-                            <div>
-                                <h6 class="text-muted mb-0">Доходи</h6>
-                                <h4 class="text-success mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></h4>
+                        <!-- Доходи -->
+                        <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
+                            <div class="icon-circle"><i class="fas fa-arrow-up text-success fa-1x fa-sm-2x"></i></div>
+                            <div class="text-truncate" style="min-width:0;">
+                                <h6 class="text-muted mb-0 small">Доходи</h6>
+                                <h5 class="mb-0 fw-bold text-success" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
-                        <div class="col-3 d-flex align-items-center justify-content-center gap-2">
-                            <div class="icon-circle"><i class="fas fa-arrow-down text-danger fa-2x"></i></div>
-                            <div>
-                                <h6 class="text-muted mb-0">Витрати</h6>
-                                <h4 class="text-danger mb-0" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></h4>
+                        <!-- Витрати -->
+                        <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
+                            <div class="icon-circle"><i class="fas fa-arrow-down text-danger fa-1x fa-sm-2x"></i></div>
+                            <div class="text-truncate" style="min-width:0;">
+                                <h6 class="text-muted mb-0 small">Витрати</h6>
+                                <h5 class="mb-0 fw-bold text-danger" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
-                        <div class="col-3 d-flex align-items-center justify-content-center gap-2">
-                            <div class="icon-circle"><i class="fas fa-balance-scale fa-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
-                            <div>
-                                <h6 class="text-muted mb-0">Баланс</h6>
-                                <h4 class="mb-0" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></h4>
+                        <!-- Баланс -->
+                        <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
+                            <div class="icon-circle"><i class="fas fa-balance-scale fa-1x fa-sm-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
+                            <div class="text-truncate" style="min-width:0;">
+                                <h6 class="text-muted mb-0 small">Баланс</h6>
+                                <h5 class="mb-0 fw-bold" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
                     </div>
@@ -739,31 +793,41 @@
         </div>
         <div class="card-body">
 
-            <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
+            <!-- ===== ПАНЕЛЬ ІНСТРУМЕНТІВ ===== -->
             <div class="table-toolbar no-print">
-                <div class="input-group search-input">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Пошук...">
+                <!-- Пошук – на десктопі гнучкий, на мобільних – вся ширина -->
+                <div class="search-input">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Пошук...">
+                    </div>
                 </div>
+
+                <!-- Фільтри та кнопки – без змін -->
                 <select id="typeFilter" class="form-select form-select-sm filter-select">
                     <option value="all">Всі</option>
                     <option value="expense">Витрати</option>
                     <option value="income">Доходи</option>
                 </select>
+
                 <select id="categoryFilter" class="form-select form-select-sm category-filter">
                     <option value="">Всі категорії</option>
                 </select>
+
                 <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
                     <option value="0">Всі</option>
                     <option value="20" selected>20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
                 </select>
+
                 <button id="loadMoreBtn" class="btn btn-primary btn-sm load-more-btn">
-                    <i class="fas fa-plus-circle me-1"></i> Завантажити ще
+                    <i class="fas fa-plus-circle me-1"></i> Завантажити
                 </button>
+
                 <span class="info-text" id="visibleInfo">Показано: 0 з 0</span>
             </div>
+
 
             <!-- ТАБЛИЦЯ -->
             <div id="tableView" class="table-view-container">
@@ -1682,15 +1746,19 @@
             if (currentVal && categories.has(currentVal)) categoryFilter.value = currentVal;
         }
 
-        function updateCards() {
+        function updateCards(rowsToShow) {
             const wrappers = cardsContainer.querySelectorAll('.transaction-card-wrapper');
-            totalRowsSpan.textContent = visibleRows.length;
+            // Якщо rowsToShow не передано, показуємо всі (для початкового стану)
+            const rows = rowsToShow || visibleRows;
+
             wrappers.forEach(wrapper => {
                 const id = wrapper.dataset.id;
                 const type = wrapper.dataset.type;
-                const isVisible = visibleRows.some(row => row.dataset.id === id && row.dataset.type === type);
+                const isVisible = rows.some(row => row.dataset.id === id && row.dataset.type === type);
                 wrapper.style.display = isVisible ? '' : 'none';
             });
+
+            // Повідомлення про порожнечу
             if (visibleRows.length === 0) {
                 let emptyMsg = cardsContainer.querySelector('.empty-cards-message');
                 if (!emptyMsg) {
@@ -1709,7 +1777,9 @@
             const total = visibleRows.length;
             totalRowsSpan.textContent = total;
             allRows.forEach(row => row.style.display = 'none');
+
             if (pageSize === 0) {
+                // Всі записи
                 visibleRows.forEach((row, idx) => {
                     row.style.display = '';
                     const numCell = row.querySelector('td:first-child');
@@ -1719,10 +1789,13 @@
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> Всі завантажено';
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 applyRowAnimation(visibleRows);
-                updateCards();
+                updateCards(visibleRows); // всі
                 return;
             }
+
             const shown = Math.min(currentPage * pageSize, total);
+            const rowsToShow = visibleRows.slice(0, shown); // ← беремо тільки для поточної сторінки
+
             for (let i = 0; i < shown; i++) {
                 if (visibleRows[i]) {
                     visibleRows[i].style.display = '';
@@ -1730,12 +1803,15 @@
                     if (numCell) numCell.textContent = i + 1;
                 }
             }
+
             const allShown = (shown >= total);
             loadMoreBtn.disabled = allShown;
-            loadMoreBtn.innerHTML = allShown ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
+            loadMoreBtn.innerHTML = allShown
+                ? '<i class="fas fa-check me-1"></i> Всі завантажено'
+                : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             visibleInfo.textContent = 'Показано: ' + shown + ' з ' + total;
-            applyRowAnimation(visibleRows.slice(0, shown));
-            updateCards();
+            applyRowAnimation(rowsToShow);
+            updateCards(rowsToShow); // ← передаємо тільки поточну сторінку
         }
 
         function applyRowAnimation(rows) {
