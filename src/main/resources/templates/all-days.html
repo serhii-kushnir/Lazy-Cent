@@ -587,7 +587,7 @@
         'use strict';
 
         // ================================================================
-        // 1. TOAST (залишаємо без змін)
+        // 1. TOAST
         // ================================================================
         function showToast(message, type) {
             const toastElement = document.getElementById('liveToast');
@@ -613,7 +613,7 @@
         }
 
         // ================================================================
-        // 2. ДАНІ ТА ЗМІННІ (отримуємо після завантаження DOM)
+        // 2. ДАНІ ТА ЗМІННІ
         // ================================================================
         let allDayCards = [];
         let allDayRows = [];
@@ -628,7 +628,6 @@
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         const visibleInfo = document.getElementById('visibleInfo');
 
-        // Елементи перемикача
         const viewToggle = document.getElementById('viewToggle');
         const cardsView = document.getElementById('cardsView');
         const tableView = document.getElementById('tableView');
@@ -637,7 +636,6 @@
         // 3. ІНІЦІАЛІЗАЦІЯ ПІСЛЯ ЗАВАНТАЖЕННЯ DOM
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Отримуємо всі елементи
             allDayCards = document.querySelectorAll('.day-card');
             allDayRows = document.querySelectorAll('.day-row');
 
@@ -646,10 +644,10 @@
                 return;
             }
 
-            // Встановлюємо початковий режим (таблиця)
+            // Початковий режим – таблиця
             setViewMode('table');
 
-            // Навішуємо обробники подій
+            // Обробники подій
             searchInput.addEventListener('input', applyFiltersAndPaginate);
             dateFrom.addEventListener('change', applyFiltersAndPaginate);
             dateTo.addEventListener('change', applyFiltersAndPaginate);
@@ -685,17 +683,16 @@
                 setViewMode(btn.dataset.view);
             });
 
-            // Початкове застосування фільтрів
-            applyFiltersAndPaginate();
-
-            // Обробники для видалення дня (вони вже є в окремому блоці, але ми можемо додати делегування)
+            // Видалення дня (делегування)
             document.addEventListener('click', function(e) {
                 const deleteBtn = e.target.closest('.action-delete-day');
                 if (deleteBtn) {
-                    // Викликаємо обробник видалення
                     handleDeleteDay(deleteBtn);
                 }
             });
+
+            // Перше застосування фільтрів
+            applyFiltersAndPaginate();
         });
 
         // ================================================================
@@ -713,11 +710,12 @@
                 viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
             }
+            // Після зміни режиму перезастосовуємо фільтри
             applyFiltersAndPaginate();
         }
 
         // ================================================================
-        // 5. ЛОГІКА ФІЛЬТРАЦІЇ ТА ПАГІНАЦІЇ
+        // 5. ФІЛЬТРАЦІЯ ТА ПАГІНАЦІЯ (ВИПРАВЛЕНО)
         // ================================================================
         let currentPage = 1;
         let pageSize = 6; // буде оновлено з select
@@ -772,36 +770,45 @@
 
             const isCardsMode = cardsView.classList.contains('show');
             const items = isCardsMode ? allDayCards : allDayRows;
-            // Ховаємо всі
+
+            // Ховаємо всі елементи
             items.forEach(item => item.style.display = 'none');
 
+            // Якщо вибрано "Всі" (pageSize === 0) – показуємо всі відфільтровані
             if (pageSize === 0) {
                 filteredItems.forEach(item => item.style.display = '');
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> Всі завантажено';
                 noResults.style.display = total === 0 ? 'block' : 'none';
+                // Оновлюємо номери рядків у таблиці
+                if (!isCardsMode) {
+                    const visibleRows = document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]');
+                    visibleRows.forEach((row, idx) => {
+                        const numCell = row.querySelector('.col-number');
+                        if (numCell) numCell.textContent = idx + 1;
+                    });
+                }
                 return;
             }
 
-            const totalPages = Math.ceil(total / pageSize) || 1;
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
-
-            const start = (currentPage - 1) * pageSize;
-            const end = Math.min(start + pageSize, total);
-
-            for (let i = start; i < end; i++) {
+            // Показуємо елементи від початку до кінця поточної сторінки (накопичувально)
+            const end = Math.min(currentPage * pageSize, total);
+            for (let i = 0; i < end; i++) {
                 filteredItems[i].style.display = '';
+            }
+            // Приховуємо решту
+            for (let i = end; i < total; i++) {
+                filteredItems[i].style.display = 'none';
             }
 
             const allShown = (end >= total);
-            visibleInfo.textContent = 'Показано: ' + (total > 0 ? start + 1 : 0) + ' - ' + end + ' з ' + total;
+            visibleInfo.textContent = 'Показано: ' + end + ' з ' + total;
             loadMoreBtn.disabled = allShown || total === 0;
             loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             noResults.style.display = total === 0 ? 'block' : 'none';
 
-            // Оновлюємо номери рядків у таблиці
+            // Оновлюємо номери рядків у таблиці (тільки видимі)
             if (!isCardsMode) {
                 const visibleRows = document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]');
                 visibleRows.forEach((row, idx) => {
@@ -813,7 +820,7 @@
 
         function applyFiltersAndPaginate() {
             filteredItems = getFilteredItems();
-            currentPage = 1;
+            currentPage = 1; // скидаємо на першу сторінку при зміні фільтра
             updateUI();
         }
 
@@ -830,7 +837,7 @@
         }
 
         // ================================================================
-        // 6. СОРТУВАННЯ (для таблиці)
+        // 6. СОРТУВАННЯ (тільки для таблиці)
         // ================================================================
         function sortRowsBy(column, direction) {
             if (!allDayRows.length) return;
@@ -857,10 +864,6 @@
             const tbody = document.getElementById('daysTableBody');
             rowsArray.forEach(row => tbody.appendChild(row));
 
-            // Оновлюємо номери рядків після сортування (пізніше їх перерахує applyFiltersAndPaginate)
-            // Тому просто викликаємо applyFiltersAndPaginate
-            applyFiltersAndPaginate();
-
             // Оновлюємо іконки сортування
             document.querySelectorAll('.sortable').forEach(th => {
                 th.classList.remove('active-asc', 'active-desc');
@@ -872,6 +875,9 @@
                 const icon = th.querySelector('.sort-icon');
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
+
+            // Перезастосовуємо фільтри, щоб оновити видимість і нумерацію
+            applyFiltersAndPaginate();
         }
 
         // ================================================================
@@ -909,10 +915,6 @@
             deleteForm.action = '/day/delete/' + id;
             new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
         }
-
-        // ================================================================
-        // 8. ЗАВЕРШЕННЯ
-        // ================================================================
 
     })();
 </script>
