@@ -381,7 +381,6 @@
 
             <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
             <div class="table-toolbar no-print">
-                <!-- ПОШУК (розширений) -->
                 <div class="input-group search-input">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Пошук по всьому...">
@@ -585,8 +584,10 @@
 
 <script>
     (function() {
+        'use strict';
+
         // ================================================================
-        // 1. TOAST
+        // 1. TOAST (залишаємо без змін)
         // ================================================================
         function showToast(message, type) {
             const toastElement = document.getElementById('liveToast');
@@ -612,30 +613,94 @@
         }
 
         // ================================================================
-        // 2. ДАНІ ТА ЗМІННІ
+        // 2. ДАНІ ТА ЗМІННІ (отримуємо після завантаження DOM)
         // ================================================================
-        const allDayCards = document.querySelectorAll('.day-card');
-        const allDayRows = document.querySelectorAll('.day-row');
+        let allDayCards = [];
+        let allDayRows = [];
         const totalRowsSpan = document.getElementById('totalRowsCount');
-
         const searchInput = document.getElementById('searchInput');
         const dateFrom = document.getElementById('dateFrom');
         const dateTo = document.getElementById('dateTo');
         const dayFilter = document.getElementById('dayFilter');
         const clearDateBtn = document.getElementById('clearDateFilter');
         const noResults = document.getElementById('noResults');
-
         const pageSizeSelect = document.getElementById('pageSizeSelect');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         const visibleInfo = document.getElementById('visibleInfo');
 
-        // ================================================================
-        // 3. ПЕРЕМИКАЧ ВИГЛЯДУ
-        // ================================================================
+        // Елементи перемикача
         const viewToggle = document.getElementById('viewToggle');
         const cardsView = document.getElementById('cardsView');
         const tableView = document.getElementById('tableView');
 
+        // ================================================================
+        // 3. ІНІЦІАЛІЗАЦІЯ ПІСЛЯ ЗАВАНТАЖЕННЯ DOM
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Отримуємо всі елементи
+            allDayCards = document.querySelectorAll('.day-card');
+            allDayRows = document.querySelectorAll('.day-row');
+
+            if (!allDayCards.length && !allDayRows.length) {
+                console.warn('Немає даних для відображення');
+                return;
+            }
+
+            // Встановлюємо початковий режим (таблиця)
+            setViewMode('table');
+
+            // Навішуємо обробники подій
+            searchInput.addEventListener('input', applyFiltersAndPaginate);
+            dateFrom.addEventListener('change', applyFiltersAndPaginate);
+            dateTo.addEventListener('change', applyFiltersAndPaginate);
+            dayFilter.addEventListener('change', applyFiltersAndPaginate);
+            clearDateBtn.addEventListener('click', function() {
+                dateFrom.value = '';
+                dateTo.value = '';
+                applyFiltersAndPaginate();
+            });
+            pageSizeSelect.addEventListener('change', function() {
+                pageSize = parseInt(this.value) || 0;
+                currentPage = 1;
+                updateUI();
+            });
+            loadMoreBtn.addEventListener('click', loadMore);
+
+            // Сортування
+            document.querySelectorAll('.sortable').forEach(th => {
+                th.addEventListener('click', function() {
+                    const column = this.dataset.sort;
+                    const currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
+                    let direction = 'asc';
+                    if (currentDir === 'asc') direction = 'desc';
+                    else if (currentDir === 'desc') direction = 'asc';
+                    sortRowsBy(column, direction);
+                });
+            });
+
+            // Перемикач вигляду
+            viewToggle.addEventListener('click', function(e) {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                setViewMode(btn.dataset.view);
+            });
+
+            // Початкове застосування фільтрів
+            applyFiltersAndPaginate();
+
+            // Обробники для видалення дня (вони вже є в окремому блоці, але ми можемо додати делегування)
+            document.addEventListener('click', function(e) {
+                const deleteBtn = e.target.closest('.action-delete-day');
+                if (deleteBtn) {
+                    // Викликаємо обробник видалення
+                    handleDeleteDay(deleteBtn);
+                }
+            });
+        });
+
+        // ================================================================
+        // 4. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // ================================================================
         function setViewMode(mode) {
             if (mode === 'cards') {
                 cardsView.classList.add('show');
@@ -648,24 +713,14 @@
                 viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
             }
-            // Перезастосовуємо фільтри після зміни режиму
             applyFiltersAndPaginate();
         }
 
-        viewToggle.addEventListener('click', function(e) {
-            const btn = e.target.closest('button');
-            if (!btn) return;
-            setViewMode(btn.dataset.view);
-        });
-
-        // За замовчуванням – таблиця
-        setViewMode('table');
-
         // ================================================================
-        // 4. ЛОГІКА ФІЛЬТРАЦІЇ ТА ПАГІНАЦІЇ
+        // 5. ЛОГІКА ФІЛЬТРАЦІЇ ТА ПАГІНАЦІЇ
         // ================================================================
         let currentPage = 1;
-        let pageSize = parseInt(pageSizeSelect.value) || 6;
+        let pageSize = 6; // буде оновлено з select
         let filteredItems = [];
 
         function getFilteredItems() {
@@ -688,7 +743,7 @@
                 const incomeCount = parseInt(item.dataset.incomeCount) || 0;
                 const count = expenseCount + incomeCount;
 
-                // ПОШУК ПО ВСЬОМУ ТЕКСТУ
+                // Пошук по всьому тексту
                 let matchSearch = true;
                 if (searchTerm) {
                     const fullText = (dayName + ' ' + dateStr + ' ' + expenses + ' ' + incomes + ' ' + balance + ' ' + count).toLowerCase();
@@ -717,6 +772,7 @@
 
             const isCardsMode = cardsView.classList.contains('show');
             const items = isCardsMode ? allDayCards : allDayRows;
+            // Ховаємо всі
             items.forEach(item => item.style.display = 'none');
 
             if (pageSize === 0) {
@@ -745,7 +801,7 @@
             loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             noResults.style.display = total === 0 ? 'block' : 'none';
 
-            // Оновлюємо номери рядків для таблиці
+            // Оновлюємо номери рядків у таблиці
             if (!isCardsMode) {
                 const visibleRows = document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]');
                 visibleRows.forEach((row, idx) => {
@@ -773,77 +829,15 @@
             updateUI();
         }
 
-        // ---- ПОДІЇ ФІЛЬТРІВ ----
-        searchInput.addEventListener('input', applyFiltersAndPaginate);
-        dateFrom.addEventListener('change', applyFiltersAndPaginate);
-        dateTo.addEventListener('change', applyFiltersAndPaginate);
-        dayFilter.addEventListener('change', applyFiltersAndPaginate);
-        clearDateBtn.addEventListener('click', function() {
-            dateFrom.value = '';
-            dateTo.value = '';
-            applyFiltersAndPaginate();
-        });
-        pageSizeSelect.addEventListener('change', function() {
-            pageSize = parseInt(this.value) || 0;
-            currentPage = 1;
-            updateUI();
-        });
-        loadMoreBtn.addEventListener('click', loadMore);
-
-        // Ініціалізація
-        applyFiltersAndPaginate();
-
         // ================================================================
-        // 5. ВИДАЛЕННЯ ДНЯ
+        // 6. СОРТУВАННЯ (для таблиці)
         // ================================================================
-        const deleteDayModal = document.getElementById('deleteDayConfirmModal');
-        const deleteDayForm = document.getElementById('deleteDayForm');
-
-        document.querySelectorAll('.action-delete-day').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = this.dataset.id;
-                const date = this.dataset.date || '—';
-                const dayName = this.dataset.dayname || '—';
-                const startingBalance = parseFloat(this.dataset.starting) || 0;
-                const expenses = parseFloat(this.dataset.expenses) || 0;
-                const incomes = parseFloat(this.dataset.incomes) || 0;
-                const balance = parseFloat(this.dataset.balance) || 0;
-                const expenseCount = parseInt(this.dataset.expenseCount) || 0;
-                const incomeCount = parseInt(this.dataset.incomeCount) || 0;
-                const total = expenseCount + incomeCount;
-
-                document.getElementById('deleteDate').textContent = date;
-                document.getElementById('deleteDayName').textContent = dayName;
-                document.getElementById('deleteDayNameDetail').textContent = dayName;
-                document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ₴';
-                document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
-                document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ₴';
-
-                const balanceEl = document.getElementById('deleteBalance');
-                balanceEl.textContent = balance.toFixed(2) + ' ₴';
-                balanceEl.className = 'value';
-                balanceEl.classList.add(balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
-
-                document.getElementById('deleteTotalTransactions').textContent = total;
-                document.getElementById('deleteIncomeCount').textContent = incomeCount;
-                document.getElementById('deleteExpenseCount').textContent = expenseCount;
-
-                deleteDayForm.action = '/day/delete/' + id;
-                new bootstrap.Modal(deleteDayModal).show();
-            });
-        });
-
-        // ================================================================
-        // 6. СОРТУВАННЯ
-        // ================================================================
-        const dayRows = Array.from(document.querySelectorAll('.day-row'));
-
         function sortRowsBy(column, direction) {
-            if (!dayRows.length) return;
+            if (!allDayRows.length) return;
             const th = document.querySelector(`.sortable[data-sort="${column}"]`);
             const dataType = th ? th.dataset.type : 'string';
 
-            const rowsArray = Array.from(dayRows);
+            const rowsArray = Array.from(allDayRows);
 
             rowsArray.sort((a, b) => {
                 let aVal = a.dataset[column] || '';
@@ -863,11 +857,11 @@
             const tbody = document.getElementById('daysTableBody');
             rowsArray.forEach(row => tbody.appendChild(row));
 
-            rowsArray.forEach((row, idx) => {
-                const numCell = row.querySelector('.col-number');
-                if (numCell) numCell.textContent = idx + 1;
-            });
+            // Оновлюємо номери рядків після сортування (пізніше їх перерахує applyFiltersAndPaginate)
+            // Тому просто викликаємо applyFiltersAndPaginate
+            applyFiltersAndPaginate();
 
+            // Оновлюємо іконки сортування
             document.querySelectorAll('.sortable').forEach(th => {
                 th.classList.remove('active-asc', 'active-desc');
                 const icon = th.querySelector('.sort-icon');
@@ -878,20 +872,47 @@
                 const icon = th.querySelector('.sort-icon');
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
-
-            applyFiltersAndPaginate();
         }
 
-        document.querySelectorAll('.sortable').forEach(th => {
-            th.addEventListener('click', function() {
-                const column = this.dataset.sort;
-                const currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
-                let direction = 'asc';
-                if (currentDir === 'asc') direction = 'desc';
-                else if (currentDir === 'desc') direction = 'asc';
-                sortRowsBy(column, direction);
-            });
-        });
+        // ================================================================
+        // 7. ВИДАЛЕННЯ ДНЯ (через модалку)
+        // ================================================================
+        function handleDeleteDay(btn) {
+            const id = btn.dataset.id;
+            const date = btn.dataset.date || '—';
+            const dayName = btn.dataset.dayname || '—';
+            const startingBalance = parseFloat(btn.dataset.starting) || 0;
+            const expenses = parseFloat(btn.dataset.expenses) || 0;
+            const incomes = parseFloat(btn.dataset.incomes) || 0;
+            const balance = parseFloat(btn.dataset.balance) || 0;
+            const expenseCount = parseInt(btn.dataset.expenseCount) || 0;
+            const incomeCount = parseInt(btn.dataset.incomeCount) || 0;
+            const total = expenseCount + incomeCount;
+
+            document.getElementById('deleteDate').textContent = date;
+            document.getElementById('deleteDayName').textContent = dayName;
+            document.getElementById('deleteDayNameDetail').textContent = dayName;
+            document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ₴';
+            document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
+            document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ₴';
+
+            const balanceEl = document.getElementById('deleteBalance');
+            balanceEl.textContent = balance.toFixed(2) + ' ₴';
+            balanceEl.className = 'value';
+            balanceEl.classList.add(balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
+
+            document.getElementById('deleteTotalTransactions').textContent = total;
+            document.getElementById('deleteIncomeCount').textContent = incomeCount;
+            document.getElementById('deleteExpenseCount').textContent = expenseCount;
+
+            const deleteForm = document.getElementById('deleteDayForm');
+            deleteForm.action = '/day/delete/' + id;
+            new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
+        }
+
+        // ================================================================
+        // 8. ЗАВЕРШЕННЯ
+        // ================================================================
 
     })();
 </script>
