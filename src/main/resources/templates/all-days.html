@@ -66,12 +66,15 @@
             font-size: 0.85rem;
             border-collapse: collapse;
         }
-        .table-days th, .table-days td {
-            vertical-align: middle;
+        .table-days th,
+        .table-days td {
+            text-align: center !important;
+            vertical-align: middle !important;
             padding: 0.5rem 0.4rem;
             border-bottom: 1px solid #dee2e6;
         }
-        [data-bs-theme="dark"] .table-days th, [data-bs-theme="dark"] .table-days td {
+        [data-bs-theme="dark"] .table-days th,
+        [data-bs-theme="dark"] .table-days td {
             border-bottom-color: #2a2e37;
         }
         .table-days th {
@@ -83,13 +86,14 @@
             background-color: #1d2027;
             color: #e6e6e6;
         }
+
         .table-days .col-date { width: 120px; min-width: 120px; }
         .table-days .col-day { width: 120px; min-width: 120px; }
-        .table-days .col-number { width: 60px; min-width: 60px; text-align: center; }
-        .table-days .col-amount { width: 120px; min-width: 120px; text-align: right; }
-        .table-days .col-balance { width: 120px; min-width: 120px; text-align: right; }
-        .table-days .col-count { width: 100px; min-width: 100px; text-align: center; }
-        .table-days .col-actions { width: 140px; min-width: 140px; text-align: center; white-space: nowrap; }
+        .table-days .col-number { width: 60px; min-width: 60px; }
+        .table-days .col-amount { width: 120px; min-width: 120px; }
+        .table-days .col-balance { width: 120px; min-width: 120px; }
+        .table-days .col-count { width: 100px; min-width: 100px; }
+        .table-days .col-actions { width: 140px; min-width: 140px; white-space: nowrap; }
         .table-days .col-actions .btn { padding: 0.15rem 0.4rem; font-size: 0.7rem; margin: 0 1px; }
         .table-days .col-actions .btn i { font-size: 0.75rem; }
 
@@ -159,7 +163,7 @@
         .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
         [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
 
-        /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ (ЗБІЛЬШЕНІ КНОПКИ) ===== */
+        /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ ===== */
         .view-toggle {
             display: flex;
             gap: 0.3rem;
@@ -171,8 +175,8 @@
         [data-bs-theme="dark"] .view-toggle { background: #2a2e37; }
         .view-toggle .btn {
             border: none;
-            padding: 0.5rem 1.2rem;         /* збільшено padding */
-            font-size: 1rem;               /* збільшено шрифт */
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
             border-radius: 0.375rem;
             background: transparent;
             color: #495057;
@@ -189,9 +193,7 @@
             background: #1d2027;
             color: #6ea8fe;
         }
-        .view-toggle .btn i {
-            margin-right: 0.3rem;
-        }
+        .view-toggle .btn i { margin-right: 0.3rem; }
 
         .cards-view-container { display: none; }
         .cards-view-container.show { display: block; }
@@ -361,13 +363,10 @@
 
     <!-- ===== КАРТКА ===== -->
     <div class="card shadow mt-4 table-wrap-animated">
-        <!-- ШАПКА – АДАПТИВНА ДО ТЕМИ -->
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem; background-color: var(--bs-card-bg); border-bottom: 1px solid var(--bs-border-color);">
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h5 class="mb-0"><i class="fas fa-list-ul me-2"></i>Дні</h5>
-                <!-- ПЕРЕМИКАЧ ВИГЛЯДУ (КНОПКИ ПОМІНЯНІ МІСЦЯМИ) -->
                 <div class="view-toggle" id="viewToggle">
-                    <!-- Тепер першою йде "Таблиця" (активна) -->
                     <button class="btn active" data-view="table" title="Таблиця">
                         <i class="fas fa-table"></i> <span class="d-none d-sm-inline">Таблиця</span>
                     </button>
@@ -382,13 +381,12 @@
 
             <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
             <div class="table-toolbar no-print">
-                <!-- Пошук -->
+                <!-- ПОШУК (розширений) -->
                 <div class="input-group search-input">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Пошук...">
+                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Пошук по всьому...">
                 </div>
 
-                <!-- Фільтр по днях тижня -->
                 <select id="dayFilter" class="form-select form-select-sm day-filter">
                     <option value="">Всі дні</option>
                     <option value="Понеділок">Понеділок</option>
@@ -400,7 +398,6 @@
                     <option value="Неділя">Неділя</option>
                 </select>
 
-                <!-- Фільтр по даті -->
                 <div class="filter-group">
                     <span class="text-muted small">від</span>
                     <input type="date" id="dateFrom" class="form-control form-control-sm">
@@ -411,7 +408,6 @@
                     </button>
                 </div>
 
-                <!-- Пагінація -->
                 <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
                     <option value="0">Всі</option>
                     <option value="6" selected>6</option>
@@ -425,7 +421,7 @@
                 <span class="info-text" id="visibleInfo">Показано: 0 з 0</span>
             </div>
 
-            <!-- ===== ТАБЛИЦЯ ДНІВ (видима за замовчуванням) ===== -->
+            <!-- ===== ТАБЛИЦЯ ДНІВ ===== -->
             <div id="tableView" class="table-view-container">
                 <div class="table-responsive">
                     <table class="table-days" id="daysTable">
@@ -436,7 +432,10 @@
                             <th class="col-day sortable" data-sort="day" data-type="string">День <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-amount sortable" data-sort="expenses" data-type="number">Витрати <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-amount sortable" data-sort="incomes" data-type="number">Доходи <i class="fas fa-sort sort-icon"></i></th>
-                            <th class="col-balance sortable" data-sort="balance" data-type="number">Баланс <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-balance sortable" data-sort="balance" data-type="number">
+                                <i class="fas fa-balance-scale me-1"></i> Баланс
+                                <i class="fas fa-sort sort-icon"></i>
+                            </th>
                             <th class="col-count sortable" data-sort="count" data-type="number">Транзакцій <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-actions no-print">Дії</th>
                         </tr>
@@ -487,7 +486,7 @@
                 </div>
             </div>
 
-            <!-- ===== КАРТКИ ДНІВ (приховані за замовчуванням) ===== -->
+            <!-- ===== КАРТКИ ДНІВ ===== -->
             <div id="cardsView" class="cards-view-container">
                 <div class="row" id="daysContainer">
                     <div th:if="${allBudgets.empty}" class="col-12">
@@ -587,21 +586,7 @@
 <script>
     (function() {
         // ================================================================
-        // 1. КОЛІРНА ПАЛІТРА (для категорій, якщо використовується)
-        // ================================================================
-        const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
-        function getCategoryColor(name, index) {
-            if (!name) return '#6c757d';
-            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) {
-                hash = name.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
-        }
-
-        // ================================================================
-        // 2. TOAST
+        // 1. TOAST
         // ================================================================
         function showToast(message, type) {
             const toastElement = document.getElementById('liveToast');
@@ -627,7 +612,7 @@
         }
 
         // ================================================================
-        // 3. ДАНІ ТА ЗМІННІ
+        // 2. ДАНІ ТА ЗМІННІ
         // ================================================================
         const allDayCards = document.querySelectorAll('.day-card');
         const allDayRows = document.querySelectorAll('.day-row');
@@ -645,7 +630,7 @@
         const visibleInfo = document.getElementById('visibleInfo');
 
         // ================================================================
-        // 4. ПЕРЕМИКАЧ ВИГЛЯДУ (картки / таблиця)
+        // 3. ПЕРЕМИКАЧ ВИГЛЯДУ
         // ================================================================
         const viewToggle = document.getElementById('viewToggle');
         const cardsView = document.getElementById('cardsView');
@@ -657,14 +642,14 @@
                 tableView.classList.add('hidden');
                 viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 viewToggle.querySelector('[data-view="cards"]').classList.add('active');
-                applyFiltersAndPaginate();
-            } else { // table
+            } else {
                 cardsView.classList.remove('show');
                 tableView.classList.remove('hidden');
                 viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
-                applyFiltersAndPaginate();
             }
+            // Перезастосовуємо фільтри після зміни режиму
+            applyFiltersAndPaginate();
         }
 
         viewToggle.addEventListener('click', function(e) {
@@ -673,11 +658,11 @@
             setViewMode(btn.dataset.view);
         });
 
-        // За замовчуванням – ТАБЛИЦЯ (перша кнопка активна)
+        // За замовчуванням – таблиця
         setViewMode('table');
 
         // ================================================================
-        // 5. ЛОГІКА ФІЛЬТРАЦІЇ ТА ПАГІНАЦІЇ
+        // 4. ЛОГІКА ФІЛЬТРАЦІЇ ТА ПАГІНАЦІЇ
         // ================================================================
         let currentPage = 1;
         let pageSize = parseInt(pageSizeSelect.value) || 6;
@@ -689,19 +674,25 @@
             const toVal = dateTo.value;
             const dayVal = dayFilter.value.trim();
 
-            // Визначаємо, які елементи фільтруємо (залежно від режиму)
-            const items = cardsView.classList.contains('show') ? allDayCards : allDayRows;
+            const isCardsMode = cardsView.classList.contains('show');
+            const items = isCardsMode ? allDayCards : allDayRows;
 
             const result = [];
             items.forEach(item => {
                 const dateStr = item.dataset.date || '';
                 const dayName = (item.dataset.dayname || '');
+                const expenses = item.dataset.expenses || '0';
+                const incomes = item.dataset.incomes || '0';
+                const balance = item.dataset.balance || '0';
+                const expenseCount = parseInt(item.dataset.expenseCount) || 0;
+                const incomeCount = parseInt(item.dataset.incomeCount) || 0;
+                const count = expenseCount + incomeCount;
 
-                // Пошук
+                // ПОШУК ПО ВСЬОМУ ТЕКСТУ
                 let matchSearch = true;
                 if (searchTerm) {
-                    const text = (dayName + ' ' + dateStr).toLowerCase();
-                    matchSearch = text.includes(searchTerm);
+                    const fullText = (dayName + ' ' + dateStr + ' ' + expenses + ' ' + incomes + ' ' + balance + ' ' + count).toLowerCase();
+                    matchSearch = fullText.includes(searchTerm);
                 }
 
                 // Фільтр по даті
@@ -715,8 +706,6 @@
 
                 if (matchSearch && matchDate && matchDay) {
                     result.push(item);
-                } else {
-                    item.style.display = 'none';
                 }
             });
             return result;
@@ -726,12 +715,11 @@
             const total = filteredItems.length;
             totalRowsSpan.textContent = total;
 
-            // Спочатку ховаємо всі
-            const items = cardsView.classList.contains('show') ? allDayCards : allDayRows;
+            const isCardsMode = cardsView.classList.contains('show');
+            const items = isCardsMode ? allDayCards : allDayRows;
             items.forEach(item => item.style.display = 'none');
 
             if (pageSize === 0) {
-                // Показати всі
                 filteredItems.forEach(item => item.style.display = '');
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 loadMoreBtn.disabled = true;
@@ -754,9 +742,17 @@
             const allShown = (end >= total);
             visibleInfo.textContent = 'Показано: ' + (total > 0 ? start + 1 : 0) + ' - ' + end + ' з ' + total;
             loadMoreBtn.disabled = allShown || total === 0;
-            loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> Всі завантажено' :
-                '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
+            loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             noResults.style.display = total === 0 ? 'block' : 'none';
+
+            // Оновлюємо номери рядків для таблиці
+            if (!isCardsMode) {
+                const visibleRows = document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]');
+                visibleRows.forEach((row, idx) => {
+                    const numCell = row.querySelector('.col-number');
+                    if (numCell) numCell.textContent = idx + 1;
+                });
+            }
         }
 
         function applyFiltersAndPaginate() {
@@ -798,7 +794,7 @@
         applyFiltersAndPaginate();
 
         // ================================================================
-        // 6. ВИДАЛЕННЯ ДНЯ (через модалку)
+        // 5. ВИДАЛЕННЯ ДНЯ
         // ================================================================
         const deleteDayModal = document.getElementById('deleteDayConfirmModal');
         const deleteDayForm = document.getElementById('deleteDayForm');
@@ -838,7 +834,7 @@
         });
 
         // ================================================================
-        // 7. СОРТУВАННЯ (для таблиці)
+        // 6. СОРТУВАННЯ
         // ================================================================
         const dayRows = Array.from(document.querySelectorAll('.day-row'));
 
@@ -867,13 +863,11 @@
             const tbody = document.getElementById('daysTableBody');
             rowsArray.forEach(row => tbody.appendChild(row));
 
-            // Оновлюємо номери рядків
             rowsArray.forEach((row, idx) => {
                 const numCell = row.querySelector('.col-number');
                 if (numCell) numCell.textContent = idx + 1;
             });
 
-            // Оновлюємо іконки
             document.querySelectorAll('.sortable').forEach(th => {
                 th.classList.remove('active-asc', 'active-desc');
                 const icon = th.querySelector('.sort-icon');
@@ -885,7 +879,6 @@
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
 
-            // Перезастосовуємо фільтри, щоб оновити видимість
             applyFiltersAndPaginate();
         }
 
@@ -899,12 +892,6 @@
                 sortRowsBy(column, direction);
             });
         });
-
-        // ================================================================
-        // 8. ДОДАТКОВІ ФУНКЦІЇ (ТОСТИ, МОДАЛКИ, ТЕПЛІ КЛАВІШІ)
-        // ================================================================
-        // (код з day-detail для додавання, редагування, дублювання – той самий)
-        // Якщо у вас вже є на сторінці, то не дублюйте зайвий раз.
 
     })();
 </script>
