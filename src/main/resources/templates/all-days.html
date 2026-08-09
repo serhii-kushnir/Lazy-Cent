@@ -451,7 +451,7 @@
                             th:data-income-count="${budget.incomes.size()}"
                             th:data-id="${budget.id}">
                             <td class="col-number" th:text="${stat.index + 1}"></td>
-                            <td class="col-date" th:text="${budget.date}"></td>
+                            <td class="col-date" th:text="${#temporals.format(budget.date, 'dd.MM.yyyy')}"></td>
                             <td class="col-day" th:text="${budget.dayName}"></td>
                             <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
                             <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
@@ -508,7 +508,7 @@
                                 <h5 class="mb-0" style="font-size: 0.95rem;">
                                     <i class="fas fa-calendar-day me-1"></i>
                                     <span th:text="${budget.dayName}"></span>,
-                                    <span th:text="${budget.date}"></span>
+                                    <span th:text="${#temporals.format(budget.date, 'dd.MM.yyyy')}"></span>
                                 </h5>
                                 <div style="display: flex; gap: 2px; flex-wrap: wrap; align-items: center;">
                                     <span class="badge-count total" title="Всього транзакцій">
@@ -1199,7 +1199,17 @@
             const incomeCount = parseInt(btn.dataset.incomeCount) || 0;
             const total = expenseCount + incomeCount;
 
-            document.getElementById('deleteDate').textContent = date;
+            // Форматуємо дату для відображення у модалці
+            function formatDate(dateStr) {
+                if (!dateStr || dateStr === '—') return '—';
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    return parts[2] + '.' + parts[1] + '.' + parts[0];
+                }
+                return dateStr;
+            }
+
+            document.getElementById('deleteDate').textContent = formatDate(date);
             document.getElementById('deleteDayName').textContent = dayName;
             document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ₴';
             document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
