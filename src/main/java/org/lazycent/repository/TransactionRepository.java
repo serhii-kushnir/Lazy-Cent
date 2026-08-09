@@ -15,6 +15,7 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 
+
     @Query("SELECT SUM(t.amount) FROM Transaction t " +
             "WHERE t.dayBudget.date = :date AND t.type = :type")
     Double sumByDateAndType(@Param("date") LocalDate date,

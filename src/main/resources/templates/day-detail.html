@@ -971,6 +971,7 @@
             </div>
             <form id="transactionForm" method="post" th:action="@{'/day/' + ${dayBudget.date} + '/expense'}">
                 <div class="modal-body">
+                    <!-- Тип (не підлягає валідації з DTO) -->
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
@@ -978,55 +979,110 @@
                             <button type="button" class="btn btn-outline-success" id="typeIncomeBtn"><i class="fas fa-arrow-up me-1"></i> Дохід</button>
                         </div>
                     </div>
+
+                    <!-- Дата -->
                     <div class="mb-3">
                         <label for="transactionDate" class="form-label">Дата</label>
-                        <input type="date" class="form-control" id="transactionDate" name="date" th:value="${dayBudget.date}" readonly disabled>
+                        <input type="date" class="form-control" id="transactionDate" name="date"
+                               th:value="${dayBudget.date}" readonly disabled
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('date')} ? 'is-invalid' : ''">
                         <input type="hidden" name="date" th:value="${dayBudget.date}">
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('date')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('date')}"></div>
                     </div>
+
+                    <!-- Час -->
                     <div class="mb-3">
                         <label for="transactionTime" class="form-label">Час (необов'язково)</label>
-                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
+                        <input type="time" class="form-control" id="transactionTime" name="time" step="60"
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('time')} ? 'is-invalid' : ''">
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('time')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('time')}"></div>
                     </div>
+
+                    <!-- Категорія -->
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
-                        <select class="form-select" id="categorySelect" name="categoryId" required>
+                        <select class="form-select" id="categorySelect" name="categoryId" required
+                                th:classappend="${fieldErrors != null and fieldErrors.containsKey('categoryId')} ? 'is-invalid' : ''">
                             <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
                         </select>
-                        <div class="invalid-feedback">Виберіть категорію</div>
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('categoryId')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('categoryId')}"></div>
+                        <div th:unless="${fieldErrors != null and fieldErrors.containsKey('categoryId')}"
+                             class="invalid-feedback">Виберіть категорію</div>
                     </div>
+
+                    <!-- Найменування -->
                     <div class="mb-3">
                         <label for="transactionName" class="form-label">Найменування</label>
-                        <input type="text" class="form-control" id="transactionName" name="description" placeholder="наприклад, Продукти, обід, канцелярія" required>
-                        <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
+                        <input type="text" class="form-control" id="transactionName" name="description"
+                               placeholder="наприклад, Продукти, обід, канцелярія" required
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('description')} ? 'is-invalid' : ''">
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('description')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('description')}"></div>
+                        <div th:unless="${fieldErrors != null and fieldErrors.containsKey('description')}"
+                             class="invalid-feedback">Будь ласка, заповніть це поле</div>
                     </div>
+
+                    <!-- Сума -->
                     <div class="mb-3">
                         <label for="transactionAmount" class="form-label">Сума (₴)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount" placeholder="0.0" value="0.00" required>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
+                                   placeholder="0.0" value="0.00" required
+                                   th:classappend="${fieldErrors != null and fieldErrors.containsKey('amount')} ? 'is-invalid' : ''">
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
-                        <div class="invalid-feedback">Введіть суму</div>
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('amount')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('amount')}"></div>
+                        <div th:unless="${fieldErrors != null and fieldErrors.containsKey('amount')}"
+                             class="invalid-feedback">Введіть суму</div>
                     </div>
+
+                    <!-- Кількість -->
                     <div class="mb-3">
                         <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
-                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity" placeholder="1" value="1" min="1">
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
+                                   placeholder="1" value="1" min="1"
+                                   th:classappend="${fieldErrors != null and fieldErrors.containsKey('quantity')} ? 'is-invalid' : ''">
                             <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
                         </div>
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('quantity')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('quantity')}"></div>
                     </div>
+
+                    <!-- Покупець -->
                     <div class="mb-3">
                         <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
-                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer"
+                               placeholder="Покупець"
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('buyer')} ? 'is-invalid' : ''">
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('buyer')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('buyer')}"></div>
                     </div>
+
+                    <!-- Продавець -->
                     <div class="mb-3">
                         <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
-                        <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
+                        <input type="text" class="form-control" id="transactionSeller" name="seller"
+                               placeholder="Продавець"
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('seller')} ? 'is-invalid' : ''">
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('seller')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('seller')}"></div>
                     </div>
+
+                    <!-- Деталі -->
                     <div class="mb-3">
                         <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
-                        <textarea class="form-control" id="transactionDetails" name="details" rows="3" placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
+                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"
+                                  th:classappend="${fieldErrors != null and fieldErrors.containsKey('details')} ? 'is-invalid' : ''"></textarea>
+                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('details')}"
+                             class="invalid-feedback" th:text="${fieldErrors.get('details')}"></div>
                         <div class="char-counter"><span id="charCount">0</span> / 250</div>
                     </div>
                 </div>

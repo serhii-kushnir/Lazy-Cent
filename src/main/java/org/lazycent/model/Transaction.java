@@ -6,18 +6,22 @@ import lombok.*;
 import java.time.LocalTime;
 
 @Entity
+@Table(name = "transactions") // "transaction" is a reserved word in many SQL dialects
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Table(name = "transaction")
 public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType type;
 
     @ManyToOne
     @JoinColumn(name = "day_budget_id")
@@ -27,14 +31,11 @@ public class Transaction {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(nullable = false)
     private String description;
-
-    @Column(nullable = false)
     private Double amount;
 
     @Column(nullable = true)
-    private Integer quantity;
+    private Integer quantity = 1;
 
     @Column(length = 500, nullable = true)
     private String details;
@@ -51,31 +52,15 @@ public class Transaction {
     @Column(nullable = true)
     private String seller;
 
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private TransactionType type;
-
     public static Transaction createExpense() {
         Transaction t = new Transaction();
         t.setType(TransactionType.EXPENSE);
-        t.setQuantity(1);
-        t.setShareWithFamily(false);
         return t;
     }
 
     public static Transaction createIncome() {
         Transaction t = new Transaction();
         t.setType(TransactionType.INCOME);
-        t.setQuantity(1);
-        t.setShareWithFamily(false);
         return t;
-    }
-
-    public boolean isExpense() {
-        return type == TransactionType.EXPENSE;
-    }
-
-    public boolean isIncome() {
-        return type == TransactionType.INCOME;
     }
 }

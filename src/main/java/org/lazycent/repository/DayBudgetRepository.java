@@ -12,12 +12,11 @@ import java.util.Optional;
 @Repository
 public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
 
-    @EntityGraph(attributePaths = {"transactions"})   // ✅ виправлено
+    @EntityGraph(attributePaths = {"expenses", "incomes"})
     Optional<DayBudget> findByDate(LocalDate date);
 
-    @EntityGraph(attributePaths = {"transactions"})   // ✅ виправлено
+    @EntityGraph(attributePaths = {"expenses", "incomes"})
     List<DayBudget> findAllByOrderByDateAsc();
 
-    // Додатковий метод для перевірки наявності даних за період (якщо потрібно)
     List<DayBudget> findByDateBetween(LocalDate start, LocalDate end);
 }

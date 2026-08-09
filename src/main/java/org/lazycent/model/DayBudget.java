@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -26,39 +26,21 @@ public class DayBudget {
     private String dayName;
 
     @OneToMany(mappedBy = "dayBudget", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("time ASC NULLS LAST")
-    private List<Transaction> transactions = new ArrayList<>();
+    private Set<Expense> expenses = new HashSet<>();
+
+    @OneToMany(mappedBy = "dayBudget", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Income> incomes = new HashSet<>();
 
     private Double startingBalance;
     private Double remainingBalance;
 
     public Double getTotalExpenses() {
-        if (transactions == null) return 0.0;
-        return transactions.stream()
-                .filter(t -> t.getType() == TransactionType.EXPENSE)
-                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
-                .sum();
+        if (expenses == null) return 0.0;
+        return expenses.stream().mapToDouble(e -> e.getAmount() != null ? e.getAmount() : 0.0).sum();
     }
 
     public Double getTotalIncomes() {
-        if (transactions == null) return 0.0;
-        return transactions.stream()
-                .filter(t -> t.getType() == TransactionType.INCOME)
-                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
-                .sum();
-    }
-
-    public List<Transaction> getExpenses() {
-        if (transactions == null) return new ArrayList<>();
-        return transactions.stream()
-                .filter(t -> t.getType() == TransactionType.EXPENSE)
-                .toList();
-    }
-
-    public List<Transaction> getIncomes() {
-        if (transactions == null) return new ArrayList<>();
-        return transactions.stream()
-                .filter(t -> t.getType() == TransactionType.INCOME)
-                .toList();
+        if (incomes == null) return 0.0;
+        return incomes.stream().mapToDouble(i -> i.getAmount() != null ? i.getAmount() : 0.0).sum();
     }
 }
