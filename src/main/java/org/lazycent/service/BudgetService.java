@@ -1,11 +1,13 @@
 package org.lazycent.service;
 
+import lombok.RequiredArgsConstructor;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.CategorySummaryDto;
 import org.lazycent.model.dto.DailySummaryDto;
 import org.lazycent.model.dto.TransactionRequest;
-import org.lazycent.repository.*;
-import lombok.RequiredArgsConstructor;
+import org.lazycent.repository.CategoryRepository;
+import org.lazycent.repository.DayBudgetRepository;
+import org.lazycent.repository.TransactionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,8 +24,7 @@ public class BudgetService {
     private static final Logger log = LoggerFactory.getLogger(BudgetService.class);
 
     private final DayBudgetRepository dayBudgetRepository;
-    private final ExpenseRepository expenseRepository;
-    private final IncomeRepository incomeRepository;
+    private final TransactionRepository transactionRepository;
     private final CategoryRepository categoryRepository;
 
     private static final Map<Integer, String> DAY_NAMES = Map.of(
@@ -66,7 +67,7 @@ public class BudgetService {
         return DAY_NAMES.getOrDefault(dayOfWeek, "Невідомо");
     }
 
-    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ (ЧЕРЕЗ DTO) ====================
+    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ ====================
 
     @Transactional
     public void addTransaction(TransactionRequest request, TransactionType type) {
@@ -77,71 +78,30 @@ public class BudgetService {
         DayBudget dayBudget = getOrCreateDayBudget(date);
         Category category = getCategoryById(request.getCategoryId());
 
-        if (type == TransactionType.EXPENSE) {
-            Expense expense = new Expense();
-            expense.setCategory(category);
-            expense.setDescription(request.getDescription());
-            expense.setAmount(request.getAmount());
-            expense.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
-            expense.setDetails(request.getDetails());
-            expense.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
-            expense.setTime(request.getTime());
-            expense.setBuyer(request.getBuyer());
-            expense.setSeller(request.getSeller());
-            addExpense(dayBudget.getId(), expense);
-        } else {
-            Income income = new Income();
-            income.setCategory(category);
-            income.setDescription(request.getDescription());
-            income.setAmount(request.getAmount());
-            income.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
-            income.setDetails(request.getDetails());
-            income.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
-            income.setTime(request.getTime());
-            income.setBuyer(request.getBuyer());
-            income.setSeller(request.getSeller());
-            addIncome(dayBudget.getId(), income);
-        }
-    }
+        Transaction transaction = new Transaction();
+        transaction.setType(type);
+        transaction.setCategory(category);
+        transaction.setDescription(request.getDescription());
+        transaction.setAmount(request.getAmount());
+        transaction.setQuantity(request.getQuantity() != null ? request.getQuantity() : 1);
+        transaction.setDetails(request.getDetails());
+        transaction.setShareWithFamily(request.getShareWithFamily() != null && request.getShareWithFamily());
+        transaction.setTime(request.getTime());
+        transaction.setBuyer(request.getBuyer());
+        transaction.setSeller(request.getSeller());
+        transaction.setDayBudget(dayBudget);
 
-    @Transactional
-    public Expense addExpense(Long dayBudgetId, Expense expense) {
-        log.info("Adding expense to day budget ID: {}, amount: {}, category: {}",
-                dayBudgetId, expense.getAmount(), expense.getCategory().getName());
-        DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
-                .orElseThrow(() -> {
-                    log.error("DayBudget not found with ID: {}", dayBudgetId);
-                    return new RuntimeException("DayBudget not found");
-                });
-        expense.setDayBudget(dayBudget);
-        Expense saved = expenseRepository.save(expense);
-        log.info("Expense saved with ID: {}", saved.getId());
+        Transaction saved = transactionRepository.save(transaction);
+        log.info("Transaction saved with ID: {}", saved.getId());
         updateDayBudgetBalance(dayBudget);
-        return saved;
-    }
-
-    @Transactional
-    public Income addIncome(Long dayBudgetId, Income income) {
-        log.info("Adding income to day budget ID: {}, amount: {}, category: {}",
-                dayBudgetId, income.getAmount(), income.getCategory().getName());
-        DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
-                .orElseThrow(() -> {
-                    log.error("DayBudget not found with ID: {}", dayBudgetId);
-                    return new RuntimeException("DayBudget not found");
-                });
-        income.setDayBudget(dayBudget);
-        Income saved = incomeRepository.save(income);
-        log.info("Income saved with ID: {}", saved.getId());
-        updateDayBudgetBalance(dayBudget);
-        return saved;
     }
 
     // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
     private void updateDayBudgetBalance(DayBudget dayBudget) {
         log.debug("Updating balance for day: {}", dayBudget.getDate());
-        Double totalExpenses = expenseRepository.sumExpensesByDate(dayBudget.getDate());
-        Double totalIncomes = incomeRepository.sumIncomesByDate(dayBudget.getDate());
+        Double totalExpenses = transactionRepository.sumByDateAndType(dayBudget.getDate(), TransactionType.EXPENSE);
+        Double totalIncomes = transactionRepository.sumByDateAndType(dayBudget.getDate(), TransactionType.INCOME);
 
         if (totalExpenses == null) totalExpenses = 0.0;
         if (totalIncomes == null) totalIncomes = 0.0;
@@ -172,8 +132,8 @@ public class BudgetService {
             }
             if (previousBalance != null) {
                 budget.setStartingBalance(previousBalance);
-                Double totalExpenses = expenseRepository.sumExpensesByDate(budget.getDate());
-                Double totalIncomes = incomeRepository.sumIncomesByDate(budget.getDate());
+                Double totalExpenses = transactionRepository.sumByDateAndType(budget.getDate(), TransactionType.EXPENSE);
+                Double totalIncomes = transactionRepository.sumByDateAndType(budget.getDate(), TransactionType.INCOME);
                 if (totalExpenses == null) totalExpenses = 0.0;
                 if (totalIncomes == null) totalIncomes = 0.0;
                 budget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
@@ -186,98 +146,55 @@ public class BudgetService {
 
     // ==================== ОТРИМАННЯ ДАНИХ ====================
 
+    @Transactional(readOnly = true)
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate) {
         log.info("Getting total budget for period: {} - {}", startDate, endDate);
-
         TotalBudget total = new TotalBudget();
 
-        // 1. Отримуємо щоденні підсумки витрат (1 запит)
-        List<DailySummaryDto> expenseDaily = expenseRepository.getDailyExpenseSummaries(startDate, endDate);
+        // 1. Отримуємо щоденні підсумки (1 запит)
+        List<DailySummaryDto> dailySummariesDto = transactionRepository.getDailySummaries(startDate, endDate);
 
-        // 2. Отримуємо щоденні підсумки доходів (1 запит)
-        List<DailySummaryDto> incomeDaily = incomeRepository.getDailyIncomeSummaries(startDate, endDate);
+        // 2. Отримуємо підсумки за категоріями (1 запит)
+        List<CategorySummaryDto> categorySummaries = transactionRepository.getCategorySummaries(startDate, endDate);
 
-        // 3. Отримуємо підсумки за категоріями витрат (1 запит)
-        List<CategorySummaryDto> expenseCategories = expenseRepository.getExpenseCategorySummaries(startDate, endDate);
+        // Формуємо результат
+        Map<LocalDate, TotalBudget.DayBudgetSummary> dailySummariesMap = new LinkedHashMap<>();
+        Double totalExpenses = 0.0;
+        Double totalIncomes = 0.0;
 
-        // 4. Отримуємо підсумки за категоріями доходів (1 запит)
-        List<CategorySummaryDto> incomeCategories = incomeRepository.getIncomeCategorySummaries(startDate, endDate);
-
-        // Об'єднуємо щоденні підсумки
-        Map<LocalDate, TotalBudget.DayBudgetSummary> dailySummaries = new LinkedHashMap<>();
-
-        // Додаємо витрати
-        for (DailySummaryDto dto : expenseDaily) {
-            TotalBudget.DayBudgetSummary summary = dailySummaries.computeIfAbsent(
-                    dto.getDate(),
-                    date -> {
-                        TotalBudget.DayBudgetSummary s = new TotalBudget.DayBudgetSummary();
-                        s.setDate(date);
-                        s.setDayName(dto.getDayName());
-                        s.setExpenses(0.0);
-                        s.setIncomes(0.0);
-                        s.setBalance(0.0);
-                        return s;
-                    }
-            );
+        for (DailySummaryDto dto : dailySummariesDto) {
+            TotalBudget.DayBudgetSummary summary = new TotalBudget.DayBudgetSummary();
+            summary.setDate(dto.getDate());
+            summary.setDayName(dto.getDayName());
             summary.setExpenses(dto.getTotalExpenses());
-            summary.setBalance(summary.getBalance() + dto.getTotalExpenses());
-        }
-
-        // Додаємо доходи
-        for (DailySummaryDto dto : incomeDaily) {
-            TotalBudget.DayBudgetSummary summary = dailySummaries.computeIfAbsent(
-                    dto.getDate(),
-                    date -> {
-                        TotalBudget.DayBudgetSummary s = new TotalBudget.DayBudgetSummary();
-                        s.setDate(date);
-                        s.setDayName(dto.getDayName());
-                        s.setExpenses(0.0);
-                        s.setIncomes(0.0);
-                        s.setBalance(0.0);
-                        return s;
-                    }
-            );
             summary.setIncomes(dto.getTotalIncomes());
-            summary.setBalance(summary.getBalance() + dto.getTotalIncomes());
+            summary.setBalance(dto.getTotalIncomes() - dto.getTotalExpenses());
+            dailySummariesMap.put(dto.getDate(), summary);
+            totalExpenses += dto.getTotalExpenses();
+            totalIncomes += dto.getTotalIncomes();
         }
 
-        // Вираховуємо остаточний баланс для кожного дня (витрати - доходи)
-        // Оскільки ми додавали витрати та доходи в balance, тепер потрібно перерахувати
-        for (TotalBudget.DayBudgetSummary summary : dailySummaries.values()) {
-            summary.setBalance(summary.getIncomes() - summary.getExpenses());
-        }
-
-        // Заповнюємо категорії
+        // Категорії
         Map<Category, Double> expensesByCategory = new HashMap<>();
-        for (CategorySummaryDto dto : expenseCategories) {
-            // Потрібно отримати сутність Category за назвою
-            Category category = categoryRepository.findByName(dto.getCategoryName())
-                    .orElseThrow(() -> new RuntimeException("Категорію не знайдено: " + dto.getCategoryName()));
-            expensesByCategory.put(category, dto.getTotalAmount());
-        }
-
         Map<Category, Double> incomesByCategory = new HashMap<>();
-        for (CategorySummaryDto dto : incomeCategories) {
-            Category category = categoryRepository.findByName(dto.getCategoryName())
-                    .orElseThrow(() -> new RuntimeException("Категорію не знайдено: " + dto.getCategoryName()));
-            incomesByCategory.put(category, dto.getTotalAmount());
-        }
 
-        // Обчислюємо загальні підсумки
-        Double totalExpenses = dailySummaries.values().stream()
-                .mapToDouble(TotalBudget.DayBudgetSummary::getExpenses)
-                .sum();
-        Double totalIncomes = dailySummaries.values().stream()
-                .mapToDouble(TotalBudget.DayBudgetSummary::getIncomes)
-                .sum();
+        for (CategorySummaryDto dto : categorySummaries) {
+            Category category = categoryRepository.findByName(dto.getCategoryName()).orElse(null);
+            if (category != null) {
+                if (dto.getType() == TransactionType.EXPENSE) {   // ✅ тепер коректно
+                    expensesByCategory.put(category, dto.getTotalAmount());
+                } else {
+                    incomesByCategory.put(category, dto.getTotalAmount());
+                }
+            }
+        }
 
         total.setTotalExpenses(totalExpenses);
         total.setTotalIncomes(totalIncomes);
         total.setBalance(totalIncomes - totalExpenses);
         total.setExpensesByCategory(expensesByCategory);
         total.setIncomesByCategory(incomesByCategory);
-        total.setDailySummaries(dailySummaries);
+        total.setDailySummaries(dailySummariesMap);
 
         log.info("Total budget: expenses={}, incomes={}, balance={}", totalExpenses, totalIncomes, total.getBalance());
         return total;
@@ -291,17 +208,15 @@ public class BudgetService {
     // ==================== ДУБЛЮВАННЯ ТРАНЗАКЦІЙ ====================
 
     @Transactional
-    public LocalDate duplicateExpense(Long expenseId) {
-        log.info("Duplicating expense with ID: {}", expenseId);
-        Expense original = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> {
-                    log.error("Expense not found with ID: {}", expenseId);
-                    return new RuntimeException("Витрату не знайдено");
-                });
+    public LocalDate duplicateTransaction(Long transactionId) {
+        log.info("Duplicating transaction with ID: {}", transactionId);
+        Transaction original = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Транзакцію не знайдено"));
 
-        Expense duplicate = new Expense();
+        Transaction duplicate = new Transaction();
         duplicate.setDayBudget(original.getDayBudget());
         duplicate.setCategory(original.getCategory());
+        duplicate.setType(original.getType());
         duplicate.setDescription(original.getDescription() + " (копія)");
         duplicate.setAmount(original.getAmount());
         duplicate.setQuantity(original.getQuantity());
@@ -309,35 +224,10 @@ public class BudgetService {
         duplicate.setTime(original.getTime());
         duplicate.setBuyer(original.getBuyer());
         duplicate.setSeller(original.getSeller());
+        duplicate.setShareWithFamily(original.getShareWithFamily());
 
-        expenseRepository.save(duplicate);
-        log.info("Expense duplicated with new ID: {}", duplicate.getId());
-        updateDayBudgetBalance(original.getDayBudget());
-        return original.getDayBudget().getDate();
-    }
-
-    @Transactional
-    public LocalDate duplicateIncome(Long incomeId) {
-        log.info("Duplicating income with ID: {}", incomeId);
-        Income original = incomeRepository.findById(incomeId)
-                .orElseThrow(() -> {
-                    log.error("Income not found with ID: {}", incomeId);
-                    return new RuntimeException("Дохід не знайдено");
-                });
-
-        Income duplicate = new Income();
-        duplicate.setDayBudget(original.getDayBudget());
-        duplicate.setCategory(original.getCategory());
-        duplicate.setDescription(original.getDescription() + " (копія)");
-        duplicate.setAmount(original.getAmount());
-        duplicate.setQuantity(original.getQuantity());
-        duplicate.setDetails(original.getDetails());
-        duplicate.setTime(original.getTime());
-        duplicate.setBuyer(original.getBuyer());
-        duplicate.setSeller(original.getSeller());
-
-        incomeRepository.save(duplicate);
-        log.info("Income duplicated with new ID: {}", duplicate.getId());
+        transactionRepository.save(duplicate);
+        log.info("Transaction duplicated with new ID: {}", duplicate.getId());
         updateDayBudgetBalance(original.getDayBudget());
         return original.getDayBudget().getDate();
     }
@@ -345,17 +235,14 @@ public class BudgetService {
     // ==================== КАТЕГОРІЇ ====================
 
     public List<Category> getExpenseCategories() {
-        log.debug("Retrieving expense categories");
         return categoryRepository.findByType("EXPENSE");
     }
 
     public List<Category> getIncomeCategories() {
-        log.debug("Retrieving income categories");
         return categoryRepository.findByType("INCOME");
     }
 
     public List<Category> getAllCategories() {
-        log.debug("Retrieving all categories");
         return categoryRepository.findAll();
     }
 
@@ -363,193 +250,95 @@ public class BudgetService {
     public Category addCategory(String name, String type) {
         String normalizedName = name.trim();
         if (normalizedName.isEmpty()) {
-            log.warn("Attempt to add category with empty name");
             throw new RuntimeException("Назва категорії не може бути порожньою");
         }
 
-        log.info("Adding new category: name='{}', type='{}'", normalizedName, type);
-
         if (categoryRepository.findByNameIgnoreCase(normalizedName).isPresent()) {
-            log.warn("Category with name '{}' already exists", normalizedName);
             throw new RuntimeException("Категорія з таким ім'ям вже існує");
         }
 
         Category category = new Category();
         category.setName(normalizedName);
         category.setType(type.toUpperCase());
-        Category saved = categoryRepository.save(category);
-        log.info("Category added with ID: {}", saved.getId());
-        return saved;
+        return categoryRepository.save(category);
     }
 
     @Transactional
     public void deleteCategory(Long id) {
-        log.info("Deleting category with ID: {}", id);
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Category not found with ID: {}", id);
-                    return new RuntimeException("Категорію не знайдено");
-                });
+                .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
         categoryRepository.deleteById(id);
-        log.info("Category '{}' deleted", category.getName());
     }
 
     @Transactional
     public Category updateCategory(Long id, String newName) {
-        log.info("Updating category ID: {}, new name: '{}'", id, newName);
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Category not found with ID: {}", id);
-                    return new RuntimeException("Категорію не знайдено");
-                });
+                .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
 
         String normalizedName = newName.trim();
         if (normalizedName.isEmpty()) {
-            log.warn("Attempt to update category with empty name");
             throw new RuntimeException("Назва категорії не може бути порожньою");
         }
 
         categoryRepository.findByNameIgnoreCase(normalizedName)
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(id)) {
-                        log.warn("Category name '{}' already used by another category", normalizedName);
                         throw new RuntimeException("Категорія з таким ім'ям вже існує");
                     }
                 });
 
         category.setName(normalizedName);
-        Category saved = categoryRepository.save(category);
-        log.info("Category updated: ID={}, new name='{}'", saved.getId(), saved.getName());
-        return saved;
+        return categoryRepository.save(category);
     }
 
     public Category getCategoryById(Long id) {
-        log.debug("Retrieving category with ID: {}", id);
         return categoryRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Category not found with ID: {}", id);
-                    return new RuntimeException("Категорію не знайдено");
-                });
+                .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
     }
 
-    // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ТРАНЗАКЦІЙ ====================
+    // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ====================
 
     @Transactional
-    public void deleteExpense(Long expenseId) {
-        log.info("Deleting expense with ID: {}", expenseId);
-        Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> {
-                    log.error("Expense not found with ID: {}", expenseId);
-                    return new RuntimeException("Витрату не знайдено");
-                });
-        DayBudget dayBudget = expense.getDayBudget();
-        expenseRepository.delete(expense);
-        log.info("Expense ID: {} deleted", expenseId);
+    public void deleteTransaction(Long transactionId) {
+        log.info("Deleting transaction with ID: {}", transactionId);
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Транзакцію не знайдено"));
+        DayBudget dayBudget = transaction.getDayBudget();
+        transactionRepository.delete(transaction);
+        log.info("Transaction ID: {} deleted", transactionId);
         updateDayBudgetBalance(dayBudget);
     }
 
     @Transactional
-    public void deleteIncome(Long incomeId) {
-        log.info("Deleting income with ID: {}", incomeId);
-        Income income = incomeRepository.findById(incomeId)
-                .orElseThrow(() -> {
-                    log.error("Income not found with ID: {}", incomeId);
-                    return new RuntimeException("Дохід не знайдено");
-                });
-        DayBudget dayBudget = income.getDayBudget();
-        incomeRepository.delete(income);
-        log.info("Income ID: {} deleted", incomeId);
-        updateDayBudgetBalance(dayBudget);
-    }
+    public Transaction updateTransaction(Long transactionId, String description, Double amount, Long categoryId,
+                                         Integer quantity, String details, Boolean shareWithFamily, LocalTime time,
+                                         String buyer, String seller) {
+        log.info("Updating transaction ID: {}", transactionId);
+        Transaction transaction = transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Транзакцію не знайдено"));
 
-    @Transactional
-    public Expense updateExpense(Long expenseId, String description, Double amount, Long categoryId,
-                                 Integer quantity, String details, Boolean shareWithFamily, LocalTime time,
-                                 String buyer, String seller) {
-        log.info("Updating expense ID: {}", expenseId);
-        Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> {
-                    log.error("Expense not found with ID: {}", expenseId);
-                    return new RuntimeException("Витрату не знайдено");
-                });
-
-        expense.setDescription(description);
-        expense.setAmount(amount);
+        transaction.setDescription(description);
+        transaction.setAmount(amount);
         if (categoryId != null) {
             Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> {
-                        log.error("Category not found with ID: {}", categoryId);
-                        return new RuntimeException("Категорію не знайдено");
-                    });
-            expense.setCategory(category);
+                    .orElseThrow(() -> new RuntimeException("Категорію не знайдено"));
+            transaction.setCategory(category);
         }
-        expense.setQuantity(quantity != null ? quantity : 1);
-        expense.setDetails(details);
-        expense.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        expense.setTime(time);
-        expense.setBuyer(buyer);
-        expense.setSeller(seller);
+        transaction.setQuantity(quantity != null ? quantity : 1);
+        transaction.setDetails(details);
+        transaction.setShareWithFamily(shareWithFamily != null && shareWithFamily);
+        transaction.setTime(time);
+        transaction.setBuyer(buyer);
+        transaction.setSeller(seller);
 
-        Expense saved = expenseRepository.save(expense);
-        log.info("Expense ID: {} updated", expenseId);
-        updateDayBudgetBalance(expense.getDayBudget());
+        Transaction saved = transactionRepository.save(transaction);
+        log.info("Transaction ID: {} updated", transactionId);
+        updateDayBudgetBalance(transaction.getDayBudget());
         return saved;
     }
 
-    @Transactional
-    public Income updateIncome(Long incomeId, String description, Double amount, Long categoryId,
-                               Integer quantity, String details, Boolean shareWithFamily, LocalTime time,
-                               String buyer, String seller) {
-        log.info("Updating income ID: {}", incomeId);
-        Income income = incomeRepository.findById(incomeId)
-                .orElseThrow(() -> {
-                    log.error("Income not found with ID: {}", incomeId);
-                    return new RuntimeException("Дохід не знайдено");
-                });
-
-        income.setDescription(description);
-        income.setAmount(amount);
-        if (categoryId != null) {
-            Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> {
-                        log.error("Category not found with ID: {}", categoryId);
-                        return new RuntimeException("Категорію не знайдено");
-                    });
-            income.setCategory(category);
-        }
-        income.setQuantity(quantity != null ? quantity : 1);
-        income.setDetails(details);
-        income.setShareWithFamily(shareWithFamily != null && shareWithFamily);
-        income.setTime(time);
-        income.setBuyer(buyer);
-        income.setSeller(seller);
-
-        Income saved = incomeRepository.save(income);
-        log.info("Income ID: {} updated", incomeId);
-        updateDayBudgetBalance(income.getDayBudget());
-        return saved;
-    }
-
-    // ==================== ДОПОМІЖНІ ====================
-
-    public LocalDate getDateByExpense(Long expenseId) {
-        log.debug("Retrieving date for expense ID: {}", expenseId);
-        Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> {
-                    log.error("Expense not found with ID: {}", expenseId);
-                    return new RuntimeException("Витрату не знайдено");
-                });
-        return expense.getDayBudget().getDate();
-    }
-
-    public LocalDate getDateByIncome(Long incomeId) {
-        log.debug("Retrieving date for income ID: {}", incomeId);
-        Income income = incomeRepository.findById(incomeId)
-                .orElseThrow(() -> {
-                    log.error("Income not found with ID: {}", incomeId);
-                    return new RuntimeException("Дохід не знайдено");
-                });
-        return income.getDayBudget().getDate();
+    public LocalDate getDateByTransaction(Long transactionId) {
+        return transactionRepository.findDateById(transactionId);
     }
 
     @Transactional
@@ -562,21 +351,19 @@ public class BudgetService {
         dayBudgetRepository.delete(dayBudget);
         log.info("Day budget {} deleted", dayBudgetId);
 
-        // Перераховуємо баланси для всіх наступних днів
         List<DayBudget> nextBudgets = dayBudgetRepository.findAllByOrderByDateAsc().stream()
                 .filter(b -> b.getDate().isAfter(deletedDate))
                 .toList();
 
         if (nextBudgets.isEmpty()) return;
 
-        // Знаходимо попередній день перед першим з наступних
         DayBudget previousDay = dayBudgetRepository.findByDate(deletedDate.minusDays(1)).orElse(null);
         Double previousBalance = previousDay != null ? previousDay.getRemainingBalance() : 0.0;
 
         for (DayBudget budget : nextBudgets) {
             budget.setStartingBalance(previousBalance);
-            Double totalExpenses = expenseRepository.sumExpensesByDate(budget.getDate());
-            Double totalIncomes = incomeRepository.sumIncomesByDate(budget.getDate());
+            Double totalExpenses = transactionRepository.sumByDateAndType(budget.getDate(), TransactionType.EXPENSE);
+            Double totalIncomes = transactionRepository.sumByDateAndType(budget.getDate(), TransactionType.INCOME);
             if (totalExpenses == null) totalExpenses = 0.0;
             if (totalIncomes == null) totalIncomes = 0.0;
             budget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);

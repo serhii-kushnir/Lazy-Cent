@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -25,25 +25,40 @@ public class DayBudget {
 
     private String dayName;
 
-    // Змінюємо List на Set
     @OneToMany(mappedBy = "dayBudget", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("time ASC") // за бажанням впорядкувати за часом
-    private Set<Expense> expenses = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "dayBudget", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("time ASC")
-    private Set<Income> incomes = new LinkedHashSet<>();
+    @OrderBy("time ASC NULLS LAST")
+    private List<Transaction> transactions = new ArrayList<>();
 
     private Double startingBalance;
     private Double remainingBalance;
 
     public Double getTotalExpenses() {
-        if (expenses == null) return 0.0;
-        return expenses.stream().mapToDouble(e -> e.getAmount() != null ? e.getAmount() : 0.0).sum();
+        if (transactions == null) return 0.0;
+        return transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
+                .sum();
     }
 
     public Double getTotalIncomes() {
-        if (incomes == null) return 0.0;
-        return incomes.stream().mapToDouble(i -> i.getAmount() != null ? i.getAmount() : 0.0).sum();
+        if (transactions == null) return 0.0;
+        return transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .mapToDouble(t -> t.getAmount() != null ? t.getAmount() : 0.0)
+                .sum();
+    }
+
+    public List<Transaction> getExpenses() {
+        if (transactions == null) return new ArrayList<>();
+        return transactions.stream()
+                .filter(t -> t.getType() == TransactionType.EXPENSE)
+                .toList();
+    }
+
+    public List<Transaction> getIncomes() {
+        if (transactions == null) return new ArrayList<>();
+        return transactions.stream()
+                .filter(t -> t.getType() == TransactionType.INCOME)
+                .toList();
     }
 }

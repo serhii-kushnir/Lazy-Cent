@@ -1,4 +1,3 @@
-// DailySummaryDto.java
 package org.lazycent.model.dto;
 
 import lombok.AllArgsConstructor;

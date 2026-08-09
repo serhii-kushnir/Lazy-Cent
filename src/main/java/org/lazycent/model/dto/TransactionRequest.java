@@ -1,8 +1,8 @@
 package org.lazycent.model.dto;
 
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
-import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -24,7 +24,6 @@ public class TransactionRequest {
     @Min(value = 1, message = "Кількість має бути не менше 1")
     private Integer quantity = 1;
 
-    // ✅ ДОДАНО ВАЛІДАЦІЮ ДЛЯ ДЕТАЛЕЙ
     @Size(max = 500, message = "Деталі не можуть перевищувати 500 символів")
     private String details;
 

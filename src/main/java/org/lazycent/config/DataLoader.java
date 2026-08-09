@@ -1,15 +1,11 @@
 package org.lazycent.config;
 
-import org.lazycent.model.Category;
-import org.lazycent.model.DayBudget;
-import org.lazycent.model.Expense;
-import org.lazycent.model.Income;
-import org.lazycent.repository.CategoryRepository;
-import org.lazycent.repository.DayBudgetRepository;
-import org.lazycent.repository.ExpenseRepository;
-import org.lazycent.repository.IncomeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.model.*;
+import org.lazycent.repository.CategoryRepository;
+import org.lazycent.repository.DayBudgetRepository;
+import org.lazycent.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -24,14 +20,16 @@ public class DataLoader implements CommandLineRunner {
 
     private final CategoryRepository categoryRepository;
     private final DayBudgetRepository dayBudgetRepository;
-    private final ExpenseRepository expenseRepository;
-    private final IncomeRepository incomeRepository;
+    private final TransactionRepository transactionRepository;
 
     @Value("${app.demo.categories.enabled:true}")
     private boolean categoriesEnabled;
 
     @Value("${app.demo.enabled:true}")
     private boolean demoTransactionsEnabled;
+
+    @Value("${app.demo.force:false}")
+    private boolean forceDemo;
 
     @Override
     @Transactional
@@ -41,14 +39,10 @@ public class DataLoader implements CommandLineRunner {
 
         if (categoriesEnabled) {
             initializeCategories();
-        } else {
-            log.info("Skipping category initialization (disabled by config)");
         }
 
         if (demoTransactionsEnabled) {
             initializeDemoTransactions();
-        } else {
-            log.info("Skipping demo transactions (disabled by config)");
         }
 
         log.info("DataLoader finished.");
@@ -103,7 +97,6 @@ public class DataLoader implements CommandLineRunner {
         Category tips = categoryRepository.findByName("Чаєві").orElse(null);
         Category salary = categoryRepository.findByName("Зарплата (М)").orElse(null);
 
-        // Якщо якихось категорій немає – логуємо попередження та виходимо
         if (food == null || transport == null || tips == null || salary == null) {
             log.error("Required categories not found, aborting demo data creation.");
             return;
@@ -119,53 +112,53 @@ public class DataLoader implements CommandLineRunner {
             double dayExpenses = 0.0;
             double dayIncomes = 0.0;
 
-            // Додаємо витрати
+            // Витрати
             if (i % 2 == 0) {
-                Expense expense = new Expense();
+                Transaction expense = Transaction.createExpense();
                 expense.setCategory(food);
                 expense.setDescription("Продукти");
                 expense.setAmount(150.0 + i * 10);
                 expense.setDayBudget(budget);
                 expense.setBuyer("Я");
                 expense.setSeller("Супермаркет");
-                expenseRepository.save(expense);
+                transactionRepository.save(expense);
                 dayExpenses += expense.getAmount();
             }
 
             if (i % 3 == 0) {
-                Expense expense2 = new Expense();
+                Transaction expense2 = Transaction.createExpense();
                 expense2.setCategory(transport);
                 expense2.setDescription("Транспорт");
                 expense2.setAmount(30.0 + i * 5);
                 expense2.setDayBudget(budget);
                 expense2.setBuyer("Я");
                 expense2.setSeller("Таксі");
-                expenseRepository.save(expense2);
+                transactionRepository.save(expense2);
                 dayExpenses += expense2.getAmount();
             }
 
-            // Додаємо доходи
+            // Доходи
             if (i % 4 == 0) {
-                Income income = new Income();
+                Transaction income = Transaction.createIncome();
                 income.setCategory(tips);
                 income.setDescription("Чайові");
                 income.setAmount(200.0 + i * 20);
                 income.setDayBudget(budget);
                 income.setBuyer("Клієнт");
                 income.setSeller("Я");
-                incomeRepository.save(income);
+                transactionRepository.save(income);
                 dayIncomes += income.getAmount();
             }
 
             if (i == 0) {
-                Income income2 = new Income();
+                Transaction income2 = Transaction.createIncome();
                 income2.setCategory(salary);
                 income2.setDescription("Зарплата");
                 income2.setAmount(15000.0);
                 income2.setDayBudget(budget);
                 income2.setBuyer("Роботодавець");
                 income2.setSeller("Я");
-                incomeRepository.save(income2);
+                transactionRepository.save(income2);
                 dayIncomes += income2.getAmount();
             }
 
@@ -176,9 +169,6 @@ public class DataLoader implements CommandLineRunner {
 
         log.info("Demo transactions created for 7 days.");
     }
-
-    @Value("${app.demo.force:false}")
-    private boolean forceDemo;
 
     private String getDayName(LocalDate date) {
         return switch (date.getDayOfWeek().getValue()) {
