@@ -962,6 +962,7 @@
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ТРАНЗАКЦІЇ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -971,118 +972,83 @@
             </div>
             <form id="transactionForm" method="post" th:action="@{'/day/' + ${dayBudget.date} + '/expense'}">
                 <div class="modal-body">
-                    <!-- Тип (не підлягає валідації з DTO) -->
+                    <!-- ПРИХОВАНЕ ПОЛЕ ДЛЯ ТИПУ (обов'язково) -->
+                    <input type="hidden" id="transactionType" name="type" value="EXPENSE">
+
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
-                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn"><i class="fas fa-arrow-down me-1"></i> Витрата</button>
-                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn"><i class="fas fa-arrow-up me-1"></i> Дохід</button>
+                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i> Витрата
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i> Дохід
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Дата -->
                     <div class="mb-3">
                         <label for="transactionDate" class="form-label">Дата</label>
                         <input type="date" class="form-control" id="transactionDate" name="date"
-                               th:value="${dayBudget.date}" readonly disabled
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('date')} ? 'is-invalid' : ''">
+                               th:value="${dayBudget.date}" readonly disabled>
                         <input type="hidden" name="date" th:value="${dayBudget.date}">
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('date')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('date')}"></div>
                     </div>
 
-                    <!-- Час -->
                     <div class="mb-3">
                         <label for="transactionTime" class="form-label">Час (необов'язково)</label>
-                        <input type="time" class="form-control" id="transactionTime" name="time" step="60"
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('time')} ? 'is-invalid' : ''">
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('time')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('time')}"></div>
+                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
                     </div>
 
-                    <!-- Категорія -->
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
-                        <select class="form-select" id="categorySelect" name="categoryId" required
-                                th:classappend="${fieldErrors != null and fieldErrors.containsKey('categoryId')} ? 'is-invalid' : ''">
+                        <select class="form-select" id="categorySelect" name="categoryId" required>
                             <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
                         </select>
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('categoryId')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('categoryId')}"></div>
-                        <div th:unless="${fieldErrors != null and fieldErrors.containsKey('categoryId')}"
-                             class="invalid-feedback">Виберіть категорію</div>
+                        <div class="invalid-feedback">Виберіть категорію</div>
                     </div>
 
-                    <!-- Найменування -->
                     <div class="mb-3">
                         <label for="transactionName" class="form-label">Найменування</label>
                         <input type="text" class="form-control" id="transactionName" name="description"
-                               placeholder="наприклад, Продукти, обід, канцелярія" required
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('description')} ? 'is-invalid' : ''">
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('description')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('description')}"></div>
-                        <div th:unless="${fieldErrors != null and fieldErrors.containsKey('description')}"
-                             class="invalid-feedback">Будь ласка, заповніть це поле</div>
+                               placeholder="наприклад, Продукти, обід, канцелярія" required>
+                        <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
                     </div>
 
-                    <!-- Сума -->
                     <div class="mb-3">
                         <label for="transactionAmount" class="form-label">Сума (₴)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
                             <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   placeholder="0.0" value="0.00" required
-                                   th:classappend="${fieldErrors != null and fieldErrors.containsKey('amount')} ? 'is-invalid' : ''">
+                                   placeholder="0.0" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('amount')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('amount')}"></div>
-                        <div th:unless="${fieldErrors != null and fieldErrors.containsKey('amount')}"
-                             class="invalid-feedback">Введіть суму</div>
+                        <div class="invalid-feedback">Введіть суму</div>
                     </div>
 
-                    <!-- Кількість -->
                     <div class="mb-3">
                         <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
                             <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
-                                   placeholder="1" value="1" min="1"
-                                   th:classappend="${fieldErrors != null and fieldErrors.containsKey('quantity')} ? 'is-invalid' : ''">
+                                   placeholder="1" value="1" min="1">
                             <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
                         </div>
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('quantity')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('quantity')}"></div>
                     </div>
 
-                    <!-- Покупець -->
                     <div class="mb-3">
                         <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
-                        <input type="text" class="form-control" id="transactionBuyer" name="buyer"
-                               placeholder="Покупець"
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('buyer')} ? 'is-invalid' : ''">
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('buyer')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('buyer')}"></div>
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
                     </div>
 
-                    <!-- Продавець -->
                     <div class="mb-3">
                         <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
-                        <input type="text" class="form-control" id="transactionSeller" name="seller"
-                               placeholder="Продавець"
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('seller')} ? 'is-invalid' : ''">
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('seller')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('seller')}"></div>
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
                     </div>
 
-                    <!-- Деталі -->
                     <div class="mb-3">
                         <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
                         <textarea class="form-control" id="transactionDetails" name="details" rows="3"
-                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"
-                                  th:classappend="${fieldErrors != null and fieldErrors.containsKey('details')} ? 'is-invalid' : ''"></textarea>
-                        <div th:if="${fieldErrors != null and fieldErrors.containsKey('details')}"
-                             class="invalid-feedback" th:text="${fieldErrors.get('details')}"></div>
+                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
                         <div class="char-counter"><span id="charCount">0</span> / 250</div>
                     </div>
                 </div>
@@ -1299,12 +1265,13 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
+
 <script>
     (function() {
         'use strict';
 
         // ================================================================
-        // 0. КОЛІРНА ПАЛІТРА
+        // 0. КОЛІРНА ПАЛІТРА ДЛЯ ДІАГРАМ
         // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
         function getCategoryColor(name, index) {
@@ -1344,7 +1311,7 @@
         }
 
         // ================================================================
-        // 2. ОТРИМУЄМО ДАТУ (НАДІЙНО)
+        // 2. ОТРИМУЄМО ДАТУ
         // ================================================================
         let currentDate = '';
 
@@ -1444,7 +1411,7 @@
         }
 
         // ================================================================
-        // 4. ПЕРЕМИКАЧ ТИПУ В МОДАЛЦІ ДОДАВАННЯ
+        // 4. ПЕРЕМИКАЧ ТИПУ В МОДАЛЦІ ДОДАВАННЯ (ГОЛОВНЕ ВИПРАВЛЕННЯ)
         // ================================================================
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
@@ -1459,6 +1426,7 @@
                 return;
             }
             console.log('🔄 Перемикання на:', type, '| Дата:', dateVal);
+
             if (type === 'EXPENSE') {
                 if (expenseCategories && expenseCategories.length > 0) {
                     populateCategories(expenseCategories);
@@ -1484,11 +1452,14 @@
         }
 
         if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
+            // Встановлюємо початковий тип – Витрата
             setTransactionType('EXPENSE');
+
             typeExpenseBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 setTransactionType('EXPENSE');
             });
+
             typeIncomeBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 setTransactionType('INCOME');
@@ -1580,56 +1551,9 @@
         });
 
         // ================================================================
-        // 8. ВІДНОВЛЕННЯ ДАНИХ ФОРМИ З FLASH-АТРИБУТА (formData)
+        // 8. ОБРОБНИКИ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
         // ================================================================
-        (function restoreFormData() {
-            const formData = /*[[${formData}]]*/ null;
-            if (!formData) return;
-            console.log('🔄 Відновлення даних форми:', formData);
 
-            // Заповнюємо поля
-            const nameInput = document.getElementById('transactionName');
-            if (nameInput && formData.description) nameInput.value = formData.description;
-
-            const amountField = document.getElementById('transactionAmount');
-            if (amountField && formData.amount) amountField.value = parseFloat(formData.amount).toFixed(2);
-
-            const quantityField = document.getElementById('transactionQuantity');
-            if (quantityField && formData.quantity) quantityField.value = formData.quantity;
-
-            const buyerField = document.getElementById('transactionBuyer');
-            if (buyerField && formData.buyer) buyerField.value = formData.buyer;
-
-            const sellerField = document.getElementById('transactionSeller');
-            if (sellerField && formData.seller) sellerField.value = formData.seller;
-
-            const detailsField = document.getElementById('transactionDetails');
-            if (detailsField && formData.details) {
-                detailsField.value = formData.details;
-                const charCountEl = document.getElementById('charCount');
-                if (charCountEl) {
-                    charCountEl.textContent = formData.details.length;
-                    charCountEl.style.color = formData.details.length >= 250 ? '#dc3545' : '';
-                }
-            }
-
-            const timeField = document.getElementById('transactionTime');
-            if (timeField && formData.time) timeField.value = formData.time;
-
-            // Категорія
-            if (formData.categoryId && categorySelect) {
-                categorySelect.value = formData.categoryId;
-            }
-
-            // Тип транзакції
-            if (formData.type) {
-                setTransactionType(formData.type);
-            }
-        })();
-
-        // ================================================================
-        // 9. ОБРОБНИКИ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
-        // ================================================================
         // --- Редагування ---
         document.querySelectorAll('.action-edit').forEach(item => {
             item.addEventListener('click', function(e) {
@@ -1834,7 +1758,7 @@
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
         // ================================================================
-        // 10. АВТОЗАПОВНЕННЯ ЧАСУ
+        // 9. АВТОЗАПОВНЕННЯ ЧАСУ
         // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
@@ -1852,7 +1776,7 @@
         });
 
         // ================================================================
-        // 11. ТЕПЛІ КЛАВІШІ
+        // 10. ТЕПЛІ КЛАВІШІ
         // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
@@ -1878,7 +1802,7 @@
         });
 
         // ================================================================
-        // 12. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
+        // 11. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
         // ================================================================
         function saveFilters() {
             try {
@@ -1908,7 +1832,7 @@
         }
 
         // ================================================================
-        // 13. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // 12. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
         // ================================================================
         function saveChartVisibility(visible) {
             try {
@@ -1928,7 +1852,7 @@
         }
 
         // ================================================================
-        // 14. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // 13. ПЕРЕМИКАЧ ВИГЛЯДУ
         // ================================================================
         const viewToggle = document.getElementById('viewToggle');
         const tableView = document.getElementById('tableView');
@@ -1965,7 +1889,7 @@
         });
 
         // ================================================================
-        // 15. ДІАГРАМИ
+        // 14. ДІАГРАМИ
         // ================================================================
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
@@ -2079,7 +2003,7 @@
         }
 
         // ================================================================
-        // 16. ТОГЛ ДІАГРАМ
+        // 15. ТОГЛ ДІАГРАМ
         // ================================================================
         function toggleCharts() {
             const chartBody = document.getElementById('chartBody');
@@ -2101,7 +2025,7 @@
         document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
 
         // ================================================================
-        // 17. ЛОГІКА ТАБЛИЦІ
+        // 16. ЛОГІКА ТАБЛИЦІ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -2324,7 +2248,7 @@
         loadMoreBtn.addEventListener('click', loadMore);
 
         // ================================================================
-        // 18. СОРТУВАННЯ
+        // 17. СОРТУВАННЯ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -2419,7 +2343,7 @@
         });
 
         // ================================================================
-        // 19. РЕСАЙЗ КОЛОНОК
+        // 18. РЕСАЙЗ КОЛОНОК
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -2500,7 +2424,7 @@
         }
 
         // ================================================================
-        // 20. ЗАПУСК
+        // 19. ЗАПУСК
         // ================================================================
         init();
 
