@@ -1246,8 +1246,10 @@
 
 <script>
     (function() {
+        'use strict';
+
         // ================================================================
-        // 0. КОЛІРНА ПАЛІТРА ДЛЯ КАТЕГОРІЙ
+        // 0. КОЛІРНА ПАЛІТРА
         // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
         function getCategoryColor(name, index) {
@@ -1261,16 +1263,14 @@
         }
 
         // ================================================================
-        // 1. TOAST ПОВІДОМЛЕННЯ
+        // 1. TOAST
         // ================================================================
         function showToast(message, type) {
             const toastElement = document.getElementById('liveToast');
             if (!toastElement) return;
-
             const toastTitle = document.getElementById('toastTitle');
             const toastMessage = document.getElementById('toastMessage');
             const toastIcon = document.getElementById('toastIcon');
-
             toastElement.classList.remove('success', 'error');
             if (type === 'success') {
                 toastElement.classList.add('success');
@@ -1284,29 +1284,43 @@
                 toastIcon.className = 'fas fa-info-circle me-2';
                 toastTitle.textContent = 'Інформація';
             }
-
             toastMessage.textContent = message;
-            const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
-            toast.show();
+            new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 }).show();
         }
 
         // ================================================================
-        // 2. ДАТА ДЛЯ КЛЮЧІВ localStorage
+        // 2. ОТРИМУЄМО ДАТУ (НАДІЙНО)
         // ================================================================
-        const dateElem = document.querySelector('h5.no-print span');
         let currentDate = '';
-        if (dateElem) {
-            const parts = dateElem.textContent.trim().split(',');
-            if (parts.length > 1) {
-                const datePart = parts[1].trim().split('/');
-                if (datePart.length === 3) {
-                    currentDate = datePart[2] + '-' + datePart[1] + '-' + datePart[0];
+
+        const dateInput = document.getElementById('transactionDate');
+        if (dateInput && dateInput.value) {
+            currentDate = dateInput.value;
+        }
+        if (!currentDate) {
+            const dateElem = document.querySelector('h5.no-print span');
+            if (dateElem) {
+                const parts = dateElem.textContent.trim().split(',');
+                if (parts.length > 1) {
+                    const datePart = parts[1].trim().split('/');
+                    if (datePart.length === 3) {
+                        currentDate = datePart[2] + '-' + datePart[1] + '-' + datePart[0];
+                    }
                 }
             }
         }
         if (!currentDate) {
             currentDate = /*[[${dayBudget.date}]]*/ '';
         }
+        if (!currentDate) {
+            const now = new Date();
+            currentDate = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+        }
+        console.log('📅 Current date:', currentDate);
+
+        // Ключі localStorage
         const STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
         const COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
         const FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
@@ -1374,36 +1388,66 @@
             fetchIncomeCategories();
         }
 
-        // ---- ТИП У МОДАЛЦІ ДОДАВАННЯ ----
+        // ================================================================
+        // 4. ПЕРЕМИКАЧ ТИПУ В МОДАЛЦІ ДОДАВАННЯ
+        // ================================================================
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
         const transactionType = document.getElementById('transactionType');
         const transactionForm = document.getElementById('transactionForm');
 
-        if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
-            function setTransactionType(type) {
-                if (type === 'EXPENSE') {
-                    populateCategories(expenseCategories);
-                    transactionType.value = 'EXPENSE';
-                    typeExpenseBtn.className = 'btn active-expense';
-                    typeIncomeBtn.className = 'btn btn-outline-success';
-                    const dateInput = document.getElementById('transactionDate');
-                    transactionForm.action = '/day/' + (dateInput ? dateInput.value : '') + '/expense';
-                } else {
-                    populateCategories(incomeCategories);
-                    transactionType.value = 'INCOME';
-                    typeIncomeBtn.className = 'btn active-income';
-                    typeExpenseBtn.className = 'btn btn-outline-danger';
-                    const dateInput = document.getElementById('transactionDate');
-                    transactionForm.action = '/day/' + (dateInput ? dateInput.value : '') + '/income';
-                }
+        function setTransactionType(type) {
+            if (!transactionType || !transactionForm) return;
+            const dateVal = dateInput ? dateInput.value : currentDate;
+            if (!dateVal) {
+                console.error('❌ Дату не знайдено!');
+                return;
             }
-            setTransactionType('EXPENSE');
-            typeExpenseBtn.addEventListener('click', function() { setTransactionType('EXPENSE'); });
-            typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
+            console.log('🔄 Перемикання на:', type, '| Дата:', dateVal);
+            if (type === 'EXPENSE') {
+                if (expenseCategories && expenseCategories.length > 0) {
+                    populateCategories(expenseCategories);
+                } else {
+                    fetchExpenseCategories();
+                }
+                transactionType.value = 'EXPENSE';
+                typeExpenseBtn.className = 'btn active-expense';
+                typeIncomeBtn.className = 'btn btn-outline-success';
+                transactionForm.action = '/day/' + dateVal + '/expense';
+            } else {
+                if (incomeCategories && incomeCategories.length > 0) {
+                    populateCategories(incomeCategories);
+                } else {
+                    fetchIncomeCategories();
+                }
+                transactionType.value = 'INCOME';
+                typeIncomeBtn.className = 'btn active-income';
+                typeExpenseBtn.className = 'btn btn-outline-danger';
+                transactionForm.action = '/day/' + dateVal + '/income';
+            }
+            console.log('✅ Action форми:', transactionForm.action);
         }
 
-        // ---- ФОРМАТУВАННЯ СУМИ ----
+        if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
+            setTransactionType('EXPENSE');
+            typeExpenseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                setTransactionType('EXPENSE');
+            });
+            typeIncomeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                setTransactionType('INCOME');
+            });
+        }
+
+        document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
+            // При відкритті модалки можна скинути тип, якщо потрібно
+            // setTransactionType('EXPENSE');
+        });
+
+        // ================================================================
+        // 5. ДОДАТКОВІ ОБРОБНИКИ (СУМА, КІЛЬКІСТЬ, ЛІЧИЛЬНИК)
+        // ================================================================
         function formatAmountField() {
             const amountInput = document.getElementById('transactionAmount');
             if (!amountInput) return;
@@ -1432,7 +1476,6 @@
             amountInput.addEventListener('change', formatAmountField);
         }
 
-        // ---- КНОПКИ +/- ДЛЯ КІЛЬКОСТІ ----
         const quantityInput = document.getElementById('transactionQuantity');
         if (quantityInput) {
             document.getElementById('quantityMinus')?.addEventListener('click', function() {
@@ -1445,7 +1488,6 @@
             });
         }
 
-        // ---- ЛІЧИЛЬНИК СИМВОЛІВ (головна модалка) ----
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
         if (detailsTextarea && charCount) {
@@ -1457,7 +1499,9 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ---- СКИДАННЯ МОДАЛКИ ДОДАВАННЯ ----
+        // ================================================================
+        // 6. СКИДАННЯ МОДАЛКИ ДОДАВАННЯ
+        // ================================================================
         document.getElementById('transactionModal')?.addEventListener('hidden.bs.modal', function() {
             const form = document.getElementById('transactionForm');
             if (form) form.reset();
@@ -1468,7 +1512,9 @@
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });
 
-        // ---- ВАЛІДАЦІЯ ДОДАВАННЯ ----
+        // ================================================================
+        // 7. ВАЛІДАЦІЯ ДОДАВАННЯ
+        // ================================================================
         transactionForm?.addEventListener('submit', function(e) {
             let valid = true;
             const name = document.getElementById('transactionName');
@@ -1483,34 +1529,13 @@
             }
         });
 
-        // ---- ФОРМАТУВАННЯ СУМИ В МОДАЛКАХ РЕДАГУВАННЯ ----
-        function formatEditAmount(inputId) {
-            const el = document.getElementById(inputId);
-            if (!el) return;
-            let val = parseFloat(el.value);
-            if (isNaN(val) || val < 0) val = 0;
-            el.value = val.toFixed(2);
-        }
-        const editExpAmount = document.getElementById('editExpenseAmount');
-        if (editExpAmount) {
-            editExpAmount.addEventListener('blur', function() { formatEditAmount('editExpenseAmount'); });
-            editExpAmount.addEventListener('change', function() { formatEditAmount('editExpenseAmount'); });
-        }
-        const editIncAmount = document.getElementById('editIncomeAmount');
-        if (editIncAmount) {
-            editIncAmount.addEventListener('blur', function() { formatEditAmount('editIncomeAmount'); });
-            editIncAmount.addEventListener('change', function() { formatEditAmount('editIncomeAmount'); });
-        }
-
         // ================================================================
-        // 4. ОБРОБНИКИ ДЛЯ ПУНКТІВ МЕНЮ (EDIT, DELETE, DUPLICATE)
+        // 8. ОБРОБНИКИ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
         // ================================================================
-
-        // ---- РЕДАГУВАННЯ ----
+        // --- Редагування ---
         document.querySelectorAll('.action-edit').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-
                 const type = this.dataset.type;
                 const id = this.dataset.id;
                 const category = this.dataset.category;
@@ -1523,40 +1548,148 @@
                 const seller = this.dataset.seller || '';
 
                 if (type === 'expense') {
-                    const modal = document.getElementById('editExpenseModal');
-                    document.getElementById('editExpenseId').value = id;
-                    document.getElementById('editExpenseCategory').value = category;
-                    document.getElementById('editExpenseDescription').value = description;
-                    document.getElementById('editExpenseAmount').value = amount.toFixed(2);
-                    document.getElementById('editExpenseQuantity').value = quantity;
-                    document.getElementById('editExpenseTime').value = time;
-                    document.getElementById('editExpenseDetails').value = details;
-                    document.getElementById('editExpenseBuyer').value = buyer;
-                    document.getElementById('editExpenseSeller').value = seller;
-                    document.getElementById('editExpenseCharCount').textContent = details.length;
-                    document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
+                    const modalEl = document.getElementById('editExpenseModal');
+                    if (modalEl) {
+                        document.getElementById('editExpenseId').value = id;
+                        document.getElementById('editExpenseCategory').value = category;
+                        document.getElementById('editExpenseDescription').value = description;
+                        document.getElementById('editExpenseAmount').value = amount.toFixed(2);
+                        document.getElementById('editExpenseQuantity').value = quantity;
+                        document.getElementById('editExpenseTime').value = time;
+                        document.getElementById('editExpenseDetails').value = details;
+                        document.getElementById('editExpenseBuyer').value = buyer;
+                        document.getElementById('editExpenseSeller').value = seller;
+                        document.getElementById('editExpenseCharCount').textContent = details.length;
+                        document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
                 } else {
-                    const modal = document.getElementById('editIncomeModal');
-                    document.getElementById('editIncomeId').value = id;
-                    document.getElementById('editIncomeCategory').value = category;
-                    document.getElementById('editIncomeDescription').value = description;
-                    document.getElementById('editIncomeAmount').value = amount.toFixed(2);
-                    document.getElementById('editIncomeQuantity').value = quantity;
-                    document.getElementById('editIncomeTime').value = time;
-                    document.getElementById('editIncomeDetails').value = details;
-                    document.getElementById('editIncomeBuyer').value = buyer;
-                    document.getElementById('editIncomeSeller').value = seller;
-                    document.getElementById('editIncomeCharCount').textContent = details.length;
-                    document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                    const bsModal = new bootstrap.Modal(modal);
-                    bsModal.show();
+                    const modalEl = document.getElementById('editIncomeModal');
+                    if (modalEl) {
+                        document.getElementById('editIncomeId').value = id;
+                        document.getElementById('editIncomeCategory').value = category;
+                        document.getElementById('editIncomeDescription').value = description;
+                        document.getElementById('editIncomeAmount').value = amount.toFixed(2);
+                        document.getElementById('editIncomeQuantity').value = quantity;
+                        document.getElementById('editIncomeTime').value = time;
+                        document.getElementById('editIncomeDetails').value = details;
+                        document.getElementById('editIncomeBuyer').value = buyer;
+                        document.getElementById('editIncomeSeller').value = seller;
+                        document.getElementById('editIncomeCharCount').textContent = details.length;
+                        document.getElementById('editIncomeForm').action = '/income/edit/' + id;
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
                 }
             });
         });
 
-        // ---- ВИДАЛЕННЯ ----
+        // --- Дублювання ---
+        function loadCloneCategories(type) {
+            const categorySelect = document.getElementById('cloneCategory');
+            if (!categorySelect) return;
+            const url = type === 'expense' ? '/categories/expense' : '/categories/income';
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    categorySelect.innerHTML = '';
+                    if (!data || data.length === 0) {
+                        const opt = document.createElement('option');
+                        opt.value = '';
+                        opt.textContent = 'Немає категорій';
+                        opt.disabled = true;
+                        categorySelect.appendChild(opt);
+                        return;
+                    }
+                    data.forEach(cat => {
+                        const opt = document.createElement('option');
+                        opt.value = cat.id;
+                        opt.textContent = cat.name;
+                        categorySelect.appendChild(opt);
+                    });
+                })
+                .catch(err => console.warn('Помилка завантаження категорій:', err));
+        }
+
+        function setCloneType(type) {
+            const typeInput = document.getElementById('cloneType');
+            const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
+            const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
+            const form = document.getElementById('cloneForm');
+            if (type === 'EXPENSE') {
+                typeInput.value = 'EXPENSE';
+                expenseBtn.className = 'btn active-expense';
+                incomeBtn.className = 'btn btn-outline-success';
+                loadCloneCategories('expense');
+                form.action = '/day/' + currentDate + '/expense';
+            } else {
+                typeInput.value = 'INCOME';
+                incomeBtn.className = 'btn active-income';
+                expenseBtn.className = 'btn btn-outline-danger';
+                loadCloneCategories('income');
+                form.action = '/day/' + currentDate + '/income';
+            }
+        }
+
+        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
+            setCloneType('EXPENSE');
+        });
+        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
+            setCloneType('INCOME');
+        });
+
+        const cloneDetailsTextarea = document.getElementById('cloneDetails');
+        const cloneCharCount = document.getElementById('cloneCharCount');
+        if (cloneDetailsTextarea && cloneCharCount) {
+            cloneDetailsTextarea.addEventListener('input', function() {
+                const len = this.value.length;
+                cloneCharCount.textContent = len;
+                cloneCharCount.style.color = len >= 250 ? '#dc3545' : '';
+            });
+        }
+
+        document.getElementById('cloneModal')?.addEventListener('hidden.bs.modal', function() {
+            document.getElementById('cloneForm').reset();
+            document.getElementById('cloneCharCount').textContent = '0';
+        });
+
+        document.querySelectorAll('.action-duplicate').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.type;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+
+                document.getElementById('cloneCategory').value = category;
+                document.getElementById('cloneDescription').value = description;
+                document.getElementById('cloneAmount').value = amount.toFixed(2);
+                document.getElementById('cloneQuantity').value = quantity;
+                document.getElementById('cloneTime').value = time;
+                document.getElementById('cloneDetails').value = details;
+                document.getElementById('cloneBuyer').value = buyer;
+                document.getElementById('cloneSeller').value = seller;
+                document.getElementById('cloneCharCount').textContent = details.length;
+
+                setCloneType(initialType);
+
+                const modalEl = document.getElementById('cloneModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            });
+        });
+
+        // --- Видалення ---
         document.querySelectorAll('.action-delete').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1591,126 +1724,19 @@
                     detailsRow.style.display = 'none';
                 }
 
-                const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-                modal.show();
+                const modalEl = document.getElementById('deleteConfirmModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
             });
         });
 
-        // ---- ДУБЛЮВАННЯ (оновлене) ----
-        // Завантаження категорій для дублювання
-        function loadCloneCategories(type) {
-            const categorySelect = document.getElementById('cloneCategory');
-            if (!categorySelect) return;
-
-            const url = type === 'expense' ? '/categories/expense' : '/categories/income';
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    categorySelect.innerHTML = '';
-                    if (!data || data.length === 0) {
-                        const opt = document.createElement('option');
-                        opt.value = '';
-                        opt.textContent = 'Немає категорій';
-                        opt.disabled = true;
-                        categorySelect.appendChild(opt);
-                        return;
-                    }
-                    data.forEach(cat => {
-                        const opt = document.createElement('option');
-                        opt.value = cat.id;
-                        opt.textContent = cat.name;
-                        categorySelect.appendChild(opt);
-                    });
-                })
-                .catch(err => console.warn('Помилка завантаження категорій:', err));
-        }
-
-        // Встановлення типу для дублювання
-        function setCloneType(type) {
-            const typeInput = document.getElementById('cloneType');
-            const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
-            const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
-            const form = document.getElementById('cloneForm');
-
-            if (type === 'EXPENSE') {
-                typeInput.value = 'EXPENSE';
-                expenseBtn.className = 'btn active-expense';
-                incomeBtn.className = 'btn btn-outline-success';
-                loadCloneCategories('expense');
-                form.action = '/day/' + currentDate + '/expense';
-            } else {
-                typeInput.value = 'INCOME';
-                incomeBtn.className = 'btn active-income';
-                expenseBtn.className = 'btn btn-outline-danger';
-                loadCloneCategories('income');
-                form.action = '/day/' + currentDate + '/income';
-            }
-        }
-
-        // Кнопки перемикання типу в модалці дублювання
-        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
-            setCloneType('EXPENSE');
-        });
-        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
-            setCloneType('INCOME');
-        });
-
-        // Лічильник символів для дублювання
-        const cloneDetailsTextarea = document.getElementById('cloneDetails');
-        const cloneCharCount = document.getElementById('cloneCharCount');
-        if (cloneDetailsTextarea && cloneCharCount) {
-            cloneDetailsTextarea.addEventListener('input', function() {
-                const len = this.value.length;
-                cloneCharCount.textContent = len;
-                cloneCharCount.style.color = len >= 250 ? '#dc3545' : '';
-            });
-        }
-
-        // Скидання модалки дублювання при закритті
-        document.getElementById('cloneModal')?.addEventListener('hidden.bs.modal', function() {
-            document.getElementById('cloneForm').reset();
-            document.getElementById('cloneCharCount').textContent = '0';
-        });
-
-        // Обробник кнопок дублювання
-        document.querySelectorAll('.action-duplicate').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-
-                const type = this.dataset.type;
-                const category = this.dataset.category;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1;
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-
-                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
-
-                document.getElementById('cloneCategory').value = category;
-                document.getElementById('cloneDescription').value = description;
-                document.getElementById('cloneAmount').value = amount.toFixed(2);
-                document.getElementById('cloneQuantity').value = quantity;
-                document.getElementById('cloneTime').value = time;
-                document.getElementById('cloneDetails').value = details;
-                document.getElementById('cloneBuyer').value = buyer;
-                document.getElementById('cloneSeller').value = seller;
-                document.getElementById('cloneCharCount').textContent = details.length;
-
-                setCloneType(initialType);
-
-                const modal = new bootstrap.Modal(document.getElementById('cloneModal'));
-                modal.show();
-            });
-        });
-
-        // ---- TOOLTIPS ----
+        // Tooltips
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
         // ================================================================
-        // 5. АВТОЗАПОВНЕННЯ ЧАСУ
+        // 9. АВТОЗАПОВНЕННЯ ЧАСУ
         // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
@@ -1728,12 +1754,11 @@
         });
 
         // ================================================================
-        // 6. ТЕПЛІ КЛАВІШІ
+        // 10. ТЕПЛІ КЛАВІШІ
         // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
-
             if (e.key === 'Escape') {
                 openModals.forEach(modal => {
                     const bsModal = bootstrap.Modal.getInstance(modal);
@@ -1742,28 +1767,20 @@
                 e.preventDefault();
                 return;
             }
-
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 for (const modal of openModals) {
                     const form = modal.querySelector('form:not(#deleteForm)');
                     if (form) {
                         const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.click();
-                            e.preventDefault();
-                            break;
-                        } else {
-                            form.submit();
-                            e.preventDefault();
-                            break;
-                        }
+                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
+                        else { form.submit(); e.preventDefault(); break; }
                     }
                 }
             }
         });
 
         // ================================================================
-        // 7. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ У localStorage
+        // 11. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
         // ================================================================
         function saveFilters() {
             try {
@@ -1793,7 +1810,7 @@
         }
 
         // ================================================================
-        // 8. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // 12. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
         // ================================================================
         function saveChartVisibility(visible) {
             try {
@@ -1813,7 +1830,7 @@
         }
 
         // ================================================================
-        // 9. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // 13. ПЕРЕМИКАЧ ВИГЛЯДУ
         // ================================================================
         const viewToggle = document.getElementById('viewToggle');
         const tableView = document.getElementById('tableView');
@@ -1850,30 +1867,20 @@
         });
 
         // ================================================================
-        // 10. ДІАГРАМИ
+        // 14. ДІАГРАМИ
         // ================================================================
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
             const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
             const chartCanvas = document.getElementById(canvasId);
             const legendContainer = document.getElementById(legendId);
-            if (!chartCanvas) {
-                console.warn('Canvas #' + canvasId + ' не знайдено');
-                return;
-            }
-
+            if (!chartCanvas) return;
             if (typeof Chart === 'undefined') {
-                console.warn('Chart.js не завантажено');
-                const container = chartCanvas.parentElement;
-                if (container) {
-                    container.innerHTML = '<p class="text-muted">Бібліотека Chart.js не завантажилась. Спробуйте перезавантажити сторінку.</p>';
-                }
+                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
                 return;
             }
-
             const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
             const categoryMap = new Map();
-
             rows.forEach(row => {
                 const catCell = row.querySelector('.col-category .category-text');
                 if (!catCell) return;
@@ -1886,13 +1893,9 @@
                     categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
                 }
             });
-
-            const entries = Array.from(categoryMap.entries());
-            entries.sort((a, b) => b[1] - a[1]);
-
+            const entries = Array.from(categoryMap.entries()).sort((a,b) => b[1] - a[1]);
             const labels = entries.map(e => e[0]);
             const data = entries.map(e => e[1]);
-
             const chartCol = document.getElementById(type + 'ChartCol');
             if (data.length === 0) {
                 if (chartCol) chartCol.style.display = 'none';
@@ -1900,15 +1903,12 @@
             } else {
                 if (chartCol) chartCol.style.display = '';
             }
-
-            const colors = labels.map((name, index) => getCategoryColor(name, index));
-
+            const colors = labels.map((name, idx) => getCategoryColor(name, idx));
             const chartKey = type + 'ChartInstance';
             if (window[chartKey]) {
                 try { window[chartKey].destroy(); } catch(e) {}
                 window[chartKey] = null;
             }
-
             try {
                 window[chartKey] = new Chart(chartCanvas, {
                     type: 'doughnut',
@@ -1933,16 +1933,13 @@
                             }
                         },
                         plugins: {
-                            legend: {
-                                display: false
-                            }
+                            legend: { display: false }
                         },
                         cutout: '55%'
                     }
                 });
-
                 if (legendContainer) {
-                    const total = data.reduce((a, b) => a + b, 0);
+                    const total = data.reduce((a,b) => a+b, 0);
                     let html = '<table class="chart-legend-table"><tbody>';
                     entries.forEach(([name, amount], idx) => {
                         const color = getCategoryColor(name, idx);
@@ -1957,22 +1954,15 @@
                     html += '</tbody></table>';
                     legendContainer.innerHTML = html;
                 }
-
                 const totalLabel = document.getElementById('chartTotalLabel');
                 if (totalLabel) {
                     const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
                     const incomeTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="income"]');
-                    const totalCount = expenseTotal.length + incomeTotal.length;
-                    totalLabel.textContent = 'Всього: ' + totalCount;
+                    totalLabel.textContent = 'Всього: ' + (expenseTotal.length + incomeTotal.length);
                 }
-
-                console.log('Діаграма ' + type + ' успішно створена');
-            } catch (e) {
-                console.error('Помилка при створенні діаграми ' + type + ':', e);
-                const container = chartCanvas.parentElement;
-                if (container) {
-                    container.innerHTML = '<p class="text-muted">Помилка створення діаграми. Перевірте консоль.</p>';
-                }
+            } catch(e) {
+                console.error('Помилка діаграми ' + type + ':', e);
+                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Помилка створення діаграми.</p>';
             }
         }
 
@@ -1991,13 +1981,12 @@
         }
 
         // ================================================================
-        // 11. ТОГЛ ДІАГРАМ
+        // 15. ТОГЛ ДІАГРАМ
         // ================================================================
         function toggleCharts() {
             const chartBody = document.getElementById('chartBody');
             const icon = document.getElementById('chartToggleIcon');
             if (!chartBody) return;
-
             const isHidden = chartBody.style.display === 'none';
             if (isHidden) {
                 chartBody.style.display = '';
@@ -2014,7 +2003,7 @@
         document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
 
         // ================================================================
-        // 12. ЛОГІКА ТАБЛИЦІ: ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // 16. ЛОГІКА ТАБЛИЦІ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -2046,8 +2035,7 @@
             });
             const currentVal = categoryFilter.value;
             categoryFilter.innerHTML = '<option value="">Всі категорії</option>';
-            const sorted = Array.from(categories).sort();
-            sorted.forEach(cat => {
+            Array.from(categories).sort().forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
                 opt.textContent = cat;
@@ -2061,15 +2049,12 @@
         function updateCards(rowsToShow) {
             const wrappers = cardsContainer.querySelectorAll('.transaction-card-wrapper');
             const rows = rowsToShow || visibleRows;
-            totalRowsSpan.textContent = visibleRows.length;
-
             wrappers.forEach(wrapper => {
                 const id = wrapper.dataset.id;
                 const type = wrapper.dataset.type;
                 const isVisible = rows.some(row => row.dataset.id === id && row.dataset.type === type);
                 wrapper.style.display = isVisible ? '' : 'none';
             });
-
             if (visibleRows.length === 0) {
                 let emptyMsg = cardsContainer.querySelector('.empty-cards-message');
                 if (!emptyMsg) {
@@ -2241,7 +2226,7 @@
         loadMoreBtn.addEventListener('click', loadMore);
 
         // ================================================================
-        // 13. СОРТУВАННЯ З ПАМ'ЯТТЮ
+        // 17. СОРТУВАННЯ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -2287,7 +2272,6 @@
             const idx = indexMap[column];
             if (idx === undefined) return;
 
-            // Сортуємо рядки
             rowsArray.sort((a, b) => {
                 const aCell = a.querySelector(`td:nth-child(${idx+1})`);
                 const bCell = b.querySelector(`td:nth-child(${idx+1})`);
@@ -2307,29 +2291,9 @@
                 }
             });
 
-            // Оновлюємо таблицю
             rowsArray.forEach(row => tableBody.appendChild(row));
             allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
 
-            // ===== ОНОВЛЮЄМО КАРТКИ В ТОМУ Ж ПОРЯДКУ =====
-            const cardWrappers = Array.from(cardsContainer.querySelectorAll('.transaction-card-wrapper'));
-            const cardMap = new Map();
-            cardWrappers.forEach(w => {
-                // Ключ: тип + id (наприклад, "expense-123")
-                const key = w.dataset.type + '-' + w.dataset.id;
-                cardMap.set(key, w);
-            });
-
-            // Проходимо по відсортованих рядках і додаємо картки в тому ж порядку
-            rowsArray.forEach(row => {
-                const key = row.dataset.type + '-' + row.dataset.id;
-                const card = cardMap.get(key);
-                if (card) {
-                    cardsContainer.appendChild(card);
-                }
-            });
-
-            // Оновлюємо іконки сортування
             document.querySelectorAll('.sortable').forEach(th => {
                 th.classList.remove('active-asc', 'active-desc');
                 const icon = th.querySelector('.sort-icon');
@@ -2357,7 +2321,7 @@
         });
 
         // ================================================================
-        // 14. РЕСАЙЗ КОЛОНОК
+        // 18. РЕСАЙЗ КОЛОНОК
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -2438,9 +2402,10 @@
         }
 
         // ================================================================
-        // 15. ЗАПУСК
+        // 19. ЗАПУСК
         // ================================================================
         init();
+
     })();
 </script>
 </body>

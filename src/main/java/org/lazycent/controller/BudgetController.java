@@ -1,5 +1,7 @@
 package org.lazycent.controller;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import jakarta.servlet.http.HttpServletRequest;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.TransactionRequest;
@@ -134,8 +136,14 @@ public class BudgetController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Model model) {
         log.info("GET /totals - startDate={}, endDate={}", startDate, endDate);
-        if (startDate == null) startDate = LocalDate.now().withDayOfMonth(1);
-        if (endDate == null) endDate = LocalDate.now();
+
+        // Якщо дати не передані – показуємо останні 30 днів
+        if (startDate == null) {
+            startDate = LocalDate.now().minusDays(30);
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now();
+        }
 
         TotalBudget totalBudget = budgetService.getTotalBudget(startDate, endDate);
         if (totalBudget == null) {
@@ -145,7 +153,7 @@ public class BudgetController {
             totalBudget.setBalance(0.0);
             totalBudget.setExpensesByCategory(new HashMap<>());
             totalBudget.setIncomesByCategory(new HashMap<>());
-            totalBudget.setDailySummaries(new java.util.LinkedHashMap<>());
+            totalBudget.setDailySummaries(new LinkedHashMap<>());
         }
 
         model.addAttribute("totalBudget", totalBudget);
