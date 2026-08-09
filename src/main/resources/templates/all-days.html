@@ -573,9 +573,324 @@
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-<!-- (ті ж самі, що в day-detail) -->
-<!-- Додавання, видалення, редагування, дублювання – скопіюйте з day-detail -->
-<!-- Для короткості тут не повторюю, але вони мають бути -->
+<div class="modal fade no-print" id="transactionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Додати нову транзакцію</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="transactionForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="type" id="transactionType" value="EXPENSE">
+
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <div class="transaction-type-toggle">
+                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i> Витрата
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i> Дохід
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionDate" class="form-label">Дата</label>
+                        <input type="date" class="form-control" id="transactionDate" name="date" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionTime" class="form-label">Час (необов'язково)</label>
+                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="categorySelect" class="form-label">Категорія</label>
+                        <select class="form-select" id="categorySelect" name="categoryId" required>
+                            <option value="">Завантаження...</option>
+                        </select>
+                        <div class="invalid-feedback">Виберіть категорію</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionName" class="form-label">Найменування</label>
+                        <input type="text" class="form-control" id="transactionName" name="description"
+                               placeholder="наприклад, Продукти, обід, канцелярія" required>
+                        <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionAmount" class="form-label">Сума (₴)</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
+                                   placeholder="0.0" value="0.00" required>
+                            <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
+                        </div>
+                        <div class="invalid-feedback">Введіть суму</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
+                                   placeholder="1" value="1" min="1">
+                            <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
+                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="charCount">0</span> / 250</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти транзакцію</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Підтвердження видалення</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Ви впевнені, що хочете видалити цю транзакцію?</p>
+                <p class="text-muted small text-center">Цю дію не можна скасувати.</p>
+                <hr>
+                <div class="delete-details">
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Тип:</div><div class="col-8 value" id="deleteType"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Час:</div><div class="col-8 value" id="deleteTime"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Найменування:</div><div class="col-8 value" id="deleteDescription"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Кількість:</div><div class="col-8 value" id="deleteQuantity"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Сума:</div><div class="col-8 value" id="deleteAmount"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Покупець:</div><div class="col-8 value" id="deleteBuyer"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Продавець:</div><div class="col-8 value" id="deleteSeller"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Категорія:</div><div class="col-8 value" id="deleteCategory"></div></div>
+                    <div class="row mb-2" id="deleteDetailsRow"><div class="col-4 label fw-bold">Деталі:</div><div class="col-8 value" id="deleteDetails"></div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <form id="deleteForm" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Видалити</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати витрату</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editExpenseForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="editExpenseId">
+                    <div class="mb-3"><label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="editExpenseCategory" required>
+                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="editExpenseDescription" required>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="editExpenseBuyer">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="editExpenseSeller">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="editExpenseTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати дохід</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editIncomeForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="editIncomeId">
+                    <div class="mb-3"><label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="editIncomeCategory" required>
+                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="editIncomeDescription" required>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="editIncomeBuyer">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="editIncomeSeller">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="editIncomeTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="cloneModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-copy me-2"></i>Дублювати транзакцію</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="cloneForm" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="type" id="cloneType" value="EXPENSE">
+
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <div class="transaction-type-toggle">
+                            <button type="button" class="btn btn-outline-danger active-expense" id="cloneTypeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i> Витрата
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="cloneTypeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i> Дохід
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3"><label class="form-label">Категорія</label>
+                        <select name="categoryId" class="form-select" id="cloneCategory" required>
+                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Найменування</label>
+                        <input type="text" name="description" class="form-control" id="cloneDescription" required>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Покупець</label>
+                        <input type="text" name="buyer" class="form-control" id="cloneBuyer">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Продавець</label>
+                        <input type="text" name="seller" class="form-control" id="cloneSeller">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Сума (₴)</label>
+                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required>
+                    </div>
+                    <div class="mb-3"><label class="form-label">Кількість</label>
+                        <input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Час</label>
+                        <input type="time" class="form-control" id="cloneTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3"><label class="form-label">Додаткові деталі</label>
+                        <textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea>
+                        <div class="char-counter"><span id="cloneCharCount">0</span> / 250</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Дублювати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="deleteDayConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Підтвердження видалення дня</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Ви впевнені, що хочете видалити цей день та всі його транзакції?</p>
+                <p class="text-muted small text-center">Цю дію не можна скасувати.</p>
+                <hr>
+                <div class="delete-details">
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Дата:</div><div class="col-8 value" id="deleteDate"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">День:</div><div class="col-8 value" id="deleteDayName"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Початковий баланс:</div><div class="col-8 value" id="deleteStartingBalance"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Витрати:</div><div class="col-8 value" id="deleteExpenses"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Доходи:</div><div class="col-8 value" id="deleteIncomes"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Баланс:</div><div class="col-8 value" id="deleteBalance"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Всього транзакцій:</div><div class="col-8 value" id="deleteTotalTransactions"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Доходів:</div><div class="col-8 value" id="deleteIncomeCount"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold">Витрат:</div><div class="col-8 value" id="deleteExpenseCount"></div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <form id="deleteDayForm" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Видалити день</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
@@ -715,10 +1030,10 @@
         }
 
         // ================================================================
-        // 5. ФІЛЬТРАЦІЯ ТА ПАГІНАЦІЯ (ВИПРАВЛЕНО)
+        // 5. ФІЛЬТРАЦІЯ ТА ПАГІНАЦІЯ
         // ================================================================
         let currentPage = 1;
-        let pageSize = 6; // буде оновлено з select
+        let pageSize = 6;
         let filteredItems = [];
 
         function getFilteredItems() {
@@ -741,19 +1056,16 @@
                 const incomeCount = parseInt(item.dataset.incomeCount) || 0;
                 const count = expenseCount + incomeCount;
 
-                // Пошук по всьому тексту
                 let matchSearch = true;
                 if (searchTerm) {
                     const fullText = (dayName + ' ' + dateStr + ' ' + expenses + ' ' + incomes + ' ' + balance + ' ' + count).toLowerCase();
                     matchSearch = fullText.includes(searchTerm);
                 }
 
-                // Фільтр по даті
                 let matchDate = true;
                 if (fromVal && dateStr < fromVal) matchDate = false;
                 if (toVal && dateStr > toVal) matchDate = false;
 
-                // Фільтр по дню
                 let matchDay = true;
                 if (dayVal && dayName !== dayVal) matchDay = false;
 
@@ -771,17 +1083,14 @@
             const isCardsMode = cardsView.classList.contains('show');
             const items = isCardsMode ? allDayCards : allDayRows;
 
-            // Ховаємо всі елементи
             items.forEach(item => item.style.display = 'none');
 
-            // Якщо вибрано "Всі" (pageSize === 0) – показуємо всі відфільтровані
             if (pageSize === 0) {
                 filteredItems.forEach(item => item.style.display = '');
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> Всі завантажено';
                 noResults.style.display = total === 0 ? 'block' : 'none';
-                // Оновлюємо номери рядків у таблиці
                 if (!isCardsMode) {
                     const visibleRows = document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]');
                     visibleRows.forEach((row, idx) => {
@@ -792,12 +1101,10 @@
                 return;
             }
 
-            // Показуємо елементи від початку до кінця поточної сторінки (накопичувально)
             const end = Math.min(currentPage * pageSize, total);
             for (let i = 0; i < end; i++) {
                 filteredItems[i].style.display = '';
             }
-            // Приховуємо решту
             for (let i = end; i < total; i++) {
                 filteredItems[i].style.display = 'none';
             }
@@ -808,7 +1115,6 @@
             loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
             noResults.style.display = total === 0 ? 'block' : 'none';
 
-            // Оновлюємо номери рядків у таблиці (тільки видимі)
             if (!isCardsMode) {
                 const visibleRows = document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]');
                 visibleRows.forEach((row, idx) => {
@@ -820,7 +1126,7 @@
 
         function applyFiltersAndPaginate() {
             filteredItems = getFilteredItems();
-            currentPage = 1; // скидаємо на першу сторінку при зміні фільтра
+            currentPage = 1;
             updateUI();
         }
 
@@ -837,7 +1143,7 @@
         }
 
         // ================================================================
-        // 6. СОРТУВАННЯ (тільки для таблиці)
+        // 6. СОРТУВАННЯ
         // ================================================================
         function sortRowsBy(column, direction) {
             if (!allDayRows.length) return;
@@ -864,7 +1170,6 @@
             const tbody = document.getElementById('daysTableBody');
             rowsArray.forEach(row => tbody.appendChild(row));
 
-            // Оновлюємо іконки сортування
             document.querySelectorAll('.sortable').forEach(th => {
                 th.classList.remove('active-asc', 'active-desc');
                 const icon = th.querySelector('.sort-icon');
@@ -876,12 +1181,11 @@
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
 
-            // Перезастосовуємо фільтри, щоб оновити видимість і нумерацію
             applyFiltersAndPaginate();
         }
 
         // ================================================================
-        // 7. ВИДАЛЕННЯ ДНЯ (через модалку)
+        // 7. ВИДАЛЕННЯ ДНЯ
         // ================================================================
         function handleDeleteDay(btn) {
             const id = btn.dataset.id;
@@ -897,7 +1201,6 @@
 
             document.getElementById('deleteDate').textContent = date;
             document.getElementById('deleteDayName').textContent = dayName;
-            document.getElementById('deleteDayNameDetail').textContent = dayName;
             document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ₴';
             document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
             document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ₴';
@@ -915,6 +1218,402 @@
             deleteForm.action = '/day/delete/' + id;
             new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
         }
+
+        // ================================================================
+        // 8. ДОДАТКОВИЙ JS ДЛЯ ТРАНЗАКЦІЙ (додавання, редагування, дублювання)
+        // ================================================================
+
+        // ---- 8.1. Допоміжні функції для категорій ----
+        function populateCategories(selectElement, categories) {
+            if (!selectElement) return;
+            selectElement.innerHTML = '';
+            if (!categories || categories.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Немає категорій';
+                opt.disabled = true;
+                selectElement.appendChild(opt);
+                return;
+            }
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                selectElement.appendChild(opt);
+            });
+        }
+
+        async function fetchCategories(type) {
+            const url = type === 'EXPENSE' ? '/categories/expense' : '/categories/income';
+            try {
+                const response = await fetch(url);
+                return await response.json();
+            } catch (err) {
+                console.warn('Помилка завантаження категорій:', err);
+                return [];
+            }
+        }
+
+        // ---- 8.2. Перемикач типу в модалці додавання ----
+        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
+        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
+        const transactionType = document.getElementById('transactionType');
+        const transactionForm = document.getElementById('transactionForm');
+        const categorySelect = document.getElementById('categorySelect');
+        const dateInput = document.getElementById('transactionDate');
+        let expenseCategories = [];
+        let incomeCategories = [];
+
+        async function setTransactionType(type) {
+            if (!transactionType || !transactionForm) return;
+            if (dateInput && !dateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+
+            if (type === 'EXPENSE') {
+                if (expenseCategories.length === 0) {
+                    expenseCategories = await fetchCategories('EXPENSE');
+                }
+                populateCategories(categorySelect, expenseCategories);
+                transactionType.value = 'EXPENSE';
+                typeExpenseBtn.className = 'btn active-expense';
+                typeIncomeBtn.className = 'btn btn-outline-success';
+            } else {
+                if (incomeCategories.length === 0) {
+                    incomeCategories = await fetchCategories('INCOME');
+                }
+                populateCategories(categorySelect, incomeCategories);
+                transactionType.value = 'INCOME';
+                typeIncomeBtn.className = 'btn active-income';
+                typeExpenseBtn.className = 'btn btn-outline-danger';
+            }
+            updateFormAction();
+        }
+
+        function updateFormAction() {
+            const dateVal = dateInput ? dateInput.value : '';
+            if (!dateVal) return;
+            const type = transactionType ? transactionType.value : 'EXPENSE';
+            const action = type === 'EXPENSE' ? '/day/' + dateVal + '/expense' : '/day/' + dateVal + '/income';
+            transactionForm.action = action;
+        }
+
+        if (typeExpenseBtn && typeIncomeBtn) {
+            setTransactionType('EXPENSE');
+            typeExpenseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                setTransactionType('EXPENSE');
+            });
+            typeIncomeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                setTransactionType('INCOME');
+            });
+            if (dateInput) {
+                dateInput.addEventListener('change', updateFormAction);
+            }
+        }
+
+        // ---- 8.3. Кнопки +/- для суми та кількості ----
+        const amountInput = document.getElementById('transactionAmount');
+        if (amountInput) {
+            document.getElementById('amountMinus')?.addEventListener('click', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                if (val > 0) {
+                    val = Math.round((val - 0.01) * 100) / 100;
+                    amountInput.value = val.toFixed(2);
+                }
+            });
+            document.getElementById('amountPlus')?.addEventListener('click', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                val = Math.round((val + 0.01) * 100) / 100;
+                amountInput.value = val.toFixed(2);
+            });
+            amountInput.addEventListener('blur', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                amountInput.value = val.toFixed(2);
+            });
+        }
+
+        const quantityInput = document.getElementById('transactionQuantity');
+        if (quantityInput) {
+            document.getElementById('quantityMinus')?.addEventListener('click', function() {
+                let val = parseInt(quantityInput.value) || 1;
+                if (val > 1) quantityInput.value = val - 1;
+            });
+            document.getElementById('quantityPlus')?.addEventListener('click', function() {
+                let val = parseInt(quantityInput.value) || 1;
+                quantityInput.value = val + 1;
+            });
+        }
+
+        // ---- 8.4. Лічильник символів ----
+        const detailsTextarea = document.getElementById('transactionDetails');
+        const charCount = document.getElementById('charCount');
+        if (detailsTextarea && charCount) {
+            detailsTextarea.addEventListener('input', function() {
+                const len = this.value.length;
+                charCount.textContent = len;
+                charCount.style.color = len >= 250 ? '#dc3545' : '';
+            });
+            charCount.textContent = detailsTextarea.value.length;
+        }
+
+        // ---- 8.5. Автозаповнення часу при відкритті модалки ----
+        const modal = document.getElementById('transactionModal');
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function() {
+                const timeInput = document.getElementById('transactionTime');
+                if (timeInput && !timeInput.value) {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    timeInput.value = hours + ':' + minutes;
+                }
+                if (dateInput && !dateInput.value) {
+                    dateInput.value = new Date().toISOString().split('T')[0];
+                }
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                updateFormAction();
+            });
+            modal.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('transactionForm').reset();
+                setTransactionType('EXPENSE');
+                if (quantityInput) quantityInput.value = 1;
+                if (charCount) charCount.textContent = 0;
+                if (amountInput) amountInput.value = '0.00';
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
+        }
+
+        // ---- 8.6. Валідація форми додавання ----
+        if (transactionForm) {
+            transactionForm.addEventListener('submit', function(e) {
+                let valid = true;
+                const name = document.getElementById('transactionName');
+                if (!name.value.trim()) {
+                    name.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    name.classList.remove('is-invalid');
+                }
+                const amount = document.getElementById('transactionAmount');
+                if (parseFloat(amount.value) <= 0) {
+                    amount.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    amount.classList.remove('is-invalid');
+                }
+                const category = document.getElementById('categorySelect');
+                if (!category.value) {
+                    category.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    category.classList.remove('is-invalid');
+                }
+                if (!valid) {
+                    e.preventDefault();
+                    const firstError = document.querySelector('.is-invalid');
+                    if (firstError) firstError.focus();
+                }
+            });
+        }
+
+        // ---- 8.7. Редагування (для кнопок .action-edit) ----
+        document.querySelectorAll('.action-edit').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.type;
+                const id = this.dataset.id;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                if (type === 'expense') {
+                    const modalEl = document.getElementById('editExpenseModal');
+                    if (modalEl) {
+                        document.getElementById('editExpenseId').value = id;
+                        document.getElementById('editExpenseCategory').value = category;
+                        document.getElementById('editExpenseDescription').value = description;
+                        document.getElementById('editExpenseAmount').value = amount.toFixed(2);
+                        document.getElementById('editExpenseQuantity').value = quantity;
+                        document.getElementById('editExpenseTime').value = time;
+                        document.getElementById('editExpenseDetails').value = details;
+                        document.getElementById('editExpenseBuyer').value = buyer;
+                        document.getElementById('editExpenseSeller').value = seller;
+                        document.getElementById('editExpenseCharCount').textContent = details.length;
+                        document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
+                } else {
+                    const modalEl = document.getElementById('editIncomeModal');
+                    if (modalEl) {
+                        document.getElementById('editIncomeId').value = id;
+                        document.getElementById('editIncomeCategory').value = category;
+                        document.getElementById('editIncomeDescription').value = description;
+                        document.getElementById('editIncomeAmount').value = amount.toFixed(2);
+                        document.getElementById('editIncomeQuantity').value = quantity;
+                        document.getElementById('editIncomeTime').value = time;
+                        document.getElementById('editIncomeDetails').value = details;
+                        document.getElementById('editIncomeBuyer').value = buyer;
+                        document.getElementById('editIncomeSeller').value = seller;
+                        document.getElementById('editIncomeCharCount').textContent = details.length;
+                        document.getElementById('editIncomeForm').action = '/income/edit/' + id;
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
+                }
+            });
+        });
+
+        // ---- 8.8. Дублювання ----
+        const cloneModalEl = document.getElementById('cloneModal');
+        let cloneTypeInput = document.getElementById('cloneType');
+
+        document.querySelectorAll('.action-duplicate').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.type;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                document.getElementById('cloneCategory').value = category;
+                document.getElementById('cloneDescription').value = description;
+                document.getElementById('cloneAmount').value = amount.toFixed(2);
+                document.getElementById('cloneQuantity').value = quantity;
+                document.getElementById('cloneTime').value = time;
+                document.getElementById('cloneDetails').value = details;
+                document.getElementById('cloneBuyer').value = buyer;
+                document.getElementById('cloneSeller').value = seller;
+                document.getElementById('cloneCharCount').textContent = details.length;
+
+                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+                cloneTypeInput.value = initialType;
+                const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
+                const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
+                if (initialType === 'EXPENSE') {
+                    expenseBtn.className = 'btn active-expense';
+                    incomeBtn.className = 'btn btn-outline-success';
+                    fetchCategories('EXPENSE').then(cats => {
+                        populateCategories(document.getElementById('cloneCategory'), cats);
+                    });
+                    document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
+                } else {
+                    incomeBtn.className = 'btn active-income';
+                    expenseBtn.className = 'btn btn-outline-danger';
+                    fetchCategories('INCOME').then(cats => {
+                        populateCategories(document.getElementById('cloneCategory'), cats);
+                    });
+                    document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
+                }
+
+                if (cloneModalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(cloneModalEl);
+                    modal.show();
+                }
+            });
+        });
+
+        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
+            cloneTypeInput.value = 'EXPENSE';
+            this.className = 'btn active-expense';
+            document.getElementById('cloneTypeIncomeBtn').className = 'btn btn-outline-success';
+            fetchCategories('EXPENSE').then(cats => {
+                populateCategories(document.getElementById('cloneCategory'), cats);
+            });
+            document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
+        });
+        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
+            cloneTypeInput.value = 'INCOME';
+            this.className = 'btn active-income';
+            document.getElementById('cloneTypeExpenseBtn').className = 'btn btn-outline-danger';
+            fetchCategories('INCOME').then(cats => {
+                populateCategories(document.getElementById('cloneCategory'), cats);
+            });
+            document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
+        });
+
+        // ---- 8.9. Видалення транзакцій (для кнопок .action-delete) ----
+        document.querySelectorAll('.action-delete').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const type = this.dataset.type;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const category = this.dataset.category || '';
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const quantity = this.dataset.quantity || '1';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                const deleteForm = document.getElementById('deleteForm');
+                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
+
+                document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
+                document.getElementById('deleteTime').textContent = time || '—';
+                document.getElementById('deleteDescription').textContent = description || '—';
+                document.getElementById('deleteQuantity').textContent = quantity || '1';
+                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ₴';
+                document.getElementById('deleteBuyer').textContent = buyer || '—';
+                document.getElementById('deleteSeller').textContent = seller || '—';
+                document.getElementById('deleteCategory').textContent = category || '—';
+
+                const detailsRow = document.getElementById('deleteDetailsRow');
+                if (details && details.trim().length > 0) {
+                    document.getElementById('deleteDetails').textContent = details;
+                    detailsRow.style.display = '';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+
+                const modalEl = document.getElementById('deleteConfirmModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            });
+        });
+
+        // ---- 8.10. Теплі клавіші ----
+        document.addEventListener('keydown', function(e) {
+            const openModals = document.querySelectorAll('.modal.show');
+            if (openModals.length === 0) return;
+            if (e.key === 'Escape') {
+                openModals.forEach(modal => {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    if (bsModal) bsModal.hide();
+                });
+                e.preventDefault();
+                return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                for (const modal of openModals) {
+                    const form = modal.querySelector('form:not(#deleteForm)');
+                    if (form) {
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
+                        else { form.submit(); e.preventDefault(); break; }
+                    }
+                }
+            }
+        });
+
+        // ---- 8.11. Ініціалізація TOOLTIP ----
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
     })();
 </script>
