@@ -83,7 +83,7 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void initializeDemoTransactions() {
-        if (dayBudgetRepository.count() > 0) {
+        if (!forceDemo && dayBudgetRepository.count() > 0) {
             log.info("Day budgets already exist, skipping demo transactions.");
             return;
         }
@@ -98,11 +98,16 @@ public class DataLoader implements CommandLineRunner {
         LocalDate today = LocalDate.now();
         Double runningBalance = 0.0;
 
-        // Отримуємо категорії
         Category food = categoryRepository.findByName("Їжа").orElse(null);
         Category transport = categoryRepository.findByName("Дорога").orElse(null);
         Category tips = categoryRepository.findByName("Чаєві").orElse(null);
         Category salary = categoryRepository.findByName("Зарплата (М)").orElse(null);
+
+        // Якщо якихось категорій немає – логуємо попередження та виходимо
+        if (food == null || transport == null || tips == null || salary == null) {
+            log.error("Required categories not found, aborting demo data creation.");
+            return;
+        }
 
         for (int i = 6; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
@@ -110,11 +115,12 @@ public class DataLoader implements CommandLineRunner {
             budget.setDate(date);
             budget.setDayName(getDayName(date));
             budget.setStartingBalance(runningBalance);
-            budget.setRemainingBalance(runningBalance);
-            dayBudgetRepository.save(budget);
 
-            // Витрати (не кожен день)
-            if (i % 2 == 0 && food != null) {
+            double dayExpenses = 0.0;
+            double dayIncomes = 0.0;
+
+            // Додаємо витрати
+            if (i % 2 == 0) {
                 Expense expense = new Expense();
                 expense.setCategory(food);
                 expense.setDescription("Продукти");
@@ -123,9 +129,10 @@ public class DataLoader implements CommandLineRunner {
                 expense.setBuyer("Я");
                 expense.setSeller("Супермаркет");
                 expenseRepository.save(expense);
+                dayExpenses += expense.getAmount();
             }
 
-            if (i % 3 == 0 && transport != null) {
+            if (i % 3 == 0) {
                 Expense expense2 = new Expense();
                 expense2.setCategory(transport);
                 expense2.setDescription("Транспорт");
@@ -134,10 +141,11 @@ public class DataLoader implements CommandLineRunner {
                 expense2.setBuyer("Я");
                 expense2.setSeller("Таксі");
                 expenseRepository.save(expense2);
+                dayExpenses += expense2.getAmount();
             }
 
-            // Доходи (не кожен день)
-            if (i % 4 == 0 && tips != null) {
+            // Додаємо доходи
+            if (i % 4 == 0) {
                 Income income = new Income();
                 income.setCategory(tips);
                 income.setDescription("Чайові");
@@ -146,9 +154,10 @@ public class DataLoader implements CommandLineRunner {
                 income.setBuyer("Клієнт");
                 income.setSeller("Я");
                 incomeRepository.save(income);
+                dayIncomes += income.getAmount();
             }
 
-            if (i == 0 && salary != null) {
+            if (i == 0) {
                 Income income2 = new Income();
                 income2.setCategory(salary);
                 income2.setDescription("Зарплата");
@@ -157,20 +166,19 @@ public class DataLoader implements CommandLineRunner {
                 income2.setBuyer("Роботодавець");
                 income2.setSeller("Я");
                 incomeRepository.save(income2);
+                dayIncomes += income2.getAmount();
             }
 
-            // Оновлюємо баланс дня
-            Double totalExpenses = expenseRepository.sumExpensesByDate(date);
-            Double totalIncomes = incomeRepository.sumIncomesByDate(date);
-            if (totalExpenses == null) totalExpenses = 0.0;
-            if (totalIncomes == null) totalIncomes = 0.0;
-            budget.setRemainingBalance(runningBalance + totalIncomes - totalExpenses);
+            budget.setRemainingBalance(runningBalance + dayIncomes - dayExpenses);
             dayBudgetRepository.save(budget);
             runningBalance = budget.getRemainingBalance();
         }
 
         log.info("Demo transactions created for 7 days.");
     }
+
+    @Value("${app.demo.force:false}")
+    private boolean forceDemo;
 
     private String getDayName(LocalDate date) {
         return switch (date.getDayOfWeek().getValue()) {
