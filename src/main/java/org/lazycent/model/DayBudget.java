@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -25,11 +25,14 @@ public class DayBudget {
 
     private String dayName;
 
+    // Змінюємо List на Set
     @OneToMany(mappedBy = "dayBudget", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Expense> expenses = new ArrayList<>();
+    @OrderBy("time ASC") // за бажанням впорядкувати за часом
+    private Set<Expense> expenses = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "dayBudget", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Income> incomes = new ArrayList<>();
+    @OrderBy("time ASC")
+    private Set<Income> incomes = new LinkedHashSet<>();
 
     private Double startingBalance;
     private Double remainingBalance;

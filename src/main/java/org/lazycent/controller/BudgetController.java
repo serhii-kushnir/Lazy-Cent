@@ -227,6 +227,19 @@ public class BudgetController {
         return "redirect:/day/" + date;
     }
 
+    private boolean isValidRedirect(String url) {
+        if (url == null || url.isEmpty()) {
+            return false;
+        }
+        if (!url.startsWith("/") || url.startsWith("//")) {
+            return false;
+        }
+        if (url.contains("..")) {
+            return false;
+        }
+        return true;
+    }
+
     @PostMapping("/quick-expense")
     public String quickAddExpense(
             @Valid @ModelAttribute TransactionRequest request,
@@ -243,9 +256,9 @@ public class BudgetController {
                     .orElse("Невірні дані");
             log.warn("Validation errors for quick expense: {}", errorMessage);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-            // Повертаємось на попередню сторінку навіть при помилці
+            // Безпечне перенаправлення у разі помилки
             String referer = httpServletRequest.getHeader("Referer");
-            if (referer != null && !referer.isEmpty()) {
+            if (isValidRedirect(referer)) {
                 return "redirect:" + referer;
             }
             return "redirect:/";
@@ -255,9 +268,8 @@ public class BudgetController {
         redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
         log.info("Quick expense added successfully");
 
-        // Повертаємось на сторінку, звідки прийшов запит
         String referer = httpServletRequest.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
+        if (isValidRedirect(referer)) {
             return "redirect:" + referer;
         }
         return "redirect:/budget";
@@ -280,7 +292,7 @@ public class BudgetController {
             log.warn("Validation errors for quick income: {}", errorMessage);
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
             String referer = httpServletRequest.getHeader("Referer");
-            if (referer != null && !referer.isEmpty()) {
+            if (isValidRedirect(referer)) {
                 return "redirect:" + referer;
             }
             return "redirect:/";
@@ -291,12 +303,11 @@ public class BudgetController {
         log.info("Quick income added successfully");
 
         String referer = httpServletRequest.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
+        if (isValidRedirect(referer)) {
             return "redirect:" + referer;
         }
         return "redirect:/budget";
     }
-
 
     // ==================== РЕДАГУВАННЯ / ВИДАЛЕННЯ ====================
 
