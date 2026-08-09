@@ -78,26 +78,21 @@ public class BudgetController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Model model) {
+
         log.info("GET /budget - startDate={}, endDate={}", startDate, endDate);
+
         if (startDate == null) startDate = LocalDate.now().withDayOfMonth(1);
         if (endDate == null) endDate = LocalDate.now();
 
+        // Сервіс завжди повертає не-null об'єкт
         TotalBudget totalBudget = budgetService.getTotalBudget(startDate, endDate);
-        if (totalBudget == null) {
-            totalBudget = new TotalBudget();
-            totalBudget.setTotalExpenses(0.0);
-            totalBudget.setTotalIncomes(0.0);
-            totalBudget.setBalance(0.0);
-            totalBudget.setExpensesByCategory(new HashMap<>());
-            totalBudget.setIncomesByCategory(new HashMap<>());
-            totalBudget.setDailySummaries(new java.util.LinkedHashMap<>());
-        }
 
         model.addAttribute("totalBudget", totalBudget);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories());
         model.addAttribute("incomeCategories", budgetService.getIncomeCategories());
+
         return "budget";
     }
 

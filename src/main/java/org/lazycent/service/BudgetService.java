@@ -1,6 +1,8 @@
 package org.lazycent.service;
 
 import org.lazycent.model.*;
+import org.lazycent.model.dto.CategorySummaryDto;
+import org.lazycent.model.dto.DailySummaryDto;
 import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -186,52 +188,89 @@ public class BudgetService {
 
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate) {
         log.info("Getting total budget for period: {} - {}", startDate, endDate);
+
         TotalBudget total = new TotalBudget();
 
-        List<DayBudget> budgets = dayBudgetRepository.findAllByOrderByDateAsc().stream()
-                .filter(b -> !b.getDate().isBefore(startDate) && !b.getDate().isAfter(endDate))
-                .toList();
+        // 1. Отримуємо щоденні підсумки витрат (1 запит)
+        List<DailySummaryDto> expenseDaily = expenseRepository.getDailyExpenseSummaries(startDate, endDate);
 
-        Double totalExpenses = 0.0;
-        Double totalIncomes = 0.0;
+        // 2. Отримуємо щоденні підсумки доходів (1 запит)
+        List<DailySummaryDto> incomeDaily = incomeRepository.getDailyIncomeSummaries(startDate, endDate);
 
-        Map<Category, Double> expensesByCategory = new HashMap<>();
-        Map<Category, Double> incomesByCategory = new HashMap<>();
+        // 3. Отримуємо підсумки за категоріями витрат (1 запит)
+        List<CategorySummaryDto> expenseCategories = expenseRepository.getExpenseCategorySummaries(startDate, endDate);
 
+        // 4. Отримуємо підсумки за категоріями доходів (1 запит)
+        List<CategorySummaryDto> incomeCategories = incomeRepository.getIncomeCategorySummaries(startDate, endDate);
+
+        // Об'єднуємо щоденні підсумки
         Map<LocalDate, TotalBudget.DayBudgetSummary> dailySummaries = new LinkedHashMap<>();
 
-        for (DayBudget budget : budgets) {
-            Double dayExpenses = expenseRepository.sumExpensesByDate(budget.getDate());
-            Double dayIncomes = incomeRepository.sumIncomesByDate(budget.getDate());
-
-            if (dayExpenses == null) dayExpenses = 0.0;
-            if (dayIncomes == null) dayIncomes = 0.0;
-
-            totalExpenses += dayExpenses;
-            totalIncomes += dayIncomes;
-
-            List<Object[]> expensesByCat = expenseRepository.sumExpensesByCategory(budget.getDate(), budget.getDate());
-            for (Object[] row : expensesByCat) {
-                Category cat = (Category) row[0];
-                Double amount = (Double) row[1];
-                expensesByCategory.merge(cat, amount, Double::sum);
-            }
-
-            List<Object[]> incomesByCat = incomeRepository.sumIncomesByCategory(budget.getDate(), budget.getDate());
-            for (Object[] row : incomesByCat) {
-                Category cat = (Category) row[0];
-                Double amount = (Double) row[1];
-                incomesByCategory.merge(cat, amount, Double::sum);
-            }
-
-            TotalBudget.DayBudgetSummary summary = new TotalBudget.DayBudgetSummary();
-            summary.setDate(budget.getDate());
-            summary.setDayName(budget.getDayName());
-            summary.setExpenses(dayExpenses);
-            summary.setIncomes(dayIncomes);
-            summary.setBalance(budget.getRemainingBalance());
-            dailySummaries.put(budget.getDate(), summary);
+        // Додаємо витрати
+        for (DailySummaryDto dto : expenseDaily) {
+            TotalBudget.DayBudgetSummary summary = dailySummaries.computeIfAbsent(
+                    dto.getDate(),
+                    date -> {
+                        TotalBudget.DayBudgetSummary s = new TotalBudget.DayBudgetSummary();
+                        s.setDate(date);
+                        s.setDayName(dto.getDayName());
+                        s.setExpenses(0.0);
+                        s.setIncomes(0.0);
+                        s.setBalance(0.0);
+                        return s;
+                    }
+            );
+            summary.setExpenses(dto.getTotalExpenses());
+            summary.setBalance(summary.getBalance() + dto.getTotalExpenses());
         }
+
+        // Додаємо доходи
+        for (DailySummaryDto dto : incomeDaily) {
+            TotalBudget.DayBudgetSummary summary = dailySummaries.computeIfAbsent(
+                    dto.getDate(),
+                    date -> {
+                        TotalBudget.DayBudgetSummary s = new TotalBudget.DayBudgetSummary();
+                        s.setDate(date);
+                        s.setDayName(dto.getDayName());
+                        s.setExpenses(0.0);
+                        s.setIncomes(0.0);
+                        s.setBalance(0.0);
+                        return s;
+                    }
+            );
+            summary.setIncomes(dto.getTotalIncomes());
+            summary.setBalance(summary.getBalance() + dto.getTotalIncomes());
+        }
+
+        // Вираховуємо остаточний баланс для кожного дня (витрати - доходи)
+        // Оскільки ми додавали витрати та доходи в balance, тепер потрібно перерахувати
+        for (TotalBudget.DayBudgetSummary summary : dailySummaries.values()) {
+            summary.setBalance(summary.getIncomes() - summary.getExpenses());
+        }
+
+        // Заповнюємо категорії
+        Map<Category, Double> expensesByCategory = new HashMap<>();
+        for (CategorySummaryDto dto : expenseCategories) {
+            // Потрібно отримати сутність Category за назвою
+            Category category = categoryRepository.findByName(dto.getCategoryName())
+                    .orElseThrow(() -> new RuntimeException("Категорію не знайдено: " + dto.getCategoryName()));
+            expensesByCategory.put(category, dto.getTotalAmount());
+        }
+
+        Map<Category, Double> incomesByCategory = new HashMap<>();
+        for (CategorySummaryDto dto : incomeCategories) {
+            Category category = categoryRepository.findByName(dto.getCategoryName())
+                    .orElseThrow(() -> new RuntimeException("Категорію не знайдено: " + dto.getCategoryName()));
+            incomesByCategory.put(category, dto.getTotalAmount());
+        }
+
+        // Обчислюємо загальні підсумки
+        Double totalExpenses = dailySummaries.values().stream()
+                .mapToDouble(TotalBudget.DayBudgetSummary::getExpenses)
+                .sum();
+        Double totalIncomes = dailySummaries.values().stream()
+                .mapToDouble(TotalBudget.DayBudgetSummary::getIncomes)
+                .sum();
 
         total.setTotalExpenses(totalExpenses);
         total.setTotalIncomes(totalIncomes);
