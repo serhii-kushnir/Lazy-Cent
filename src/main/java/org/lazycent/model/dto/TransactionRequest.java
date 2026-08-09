@@ -24,6 +24,7 @@ public class TransactionRequest {
     @Min(value = 1, message = "Кількість має бути не менше 1")
     private Integer quantity = 1;
 
+    // ✅ ДОДАНО ВАЛІДАЦІЮ ДЛЯ ДЕТАЛЕЙ
     @Size(max = 500, message = "Деталі не можуть перевищувати 500 символів")
     private String details;
 

@@ -1243,7 +1243,6 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
-
 <script>
     (function() {
         'use strict';
@@ -1440,11 +1439,6 @@
             });
         }
 
-        document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
-            // При відкритті модалки можна скинути тип, якщо потрібно
-            // setTransactionType('EXPENSE');
-        });
-
         // ================================================================
         // 5. ДОДАТКОВІ ОБРОБНИКИ (СУМА, КІЛЬКІСТЬ, ЛІЧИЛЬНИК)
         // ================================================================
@@ -1530,7 +1524,55 @@
         });
 
         // ================================================================
-        // 8. ОБРОБНИКИ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
+        // 8. ВІДНОВЛЕННЯ ДАНИХ ФОРМИ З FLASH-АТРИБУТА (formData)
+        // ================================================================
+        (function restoreFormData() {
+            const formData = /*[[${formData}]]*/ null;
+            if (!formData) return;
+            console.log('🔄 Відновлення даних форми:', formData);
+
+            // Заповнюємо поля
+            const nameInput = document.getElementById('transactionName');
+            if (nameInput && formData.description) nameInput.value = formData.description;
+
+            const amountField = document.getElementById('transactionAmount');
+            if (amountField && formData.amount) amountField.value = parseFloat(formData.amount).toFixed(2);
+
+            const quantityField = document.getElementById('transactionQuantity');
+            if (quantityField && formData.quantity) quantityField.value = formData.quantity;
+
+            const buyerField = document.getElementById('transactionBuyer');
+            if (buyerField && formData.buyer) buyerField.value = formData.buyer;
+
+            const sellerField = document.getElementById('transactionSeller');
+            if (sellerField && formData.seller) sellerField.value = formData.seller;
+
+            const detailsField = document.getElementById('transactionDetails');
+            if (detailsField && formData.details) {
+                detailsField.value = formData.details;
+                const charCountEl = document.getElementById('charCount');
+                if (charCountEl) {
+                    charCountEl.textContent = formData.details.length;
+                    charCountEl.style.color = formData.details.length >= 250 ? '#dc3545' : '';
+                }
+            }
+
+            const timeField = document.getElementById('transactionTime');
+            if (timeField && formData.time) timeField.value = formData.time;
+
+            // Категорія
+            if (formData.categoryId && categorySelect) {
+                categorySelect.value = formData.categoryId;
+            }
+
+            // Тип транзакції
+            if (formData.type) {
+                setTransactionType(formData.type);
+            }
+        })();
+
+        // ================================================================
+        // 9. ОБРОБНИКИ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
         // ================================================================
         // --- Редагування ---
         document.querySelectorAll('.action-edit').forEach(item => {
@@ -1736,7 +1778,7 @@
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
         // ================================================================
-        // 9. АВТОЗАПОВНЕННЯ ЧАСУ
+        // 10. АВТОЗАПОВНЕННЯ ЧАСУ
         // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
@@ -1754,7 +1796,7 @@
         });
 
         // ================================================================
-        // 10. ТЕПЛІ КЛАВІШІ
+        // 11. ТЕПЛІ КЛАВІШІ
         // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
@@ -1780,7 +1822,7 @@
         });
 
         // ================================================================
-        // 11. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
+        // 12. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
         // ================================================================
         function saveFilters() {
             try {
@@ -1810,7 +1852,7 @@
         }
 
         // ================================================================
-        // 12. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
+        // 13. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
         // ================================================================
         function saveChartVisibility(visible) {
             try {
@@ -1830,7 +1872,7 @@
         }
 
         // ================================================================
-        // 13. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // 14. ПЕРЕМИКАЧ ВИГЛЯДУ
         // ================================================================
         const viewToggle = document.getElementById('viewToggle');
         const tableView = document.getElementById('tableView');
@@ -1867,7 +1909,7 @@
         });
 
         // ================================================================
-        // 14. ДІАГРАМИ
+        // 15. ДІАГРАМИ
         // ================================================================
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
@@ -1981,7 +2023,7 @@
         }
 
         // ================================================================
-        // 15. ТОГЛ ДІАГРАМ
+        // 16. ТОГЛ ДІАГРАМ
         // ================================================================
         function toggleCharts() {
             const chartBody = document.getElementById('chartBody');
@@ -2003,7 +2045,7 @@
         document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
 
         // ================================================================
-        // 16. ЛОГІКА ТАБЛИЦІ
+        // 17. ЛОГІКА ТАБЛИЦІ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -2226,7 +2268,7 @@
         loadMoreBtn.addEventListener('click', loadMore);
 
         // ================================================================
-        // 17. СОРТУВАННЯ
+        // 18. СОРТУВАННЯ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
@@ -2321,7 +2363,7 @@
         });
 
         // ================================================================
-        // 18. РЕСАЙЗ КОЛОНОК
+        // 19. РЕСАЙЗ КОЛОНОК
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -2402,7 +2444,7 @@
         }
 
         // ================================================================
-        // 19. ЗАПУСК
+        // 20. ЗАПУСК
         // ================================================================
         init();
 

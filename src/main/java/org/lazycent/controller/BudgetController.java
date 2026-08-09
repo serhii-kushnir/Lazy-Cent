@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -185,12 +186,11 @@ public class BudgetController {
         log.info("POST /day/{}/expense - Adding expense: {}", date, request);
 
         if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("Невірні дані");
+            String errorMessage = getValidationErrors(bindingResult);
             log.warn("Validation errors for expense: {}", errorMessage);
-            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилки валідації: " + errorMessage);
+            // Зберігаємо введені дані, щоб відновити форму на фронтенді
+            redirectAttributes.addFlashAttribute("formData", request);
             return "redirect:/day/" + date;
         }
 
@@ -211,12 +211,10 @@ public class BudgetController {
         log.info("POST /day/{}/income - Adding income: {}", date, request);
 
         if (bindingResult.hasErrors()) {
-            String errorMessage = bindingResult.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("Невірні дані");
+            String errorMessage = getValidationErrors(bindingResult);
             log.warn("Validation errors for income: {}", errorMessage);
-            redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилки валідації: " + errorMessage);
+            redirectAttributes.addFlashAttribute("formData", request);
             return "redirect:/day/" + date;
         }
 
@@ -381,6 +379,12 @@ public class BudgetController {
         redirectAttributes.addFlashAttribute("successMessage", "Дохід оновлено!");
         log.info("Income {} updated", id);
         return "redirect:/day/" + date;
+    }
+
+    private String getValidationErrors(BindingResult bindingResult) {
+        return bindingResult.getAllErrors().stream()
+                .map(e -> e.getDefaultMessage())
+                .collect(Collectors.joining("; "));
     }
 
     // ==================== КАТЕГОРІЇ ====================
