@@ -19,9 +19,78 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ===== КРАСИВІ АНІМАЦІЇ ПРИ ЗАВАНТАЖЕННІ ===== */
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+            60% { transform: translateY(-5px) scale(1.01); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes slideLeftFade {
+            0% { opacity: 0; transform: translateX(-30px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideRightFade {
+            0% { opacity: 0; transform: translateX(30px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideUpTable {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes blurFade {
+            0% { opacity: 0; filter: blur(10px); transform: scale(1.1); }
+            100% { opacity: 1; filter: blur(0); transform: scale(1); }
+        }
+
+        @keyframes pulseAppear {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes buttonSlide {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== КЛАСИ АНІМАЦІЙ ===== */
+        .ledger-head-animated {
+            animation: blurFade 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .balance-animated {
+            animation: slideUpFade 0.7s ease forwards;
+            opacity: 0;
+        }
+
+        .chart-animated {
+            animation: pulseAppear 0.8s ease forwards;
+            opacity: 0;
+            animation-delay: 0.2s;
+        }
+
+        .table-wrap-animated {
+            animation: slideUpTable 0.7s ease forwards;
+            opacity: 0;
+            animation-delay: 0.3s;
+        }
+
+        .btn-animated {
+            animation: buttonSlide 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .btn-animated:nth-child(1) { animation-delay: 0.1s; }
+        .btn-animated:nth-child(2) { animation-delay: 0.2s; }
+        .btn-animated:nth-child(3) { animation-delay: 0.3s; }
+
         .toolbar-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; }
-        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; }
-        .table-wrap-animated { animation: fadeIn 0.5s ease forwards; opacity: 0; animation-delay: 0.10s; }
+        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; text-align: center; }
         .row-animate { animation: fadeInRow 0.3s ease forwards; opacity: 0; }
 
         /* ===== ЗАГАЛЬНІ ===== */
@@ -316,6 +385,103 @@
         }
         [data-bs-theme="dark"] .btn-close { filter: invert(1); }
 
+        /* ===== ДІАГРАМИ ===== */
+        .chart-section { transition: all 0.3s ease; }
+        .chart-toggle-btn { cursor: pointer; user-select: none; }
+        .chart-toggle-btn .toggle-icon { transition: transform 0.3s ease; display: inline-block; }
+        .chart-toggle-btn .toggle-icon.rotated { transform: rotate(180deg); }
+        .chart-card .card-header { display: flex; justify-content: space-between; align-items: center; }
+
+        .analytics-toggle {
+            display: flex;
+            gap: 0.3rem;
+            background: #e9ecef;
+            border-radius: 0.5rem;
+            padding: 0.15rem;
+            flex-shrink: 0;
+        }
+        [data-bs-theme="dark"] .analytics-toggle { background: #2a2e37; }
+        .analytics-toggle .btn {
+            border: none;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 0.375rem;
+            background: transparent;
+            color: #495057;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .analytics-toggle .btn.active {
+            background: #fff;
+            color: #0d6efd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        [data-bs-theme="dark"] .analytics-toggle .btn { color: #adb5bd; }
+        [data-bs-theme="dark"] .analytics-toggle .btn.active {
+            background: #1d2027;
+            color: #6ea8fe;
+        }
+        .analytics-toggle .btn i { margin-right: 0.2rem; }
+
+        .chart-row-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0;
+        }
+        .chart-col {
+            flex: 0 0 auto;
+            max-width: 50%;
+            padding: 0 0.5rem;
+            min-width: 280px;
+        }
+        .chart-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .chart-container {
+            max-height: 200px;
+            max-width: 200px;
+            flex-shrink: 0;
+        }
+        .chart-container canvas {
+            max-height: 200px;
+            max-width: 200px;
+            cursor: pointer;
+        }
+        .chart-legend-table {
+            font-size: 0.8rem;
+            flex: 0 0 auto;
+            min-width: 120px;
+            text-align: left;
+        }
+        .chart-legend-table td {
+            padding: 0.1rem 0.3rem;
+        }
+        .chart-legend-table .color-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .chart-legend-table .amount-col {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        [data-bs-theme="dark"] .chart-card .card-header {
+            background-color: #2a2e37 !important;
+            color: #e6e6e6 !important;
+            border-bottom-color: #3a3f4a !important;
+        }
+        [data-bs-theme="dark"] .chart-card .card-body { background-color: #1d2027 !important; }
+        [data-bs-theme="dark"] .chart-legend-table td { color: #e6e6e6 !important; }
+        [data-bs-theme="dark"] .chart-legend-table .amount-col { color: #9aa3b2 !important; }
+
         /* ===== ДРУК ===== */
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
@@ -334,6 +500,13 @@
             .card-header { padding: 2px 8px !important; }
             .card-header h5 { font-size: 0.65rem !important; margin: 0 !important; }
             .card-header .badge { font-size: 0.55rem !important; }
+            .chart-container canvas { max-height: 120px !important; max-width: 120px !important; }
+            .chart-card .card-header { padding: 2px 6px !important; }
+            .chart-card .card-header span { font-size: 0.6rem !important; }
+            .chart-card .card-body { padding: 4px !important; }
+            .chart-legend-table td { font-size: 0.5rem !important; padding: 1px 2px !important; }
+            .chart-legend-table .amount-col { font-size: 0.5rem !important; }
+            .chart-legend-table .color-dot { width: 6px !important; height: 6px !important; }
         }
     </style>
 </head>
@@ -358,18 +531,86 @@
             <span>Всі дні</span>
         </h5>
         <div class="d-flex flex-wrap gap-2">
-            <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded me-1" data-bs-toggle="modal" data-bs-target="#transactionModal">
+            <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded btn-animated" data-bs-toggle="modal" data-bs-target="#transactionModal">
                 <i class="fas fa-plus me-1"></i> Додати
             </button>
-            <a href="/export/all-days" class="btn btn-success btn-sm btn-rounded me-1">
+            <a href="/export/all-days" class="btn btn-success btn-sm btn-rounded btn-animated">
                 <i class="fas fa-file-excel me-1"></i> Excel
             </a>
-            <button class="btn btn-warning btn-sm btn-rounded me-1" onclick="window.print()">
+            <button class="btn btn-warning btn-sm btn-rounded btn-animated" onclick="window.print()">
                 <i class="fas fa-print me-1"></i> Друк
             </button>
-            <a href="/" class="btn btn-info btn-sm btn-rounded text-white">
+            <a href="/" class="btn btn-info btn-sm btn-rounded text-white btn-animated">
                 <i class="fas fa-home me-1"></i> Головна
             </a>
+        </div>
+    </div>
+
+    <!-- ===== ДІАГРАМИ (АНАЛІТИКА ПО ДНЯХ) ===== -->
+    <div class="chart-section chart-animated" id="chartSection">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card chart-card">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
+                        <span><i class="fas fa-chart-pie me-2"></i>Аналітика по днях</span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="analytics-toggle" id="analyticsToggle">
+                                <button class="btn active" data-mode="charts" title="Кругові діаграми">
+                                    <i class="fas fa-chart-pie"></i> <span class="d-none d-sm-inline">Кругові</span>
+                                </button>
+                                <button class="btn" data-mode="bar" title="Стовпчиковий графік">
+                                    <i class="fas fa-chart-bar"></i> <span class="d-none d-sm-inline">Стовпчики</span>
+                                </button>
+                                <button class="btn" data-mode="both" title="Обидва">
+                                    <i class="fas fa-chart-simple"></i> <span class="d-none d-sm-inline">Обидва</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
+                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" id="chartBody">
+                        <div class="chart-row-container" id="chartsContainer">
+                            <div class="chart-col" id="expenseChartCol">
+                                <div class="text-center">
+                                    <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати за днями</h6>
+                                    <div class="chart-flex">
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="expenseChart"></canvas>
+                                        </div>
+                                        <div class="chart-legend-table" id="expenseLegend"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="chart-col" id="incomeChartCol">
+                                <div class="text-center">
+                                    <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи за днями</h6>
+                                    <div class="chart-flex">
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="incomeChart"></canvas>
+                                        </div>
+                                        <div class="chart-legend-table" id="incomeLegend"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3" id="barChartRow">
+                            <div class="col-12">
+                                <div class="text-center">
+                                    <h6 class="text-primary mb-1"><i class="fas fa-chart-bar me-1"></i>Баланс по днях</h6>
+                                    <div style="max-height: 300px; max-width: 100%;">
+                                        <canvas id="barChart" style="max-height: 280px; width: 100%;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${allBudgets.empty}" class="empty-note">
+                            Немає даних за обраний період
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -585,9 +826,11 @@
     <div class="print-footer d-print-block" style="display: none;">
         © 2026 LazyCent - Ваш фінансовий помічник
     </div>
+
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
+<!-- Додавання -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -684,6 +927,7 @@
     </div>
 </div>
 
+<!-- Підтвердження видалення транзакції -->
 <div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -717,6 +961,7 @@
     </div>
 </div>
 
+<!-- Редагування витрати -->
 <div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -765,6 +1010,7 @@
     </div>
 </div>
 
+<!-- Редагування доходу -->
 <div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -813,6 +1059,7 @@
     </div>
 </div>
 
+<!-- Дублювання -->
 <div class="modal fade no-print" id="cloneModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -874,6 +1121,7 @@
     </div>
 </div>
 
+<!-- Підтвердження видалення дня -->
 <div class="modal fade no-print" id="deleteDayConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -893,8 +1141,6 @@
                     <div class="row mb-2"><div class="col-4 label fw-bold">Доходи:</div><div class="col-8 value" id="deleteIncomes"></div></div>
                     <div class="row mb-2"><div class="col-4 label fw-bold">Баланс:</div><div class="col-8 value" id="deleteBalance"></div></div>
                     <div class="row mb-2"><div class="col-4 label fw-bold">Всього транзакцій:</div><div class="col-8 value" id="deleteTotalTransactions"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold">Доходів:</div><div class="col-8 value" id="deleteIncomeCount"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold">Витрат:</div><div class="col-8 value" id="deleteExpenseCount"></div></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -963,7 +1209,335 @@
         const tableView = document.getElementById('tableView');
 
         // ================================================================
-        // 3. ІНІЦІАЛІЗАЦІЯ ПІСЛЯ ЗАВАНТАЖЕННЯ DOM
+        // 3. ДАНІ ДЛЯ ДІАГРАМ (КОЛІРНА ПАЛІТРА)
+        // ================================================================
+        const CHART_PALETTE = [
+            '#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B',
+            '#D4A373', '#6D6875', '#B5838D', '#2A9D8F', '#E76F51',
+            '#264653', '#F4A261', '#E9C46A', '#A8DADC', '#457B9D'
+        ];
+
+        function getCategoryColor(name, index) {
+            if (!name) return '#6c757d';
+            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
+        }
+
+        // ================================================================
+        // 4. ЗБІР ДАНИХ ДЛЯ ДІАГРАМ (ТІЛЬКИ ВИДИМІ РЯДКИ)
+        // ================================================================
+        function getFilteredDayData() {
+            const isCardsMode = cardsView.classList.contains('show');
+            let items;
+
+            if (isCardsMode) {
+                items = document.querySelectorAll('.day-card');
+            } else {
+                items = document.querySelectorAll('#daysTableBody .day-row');
+            }
+
+            const dates = [];
+            const expenses = [];
+            const incomes = [];
+            const balances = [];
+
+            items.forEach(item => {
+                // Перевіряємо, чи елемент видимий (не hidden)
+                const isVisible = item.style.display !== 'none';
+                if (!isVisible) return;
+
+                const date = item.dataset.date || '';
+                const expense = parseFloat(item.dataset.expenses) || 0;
+                const income = parseFloat(item.dataset.incomes) || 0;
+                const balance = parseFloat(item.dataset.balance) || 0;
+                if (date) {
+                    dates.push(date);
+                    expenses.push(expense);
+                    incomes.push(income);
+                    balances.push(balance);
+                }
+            });
+            return { dates, expenses, incomes, balances };
+        }
+
+        // ================================================================
+        // 5. РЕНДЕРИНГ ДІАГРАМ
+        // ================================================================
+
+        function renderExpenseChart() {
+            const canvas = document.getElementById('expenseChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+                return;
+            }
+            const data = getFilteredDayData();
+
+            // Фільтруємо тільки дні з витратами > 0
+            const filteredDates = [];
+            const filteredAmounts = [];
+            data.dates.forEach((date, idx) => {
+                if (data.expenses[idx] > 0) {
+                    filteredDates.push(date);
+                    filteredAmounts.push(data.expenses[idx]);
+                }
+            });
+
+            if (filteredDates.length === 0) {
+                const col = document.getElementById('expenseChartCol');
+                if (col) col.style.display = 'none';
+                return;
+            }
+            const col = document.getElementById('expenseChartCol');
+            if (col) col.style.display = '';
+
+            const colors = filteredDates.map((name, idx) => getCategoryColor(name, idx));
+            if (window.expenseChartInstance) { window.expenseChartInstance.destroy(); }
+            window.expenseChartInstance = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: filteredDates,
+                    datasets: [{
+                        data: filteredAmounts,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    cutout: '55%'
+                }
+            });
+
+            const legendContainer = document.getElementById('expenseLegend');
+            if (legendContainer) {
+                const total = filteredAmounts.reduce((a,b) => a+b, 0);
+                let html = '<table class="chart-legend-table"><tbody>';
+                filteredDates.forEach((name, idx) => {
+                    const amount = filteredAmounts[idx];
+                    const color = getCategoryColor(name, idx);
+                    const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                    html += '<tr>' +
+                        '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
+                        '<td class="category-col">' + name + '</td>' +
+                        '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                        '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
+                        '</tr>';
+                });
+                html += '</tbody></table>';
+                legendContainer.innerHTML = html;
+            }
+        }
+
+        function renderIncomeChart() {
+            const canvas = document.getElementById('incomeChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+                return;
+            }
+            const data = getFilteredDayData();
+
+            const filteredDates = [];
+            const filteredAmounts = [];
+            data.dates.forEach((date, idx) => {
+                if (data.incomes[idx] > 0) {
+                    filteredDates.push(date);
+                    filteredAmounts.push(data.incomes[idx]);
+                }
+            });
+
+            if (filteredDates.length === 0) {
+                const col = document.getElementById('incomeChartCol');
+                if (col) col.style.display = 'none';
+                return;
+            }
+            const col = document.getElementById('incomeChartCol');
+            if (col) col.style.display = '';
+
+            const colors = filteredDates.map((name, idx) => getCategoryColor(name, idx + 5));
+            if (window.incomeChartInstance) { window.incomeChartInstance.destroy(); }
+            window.incomeChartInstance = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: filteredDates,
+                    datasets: [{
+                        data: filteredAmounts,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    cutout: '55%'
+                }
+            });
+
+            const legendContainer = document.getElementById('incomeLegend');
+            if (legendContainer) {
+                const total = filteredAmounts.reduce((a,b) => a+b, 0);
+                let html = '<table class="chart-legend-table"><tbody>';
+                filteredDates.forEach((name, idx) => {
+                    const amount = filteredAmounts[idx];
+                    const color = getCategoryColor(name, idx + 5);
+                    const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                    html += '<tr>' +
+                        '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
+                        '<td class="category-col">' + name + '</td>' +
+                        '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                        '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
+                        '</tr>';
+                });
+                html += '</tbody></table>';
+                legendContainer.innerHTML = html;
+            }
+        }
+
+        function renderBarChart() {
+            const canvas = document.getElementById('barChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+                return;
+            }
+            const data = getFilteredDayData();
+            if (data.dates.length === 0) {
+                const row = document.getElementById('barChartRow');
+                if (row) row.style.display = 'none';
+                return;
+            }
+            const row = document.getElementById('barChartRow');
+            if (row) row.style.display = '';
+
+            if (window.barChartInstance) { window.barChartInstance.destroy(); }
+
+            const barColors = data.balances.map(b => b >= 0 ? '#198754' : '#dc3545');
+
+            window.barChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: data.dates,
+                    datasets: [{
+                        label: 'Баланс',
+                        data: data.balances,
+                        backgroundColor: barColors,
+                        borderColor: barColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 30,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' ₴';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAllCharts() {
+            setTimeout(function() {
+                renderExpenseChart();
+                renderIncomeChart();
+                renderBarChart();
+            }, 100);
+        }
+
+        // ================================================================
+        // 6. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Перемикач режимів ---
+            const analyticsToggle = document.getElementById('analyticsToggle');
+            const chartsContainer = document.getElementById('chartsContainer');
+            const barRow = document.getElementById('barChartRow');
+
+            function setAnalyticsMode(mode) {
+                analyticsToggle.querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mode === mode);
+                });
+                if (mode === 'charts') {
+                    chartsContainer.style.display = 'flex';
+                    barRow.style.display = 'none';
+                } else if (mode === 'bar') {
+                    chartsContainer.style.display = 'none';
+                    barRow.style.display = '';
+                } else { // both
+                    chartsContainer.style.display = 'flex';
+                    barRow.style.display = '';
+                }
+                localStorage.setItem('alldays-analytics-mode', mode);
+                setTimeout(renderAllCharts, 100);
+            }
+
+            const savedMode = localStorage.getItem('alldays-analytics-mode') || 'both';
+            setAnalyticsMode(savedMode);
+
+            analyticsToggle.addEventListener('click', function(e) {
+                const btn = e.target.closest('.btn');
+                if (!btn || btn.classList.contains('active')) return;
+                setAnalyticsMode(btn.dataset.mode);
+            });
+
+            // --- Згортання блоку аналітики ---
+            const toggleChartBtn = document.getElementById('toggleChartBtn');
+            const chartBody = document.getElementById('chartBody');
+            const chartIcon = document.getElementById('chartToggleIcon');
+
+            if (toggleChartBtn && chartBody) {
+                const savedCollapsed = localStorage.getItem('alldays-chart-collapsed');
+                if (savedCollapsed === 'true') {
+                    chartBody.style.display = 'none';
+                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                }
+
+                toggleChartBtn.addEventListener('click', function() {
+                    const isHidden = chartBody.style.display === 'none';
+                    if (isHidden) {
+                        chartBody.style.display = '';
+                        chartIcon.className = 'fas fa-chevron-up toggle-icon';
+                        localStorage.setItem('alldays-chart-collapsed', 'false');
+                        setTimeout(renderAllCharts, 100);
+                    } else {
+                        chartBody.style.display = 'none';
+                        chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                        localStorage.setItem('alldays-chart-collapsed', 'true');
+                    }
+                });
+            }
+        });
+
+        // ================================================================
+        // 7. ІНІЦІАЛІЗАЦІЯ ПІСЛЯ ЗАВАНТАЖЕННЯ DOM
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             allDayCards = document.querySelectorAll('.day-card');
@@ -1011,6 +1585,7 @@
                 const btn = e.target.closest('button');
                 if (!btn) return;
                 setViewMode(btn.dataset.view);
+                setTimeout(renderAllCharts, 200);
             });
 
             // Видалення дня (делегування)
@@ -1023,10 +1598,13 @@
 
             // Перше застосування фільтрів
             applyFiltersAndPaginate();
+
+            // Відкладений рендеринг діаграм
+            setTimeout(renderAllCharts, 300);
         });
 
         // ================================================================
-        // 4. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // 8. ПЕРЕМИКАЧ ВИГЛЯДУ
         // ================================================================
         function setViewMode(mode) {
             if (mode === 'cards') {
@@ -1040,12 +1618,11 @@
                 viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
             }
-            // Після зміни режиму перезастосовуємо фільтри
             applyFiltersAndPaginate();
         }
 
         // ================================================================
-        // 5. ФІЛЬТРАЦІЯ ТА ПАГІНАЦІЯ
+        // 9. ФІЛЬТРАЦІЯ ТА ПАГІНАЦІЯ
         // ================================================================
         let currentPage = 1;
         let pageSize = 6;
@@ -1113,6 +1690,7 @@
                         if (numCell) numCell.textContent = idx + 1;
                     });
                 }
+                setTimeout(renderAllCharts, 100);
                 return;
             }
 
@@ -1137,12 +1715,14 @@
                     if (numCell) numCell.textContent = idx + 1;
                 });
             }
+            setTimeout(renderAllCharts, 100);
         }
 
         function applyFiltersAndPaginate() {
             filteredItems = getFilteredItems();
             currentPage = 1;
             updateUI();
+            setTimeout(renderAllCharts, 200);
         }
 
         function loadMore() {
@@ -1158,7 +1738,7 @@
         }
 
         // ================================================================
-        // 6. СОРТУВАННЯ
+        // 10. СОРТУВАННЯ
         // ================================================================
         function sortRowsBy(column, direction) {
             if (!allDayRows.length) return;
@@ -1200,7 +1780,7 @@
         }
 
         // ================================================================
-        // 7. ВИДАЛЕННЯ ДНЯ
+        // 11. ВИДАЛЕННЯ ДНЯ
         // ================================================================
         function handleDeleteDay(btn) {
             const id = btn.dataset.id;
@@ -1226,8 +1806,6 @@
             balanceEl.classList.add(balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
 
             document.getElementById('deleteTotalTransactions').textContent = total;
-            document.getElementById('deleteIncomeCount').textContent = incomeCount;
-            document.getElementById('deleteExpenseCount').textContent = expenseCount;
 
             const deleteForm = document.getElementById('deleteDayForm');
             deleteForm.action = '/day/delete/' + id;
@@ -1235,10 +1813,10 @@
         }
 
         // ================================================================
-        // 8. ДОДАТКОВИЙ JS ДЛЯ ТРАНЗАКЦІЙ (додавання, редагування, дублювання)
+        // 12. МОДАЛЬНІ ВІКНА (додавання, редагування, дублювання)
         // ================================================================
 
-        // ---- 8.1. Допоміжні функції для категорій ----
+        // ---- 12.1. Допоміжні функції для категорій ----
         function populateCategories(selectElement, categories) {
             if (!selectElement) return;
             selectElement.innerHTML = '';
@@ -1269,7 +1847,7 @@
             }
         }
 
-        // ---- 8.2. Перемикач типу в модалці додавання ----
+        // ---- 12.2. Перемикач типу в модалці додавання ----
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
         const transactionType = document.getElementById('transactionType');
@@ -1294,6 +1872,7 @@
                 transactionType.value = 'EXPENSE';
                 typeExpenseBtn.className = 'btn active-expense';
                 typeIncomeBtn.className = 'btn btn-outline-success';
+                transactionForm.action = '/day/' + dateInput.value + '/expense';
             } else {
                 if (incomeCategories.length === 0) {
                     incomeCategories = await fetchCategories('INCOME');
@@ -1302,8 +1881,8 @@
                 transactionType.value = 'INCOME';
                 typeIncomeBtn.className = 'btn active-income';
                 typeExpenseBtn.className = 'btn btn-outline-danger';
+                transactionForm.action = '/day/' + dateInput.value + '/income';
             }
-            updateFormAction();
         }
 
         function updateFormAction() {
@@ -1329,7 +1908,7 @@
             }
         }
 
-        // ---- 8.3. Кнопки +/- для суми та кількості ----
+        // ---- 12.3. Кнопки +/- для суми та кількості ----
         const amountInput = document.getElementById('transactionAmount');
         if (amountInput) {
             document.getElementById('amountMinus')?.addEventListener('click', function() {
@@ -1362,7 +1941,7 @@
             });
         }
 
-        // ---- 8.4. Лічильник символів ----
+        // ---- 12.4. Лічильник символів ----
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
         if (detailsTextarea && charCount) {
@@ -1374,7 +1953,7 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ---- 8.5. Автозаповнення часу при відкритті модалки ----
+        // ---- 12.5. Автозаповнення часу при відкритті модалки ----
         const modal = document.getElementById('transactionModal');
         if (modal) {
             modal.addEventListener('show.bs.modal', function() {
@@ -1401,7 +1980,7 @@
             });
         }
 
-        // ---- 8.6. Валідація форми додавання ----
+        // ---- 12.6. Валідація форми додавання ----
         if (transactionForm) {
             transactionForm.addEventListener('submit', function(e) {
                 let valid = true;
@@ -1434,7 +2013,7 @@
             });
         }
 
-        // ---- 8.7. Редагування (для кнопок .action-edit) ----
+        // ---- 12.7. Редагування (для кнопок .action-edit) ----
         document.querySelectorAll('.action-edit').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1487,7 +2066,7 @@
             });
         });
 
-        // ---- 8.8. Дублювання ----
+        // ---- 12.8. Дублювання ----
         const cloneModalEl = document.getElementById('cloneModal');
         let cloneTypeInput = document.getElementById('cloneType');
 
@@ -1560,7 +2139,7 @@
             document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
         });
 
-        // ---- 8.9. Видалення транзакцій (для кнопок .action-delete) ----
+        // ---- 12.9. Видалення транзакцій (для кнопок .action-delete) ----
         document.querySelectorAll('.action-delete').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1603,7 +2182,7 @@
             });
         });
 
-        // ---- 8.10. Теплі клавіші ----
+        // ---- 12.10. Теплі клавіші ----
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
@@ -1627,11 +2206,10 @@
             }
         });
 
-        // ---- 8.11. Ініціалізація TOOLTIP ----
+        // ---- 12.11. Ініціалізація TOOLTIP ----
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
     })();
 </script>
-
 </body>
 </html>
