@@ -50,27 +50,7 @@
             margin: 0;
             font-weight: 600;
         }
-        .period-nav {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .period-nav .btn {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.85rem;
-            padding: 0.3rem 0.8rem;
-        }
-        .period-nav .btn i {
-            margin-right: 4px;
-        }
-        .period-nav .period-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            padding: 0 8px;
-        }
+
         /* ===== БАЛАНС (адаптивний до теми) ===== */
         .balance-row {
             display: grid;
@@ -87,10 +67,6 @@
             padding: 26px 28px;
             color: var(--bs-body-color);
         }
-        .balance-cell.hero {
-            background: var(--bs-primary);
-            color: #fff;
-        }
         .balance-cell .label {
             font-size: 0.78rem;
             text-transform: uppercase;
@@ -98,18 +74,11 @@
             color: var(--bs-secondary-color);
             margin-bottom: 10px;
         }
-        .balance-cell.hero .label {
-            color: rgba(255,255,255,0.7);
-        }
         .balance-cell .amount {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 2.1rem;
             font-weight: 600;
             font-variant-numeric: tabular-nums;
-        }
-        .balance-cell.hero .amount {
-            color: #fff;
-            font-size: 2.5rem;
         }
         .amount.income {
             color: var(--bs-success);
@@ -188,7 +157,7 @@
         .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
         [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
 
-        /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ ===== */
+        /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ (таблиця/картки) ===== */
         .view-toggle {
             display: flex;
             gap: 0.3rem;
@@ -272,9 +241,6 @@
         .category-card .card-text .value {
             font-weight: 600;
         }
-        .category-card .amount-col {
-            text-align: right;
-        }
 
         /* ===== ТАБЛИЦЯ КАТЕГОРІЙ ===== */
         .table-categories {
@@ -327,7 +293,6 @@
             .balance-row { grid-template-columns: 1fr; }
             .balance-cell { padding: 16px 20px; }
             .balance-cell .amount { font-size: 1.6rem; }
-            .balance-cell.hero .amount { font-size: 2rem; }
         }
 
         @media (max-width: 768px) {
@@ -372,18 +337,12 @@
         [data-bs-theme="dark"] .balance-cell {
             background-color: #1d2027;
         }
-        [data-bs-theme="dark"] .balance-cell.hero {
-            background: #0d0e12;
-        }
         [data-bs-theme="dark"] .balance-row {
             background: #2a2e37;
             border-color: #2a2e37;
         }
         [data-bs-theme="dark"] .ledger-head {
             border-bottom-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .period-nav .period-label {
-            color: #9aa3b2;
         }
         [data-bs-theme="dark"] .ledger-head h1 {
             color: #e6e6e6;
@@ -457,15 +416,86 @@
         .chart-toggle-btn .toggle-icon.rotated { transform: rotate(180deg); }
         .chart-card .card-header { display: flex; justify-content: space-between; align-items: center; }
 
-        .chart-row-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; }
-        .chart-col { flex: 0 0 auto; max-width: 50%; padding: 0 0.5rem; min-width: 280px; }
-        .chart-flex { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-        .chart-container { max-height: 200px; max-width: 200px; flex-shrink: 0; }
-        .chart-container canvas { max-height: 200px; max-width: 200px; cursor: pointer; }
-        .chart-legend-table { font-size: 0.8rem; flex: 0 0 auto; min-width: 120px; text-align: left; }
-        .chart-legend-table td { padding: 0.1rem 0.3rem; }
-        .chart-legend-table .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; }
-        .chart-legend-table .amount-col { text-align: right; font-weight: 600; }
+        .analytics-toggle {
+            display: flex;
+            gap: 0.3rem;
+            background: #e9ecef;
+            border-radius: 0.5rem;
+            padding: 0.15rem;
+            flex-shrink: 0;
+        }
+        [data-bs-theme="dark"] .analytics-toggle { background: #2a2e37; }
+        .analytics-toggle .btn {
+            border: none;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 0.375rem;
+            background: transparent;
+            color: #495057;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .analytics-toggle .btn.active {
+            background: #fff;
+            color: #0d6efd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        [data-bs-theme="dark"] .analytics-toggle .btn { color: #adb5bd; }
+        [data-bs-theme="dark"] .analytics-toggle .btn.active {
+            background: #1d2027;
+            color: #6ea8fe;
+        }
+        .analytics-toggle .btn i { margin-right: 0.2rem; }
+
+        .chart-row-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0;
+        }
+        .chart-col {
+            flex: 0 0 auto;
+            max-width: 50%;
+            padding: 0 0.5rem;
+            min-width: 280px;
+        }
+        .chart-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .chart-container {
+            max-height: 200px;
+            max-width: 200px;
+            flex-shrink: 0;
+        }
+        .chart-container canvas {
+            max-height: 200px;
+            max-width: 200px;
+            cursor: pointer;
+        }
+        .chart-legend-table {
+            font-size: 0.8rem;
+            flex: 0 0 auto;
+            min-width: 120px;
+            text-align: left;
+        }
+        .chart-legend-table td {
+            padding: 0.1rem 0.3rem;
+        }
+        .chart-legend-table .color-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .chart-legend-table .amount-col {
+            text-align: right;
+            font-weight: 600;
+        }
 
         [data-bs-theme="dark"] .chart-card .card-header {
             background-color: #2a2e37 !important;
@@ -526,7 +556,6 @@
             .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
             .balance-row { background: #333 !important; border-color: #333 !important; }
             .balance-cell { background: #fff !important; }
-            .balance-cell.hero { background: #333 !important; color: #fff !important; }
             .table-categories th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .table-categories td { border-color: #ddd !important; }
             .category-card { border: 1px solid #ddd !important; box-shadow: none !important; }
@@ -562,7 +591,7 @@
 
     <!-- ===== КАРТКА БАЛАНСУ ===== -->
     <div class="balance-row stats-animated">
-        <div class="balance-cell hero">
+        <div class="balance-cell">
             <div class="label">Чистий баланс</div>
             <div class="amount" th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</div>
         </div>
@@ -576,44 +605,68 @@
         </div>
     </div>
 
-    <!-- ===== ДІАГРАМИ ===== -->
+    <!-- ===== ДІАГРАМИ (АНАЛІТИКА) ===== -->
     <div class="chart-section stats-animated" id="chartSection">
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card chart-card">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-chart-pie me-2"></i>Аналітика витрат</span>
-                        <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
-                            <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
-                        </button>
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
+                        <span><i class="fas fa-chart-pie me-2"></i>Аналітика</span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <div class="analytics-toggle" id="analyticsToggle">
+                                <button class="btn active" data-mode="charts" title="Кругові діаграми">
+                                    <i class="fas fa-chart-pie"></i> <span class="d-none d-sm-inline">Кругові</span>
+                                </button>
+                                <button class="btn" data-mode="bar" title="Стовпчиковий графік">
+                                    <i class="fas fa-chart-bar"></i> <span class="d-none d-sm-inline">Стовпчики</span>
+                                </button>
+                                <button class="btn" data-mode="both" title="Обидва">
+                                    <i class="fas fa-chart-simple"></i> <span class="d-none d-sm-inline">Обидва</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
+                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body" id="chartBody">
-                        <div class="chart-row-container">
-                            <div class="chart-col" id="expenseChartCol" th:unless="${totalBudget.expensesByCategory.empty}">
+                        <div class="chart-row-container" id="chartsContainer">
+                            <div class="chart-col" id="expenseChartCol" th:unless="${#maps.isEmpty(totalBudget.expensesByCategory)}">
                                 <div class="text-center">
                                     <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати за категоріями</h6>
                                     <div class="chart-flex">
                                         <div class="chart-container mx-auto">
-                                            <canvas id="categoryChart"></canvas>
+                                            <canvas id="expenseChart"></canvas>
                                         </div>
                                         <div class="chart-legend-table" id="expenseLegend"></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="chart-col" id="trendChartCol" th:unless="${totalBudget.dailySummaries.empty}">
+                            <div class="chart-col" id="incomeChartCol" th:unless="${#maps.isEmpty(totalBudget.incomesByCategory)}">
                                 <div class="text-center">
-                                    <h6 class="text-primary mb-1"><i class="fas fa-chart-line me-1"></i>Баланс по днях</h6>
-                                    <div style="max-height: 220px; max-width: 100%;">
-                                        <canvas id="trendChart" style="max-height: 200px; width: 100%;"></canvas>
+                                    <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи за категоріями</h6>
+                                    <div class="chart-flex">
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="incomeChart"></canvas>
+                                        </div>
+                                        <div class="chart-legend-table" id="incomeLegend"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div th:if="${totalBudget.expensesByCategory.empty and totalBudget.dailySummaries.empty}" class="empty-note">
-                            Немає даних за обраний період
+                        <!-- Стовпчиковий графік категорій -->
+                        <div class="row mt-3" id="barChartRow">
+                            <div class="col-12">
+                                <div class="text-center">
+                                    <h6 class="text-primary mb-1"><i class="fas fa-chart-bar me-1"></i>Суми по категоріях</h6>
+                                    <div style="max-height: 300px; max-width: 100%;">
+                                        <canvas id="barChart" style="max-height: 280px; width: 100%;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-center mt-2">
-                            <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Клікніть на сектор діаграми, щоб відфільтрувати категорію</small>
+                        <div th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory) and #maps.isEmpty(totalBudget.dailySummaries)}" class="empty-note">
+                            Немає даних за обраний період
                         </div>
                     </div>
                 </div>
@@ -702,7 +755,7 @@
                                 </button>
                             </td>
                         </tr>
-                        <tr th:if="${totalBudget.expensesByCategory.empty}" id="emptyRow">
+                        <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory)}" id="emptyRow">
                             <td colspan="5" class="text-center text-muted py-3">Немає даних за обраний період</td>
                         </tr>
                         </tbody>
@@ -719,7 +772,10 @@
                              th:data-amount="${entry.value}"
                              th:data-percent="0">
                             <div class="category-card">
-                                <div class="card-title" th:text="${entry.key.name}"></div>
+                                <div class="card-title d-flex justify-content-between align-items-center">
+                                    <span th:text="${entry.key.name}"></span>
+                                    <span class="badge bg-secondary"># <span th:text="${stat.index + 1}"></span></span>
+                                </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-coins me-1"></i>Сума</span>
                                     <span class="value text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></span>
@@ -1036,14 +1092,16 @@
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
 
-<!-- Дані для діаграм -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    var dailyData = /*[[${totalBudget.dailySummaries}]]*/ {};
-    var dailyDates = Object.keys(dailyData);
-    var dailyBalances = dailyDates.map(function(date) { return dailyData[date].balance; });
-    /*]]>*/
-</script>
+<!-- ПЕРЕДАЄМО ДАНІ ДЛЯ ДІАГРАМ -->
+<!-- Для кругових діаграм -->
+<div style="display:none;">
+    <span id="expenseData" th:each="entry : ${totalBudget.expensesByCategory.entrySet()}"
+          th:data-category="${entry.key.name}"
+          th:data-amount="${entry.value}"></span>
+    <span id="incomeData" th:each="entry : ${totalBudget.incomesByCategory.entrySet()}"
+          th:data-category="${entry.key.name}"
+          th:data-amount="${entry.value}"></span>
+</div>
 
 <script>
     (function() {
@@ -1076,56 +1134,95 @@
         }
 
         // ================================================================
-        // 2. КОЛІРНА ПАЛІТРА ДЛЯ ДІАГРАМ
+        // 2. ЗБІР ДАНИХ ДЛЯ КРУГОВИХ ДІАГРАМ
         // ================================================================
-        const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
+        var expenseCategories = [];
+        var expenseAmounts = [];
+        var incomeCategories = [];
+        var incomeAmounts = [];
+
+        document.querySelectorAll('#expenseData').forEach(function(el) {
+            var cat = el.getAttribute('data-category');
+            var amount = parseFloat(el.getAttribute('data-amount')) || 0;
+            if (cat && amount > 0) {
+                expenseCategories.push(cat);
+                expenseAmounts.push(amount);
+            }
+        });
+
+        document.querySelectorAll('#incomeData').forEach(function(el) {
+            var cat = el.getAttribute('data-category');
+            var amount = parseFloat(el.getAttribute('data-amount')) || 0;
+            if (cat && amount > 0) {
+                incomeCategories.push(cat);
+                incomeAmounts.push(amount);
+            }
+        });
+
+        // ================================================================
+        // 3. ЗБІР ДАНИХ ДЛЯ СТОВПЧИКОВОГО ГРАФІКА
+        // ================================================================
+        // Об'єднуємо всі категорії (витрати + доходи)
+        var allBarCategories = [];
+        var allBarAmounts = [];
+        var barColors = [];
+
+        // Додаємо витрати
+        expenseCategories.forEach(function(cat, idx) {
+            allBarCategories.push(cat);
+            allBarAmounts.push(expenseAmounts[idx]);
+            barColors.push('#dc3545'); // червоний для витрат
+        });
+
+        // Додаємо доходи
+        incomeCategories.forEach(function(cat, idx) {
+            allBarCategories.push(cat);
+            allBarAmounts.push(incomeAmounts[idx]);
+            barColors.push('#198754'); // зелений для доходів
+        });
+
+        // ================================================================
+        // 4. КОЛІРНА ПАЛІТРА ДЛЯ КРУГОВИХ
+        // ================================================================
+        const CHART_PALETTE = [
+            '#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B',
+            '#D4A373', '#6D6875', '#B5838D', '#2A9D8F', '#E76F51',
+            '#264653', '#F4A261', '#E9C46A', '#A8DADC', '#457B9D'
+        ];
         function getCategoryColor(name, index) {
             if (!name) return '#6c757d';
             if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) {
+            var hash = 0;
+            for (var i = 0; i < name.length; i++) {
                 hash = name.charCodeAt(i) + ((hash << 5) - hash);
             }
             return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
         }
 
         // ================================================================
-        // 3. ДІАГРАМИ
+        // 5. РЕНДЕРИНГ ДІАГРАМ
         // ================================================================
+
         function renderExpenseChart() {
-            const canvas = document.getElementById('categoryChart');
+            var canvas = document.getElementById('expenseChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
                 canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
                 return;
             }
-            const rows = document.querySelectorAll('.category-row');
-            const categories = [];
-            const amounts = [];
-            rows.forEach(row => {
-                const cat = row.dataset.category;
-                const amount = parseFloat(row.dataset.amount) || 0;
-                if (amount > 0) {
-                    categories.push(cat);
-                    amounts.push(amount);
-                }
-            });
-            if (amounts.length === 0) {
-                const col = document.getElementById('expenseChartCol');
+            if (expenseCategories.length === 0) {
+                var col = document.getElementById('expenseChartCol');
                 if (col) col.style.display = 'none';
                 return;
             }
-            const colors = categories.map((name, idx) => getCategoryColor(name, idx));
-
-            if (window.categoryChartInstance) {
-                window.categoryChartInstance.destroy();
-            }
-            window.categoryChartInstance = new Chart(canvas, {
+            var colors = expenseCategories.map(function(name, idx) { return getCategoryColor(name, idx); });
+            if (window.expenseChartInstance) { window.expenseChartInstance.destroy(); }
+            window.expenseChartInstance = new Chart(canvas, {
                 type: 'doughnut',
                 data: {
-                    labels: categories,
+                    labels: expenseCategories,
                     datasets: [{
-                        data: amounts,
+                        data: expenseAmounts,
                         backgroundColor: colors,
                         borderColor: '#ffffff',
                         borderWidth: 2
@@ -1136,30 +1233,27 @@
                     maintainAspectRatio: true,
                     onClick: function(e, elements) {
                         if (elements.length > 0) {
-                            const index = elements[0].index;
-                            const category = categories[index];
-                            const input = document.getElementById('searchInput');
+                            var index = elements[0].index;
+                            var category = expenseCategories[index];
+                            var input = document.getElementById('searchInput');
                             if (input) {
                                 input.value = category;
                                 input.dispatchEvent(new Event('input'));
                             }
                         }
                     },
-                    plugins: {
-                        legend: { display: false }
-                    },
+                    plugins: { legend: { display: false } },
                     cutout: '55%'
                 }
             });
-
-            const legendContainer = document.getElementById('expenseLegend');
+            var legendContainer = document.getElementById('expenseLegend');
             if (legendContainer) {
-                const total = amounts.reduce((a,b) => a+b, 0);
-                let html = '<table class="chart-legend-table"><tbody>';
-                categories.forEach((name, idx) => {
-                    const amount = amounts[idx];
-                    const color = getCategoryColor(name, idx);
-                    const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                var total = expenseAmounts.reduce(function(a,b) { return a + b; }, 0);
+                var html = '<table class="chart-legend-table"><tbody>';
+                expenseCategories.forEach(function(name, idx) {
+                    var amount = expenseAmounts[idx];
+                    var color = getCategoryColor(name, idx);
+                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
                     html += '<tr>' +
                         '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
                         '<td class="category-col">' + name + '</td>' +
@@ -1172,44 +1266,120 @@
             }
         }
 
-        function renderTrendChart() {
-            const canvas = document.getElementById('trendChart');
+        function renderIncomeChart() {
+            var canvas = document.getElementById('incomeChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') {
                 canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
                 return;
             }
-            if (typeof dailyDates === 'undefined' || dailyDates.length === 0) {
-                const col = document.getElementById('trendChartCol');
+            if (incomeCategories.length === 0) {
+                var col = document.getElementById('incomeChartCol');
                 if (col) col.style.display = 'none';
                 return;
             }
-            if (window.trendChartInstance) {
-                window.trendChartInstance.destroy();
-            }
-            window.trendChartInstance = new Chart(canvas, {
-                type: 'line',
+            var colors = incomeCategories.map(function(name, idx) { return getCategoryColor(name, idx + 5); });
+            if (window.incomeChartInstance) { window.incomeChartInstance.destroy(); }
+            window.incomeChartInstance = new Chart(canvas, {
+                type: 'doughnut',
                 data: {
-                    labels: dailyDates,
+                    labels: incomeCategories,
                     datasets: [{
-                        label: 'Баланс на кінець дня',
-                        data: dailyBalances,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 2
+                        data: incomeAmounts,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    onClick: function(e, elements) {
+                        if (elements.length > 0) {
+                            var index = elements[0].index;
+                            var category = incomeCategories[index];
+                            var input = document.getElementById('searchInput');
+                            if (input) {
+                                input.value = category;
+                                input.dispatchEvent(new Event('input'));
+                            }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    cutout: '55%'
+                }
+            });
+            var legendContainer = document.getElementById('incomeLegend');
+            if (legendContainer) {
+                var total = incomeAmounts.reduce(function(a,b) { return a + b; }, 0);
+                var html = '<table class="chart-legend-table"><tbody>';
+                incomeCategories.forEach(function(name, idx) {
+                    var amount = incomeAmounts[idx];
+                    var color = getCategoryColor(name, idx + 5);
+                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                    html += '<tr>' +
+                        '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
+                        '<td class="category-col">' + name + '</td>' +
+                        '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                        '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
+                        '</tr>';
+                });
+                html += '</tbody></table>';
+                legendContainer.innerHTML = html;
+            }
+        }
+
+        function renderBarChart() {
+            var canvas = document.getElementById('barChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+                return;
+            }
+            if (allBarCategories.length === 0) {
+                var row = document.getElementById('barChartRow');
+                if (row) row.style.display = 'none';
+                return;
+            }
+
+            if (window.barChartInstance) { window.barChartInstance.destroy(); }
+
+            window.barChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: allBarCategories,
+                    datasets: [{
+                        label: 'Сума',
+                        data: allBarAmounts,
+                        backgroundColor: barColors,
+                        borderColor: barColors.map(function(c) { return c; }),
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: false
+                        }
                     },
                     scales: {
-                        x: { display: false },
-                        y: { beginAtZero: true }
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 30
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' ₴';
+                                }
+                            }
+                        }
                     }
                 }
             });
@@ -1218,265 +1388,243 @@
         function renderAllCharts() {
             setTimeout(function() {
                 renderExpenseChart();
-                renderTrendChart();
-            }, 100);
+                renderIncomeChart();
+                renderBarChart();
+            }, 150);
         }
 
         // ================================================================
-        // 4. ІНІЦІАЛІЗАЦІЯ ПІСЛЯ ЗАВАНТАЖЕННЯ DOM
+        // 6. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Отримуємо елементи
-            const searchInput = document.getElementById('searchInput');
-            const dateFrom = document.getElementById('dateFrom');
-            const dateTo = document.getElementById('dateTo');
-            const applyDateBtn = document.getElementById('applyDateFilter');
-            const clearDateBtn = document.getElementById('clearDateFilter');
-            const pageSizeSelect = document.getElementById('pageSizeSelect');
-            const loadMoreBtn = document.getElementById('loadMoreBtn');
-            const viewToggle = document.getElementById('viewToggle');
-            const totalRowsSpan = document.getElementById('totalRowsCount');
-            const visibleInfo = document.getElementById('visibleInfo');
-            const noCardsResults = document.getElementById('noCardsResults');
-            const cardsView = document.getElementById('cardsView');
-            const tableView = document.getElementById('tableView');
-            const categoriesBody = document.getElementById('categoriesBody');
-            const cardsContainer = document.getElementById('cardsContainer');
+            // --- Перемикач режимів ---
+            var analyticsToggle = document.getElementById('analyticsToggle');
+            var chartsContainer = document.getElementById('chartsContainer');
+            var barRow = document.getElementById('barChartRow');
 
-            if (!searchInput || !dateFrom || !dateTo) {
-                console.warn('Не знайдено елементи фільтрів');
-                return;
+            function setAnalyticsMode(mode) {
+                analyticsToggle.querySelectorAll('.btn').forEach(function(btn) {
+                    btn.classList.toggle('active', btn.dataset.mode === mode);
+                });
+                if (mode === 'charts') {
+                    chartsContainer.style.display = 'flex';
+                    barRow.style.display = 'none';
+                } else if (mode === 'bar') {
+                    chartsContainer.style.display = 'none';
+                    barRow.style.display = '';
+                } else { // both
+                    chartsContainer.style.display = 'flex';
+                    barRow.style.display = '';
+                }
+                localStorage.setItem('totals-analytics-mode', mode);
+                setTimeout(renderAllCharts, 100);
             }
+            var savedMode = localStorage.getItem('totals-analytics-mode') || 'both';
+            setAnalyticsMode(savedMode);
+            analyticsToggle.addEventListener('click', function(e) {
+                var btn = e.target.closest('.btn');
+                if (!btn || btn.classList.contains('active')) return;
+                setAnalyticsMode(btn.dataset.mode);
+            });
 
-            // ================================================================
-            // ЗМІННІ СТАНУ
-            // ================================================================
-            let currentPage = 1;
-            let pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 5) || 5;
-            let filteredItems = [];
+            // --- Згортання блоку аналітики ---
+            var toggleChartBtn = document.getElementById('toggleChartBtn');
+            var chartBody = document.getElementById('chartBody');
+            var chartIcon = document.getElementById('chartToggleIcon');
+            if (toggleChartBtn && chartBody) {
+                var savedCollapsed = localStorage.getItem('totals-chart-collapsed');
+                if (savedCollapsed === 'true') {
+                    chartBody.style.display = 'none';
+                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                }
+                toggleChartBtn.addEventListener('click', function() {
+                    var isHidden = chartBody.style.display === 'none';
+                    if (isHidden) {
+                        chartBody.style.display = '';
+                        chartIcon.className = 'fas fa-chevron-up toggle-icon';
+                        localStorage.setItem('totals-chart-collapsed', 'false');
+                        setTimeout(renderAllCharts, 100);
+                    } else {
+                        chartBody.style.display = 'none';
+                        chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                        localStorage.setItem('totals-chart-collapsed', 'true');
+                    }
+                });
+            }
+        });
 
-            // ================================================================
-            // 5. ПЕРЕМИКАЧ ВИГЛЯДУ (збереження в localStorage)
-            // ================================================================
+        // ================================================================
+        // 7. ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ, ПЕРЕМИКАЧ ТАБЛИЦЯ/КАРТКИ
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Елементи
+            var searchInput = document.getElementById('searchInput');
+            var dateFrom = document.getElementById('dateFrom');
+            var dateTo = document.getElementById('dateTo');
+            var applyDateBtn = document.getElementById('applyDateFilter');
+            var clearDateBtn = document.getElementById('clearDateFilter');
+            var pageSizeSelect = document.getElementById('pageSizeSelect');
+            var loadMoreBtn = document.getElementById('loadMoreBtn');
+            var viewToggle = document.getElementById('viewToggle');
+            var totalRowsSpan = document.getElementById('totalRowsCount');
+            var visibleInfo = document.getElementById('visibleInfo');
+            var noCardsResults = document.getElementById('noCardsResults');
+            var cardsView = document.getElementById('cardsView');
+            var tableView = document.getElementById('tableView');
+            var categoriesBody = document.getElementById('categoriesBody');
+            var cardsContainer = document.getElementById('cardsContainer');
+
+            var currentPage = 1;
+            var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 5) || 5;
+            var filteredItems = [];
+
+            // --- Перемикач таблиця/картки (збереження в localStorage) ---
             function setViewMode(mode) {
                 if (mode === 'cards') {
                     cardsView.classList.add('show');
                     tableView.classList.add('hidden');
-                    viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    viewToggle.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
                     viewToggle.querySelector('[data-view="cards"]').classList.add('active');
                     localStorage.setItem('totals-view-mode', 'cards');
                 } else {
                     cardsView.classList.remove('show');
                     tableView.classList.remove('hidden');
-                    viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                    viewToggle.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
                     viewToggle.querySelector('[data-view="table"]').classList.add('active');
                     localStorage.setItem('totals-view-mode', 'table');
                 }
                 updateUI();
             }
-
-            const savedViewMode = localStorage.getItem('totals-view-mode');
-            if (savedViewMode === 'cards') {
-                setViewMode('cards');
-            } else {
-                setViewMode('table');
-            }
-
+            var savedViewMode = localStorage.getItem('totals-view-mode');
+            setViewMode(savedViewMode === 'cards' ? 'cards' : 'table');
             viewToggle.addEventListener('click', function(e) {
-                const btn = e.target.closest('button');
+                var btn = e.target.closest('button');
                 if (!btn) return;
                 setViewMode(btn.dataset.view);
             });
 
-            // ================================================================
-            // 6. РОЗРАХУНОК ВІДСОТКІВ
-            // ================================================================
-            // ================================================================
-// РОЗРАХУНОК ВІДСОТКІВ (ВИПРАВЛЕНО)
-// ================================================================
+            // --- Розрахунок відсотків ---
             function calculatePercentages() {
-                const expenseEntries = document.querySelectorAll('.category-row');
-                let totalExpenses = 0;
-
-                // Обчислюємо загальну суму витрат
-                expenseEntries.forEach(row => {
-                    const amount = parseFloat(row.dataset.amount) || 0;
+                var expenseEntries = document.querySelectorAll('.category-row');
+                var totalExpenses = 0;
+                expenseEntries.forEach(function(row) {
+                    var amount = parseFloat(row.dataset.amount) || 0;
                     totalExpenses += amount;
                 });
-
-                // Якщо немає витрат, показуємо 0% для всіх
-                if (totalExpenses === 0) {
-                    expenseEntries.forEach((row, idx) => {
-                        row.dataset.percent = '0.0';
-                        // Шукаємо комірку з відсотками (4-та колонка, індекс 3)
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length > 3) {
-                            const percentCell = cells[3];
-                            if (percentCell) percentCell.textContent = '0%';
-                        }
-                    });
-
-                    document.querySelectorAll('.category-card-wrapper .percent-value').forEach(el => {
-                        el.textContent = '0%';
-                    });
-                    return;
-                }
-
-                // Оновлюємо відсотки для кожного рядка
-                expenseEntries.forEach((row, idx) => {
-                    const amount = parseFloat(row.dataset.amount) || 0;
-                    const percent = (amount / totalExpenses * 100);
-                    const percentFormatted = percent.toFixed(1);
-                    row.dataset.percent = percentFormatted;
-
-                    // Шукаємо комірку з відсотками (4-та колонка, індекс 3)
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length > 3) {
-                        const percentCell = cells[3];
-                        if (percentCell) percentCell.textContent = percentFormatted + '%';
-                    }
+                expenseEntries.forEach(function(row, idx) {
+                    var amount = parseFloat(row.dataset.amount) || 0;
+                    var percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
+                    row.dataset.percent = percent.toFixed(1);
+                    var percentCell = document.getElementById('percent-' + idx);
+                    if (percentCell) { percentCell.textContent = percent.toFixed(1) + '%'; }
                 });
-
-                // Оновлюємо відсотки в картках
-                document.querySelectorAll('.category-card-wrapper').forEach(card => {
-                    const amount = parseFloat(card.dataset.amount) || 0;
-                    const percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
+                document.querySelectorAll('.category-card-wrapper').forEach(function(card) {
+                    var amount = parseFloat(card.dataset.amount) || 0;
+                    var percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
                     card.dataset.percent = percent.toFixed(1);
-                    const percentEl = card.querySelector('.percent-value');
-                    if (percentEl) {
-                        percentEl.textContent = percent.toFixed(1) + '%';
-                    }
+                    var percentEl = card.querySelector('.percent-value');
+                    if (percentEl) { percentEl.textContent = percent.toFixed(1) + '%'; }
                 });
             }
 
-            // Викликаємо calculatePercentages() після оновлення даних
-            function applyFiltersAndPaginate() {
-                filteredItems = getFilteredItems();
-                currentPage = 1;
-                updateUI();
-                // Перераховуємо відсотки після оновлення відфільтрованих даних
-                setTimeout(function() {
-                    calculatePercentages();
-                    renderAllCharts();
-                }, 50);
-            }
-
-            // ================================================================
-            // 7. ПАГІНАЦІЯ ТА ФІЛЬТРАЦІЯ
-            // ================================================================
+            // --- Фільтрація ---
             function getFilteredItems() {
-                const searchTerm = searchInput.value.toLowerCase().trim();
-                const items = document.querySelectorAll('.category-row');
-
-                const result = [];
-                items.forEach(item => {
-                    const category = (item.dataset.category || '').toLowerCase();
-                    const amount = parseFloat(item.dataset.amount) || 0;
-                    const percent = parseFloat(item.dataset.percent) || 0;
-
-                    let match = true;
+                var searchTerm = searchInput.value.toLowerCase().trim();
+                var items = document.querySelectorAll('.category-row');
+                var result = [];
+                items.forEach(function(item) {
+                    var category = (item.dataset.category || '').toLowerCase();
+                    var amount = parseFloat(item.dataset.amount) || 0;
+                    var percent = parseFloat(item.dataset.percent) || 0;
+                    var match = true;
                     if (searchTerm) {
-                        const text = (category + ' ' + amount + ' ' + percent).toLowerCase();
+                        var text = (category + ' ' + amount + ' ' + percent).toLowerCase();
                         match = text.includes(searchTerm);
                     }
-                    if (match) {
-                        result.push(item);
-                    }
+                    if (match) { result.push(item); }
                 });
                 return result;
             }
 
             function updateRowNumbers() {
-                const visibleRows = document.querySelectorAll('#categoriesBody .category-row[style*="display: block"]');
-                visibleRows.forEach((row, idx) => {
-                    const numCell = row.querySelector('.col-number');
-                    if (numCell) numCell.textContent = idx + 1;
+                var visibleRows = document.querySelectorAll('#categoriesBody .category-row[style*="display: block"]');
+                visibleRows.forEach(function(row, idx) {
+                    var numCell = row.querySelector('.col-number');
+                    if (numCell) { numCell.textContent = idx + 1; }
                 });
             }
 
             function updateUI() {
-                const total = filteredItems.length;
-                if (totalRowsSpan) totalRowsSpan.textContent = total;
-
-                const allRows = document.querySelectorAll('.category-row');
-                allRows.forEach(row => row.style.display = 'none');
-
-                const allCards = document.querySelectorAll('.category-card-wrapper');
-                allCards.forEach(card => card.style.display = 'none');
+                var total = filteredItems.length;
+                if (totalRowsSpan) { totalRowsSpan.textContent = total; }
+                document.querySelectorAll('.category-row').forEach(function(row) { row.style.display = 'none'; });
+                document.querySelectorAll('.category-card-wrapper').forEach(function(card) { card.style.display = 'none'; });
 
                 if (pageSize === 0) {
-                    filteredItems.forEach(row => row.style.display = '');
-                    const cardMap = new Map();
-                    document.querySelectorAll('.category-card-wrapper').forEach(c => {
+                    filteredItems.forEach(function(row) { row.style.display = ''; });
+                    var cardMap = new Map();
+                    document.querySelectorAll('.category-card-wrapper').forEach(function(c) {
                         cardMap.set(c.dataset.category, c);
                     });
-                    filteredItems.forEach(row => {
-                        const card = cardMap.get(row.dataset.category);
+                    filteredItems.forEach(function(row) {
+                        var card = cardMap.get(row.dataset.category);
                         if (card) card.style.display = '';
                     });
-                    if (visibleInfo) visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
+                    if (visibleInfo) { visibleInfo.textContent = 'Показано: ' + total + ' з ' + total; }
                     if (loadMoreBtn) {
                         loadMoreBtn.disabled = true;
                         loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> Всі завантажено';
                     }
-                    if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
+                    if (noCardsResults) { noCardsResults.style.display = total === 0 ? 'block' : 'none'; }
                     updateRowNumbers();
+                    setTimeout(calculatePercentages, 50);
                     return;
                 }
 
-                const end = Math.min(currentPage * pageSize, total);
-                for (let i = 0; i < end; i++) {
+                var end = Math.min(currentPage * pageSize, total);
+                for (var i = 0; i < end; i++) {
                     filteredItems[i].style.display = '';
                 }
-
-                const cardMap = new Map();
-                document.querySelectorAll('.category-card-wrapper').forEach(c => {
+                var cardMap = new Map();
+                document.querySelectorAll('.category-card-wrapper').forEach(function(c) {
                     cardMap.set(c.dataset.category, c);
                 });
-                document.querySelectorAll('.category-card-wrapper').forEach(c => c.style.display = 'none');
-                const visibleRows = filteredItems.slice(0, end);
-                visibleRows.forEach(row => {
-                    const card = cardMap.get(row.dataset.category);
+                document.querySelectorAll('.category-card-wrapper').forEach(function(c) { c.style.display = 'none'; });
+                var visibleRows = filteredItems.slice(0, end);
+                visibleRows.forEach(function(row) {
+                    var card = cardMap.get(row.dataset.category);
                     if (card) card.style.display = '';
                 });
 
-                const allShown = (end >= total);
-                if (visibleInfo) visibleInfo.textContent = 'Показано: ' + end + ' з ' + total;
+                var allShown = (end >= total);
+                if (visibleInfo) { visibleInfo.textContent = 'Показано: ' + end + ' з ' + total; }
                 if (loadMoreBtn) {
                     loadMoreBtn.disabled = allShown || total === 0;
                     loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> Всі завантажено' : '<i class="fas fa-plus-circle me-1"></i> Завантажити ще';
                 }
-                if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
-
+                if (noCardsResults) { noCardsResults.style.display = total === 0 ? 'block' : 'none'; }
                 updateRowNumbers();
+                setTimeout(calculatePercentages, 50);
             }
 
             function applyFiltersAndPaginate() {
                 filteredItems = getFilteredItems();
                 currentPage = 1;
                 updateUI();
-                setTimeout(function() {
-                    renderAllCharts();
-                }, 50);
+                setTimeout(renderAllCharts, 100);
             }
 
             function loadMore() {
                 if (pageSize === 0) return;
-                const total = filteredItems.length;
-                const shown = Math.min(currentPage * pageSize, total);
-                if (shown >= total) {
-                    if (loadMoreBtn) loadMoreBtn.disabled = true;
-                    return;
-                }
+                var total = filteredItems.length;
+                var shown = Math.min(currentPage * pageSize, total);
+                if (shown >= total) { if (loadMoreBtn) loadMoreBtn.disabled = true; return; }
                 currentPage++;
                 updateUI();
             }
 
-            // ---- ПОДІЇ ----
-            searchInput.addEventListener('input', function() {
-                applyFiltersAndPaginate();
-            });
-
+            // Події фільтрів
+            searchInput.addEventListener('input', applyFiltersAndPaginate);
             if (pageSizeSelect) {
                 pageSizeSelect.addEventListener('change', function() {
                     pageSize = parseInt(this.value) || 0;
@@ -1484,115 +1632,47 @@
                     updateUI();
                 });
             }
+            if (loadMoreBtn) { loadMoreBtn.addEventListener('click', loadMore); }
 
-            if (loadMoreBtn) {
-                loadMoreBtn.addEventListener('click', loadMore);
-            }
-
-            // ================================================================
-            // 8. НАВІГАЦІЯ ПЕРІОДУ
-            // ================================================================
-            function updatePeriod(startDate, endDate) {
-                const from = startDate.toISOString().split('T')[0];
-                const to = endDate.toISOString().split('T')[0];
-                window.location.href = '/totals?startDate=' + from + '&endDate=' + to;
-            }
-
-            function getCurrentDates() {
-                const fromVal = dateFrom.value;
-                const toVal = dateTo.value;
-                if (fromVal && toVal) {
-                    return { start: new Date(fromVal), end: new Date(toVal) };
-                }
-                const end = new Date();
-                const start = new Date();
-                start.setDate(end.getDate() - 30);
-                return { start, end };
-            }
-
-            const prevMonthBtn = document.getElementById('prevMonthBtn');
-            const nextMonthBtn = document.getElementById('nextMonthBtn');
-            const todayBtn = document.getElementById('todayBtn');
-
-            if (prevMonthBtn) {
-                prevMonthBtn.addEventListener('click', function() {
-                    const { start, end } = getCurrentDates();
-                    const newStart = new Date(start);
-                    newStart.setMonth(start.getMonth() - 1);
-                    const newEnd = new Date(end);
-                    newEnd.setMonth(end.getMonth() - 1);
-                    if (newEnd < newStart) {
-                        newEnd.setTime(newStart.getTime());
-                    }
-                    updatePeriod(newStart, newEnd);
-                });
-            }
-
-            if (nextMonthBtn) {
-                nextMonthBtn.addEventListener('click', function() {
-                    const { start, end } = getCurrentDates();
-                    const newStart = new Date(start);
-                    newStart.setMonth(start.getMonth() + 1);
-                    const newEnd = new Date(end);
-                    newEnd.setMonth(end.getMonth() + 1);
-                    updatePeriod(newStart, newEnd);
-                });
-            }
-
-            if (todayBtn) {
-                todayBtn.addEventListener('click', function() {
-                    const end = new Date();
-                    const start = new Date();
-                    start.setDate(end.getDate() - 30);
-                    updatePeriod(start, end);
-                });
-            }
-
-            // ================================================================
-            // 9. ФІЛЬТР ДАТИ
-            // ================================================================
+            // --- Фільтр дати ---
             function updateData() {
-                const from = dateFrom.value;
-                const to = dateTo.value;
+                var from = dateFrom.value;
+                var to = dateTo.value;
                 if (from && to) {
                     window.location.href = '/totals?startDate=' + from + '&endDate=' + to;
                 } else {
                     window.location.href = '/totals';
                 }
             }
-
             if (applyDateBtn) {
-                applyDateBtn.addEventListener('click', updateData);
+                applyDateBtn.addEventListener('click', function(e) { e.preventDefault(); updateData(); });
             }
-
             if (clearDateBtn) {
-                clearDateBtn.addEventListener('click', function() {
+                clearDateBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     dateFrom.value = '';
                     dateTo.value = '';
                     window.location.href = '/totals';
                 });
             }
+            if (dateFrom) {
+                dateFrom.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
+            }
+            if (dateTo) {
+                dateTo.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
+            }
 
-            // ================================================================
-            // 10. СОРТУВАННЯ
-            // ================================================================
+            // --- Сортування ---
             function sortRowsBy(column, direction) {
-                const th = document.querySelector(`.sortable[data-sort="${column}"]`);
-                const dataType = th ? th.dataset.type : 'string';
-                const rowsArray = Array.from(document.querySelectorAll('.category-row'));
-
-                const indexMap = {
-                    'category': 1,
-                    'amount': 2,
-                    'percent': 3
-                };
-                const idx = indexMap[column];
+                var th = document.querySelector('.sortable[data-sort="' + column + '"]');
+                var dataType = th ? th.dataset.type : 'string';
+                var rowsArray = Array.from(document.querySelectorAll('.category-row'));
+                var indexMap = { 'category': 1, 'amount': 2, 'percent': 3 };
+                var idx = indexMap[column];
                 if (idx === undefined) return;
-
-                rowsArray.sort((a, b) => {
-                    let aVal = a.dataset[column] || '';
-                    let bVal = b.dataset[column] || '';
-
+                rowsArray.sort(function(a, b) {
+                    var aVal = a.dataset[column] || '';
+                    var bVal = b.dataset[column] || '';
                     if (dataType === 'number') {
                         aVal = parseFloat(aVal) || 0;
                         bVal = parseFloat(bVal) || 0;
@@ -1603,92 +1683,53 @@
                         return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
                     }
                 });
-
-                const tbody = document.getElementById('categoriesBody');
-                rowsArray.forEach(row => tbody.appendChild(row));
-
-                document.querySelectorAll('.sortable').forEach(th => {
+                var tbody = document.getElementById('categoriesBody');
+                rowsArray.forEach(function(row) { tbody.appendChild(row); });
+                document.querySelectorAll('.sortable').forEach(function(th) {
                     th.classList.remove('active-asc', 'active-desc');
-                    const icon = th.querySelector('.sort-icon');
+                    var icon = th.querySelector('.sort-icon');
                     if (icon) icon.className = 'fas fa-sort sort-icon';
                 });
                 if (th) {
                     th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
-                    const icon = th.querySelector('.sort-icon');
+                    var icon = th.querySelector('.sort-icon');
                     if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
                 }
-
                 applyFiltersAndPaginate();
             }
-
-            document.querySelectorAll('.sortable').forEach(th => {
+            document.querySelectorAll('.sortable').forEach(function(th) {
                 th.addEventListener('click', function() {
-                    const column = this.dataset.sort;
-                    const currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
-                    let direction = 'asc';
+                    var column = this.dataset.sort;
+                    var currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
+                    var direction = 'asc';
                     if (currentDir === 'asc') direction = 'desc';
                     else if (currentDir === 'desc') direction = 'asc';
                     sortRowsBy(column, direction);
                 });
             });
 
-            // ================================================================
-            // 11. ТОГЛ ДІАГРАМ
-            // ================================================================
-            function toggleCharts() {
-                const chartBody = document.getElementById('chartBody');
-                const icon = document.getElementById('chartToggleIcon');
-                if (!chartBody) return;
-                const isHidden = chartBody.style.display === 'none';
-                if (isHidden) {
-                    chartBody.style.display = '';
-                    icon.className = 'fas fa-chevron-up toggle-icon';
-                    setTimeout(renderAllCharts, 100);
-                    localStorage.setItem('totals-chart-visible', 'true');
-                } else {
-                    chartBody.style.display = 'none';
-                    icon.className = 'fas fa-chevron-down toggle-icon';
-                    localStorage.setItem('totals-chart-visible', 'false');
-                }
-            }
-
-            document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
-
-            // Відновлюємо стан діаграм
-            const chartVisible = localStorage.getItem('totals-chart-visible');
-            const chartBody = document.getElementById('chartBody');
-            const icon = document.getElementById('chartToggleIcon');
-            if (chartVisible === 'false' && chartBody) {
-                chartBody.style.display = 'none';
-                if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
-            }
-
-            // ================================================================
-            // 12. ЗАПУСК
-            // ================================================================
-            calculatePercentages();
+            // --- Запуск ---
             applyFiltersAndPaginate();
-
-        }); // end DOMContentLoaded
+        });
 
         // ================================================================
-        // 13. МОДАЛЬНІ ВІКНА (додавання, редагування, дублювання)
+        // 8. МОДАЛЬНІ ВІКНА (додавання, редагування, дублювання, видалення)
         // ================================================================
 
-        // ---- 13.1. Допоміжні функції для категорій ----
+        // ---- 8.1. Допоміжні функції для категорій ----
         function populateCategories(selectElement, categories) {
             if (!selectElement) return;
             selectElement.innerHTML = '';
             if (!categories || categories.length === 0) {
-                const opt = document.createElement('option');
+                var opt = document.createElement('option');
                 opt.value = '';
                 opt.textContent = 'Немає категорій';
                 opt.disabled = true;
                 selectElement.appendChild(opt);
                 return;
             }
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
+            categories.forEach(function(cat) {
+                var opt = document.createElement('option');
                 opt.value = cat.id;
                 opt.textContent = cat.name;
                 selectElement.appendChild(opt);
@@ -1696,9 +1737,9 @@
         }
 
         async function fetchCategories(type) {
-            const url = type === 'EXPENSE' ? '/categories/expense' : '/categories/income';
+            var url = type === 'EXPENSE' ? '/categories/expense' : '/categories/income';
             try {
-                const response = await fetch(url);
+                var response = await fetch(url);
                 return await response.json();
             } catch (err) {
                 console.warn('Помилка завантаження категорій:', err);
@@ -1706,36 +1747,35 @@
             }
         }
 
-        // ---- 13.2. Перемикач типу в модалці додавання ----
-        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
-        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
-        const transactionType = document.getElementById('transactionType');
-        const transactionForm = document.getElementById('transactionForm');
-        const categorySelect = document.getElementById('categorySelect');
-        const dateInput = document.getElementById('transactionDate');
-        let expenseCategories = [];
-        let incomeCategories = [];
+        // ---- 8.2. Перемикач типу в модалці додавання ----
+        var typeExpenseBtn = document.getElementById('typeExpenseBtn');
+        var typeIncomeBtn = document.getElementById('typeIncomeBtn');
+        var transactionType = document.getElementById('transactionType');
+        var transactionForm = document.getElementById('transactionForm');
+        var categorySelect = document.getElementById('categorySelect');
+        var dateInput = document.getElementById('transactionDate');
+        var expenseCategoriesSelect = [];
+        var incomeCategoriesSelect = [];
 
         async function setTransactionType(type) {
             if (!transactionType || !transactionForm) return;
             if (dateInput && !dateInput.value) {
-                const today = new Date().toISOString().split('T')[0];
+                var today = new Date().toISOString().split('T')[0];
                 dateInput.value = today;
             }
-
             if (type === 'EXPENSE') {
-                if (expenseCategories.length === 0) {
-                    expenseCategories = await fetchCategories('EXPENSE');
+                if (expenseCategoriesSelect.length === 0) {
+                    expenseCategoriesSelect = await fetchCategories('EXPENSE');
                 }
-                populateCategories(categorySelect, expenseCategories);
+                populateCategories(categorySelect, expenseCategoriesSelect);
                 transactionType.value = 'EXPENSE';
                 typeExpenseBtn.className = 'btn active-expense';
                 typeIncomeBtn.className = 'btn btn-outline-success';
             } else {
-                if (incomeCategories.length === 0) {
-                    incomeCategories = await fetchCategories('INCOME');
+                if (incomeCategoriesSelect.length === 0) {
+                    incomeCategoriesSelect = await fetchCategories('INCOME');
                 }
-                populateCategories(categorySelect, incomeCategories);
+                populateCategories(categorySelect, incomeCategoriesSelect);
                 transactionType.value = 'INCOME';
                 typeIncomeBtn.className = 'btn active-income';
                 typeExpenseBtn.className = 'btn btn-outline-danger';
@@ -1744,88 +1784,77 @@
         }
 
         function updateFormAction() {
-            const dateVal = dateInput ? dateInput.value : '';
+            var dateVal = dateInput ? dateInput.value : '';
             if (!dateVal) return;
-            const type = transactionType ? transactionType.value : 'EXPENSE';
-            const action = type === 'EXPENSE' ? '/day/' + dateVal + '/expense' : '/day/' + dateVal + '/income';
+            var type = transactionType ? transactionType.value : 'EXPENSE';
+            var action = type === 'EXPENSE' ? '/day/' + dateVal + '/expense' : '/day/' + dateVal + '/income';
             transactionForm.action = action;
         }
 
         if (typeExpenseBtn && typeIncomeBtn) {
             setTransactionType('EXPENSE');
-            typeExpenseBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                setTransactionType('EXPENSE');
-            });
-            typeIncomeBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                setTransactionType('INCOME');
-            });
-            if (dateInput) {
-                dateInput.addEventListener('change', updateFormAction);
-            }
+            typeExpenseBtn.addEventListener('click', function(e) { e.preventDefault(); setTransactionType('EXPENSE'); });
+            typeIncomeBtn.addEventListener('click', function(e) { e.preventDefault(); setTransactionType('INCOME'); });
+            if (dateInput) { dateInput.addEventListener('change', updateFormAction); }
         }
 
-        // ---- 13.3. Кнопки +/- для суми та кількості ----
-        const amountInput = document.getElementById('transactionAmount');
+        // ---- 8.3. Кнопки +/- для суми та кількості ----
+        var amountInput = document.getElementById('transactionAmount');
         if (amountInput) {
             document.getElementById('amountMinus')?.addEventListener('click', function() {
-                let val = parseFloat(amountInput.value) || 0;
-                if (val > 0) {
-                    val = Math.round((val - 0.01) * 100) / 100;
-                    amountInput.value = val.toFixed(2);
-                }
+                var val = parseFloat(amountInput.value) || 0;
+                if (val > 0) { val = Math.round((val - 0.01) * 100) / 100; amountInput.value = val.toFixed(2); }
             });
             document.getElementById('amountPlus')?.addEventListener('click', function() {
-                let val = parseFloat(amountInput.value) || 0;
+                var val = parseFloat(amountInput.value) || 0;
                 val = Math.round((val + 0.01) * 100) / 100;
                 amountInput.value = val.toFixed(2);
             });
             amountInput.addEventListener('blur', function() {
-                let val = parseFloat(amountInput.value) || 0;
+                var val = parseFloat(amountInput.value) || 0;
                 amountInput.value = val.toFixed(2);
             });
         }
 
-        const quantityInput = document.getElementById('transactionQuantity');
+        var quantityInput = document.getElementById('transactionQuantity');
         if (quantityInput) {
             document.getElementById('quantityMinus')?.addEventListener('click', function() {
-                let val = parseInt(quantityInput.value) || 1;
+                var val = parseInt(quantityInput.value) || 1;
                 if (val > 1) quantityInput.value = val - 1;
             });
             document.getElementById('quantityPlus')?.addEventListener('click', function() {
-                let val = parseInt(quantityInput.value) || 1;
+                var val = parseInt(quantityInput.value) || 1;
                 quantityInput.value = val + 1;
             });
         }
 
-        // ---- 13.4. Лічильник символів ----
-        const detailsTextarea = document.getElementById('transactionDetails');
-        const charCount = document.getElementById('charCount');
+        // ---- 8.4. Лічильник символів ----
+        var detailsTextarea = document.getElementById('transactionDetails');
+        var charCount = document.getElementById('charCount');
         if (detailsTextarea && charCount) {
             detailsTextarea.addEventListener('input', function() {
-                const len = this.value.length;
+                var len = this.value.length;
                 charCount.textContent = len;
                 charCount.style.color = len >= 250 ? '#dc3545' : '';
             });
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ---- 13.5. Автозаповнення часу при відкритті модалки ----
-        const modal = document.getElementById('transactionModal');
+        // ---- 8.5. Автозаповнення часу при відкритті модалки ----
+        var modal = document.getElementById('transactionModal');
         if (modal) {
             modal.addEventListener('show.bs.modal', function() {
-                const timeInput = document.getElementById('transactionTime');
+                var timeInput = document.getElementById('transactionTime');
                 if (timeInput && !timeInput.value) {
-                    const now = new Date();
-                    const hours = String(now.getHours()).padStart(2, '0');
-                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    var now = new Date();
+                    var hours = String(now.getHours()).padStart(2, '0');
+                    var minutes = String(now.getMinutes()).padStart(2, '0');
                     timeInput.value = hours + ':' + minutes;
                 }
                 if (dateInput && !dateInput.value) {
                     dateInput.value = new Date().toISOString().split('T')[0];
                 }
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.is-invalid').forEach(function(el) { el.classList.remove('is-invalid'); });
                 updateFormAction();
             });
             modal.addEventListener('hidden.bs.modal', function() {
@@ -1834,60 +1863,48 @@
                 if (quantityInput) quantityInput.value = 1;
                 if (charCount) charCount.textContent = 0;
                 if (amountInput) amountInput.value = '0.00';
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                document.querySelectorAll('.is-invalid').forEach(function(el) { el.classList.remove('is-invalid'); });
             });
         }
 
-        // ---- 13.6. Валідація форми додавання ----
+        // ---- 8.6. Валідація форми додавання ----
         if (transactionForm) {
             transactionForm.addEventListener('submit', function(e) {
-                let valid = true;
-                const name = document.getElementById('transactionName');
-                if (!name.value.trim()) {
-                    name.classList.add('is-invalid');
-                    valid = false;
-                } else {
-                    name.classList.remove('is-invalid');
-                }
-                const amount = document.getElementById('transactionAmount');
-                if (parseFloat(amount.value) <= 0) {
-                    amount.classList.add('is-invalid');
-                    valid = false;
-                } else {
-                    amount.classList.remove('is-invalid');
-                }
-                const category = document.getElementById('categorySelect');
-                if (!category.value) {
-                    category.classList.add('is-invalid');
-                    valid = false;
-                } else {
-                    category.classList.remove('is-invalid');
-                }
+                var valid = true;
+                var name = document.getElementById('transactionName');
+                if (!name.value.trim()) { name.classList.add('is-invalid'); valid = false; }
+                else { name.classList.remove('is-invalid'); }
+                var amount = document.getElementById('transactionAmount');
+                if (parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; }
+                else { amount.classList.remove('is-invalid'); }
+                var category = document.getElementById('categorySelect');
+                if (!category.value) { category.classList.add('is-invalid'); valid = false; }
+                else { category.classList.remove('is-invalid'); }
                 if (!valid) {
                     e.preventDefault();
-                    const firstError = document.querySelector('.is-invalid');
+                    var firstError = document.querySelector('.is-invalid');
                     if (firstError) firstError.focus();
                 }
             });
         }
 
-        // ---- 13.7. Редагування (для кнопок .action-edit) ----
-        document.querySelectorAll('.action-edit').forEach(item => {
+        // ---- 8.7. Редагування (для кнопок .action-edit) ----
+        document.querySelectorAll('.action-edit').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                const type = this.dataset.type;
-                const id = this.dataset.id;
-                const category = this.dataset.category;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1;
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
+                var type = this.dataset.type;
+                var id = this.dataset.id;
+                var category = this.dataset.category;
+                var description = this.dataset.description || '';
+                var amount = parseFloat(this.dataset.amount) || 0;
+                var quantity = this.dataset.quantity || 1;
+                var details = this.dataset.details || '';
+                var time = this.dataset.time || '';
+                var buyer = this.dataset.buyer || '';
+                var seller = this.dataset.seller || '';
 
                 if (type === 'expense') {
-                    const modalEl = document.getElementById('editExpenseModal');
+                    var modalEl = document.getElementById('editExpenseModal');
                     if (modalEl) {
                         document.getElementById('editExpenseId').value = id;
                         document.getElementById('editExpenseCategory').value = category;
@@ -1900,11 +1917,11 @@
                         document.getElementById('editExpenseSeller').value = seller;
                         document.getElementById('editExpenseCharCount').textContent = details.length;
                         document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                         modal.show();
                     }
                 } else {
-                    const modalEl = document.getElementById('editIncomeModal');
+                    var modalEl = document.getElementById('editIncomeModal');
                     if (modalEl) {
                         document.getElementById('editIncomeId').value = id;
                         document.getElementById('editIncomeCategory').value = category;
@@ -1917,29 +1934,29 @@
                         document.getElementById('editIncomeSeller').value = seller;
                         document.getElementById('editIncomeCharCount').textContent = details.length;
                         document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                         modal.show();
                     }
                 }
             });
         });
 
-        // ---- 13.8. Дублювання ----
-        const cloneModalEl = document.getElementById('cloneModal');
-        let cloneTypeInput = document.getElementById('cloneType');
+        // ---- 8.8. Дублювання ----
+        var cloneModalEl = document.getElementById('cloneModal');
+        var cloneTypeInput = document.getElementById('cloneType');
 
-        document.querySelectorAll('.action-duplicate').forEach(item => {
+        document.querySelectorAll('.action-duplicate').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                const type = this.dataset.type;
-                const category = this.dataset.category;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1;
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
+                var type = this.dataset.type;
+                var category = this.dataset.category;
+                var description = this.dataset.description || '';
+                var amount = parseFloat(this.dataset.amount) || 0;
+                var quantity = this.dataset.quantity || 1;
+                var details = this.dataset.details || '';
+                var time = this.dataset.time || '';
+                var buyer = this.dataset.buyer || '';
+                var seller = this.dataset.seller || '';
 
                 document.getElementById('cloneCategory').value = category;
                 document.getElementById('cloneDescription').value = description;
@@ -1951,28 +1968,27 @@
                 document.getElementById('cloneSeller').value = seller;
                 document.getElementById('cloneCharCount').textContent = details.length;
 
-                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+                var initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
                 cloneTypeInput.value = initialType;
-                const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
-                const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
+                var expenseBtn = document.getElementById('cloneTypeExpenseBtn');
+                var incomeBtn = document.getElementById('cloneTypeIncomeBtn');
                 if (initialType === 'EXPENSE') {
                     expenseBtn.className = 'btn active-expense';
                     incomeBtn.className = 'btn btn-outline-success';
-                    fetchCategories('EXPENSE').then(cats => {
+                    fetchCategories('EXPENSE').then(function(cats) {
                         populateCategories(document.getElementById('cloneCategory'), cats);
                     });
                     document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
                 } else {
                     incomeBtn.className = 'btn active-income';
                     expenseBtn.className = 'btn btn-outline-danger';
-                    fetchCategories('INCOME').then(cats => {
+                    fetchCategories('INCOME').then(function(cats) {
                         populateCategories(document.getElementById('cloneCategory'), cats);
                     });
                     document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
                 }
-
                 if (cloneModalEl) {
-                    const modal = bootstrap.Modal.getOrCreateInstance(cloneModalEl);
+                    var modal = bootstrap.Modal.getOrCreateInstance(cloneModalEl);
                     modal.show();
                 }
             });
@@ -1982,7 +1998,7 @@
             cloneTypeInput.value = 'EXPENSE';
             this.className = 'btn active-expense';
             document.getElementById('cloneTypeIncomeBtn').className = 'btn btn-outline-success';
-            fetchCategories('EXPENSE').then(cats => {
+            fetchCategories('EXPENSE').then(function(cats) {
                 populateCategories(document.getElementById('cloneCategory'), cats);
             });
             document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
@@ -1991,28 +2007,28 @@
             cloneTypeInput.value = 'INCOME';
             this.className = 'btn active-income';
             document.getElementById('cloneTypeExpenseBtn').className = 'btn btn-outline-danger';
-            fetchCategories('INCOME').then(cats => {
+            fetchCategories('INCOME').then(function(cats) {
                 populateCategories(document.getElementById('cloneCategory'), cats);
             });
             document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
         });
 
-        // ---- 13.9. Видалення транзакцій (для кнопок .action-delete) ----
-        document.querySelectorAll('.action-delete').forEach(item => {
+        // ---- 8.9. Видалення транзакцій (для кнопок .action-delete) ----
+        document.querySelectorAll('.action-delete').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                const id = this.dataset.id;
-                const type = this.dataset.type;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const category = this.dataset.category || '';
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const quantity = this.dataset.quantity || '1';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
+                var id = this.dataset.id;
+                var type = this.dataset.type;
+                var description = this.dataset.description || '';
+                var amount = parseFloat(this.dataset.amount) || 0;
+                var category = this.dataset.category || '';
+                var details = this.dataset.details || '';
+                var time = this.dataset.time || '';
+                var quantity = this.dataset.quantity || '1';
+                var buyer = this.dataset.buyer || '';
+                var seller = this.dataset.seller || '';
 
-                const deleteForm = document.getElementById('deleteForm');
+                var deleteForm = document.getElementById('deleteForm');
                 deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
 
                 document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
@@ -2024,7 +2040,7 @@
                 document.getElementById('deleteSeller').textContent = seller || '—';
                 document.getElementById('deleteCategory').textContent = category || '—';
 
-                const detailsRow = document.getElementById('deleteDetailsRow');
+                var detailsRow = document.getElementById('deleteDetailsRow');
                 if (details && details.trim().length > 0) {
                     document.getElementById('deleteDetails').textContent = details;
                     detailsRow.style.display = '';
@@ -2032,31 +2048,32 @@
                     detailsRow.style.display = 'none';
                 }
 
-                const modalEl = document.getElementById('deleteConfirmModal');
+                var modalEl = document.getElementById('deleteConfirmModal');
                 if (modalEl) {
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
                     modal.show();
                 }
             });
         });
 
-        // ---- 13.10. Теплі клавіші ----
+        // ---- 8.10. Теплі клавіші ----
         document.addEventListener('keydown', function(e) {
-            const openModals = document.querySelectorAll('.modal.show');
+            var openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
             if (e.key === 'Escape') {
-                openModals.forEach(modal => {
-                    const bsModal = bootstrap.Modal.getInstance(modal);
+                openModals.forEach(function(modal) {
+                    var bsModal = bootstrap.Modal.getInstance(modal);
                     if (bsModal) bsModal.hide();
                 });
                 e.preventDefault();
                 return;
             }
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                for (const modal of openModals) {
-                    const form = modal.querySelector('form:not(#deleteForm)');
+                for (var i = 0; i < openModals.length; i++) {
+                    var modal = openModals[i];
+                    var form = modal.querySelector('form:not(#deleteForm)');
                     if (form) {
-                        const submitBtn = form.querySelector('button[type="submit"]');
+                        var submitBtn = form.querySelector('button[type="submit"]');
                         if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
                         else { form.submit(); e.preventDefault(); break; }
                     }
@@ -2064,11 +2081,11 @@
             }
         });
 
-        // ---- 13.11. Ініціалізація TOOLTIP ----
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+        // ---- 8.11. Ініціалізація TOOLTIP ----
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(function(el) { return new bootstrap.Tooltip(el); });
 
         // ================================================================
-        // 14. ВИКЛИК ДІАГРАМ (запасний варіант, якщо DOMContentLoaded не спрацював)
+        // 9. ВИКЛИК ДІАГРАМ
         // ================================================================
         setTimeout(function() {
             if (typeof Chart !== 'undefined') {
@@ -2076,11 +2093,8 @@
             }
         }, 500);
 
-        // В кінці DOMContentLoaded
-        calculatePercentages();
-        applyFiltersAndPaginate();
-
     })();
 </script>
+
 </body>
 </html>
