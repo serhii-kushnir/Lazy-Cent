@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -27,9 +28,11 @@ public class GlobalExceptionHandler {
     //    які браузер підвантажує сам для дебагу minified JS) — тихий 404,
     //    без ERROR-логу і без редіректів/flash-повідомлень.
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<Void> handleNoResourceFound(NoResourceFoundException ex) {
-        log.debug("Static resource not found: {}", ex.getResourcePath());
-        return ResponseEntity.notFound().build();
+    public ModelAndView handleNoResourceFound(NoResourceFoundException ex) {
+        log.debug("Сторінка не знайдена: {}", ex.getResourcePath());
+        ModelAndView mav = new ModelAndView("error/404");
+        mav.setStatus(HttpStatus.NOT_FOUND);
+        return mav;
     }
 
     // 1. Обробка бізнес-винятків (повертаємо на попередню сторінку)

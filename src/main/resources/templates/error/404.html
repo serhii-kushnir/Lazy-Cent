@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Сторінку не знайдено - Lazy Cent</title>
+    <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .error-card {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .emoji-large {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--bs-secondary-color);
+            line-height: 1;
+        }
+        .error-title {
+            font-size: 2rem;
+            margin: 1rem 0;
+        }
+        .error-description {
+            color: var(--bs-secondary-color);
+            margin-bottom: 2rem;
+        }
+        .error-actions .btn {
+            margin: 0.25rem;
+        }
+        .error-links a {
+            color: var(--bs-link-color);
+            transition: color 0.2s;
+        }
+        .error-links a:hover {
+            color: var(--bs-link-hover-color);
+            text-decoration: underline;
+        }
+        [data-bs-theme="dark"] .error-code {
+            color: #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments :: navbar('none')}"></nav>
+
+<div class="container">
+    <div class="error-card">
+        <span class="emoji-large">😵</span>
+        <div class="error-code">404</div>
+        <h1 class="error-title">Сторінку не знайдено</h1>
+        <p class="error-description">
+            Будь ласка, перевірте адресу сторінки. Можливо, вона була переміщена або видалена.
+        </p>
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home"></i> На головну
+            </a>
+            <button class="btn btn-outline-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> Назад
+            </button>
+            <button class="btn btn-outline-secondary" onclick="location.reload()">
+                <i class="fas fa-sync"></i> Спробувати знову
+            </button>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+</body>
+</html>
