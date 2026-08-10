@@ -571,20 +571,102 @@
         /* ===== ДРУК ===== */
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            .wrap { max-width: 100% !important; padding: 20px !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .table-toolbar { display: none !important; }
+            .wrap { max-width: 100% !important; padding: 10px !important; }
+
+            /* Ховаємо непотрібне */
+            nav.navbar, footer, .no-print, .btn, .btn-add-transaction,
+            .modal, .modal-backdrop, .d-print-none, .table-toolbar,
+            .view-toggle, .analytics-toggle, .chart-toggle-btn,
+            .ledger-head, .filter-group, .search-input, .page-size-select,
+            .load-more-btn, .info-text, .no-print { display: none !important; }
+
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
-            .print-header { display: flex !important; justify-content: space-between; align-items: center; padding: 0 !important; margin: 0 0 4px 0 !important; border-bottom: 1px solid #333; line-height: 1.2; }
+
+            /* Заголовок для друку */
+            .print-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 !important;
+                margin: 0 0 4px 0 !important;
+                border-bottom: 1px solid #333;
+                line-height: 1.2;
+            }
             .print-header .logo { font-size: 1rem !important; font-weight: 700; color: #1B2430; }
             .print-header h2 { font-size: 0.9rem !important; font-weight: 600; margin: 0; color: #333; }
             .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
-            .balance-row { background: #333 !important; border-color: #333 !important; }
-            .balance-cell { background: #fff !important; }
-            .table-categories th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .table-categories td { border-color: #ddd !important; }
-            .category-card { border: 1px solid #ddd !important; box-shadow: none !important; }
-            .chart-container canvas { max-height: 150px !important; max-width: 150px !important; }
+
+            /* ===== БАЛАНС В ОДНУ ЛІНІЮ ПРИ ДРУКУ ===== */
+            .balance-row {
+                display: grid !important;
+                grid-template-columns: 1.3fr 1fr 1fr !important;
+                gap: 1px !important;
+                background: #333 !important;
+                border: 1px solid #333 !important;
+                border-radius: 0.5rem !important;
+                overflow: hidden !important;
+                margin-bottom: 10px !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .balance-cell {
+                background: #fff !important;
+                padding: 8px 12px !important;
+                color: #333 !important;
+                text-align: center !important;
+            }
+            .balance-cell .label {
+                font-size: 0.55rem !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.05em !important;
+                color: #666 !important;
+                margin-bottom: 2px !important;
+            }
+            .balance-cell .amount {
+                font-size: 1rem !important;
+                font-weight: 600 !important;
+            }
+            .balance-cell .amount.income { color: #198754 !important; }
+            .balance-cell .amount.expense { color: #dc3545 !important; }
+
+            /* Таблиця */
+            .table-categories th {
+                background-color: #333 !important;
+                color: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                padding: 4px 6px !important;
+                font-size: 0.6rem !important;
+            }
+            .table-categories td {
+                border-color: #ddd !important;
+                padding: 3px 6px !important;
+                font-size: 0.6rem !important;
+            }
+            .table-categories .col-amount { font-size: 0.6rem !important; }
+            .table-categories .col-percent { font-size: 0.6rem !important; }
+            .table-categories .badge { font-size: 0.5rem !important; padding: 1px 4px !important; }
+
+            /* Картки */
+            .category-card {
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+                padding: 4px 6px !important;
+                margin-bottom: 4px !important;
+            }
+            .category-card .card-title { font-size: 0.65rem !important; }
+            .category-card .card-text { font-size: 0.55rem !important; padding: 1px 0 !important; }
+            .category-card .badge-type { font-size: 0.45rem !important; padding: 1px 4px !important; }
+
+            /* Діаграми */
+            .chart-container canvas { max-height: 120px !important; max-width: 120px !important; }
+            .chart-card .card-header { padding: 2px 6px !important; }
+            .chart-card .card-header span { font-size: 0.6rem !important; }
+            .chart-card .card-body { padding: 4px !important; }
+            .chart-legend-table td { font-size: 0.5rem !important; padding: 1px 2px !important; }
+            .chart-legend-table .amount-col { font-size: 0.5rem !important; }
+            .chart-legend-table .color-dot { width: 6px !important; height: 6px !important; }
         }
     </style>
 </head>
@@ -602,7 +684,7 @@
         <h2>Підсумки</h2>
     </div>
 
-    <div class="ledger-head">
+    <div class="ledger-head  no-print">
         <h1>Підсумки</h1>
         <div class="d-flex flex-wrap gap-2 no-print">
             <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded" data-bs-toggle="modal" data-bs-target="#transactionModal">
@@ -1187,6 +1269,9 @@
           th:data-amount="${entry.value}"></span>
 </div>
 
+<!-- ЗАМІНІТЬ ВЕСЬ БЛОК <script> ПОЧИНАЮЧИ З "// ================================================================"
+     НА ЦЕЙ ВИПРАВЛЕНИЙ КОД -->
+
 <script>
     (function() {
         'use strict';
@@ -1258,7 +1343,6 @@
 
             var filterSelect = document.getElementById('categoryFilter');
             if (!filterSelect) return;
-            // Зберігаємо поточне значення
             var currentVal = filterSelect.value;
             filterSelect.innerHTML = '<option value="all">Всі категорії</option>';
             allCategories.forEach(function(cat) {
@@ -1310,7 +1394,70 @@
         }
 
         // ================================================================
-        // 6. РЕНДЕРИНГ ДІАГРАМ
+        // 6. РОЗРАХУНОК ВІДСОТКІВ (ВИПРАВЛЕНО)
+        // ================================================================
+        function calculatePercentages() {
+            // ---- Витрати ----
+            var expenseEntries = document.querySelectorAll('.category-row[data-type="EXPENSE"]');
+            var totalExpenses = 0;
+            expenseEntries.forEach(function(row) {
+                var amount = parseFloat(row.dataset.amount) || 0;
+                totalExpenses += amount;
+            });
+            expenseEntries.forEach(function(row, idx) {
+                var amount = parseFloat(row.dataset.amount) || 0;
+                var percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
+                row.dataset.percent = percent.toFixed(1);
+                var percentCell = document.getElementById('percent-' + idx);
+                if (percentCell) {
+                    percentCell.textContent = percent.toFixed(1) + '%';
+                } else {
+                    // Якщо комірка не знайдена за id, знаходимо її в рядку
+                    var cells = row.querySelectorAll('td');
+                    if (cells.length >= 5) {
+                        cells[4].textContent = percent.toFixed(1) + '%';
+                    }
+                }
+            });
+
+            // ---- Доходи ----
+            var incomeEntries = document.querySelectorAll('.category-row[data-type="INCOME"]');
+            var totalIncomes = 0;
+            incomeEntries.forEach(function(row) {
+                var amount = parseFloat(row.dataset.amount) || 0;
+                totalIncomes += amount;
+            });
+            incomeEntries.forEach(function(row, idx) {
+                var amount = parseFloat(row.dataset.amount) || 0;
+                var percent = totalIncomes > 0 ? (amount / totalIncomes * 100) : 0;
+                row.dataset.percent = percent.toFixed(1);
+                var percentCell = document.getElementById('percent-income-' + idx);
+                if (percentCell) {
+                    percentCell.textContent = percent.toFixed(1) + '%';
+                } else {
+                    var cells = row.querySelectorAll('td');
+                    if (cells.length >= 5) {
+                        cells[4].textContent = percent.toFixed(1) + '%';
+                    }
+                }
+            });
+
+            // ---- Картки ----
+            document.querySelectorAll('.category-card-wrapper').forEach(function(card) {
+                var type = card.dataset.type;
+                var amount = parseFloat(card.dataset.amount) || 0;
+                var total = type === 'EXPENSE' ? totalExpenses : totalIncomes;
+                var percent = total > 0 ? (amount / total * 100) : 0;
+                card.dataset.percent = percent.toFixed(1);
+                var percentEl = card.querySelector('.percent-value');
+                if (percentEl) {
+                    percentEl.textContent = percent.toFixed(1) + '%';
+                }
+            });
+        }
+
+        // ================================================================
+        // 7. РЕНДЕРИНГ ДІАГРАМ
         // ================================================================
 
         function renderExpenseChart() {
@@ -1480,7 +1627,7 @@
         }
 
         // ================================================================
-        // 7. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
+        // 8. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             var analyticsToggle = document.getElementById('analyticsToggle');
@@ -1538,7 +1685,7 @@
         });
 
         // ================================================================
-        // 8. ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
+        // 9. ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
             var searchInput = document.getElementById('searchInput');
@@ -1559,7 +1706,6 @@
             var categoriesBody = document.getElementById('categoriesBody');
             var cardsContainer = document.getElementById('cardsContainer');
 
-            // Заповнюємо фільтр категорій
             populateCategoryFilter();
 
             var currentPage = 1;
@@ -1591,47 +1737,6 @@
                 setViewMode(btn.dataset.view);
             });
 
-            // --- Розрахунок відсотків ---
-            function calculatePercentages() {
-                var expenseEntries = document.querySelectorAll('.category-row[data-type="EXPENSE"]');
-                var totalExpenses = 0;
-                expenseEntries.forEach(function(row) {
-                    var amount = parseFloat(row.dataset.amount) || 0;
-                    totalExpenses += amount;
-                });
-                expenseEntries.forEach(function(row, idx) {
-                    var amount = parseFloat(row.dataset.amount) || 0;
-                    var percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
-                    row.dataset.percent = percent.toFixed(1);
-                    var percentCell = document.getElementById('percent-' + idx);
-                    if (percentCell) { percentCell.textContent = percent.toFixed(1) + '%'; }
-                });
-
-                var incomeEntries = document.querySelectorAll('.category-row[data-type="INCOME"]');
-                var totalIncomes = 0;
-                incomeEntries.forEach(function(row) {
-                    var amount = parseFloat(row.dataset.amount) || 0;
-                    totalIncomes += amount;
-                });
-                incomeEntries.forEach(function(row, idx) {
-                    var amount = parseFloat(row.dataset.amount) || 0;
-                    var percent = totalIncomes > 0 ? (amount / totalIncomes * 100) : 0;
-                    row.dataset.percent = percent.toFixed(1);
-                    var percentCell = document.getElementById('percent-income-' + idx);
-                    if (percentCell) { percentCell.textContent = percent.toFixed(1) + '%'; }
-                });
-
-                document.querySelectorAll('.category-card-wrapper').forEach(function(card) {
-                    var type = card.dataset.type;
-                    var amount = parseFloat(card.dataset.amount) || 0;
-                    var total = type === 'EXPENSE' ? totalExpenses : totalIncomes;
-                    var percent = total > 0 ? (amount / total * 100) : 0;
-                    card.dataset.percent = percent.toFixed(1);
-                    var percentEl = card.querySelector('.percent-value');
-                    if (percentEl) { percentEl.textContent = percent.toFixed(1) + '%'; }
-                });
-            }
-
             // --- Фільтрація ---
             function getFilteredItems() {
                 var searchTerm = searchInput.value.toLowerCase().trim();
@@ -1642,11 +1747,10 @@
                 items.forEach(function(item) {
                     var category = (item.dataset.category || '').toLowerCase();
                     var amount = parseFloat(item.dataset.amount) || 0;
-                    var percent = parseFloat(item.dataset.percent) || 0;
                     var type = item.dataset.type || '';
                     var match = true;
                     if (searchTerm) {
-                        var text = (category + ' ' + amount + ' ' + percent).toLowerCase();
+                        var text = (category + ' ' + amount).toLowerCase();
                         match = text.includes(searchTerm);
                     }
                     if (typeValue !== 'all' && type !== typeValue) {
@@ -1827,11 +1931,16 @@
                 });
             });
 
+            // --- ПЕРШИЙ ЗАПУСК (викликаємо calculatePercentages після завантаження) ---
             applyFiltersAndPaginate();
+            // Додатковий виклик через 300ms для впевненості
+            setTimeout(function() {
+                calculatePercentages();
+            }, 300);
         });
 
         // ================================================================
-        // 9. МОДАЛЬНІ ВІКНА (спрощено)
+        // 10. МОДАЛЬНІ ВІКНА (скорочено)
         // ================================================================
 
         function populateCategories(selectElement, categories) {
@@ -2197,7 +2306,7 @@
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(function(el) { return new bootstrap.Tooltip(el); });
 
         // ================================================================
-        // 10. ВИКЛИК ДІАГРАМ
+        // 11. ВИКЛИК ДІАГРАМ
         // ================================================================
         setTimeout(function() {
             if (typeof Chart !== 'undefined') {
@@ -2205,8 +2314,12 @@
             }
         }, 500);
 
+        // Додатковий виклик calculatePercentages через 1 секунду після завантаження
+        setTimeout(function() {
+            calculatePercentages();
+        }, 1000);
+
     })();
 </script>
-
 </body>
 </html>
