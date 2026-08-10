@@ -157,6 +157,16 @@
         .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
         [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
 
+        /* ===== ФІЛЬТРИ ===== */
+        .type-filter-select {
+            max-width: 130px;
+            flex: 0 0 auto;
+        }
+        .category-filter-select {
+            max-width: 160px;
+            flex: 0 0 auto;
+        }
+
         /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ (таблиця/картки) ===== */
         .view-toggle {
             display: flex;
@@ -241,6 +251,15 @@
         .category-card .card-text .value {
             font-weight: 600;
         }
+        .category-card .badge-type {
+            font-size: 0.6rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+        }
+        .badge-type.expense { background-color: #dc3545; color: #fff; }
+        .badge-type.income { background-color: #198754; color: #fff; }
+        [data-bs-theme="dark"] .badge-type.expense { background-color: #7a2a2a; }
+        [data-bs-theme="dark"] .badge-type.income { background-color: #1f6d3b; }
 
         /* ===== ТАБЛИЦЯ КАТЕГОРІЙ ===== */
         .table-categories {
@@ -270,6 +289,7 @@
         }
         .table-categories .col-number { width: 60px; min-width: 60px; }
         .table-categories .col-category { width: auto; min-width: 150px; text-align: left; }
+        .table-categories .col-type { width: 80px; min-width: 80px; }
         .table-categories .col-amount { width: 120px; min-width: 120px; }
         .table-categories .col-percent { width: 100px; min-width: 100px; }
         .table-categories .col-actions { width: 80px; min-width: 80px; }
@@ -301,6 +321,7 @@
             .table-categories .col-category { min-width: 100px; }
             .table-categories .col-amount { min-width: 80px; }
             .table-categories .col-percent { min-width: 70px; }
+            .table-categories .col-type { min-width: 60px; }
 
             .table-toolbar { gap: 0.4rem; }
             .search-input { min-width: 100px; }
@@ -309,6 +330,8 @@
             .page-size-select { max-width: 70px; }
             .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
             .info-text { font-size: 0.7rem; }
+            .type-filter-select { max-width: 100px; }
+            .category-filter-select { max-width: 120px; }
 
             .view-toggle .btn {
                 padding: 0.4rem 0.8rem;
@@ -327,6 +350,8 @@
                 font-size: 0.8rem;
             }
             .category-card-wrapper { padding-left: 0; padding-right: 0; }
+            .type-filter-select { max-width: 100%; }
+            .category-filter-select { max-width: 100%; }
         }
 
         /* ===== ТЕМНА ТЕМА ===== */
@@ -654,7 +679,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Стовпчиковий графік категорій -->
                         <div class="row mt-3" id="barChartRow">
                             <div class="col-12">
                                 <div class="text-center">
@@ -712,6 +736,18 @@
                     </button>
                 </div>
 
+                <!-- Фільтр за типом (витрати/доходи) -->
+                <select id="typeFilter" class="form-select form-select-sm type-filter-select">
+                    <option value="all">Всі типи</option>
+                    <option value="EXPENSE">Витрати</option>
+                    <option value="INCOME">Доходи</option>
+                </select>
+
+                <!-- Фільтр за категорією -->
+                <select id="categoryFilter" class="form-select form-select-sm category-filter-select">
+                    <option value="all">Всі категорії</option>
+                </select>
+
                 <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
                     <option value="0">Всі</option>
                     <option value="5" selected>5</option>
@@ -733,30 +769,55 @@
                         <tr>
                             <th class="col-number">№</th>
                             <th class="col-category sortable active-asc" data-sort="category" data-type="string">Категорія <i class="fas fa-sort-up sort-icon"></i></th>
+                            <th class="col-type sortable" data-sort="type" data-type="string">Тип <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-amount sortable" data-sort="amount" data-type="number">Сума <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-percent sortable" data-sort="percent" data-type="number">% <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-actions no-print">Дії</th>
                         </tr>
                         </thead>
                         <tbody id="categoriesBody">
+                        <!-- Витрати -->
                         <tr th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}" class="category-row"
                             th:data-category="${entry.key.name}"
                             th:data-amount="${entry.value}"
+                            th:data-type="EXPENSE"
                             th:data-percent="0">
                             <td class="col-number" th:text="${stat.index + 1}"></td>
                             <td class="col-category" th:text="${entry.key.name}"></td>
+                            <td class="col-type"><span class="badge bg-danger" style="font-size:0.7rem;">Витрата</span></td>
                             <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
                             <td class="col-percent" id="percent-${stat.index}" th:text="'0%'"></td>
                             <td class="col-actions no-print">
                                 <button class="btn btn-sm btn-outline-primary category-detail-btn"
                                         th:data-category="${entry.key.name}"
+                                        th:data-type="EXPENSE"
                                         title="Переглянути деталі">
                                     <i class="fas fa-eye"></i>
                                 </button>
                             </td>
                         </tr>
-                        <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory)}" id="emptyRow">
-                            <td colspan="5" class="text-center text-muted py-3">Немає даних за обраний період</td>
+                        <!-- Доходи -->
+                        <tr th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}" class="category-row"
+                            th:data-category="${entry.key.name}"
+                            th:data-amount="${entry.value}"
+                            th:data-type="INCOME"
+                            th:data-percent="0">
+                            <td class="col-number" th:text="${stat.index + 1 + totalBudget.expensesByCategory.size()}"></td>
+                            <td class="col-category" th:text="${entry.key.name}"></td>
+                            <td class="col-type"><span class="badge bg-success" style="font-size:0.7rem;">Дохід</span></td>
+                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
+                            <td class="col-percent" id="percent-income-${stat.index}" th:text="'0%'"></td>
+                            <td class="col-actions no-print">
+                                <button class="btn btn-sm btn-outline-primary category-detail-btn"
+                                        th:data-category="${entry.key.name}"
+                                        th:data-type="INCOME"
+                                        title="Переглянути деталі">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory)}" id="emptyRow">
+                            <td colspan="6" class="text-center text-muted py-3">Немає даних за обраний період</td>
                         </tr>
                         </tbody>
                     </table>
@@ -766,19 +827,42 @@
             <!-- ===== КАРТКИ КАТЕГОРІЙ ===== -->
             <div id="cardsView" class="cards-view-container">
                 <div class="row" id="cardsContainer">
+                    <!-- Витрати -->
                     <th:block th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}">
-                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="expense"
+                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="EXPENSE"
                              th:data-category="${entry.key.name}"
                              th:data-amount="${entry.value}"
                              th:data-percent="0">
                             <div class="category-card">
                                 <div class="card-title d-flex justify-content-between align-items-center">
                                     <span th:text="${entry.key.name}"></span>
-                                    <span class="badge bg-secondary"># <span th:text="${stat.index + 1}"></span></span>
+                                    <span class="badge-type expense">Витрата</span>
                                 </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-coins me-1"></i>Сума</span>
                                     <span class="value text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></span>
+                                </div>
+                                <div class="card-text">
+                                    <span class="label"><i class="fas fa-percent me-1"></i>Частка</span>
+                                    <span class="value percent-value" th:text="'0%'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </th:block>
+                    <!-- Доходи -->
+                    <th:block th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}">
+                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="INCOME"
+                             th:data-category="${entry.key.name}"
+                             th:data-amount="${entry.value}"
+                             th:data-percent="0">
+                            <div class="category-card">
+                                <div class="card-title d-flex justify-content-between align-items-center">
+                                    <span th:text="${entry.key.name}"></span>
+                                    <span class="badge-type income">Дохід</span>
+                                </div>
+                                <div class="card-text">
+                                    <span class="label"><i class="fas fa-coins me-1"></i>Сума</span>
+                                    <span class="value text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></span>
                                 </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-percent me-1"></i>Частка</span>
@@ -801,6 +885,7 @@
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
+<!-- ... (модальні вікна без змін) ... -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1093,7 +1178,6 @@
 <div th:replace="~{fragments :: toastScript}"></div>
 
 <!-- ПЕРЕДАЄМО ДАНІ ДЛЯ ДІАГРАМ -->
-<!-- Для кругових діаграм -->
 <div style="display:none;">
     <span id="expenseData" th:each="entry : ${totalBudget.expensesByCategory.entrySet()}"
           th:data-category="${entry.key.name}"
@@ -1134,7 +1218,7 @@
         }
 
         // ================================================================
-        // 2. ЗБІР ДАНИХ ДЛЯ КРУГОВИХ ДІАГРАМ
+        // 2. ЗБІР ДАНИХ
         // ================================================================
         var expenseCategories = [];
         var expenseAmounts = [];
@@ -1160,29 +1244,55 @@
         });
 
         // ================================================================
-        // 3. ЗБІР ДАНИХ ДЛЯ СТОВПЧИКОВОГО ГРАФІКА
+        // 3. ЗАПОВНЕННЯ ФІЛЬТРУ КАТЕГОРІЙ
         // ================================================================
-        // Об'єднуємо всі категорії (витрати + доходи)
+        function populateCategoryFilter() {
+            var allCategories = [];
+            expenseCategories.forEach(function(cat) {
+                if (!allCategories.includes(cat)) allCategories.push(cat);
+            });
+            incomeCategories.forEach(function(cat) {
+                if (!allCategories.includes(cat)) allCategories.push(cat);
+            });
+            allCategories.sort();
+
+            var filterSelect = document.getElementById('categoryFilter');
+            if (!filterSelect) return;
+            // Зберігаємо поточне значення
+            var currentVal = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">Всі категорії</option>';
+            allCategories.forEach(function(cat) {
+                var opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                filterSelect.appendChild(opt);
+            });
+            if (currentVal && allCategories.includes(currentVal)) {
+                filterSelect.value = currentVal;
+            }
+        }
+
+        // ================================================================
+        // 4. ДАНІ ДЛЯ СТОВПЧИКОВОГО ГРАФІКА
+        // ================================================================
         var allBarCategories = [];
         var allBarAmounts = [];
         var barColors = [];
 
-        // Додаємо витрати
         expenseCategories.forEach(function(cat, idx) {
             allBarCategories.push(cat);
             allBarAmounts.push(expenseAmounts[idx]);
-            barColors.push('#dc3545'); // червоний для витрат
+            barColors.push('#dc3545');
         });
 
-        // Додаємо доходи
         incomeCategories.forEach(function(cat, idx) {
             allBarCategories.push(cat);
             allBarAmounts.push(incomeAmounts[idx]);
-            barColors.push('#198754'); // зелений для доходів
+            barColors.push('#198754');
         });
 
         // ================================================================
-        // 4. КОЛІРНА ПАЛІТРА ДЛЯ КРУГОВИХ
+        // 5. КОЛІРНА ПАЛІТРА
         // ================================================================
         const CHART_PALETTE = [
             '#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B',
@@ -1200,7 +1310,7 @@
         }
 
         // ================================================================
-        // 5. РЕНДЕРИНГ ДІАГРАМ
+        // 6. РЕНДЕРИНГ ДІАГРАМ
         // ================================================================
 
         function renderExpenseChart() {
@@ -1231,17 +1341,6 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    onClick: function(e, elements) {
-                        if (elements.length > 0) {
-                            var index = elements[0].index;
-                            var category = expenseCategories[index];
-                            var input = document.getElementById('searchInput');
-                            if (input) {
-                                input.value = category;
-                                input.dispatchEvent(new Event('input'));
-                            }
-                        }
-                    },
                     plugins: { legend: { display: false } },
                     cutout: '55%'
                 }
@@ -1294,17 +1393,6 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    onClick: function(e, elements) {
-                        if (elements.length > 0) {
-                            var index = elements[0].index;
-                            var category = incomeCategories[index];
-                            var input = document.getElementById('searchInput');
-                            if (input) {
-                                input.value = category;
-                                input.dispatchEvent(new Event('input'));
-                            }
-                        }
-                    },
                     plugins: { legend: { display: false } },
                     cutout: '55%'
                 }
@@ -1360,9 +1448,7 @@
                     responsive: true,
                     maintainAspectRatio: true,
                     plugins: {
-                        legend: {
-                            display: false
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         x: {
@@ -1394,10 +1480,9 @@
         }
 
         // ================================================================
-        // 6. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
+        // 7. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Перемикач режимів ---
             var analyticsToggle = document.getElementById('analyticsToggle');
             var chartsContainer = document.getElementById('chartsContainer');
             var barRow = document.getElementById('barChartRow');
@@ -1412,7 +1497,7 @@
                 } else if (mode === 'bar') {
                     chartsContainer.style.display = 'none';
                     barRow.style.display = '';
-                } else { // both
+                } else {
                     chartsContainer.style.display = 'flex';
                     barRow.style.display = '';
                 }
@@ -1427,7 +1512,6 @@
                 setAnalyticsMode(btn.dataset.mode);
             });
 
-            // --- Згортання блоку аналітики ---
             var toggleChartBtn = document.getElementById('toggleChartBtn');
             var chartBody = document.getElementById('chartBody');
             var chartIcon = document.getElementById('chartToggleIcon');
@@ -1454,15 +1538,16 @@
         });
 
         // ================================================================
-        // 7. ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ, ПЕРЕМИКАЧ ТАБЛИЦЯ/КАРТКИ
+        // 8. ФІЛЬТРИ, ПАГІНАЦІЯ, СОРТУВАННЯ
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Елементи
             var searchInput = document.getElementById('searchInput');
             var dateFrom = document.getElementById('dateFrom');
             var dateTo = document.getElementById('dateTo');
             var applyDateBtn = document.getElementById('applyDateFilter');
             var clearDateBtn = document.getElementById('clearDateFilter');
+            var typeFilter = document.getElementById('typeFilter');
+            var categoryFilter = document.getElementById('categoryFilter');
             var pageSizeSelect = document.getElementById('pageSizeSelect');
             var loadMoreBtn = document.getElementById('loadMoreBtn');
             var viewToggle = document.getElementById('viewToggle');
@@ -1474,11 +1559,14 @@
             var categoriesBody = document.getElementById('categoriesBody');
             var cardsContainer = document.getElementById('cardsContainer');
 
+            // Заповнюємо фільтр категорій
+            populateCategoryFilter();
+
             var currentPage = 1;
             var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 5) || 5;
             var filteredItems = [];
 
-            // --- Перемикач таблиця/картки (збереження в localStorage) ---
+            // --- Перемикач таблиця/картки ---
             function setViewMode(mode) {
                 if (mode === 'cards') {
                     cardsView.classList.add('show');
@@ -1505,7 +1593,7 @@
 
             // --- Розрахунок відсотків ---
             function calculatePercentages() {
-                var expenseEntries = document.querySelectorAll('.category-row');
+                var expenseEntries = document.querySelectorAll('.category-row[data-type="EXPENSE"]');
                 var totalExpenses = 0;
                 expenseEntries.forEach(function(row) {
                     var amount = parseFloat(row.dataset.amount) || 0;
@@ -1518,9 +1606,26 @@
                     var percentCell = document.getElementById('percent-' + idx);
                     if (percentCell) { percentCell.textContent = percent.toFixed(1) + '%'; }
                 });
+
+                var incomeEntries = document.querySelectorAll('.category-row[data-type="INCOME"]');
+                var totalIncomes = 0;
+                incomeEntries.forEach(function(row) {
+                    var amount = parseFloat(row.dataset.amount) || 0;
+                    totalIncomes += amount;
+                });
+                incomeEntries.forEach(function(row, idx) {
+                    var amount = parseFloat(row.dataset.amount) || 0;
+                    var percent = totalIncomes > 0 ? (amount / totalIncomes * 100) : 0;
+                    row.dataset.percent = percent.toFixed(1);
+                    var percentCell = document.getElementById('percent-income-' + idx);
+                    if (percentCell) { percentCell.textContent = percent.toFixed(1) + '%'; }
+                });
+
                 document.querySelectorAll('.category-card-wrapper').forEach(function(card) {
+                    var type = card.dataset.type;
                     var amount = parseFloat(card.dataset.amount) || 0;
-                    var percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
+                    var total = type === 'EXPENSE' ? totalExpenses : totalIncomes;
+                    var percent = total > 0 ? (amount / total * 100) : 0;
                     card.dataset.percent = percent.toFixed(1);
                     var percentEl = card.querySelector('.percent-value');
                     if (percentEl) { percentEl.textContent = percent.toFixed(1) + '%'; }
@@ -1530,16 +1635,25 @@
             // --- Фільтрація ---
             function getFilteredItems() {
                 var searchTerm = searchInput.value.toLowerCase().trim();
+                var typeValue = typeFilter.value;
+                var categoryValue = categoryFilter.value;
                 var items = document.querySelectorAll('.category-row');
                 var result = [];
                 items.forEach(function(item) {
                     var category = (item.dataset.category || '').toLowerCase();
                     var amount = parseFloat(item.dataset.amount) || 0;
                     var percent = parseFloat(item.dataset.percent) || 0;
+                    var type = item.dataset.type || '';
                     var match = true;
                     if (searchTerm) {
                         var text = (category + ' ' + amount + ' ' + percent).toLowerCase();
                         match = text.includes(searchTerm);
+                    }
+                    if (typeValue !== 'all' && type !== typeValue) {
+                        match = false;
+                    }
+                    if (categoryValue !== 'all' && category !== categoryValue.toLowerCase()) {
+                        match = false;
                     }
                     if (match) { result.push(item); }
                 });
@@ -1564,10 +1678,12 @@
                     filteredItems.forEach(function(row) { row.style.display = ''; });
                     var cardMap = new Map();
                     document.querySelectorAll('.category-card-wrapper').forEach(function(c) {
-                        cardMap.set(c.dataset.category, c);
+                        var key = c.dataset.category + '_' + c.dataset.type;
+                        cardMap.set(key, c);
                     });
                     filteredItems.forEach(function(row) {
-                        var card = cardMap.get(row.dataset.category);
+                        var key = row.dataset.category + '_' + row.dataset.type;
+                        var card = cardMap.get(key);
                         if (card) card.style.display = '';
                     });
                     if (visibleInfo) { visibleInfo.textContent = 'Показано: ' + total + ' з ' + total; }
@@ -1587,12 +1703,14 @@
                 }
                 var cardMap = new Map();
                 document.querySelectorAll('.category-card-wrapper').forEach(function(c) {
-                    cardMap.set(c.dataset.category, c);
+                    var key = c.dataset.category + '_' + c.dataset.type;
+                    cardMap.set(key, c);
                 });
                 document.querySelectorAll('.category-card-wrapper').forEach(function(c) { c.style.display = 'none'; });
                 var visibleRows = filteredItems.slice(0, end);
                 visibleRows.forEach(function(row) {
-                    var card = cardMap.get(row.dataset.category);
+                    var key = row.dataset.category + '_' + row.dataset.type;
+                    var card = cardMap.get(key);
                     if (card) card.style.display = '';
                 });
 
@@ -1623,8 +1741,9 @@
                 updateUI();
             }
 
-            // Події фільтрів
             searchInput.addEventListener('input', applyFiltersAndPaginate);
+            if (typeFilter) { typeFilter.addEventListener('change', applyFiltersAndPaginate); }
+            if (categoryFilter) { categoryFilter.addEventListener('change', applyFiltersAndPaginate); }
             if (pageSizeSelect) {
                 pageSizeSelect.addEventListener('change', function() {
                     pageSize = parseInt(this.value) || 0;
@@ -1667,7 +1786,7 @@
                 var th = document.querySelector('.sortable[data-sort="' + column + '"]');
                 var dataType = th ? th.dataset.type : 'string';
                 var rowsArray = Array.from(document.querySelectorAll('.category-row'));
-                var indexMap = { 'category': 1, 'amount': 2, 'percent': 3 };
+                var indexMap = { 'category': 1, 'type': 2, 'amount': 3, 'percent': 4 };
                 var idx = indexMap[column];
                 if (idx === undefined) return;
                 rowsArray.sort(function(a, b) {
@@ -1708,15 +1827,13 @@
                 });
             });
 
-            // --- Запуск ---
             applyFiltersAndPaginate();
         });
 
         // ================================================================
-        // 8. МОДАЛЬНІ ВІКНА (додавання, редагування, дублювання, видалення)
+        // 9. МОДАЛЬНІ ВІКНА (спрощено)
         // ================================================================
 
-        // ---- 8.1. Допоміжні функції для категорій ----
         function populateCategories(selectElement, categories) {
             if (!selectElement) return;
             selectElement.innerHTML = '';
@@ -1747,7 +1864,6 @@
             }
         }
 
-        // ---- 8.2. Перемикач типу в модалці додавання ----
         var typeExpenseBtn = document.getElementById('typeExpenseBtn');
         var typeIncomeBtn = document.getElementById('typeIncomeBtn');
         var transactionType = document.getElementById('transactionType');
@@ -1798,7 +1914,7 @@
             if (dateInput) { dateInput.addEventListener('change', updateFormAction); }
         }
 
-        // ---- 8.3. Кнопки +/- для суми та кількості ----
+        // ---- Кнопки +/- ----
         var amountInput = document.getElementById('transactionAmount');
         if (amountInput) {
             document.getElementById('amountMinus')?.addEventListener('click', function() {
@@ -1828,7 +1944,6 @@
             });
         }
 
-        // ---- 8.4. Лічильник символів ----
         var detailsTextarea = document.getElementById('transactionDetails');
         var charCount = document.getElementById('charCount');
         if (detailsTextarea && charCount) {
@@ -1840,7 +1955,6 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ---- 8.5. Автозаповнення часу при відкритті модалки ----
         var modal = document.getElementById('transactionModal');
         if (modal) {
             modal.addEventListener('show.bs.modal', function() {
@@ -1867,7 +1981,6 @@
             });
         }
 
-        // ---- 8.6. Валідація форми додавання ----
         if (transactionForm) {
             transactionForm.addEventListener('submit', function(e) {
                 var valid = true;
@@ -1888,7 +2001,7 @@
             });
         }
 
-        // ---- 8.7. Редагування (для кнопок .action-edit) ----
+        // ---- Редагування ----
         document.querySelectorAll('.action-edit').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -1941,7 +2054,7 @@
             });
         });
 
-        // ---- 8.8. Дублювання ----
+        // ---- Дублювання ----
         var cloneModalEl = document.getElementById('cloneModal');
         var cloneTypeInput = document.getElementById('cloneType');
 
@@ -2013,7 +2126,7 @@
             document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
         });
 
-        // ---- 8.9. Видалення транзакцій (для кнопок .action-delete) ----
+        // ---- Видалення ----
         document.querySelectorAll('.action-delete').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -2056,7 +2169,7 @@
             });
         });
 
-        // ---- 8.10. Теплі клавіші ----
+        // ---- Теплі клавіші ----
         document.addEventListener('keydown', function(e) {
             var openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
@@ -2081,11 +2194,10 @@
             }
         });
 
-        // ---- 8.11. Ініціалізація TOOLTIP ----
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(function(el) { return new bootstrap.Tooltip(el); });
 
         // ================================================================
-        // 9. ВИКЛИК ДІАГРАМ
+        // 10. ВИКЛИК ДІАГРАМ
         // ================================================================
         setTimeout(function() {
             if (typeof Chart !== 'undefined') {
