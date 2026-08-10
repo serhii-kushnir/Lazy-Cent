@@ -32,15 +32,15 @@
         .wrap {
             max-width: 100%;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 0.5rem;
         }
         .ledger-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 2px solid var(--ink);
-            padding-bottom: 18px;
-            margin-bottom: 36px;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
             gap: 16px;
         }
@@ -58,7 +58,7 @@
             gap: 1px;
             background: var(--bs-border-color);
             border: 1px solid var(--bs-border-color);
-            margin-bottom: 40px;
+            margin-bottom: 1.5rem;
             border-radius: 0.5rem;
             overflow: hidden;
         }
@@ -98,7 +98,7 @@
         }
 
         .toolbar-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; }
-        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; }
+        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; text-align: center; }
         .table-wrap-animated { animation: fadeIn 0.5s ease forwards; opacity: 0; animation-delay: 0.10s; }
         .row-animate { animation: fadeInRow 0.3s ease forwards; opacity: 0; }
 
@@ -292,7 +292,6 @@
         .table-categories .col-type { width: 80px; min-width: 80px; }
         .table-categories .col-amount { width: 120px; min-width: 120px; }
         .table-categories .col-percent { width: 100px; min-width: 100px; }
-        .table-categories .col-actions { width: 80px; min-width: 80px; }
 
         .sortable { cursor: pointer; user-select: none; }
         .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; }
@@ -573,7 +572,6 @@
             body, html { margin: 0 !important; padding: 0 !important; }
             .wrap { max-width: 100% !important; padding: 10px !important; }
 
-            /* Ховаємо непотрібне */
             nav.navbar, footer, .no-print, .btn, .btn-add-transaction,
             .modal, .modal-backdrop, .d-print-none, .table-toolbar,
             .view-toggle, .analytics-toggle, .chart-toggle-btn,
@@ -583,7 +581,6 @@
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
 
-            /* Заголовок для друку */
             .print-header {
                 display: flex !important;
                 justify-content: space-between;
@@ -597,7 +594,6 @@
             .print-header h2 { font-size: 0.9rem !important; font-weight: 600; margin: 0; color: #333; }
             .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
 
-            /* ===== БАЛАНС В ОДНУ ЛІНІЮ ПРИ ДРУКУ ===== */
             .balance-row {
                 display: grid !important;
                 grid-template-columns: 1.3fr 1fr 1fr !important;
@@ -630,7 +626,6 @@
             .balance-cell .amount.income { color: #198754 !important; }
             .balance-cell .amount.expense { color: #dc3545 !important; }
 
-            /* Таблиця */
             .table-categories th {
                 background-color: #333 !important;
                 color: #fff !important;
@@ -648,7 +643,6 @@
             .table-categories .col-percent { font-size: 0.6rem !important; }
             .table-categories .badge { font-size: 0.5rem !important; padding: 1px 4px !important; }
 
-            /* Картки */
             .category-card {
                 border: 1px solid #ddd !important;
                 box-shadow: none !important;
@@ -659,7 +653,6 @@
             .category-card .card-text { font-size: 0.55rem !important; padding: 1px 0 !important; }
             .category-card .badge-type { font-size: 0.45rem !important; padding: 1px 4px !important; }
 
-            /* Діаграми */
             .chart-container canvas { max-height: 120px !important; max-width: 120px !important; }
             .chart-card .card-header { padding: 2px 6px !important; }
             .chart-card .card-header span { font-size: 0.6rem !important; }
@@ -709,7 +702,28 @@
             }
             window.location.href = url;
         }
+
+        // ================================================================
+        // ГЛОБАЛЬНА ФУНКЦІЯ ДЛЯ ФІЛЬТРАЦІЇ ПО КАТЕГОРІЇ
+        // ================================================================
+        function filterByCategory(category, type) {
+            var categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter) {
+                categoryFilter.value = category;
+                categoryFilter.dispatchEvent(new Event('change'));
+            }
+            var typeFilter = document.getElementById('typeFilter');
+            if (typeFilter) {
+                typeFilter.value = type;
+                typeFilter.dispatchEvent(new Event('change'));
+            }
+            var table = document.querySelector('.table-wrap-animated');
+            if (table) {
+                table.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
     </script>
+
     <!-- ===== КАРТКА БАЛАНСУ ===== -->
     <div class="balance-row stats-animated">
         <div class="balance-cell">
@@ -868,7 +882,6 @@
                             <th class="col-type sortable" data-sort="type" data-type="string">Тип <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-amount sortable" data-sort="amount" data-type="number">Сума <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-percent sortable" data-sort="percent" data-type="number">% <i class="fas fa-sort sort-icon"></i></th>
-                            <th class="col-actions no-print">Дії</th>
                         </tr>
                         </thead>
                         <tbody id="categoriesBody">
@@ -883,13 +896,6 @@
                             <td class="col-type"><span class="badge bg-danger" style="font-size:0.7rem;">Витрата</span></td>
                             <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
                             <td class="col-percent" id="percent-${stat.index}" th:text="'0%'"></td>
-                            <td class="col-actions no-print">
-                                <button class="btn btn-sm btn-outline-primary category-detail-btn"
-                                        onclick="filterByCategory('${entry.key.name}', 'EXPENSE')"
-                                        title="Переглянути деталі">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
                         </tr>
                         <!-- Доходи -->
                         <tr th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}" class="category-row"
@@ -902,14 +908,6 @@
                             <td class="col-type"><span class="badge bg-success" style="font-size:0.7rem;">Дохід</span></td>
                             <td class="col-amount text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
                             <td class="col-percent" id="percent-income-${stat.index}" th:text="'0%'"></td>
-                            <td class="col-actions no-print">
-                                <button class="btn btn-sm btn-outline-primary category-detail-btn"
-                                        th:data-category="${entry.key.name}"
-                                        th:data-type="INCOME"
-                                        title="Переглянути деталі">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </td>
                         </tr>
                         <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory)}" id="emptyRow">
                             <td colspan="6" class="text-center text-muted py-3">Немає даних за обраний період</td>
@@ -980,7 +978,6 @@
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-<!-- ... (модальні вікна без змін) ... -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1282,9 +1279,6 @@
           th:data-amount="${entry.value}"></span>
 </div>
 
-<!-- ЗАМІНІТЬ ВЕСЬ БЛОК <script> ПОЧИНАЮЧИ З "// ================================================================"
-     НА ЦЕЙ ВИПРАВЛЕНИЙ КОД -->
-
 <script>
     (function() {
         'use strict';
@@ -1407,7 +1401,7 @@
         }
 
         // ================================================================
-        // 6. РОЗРАХУНОК ВІДСОТКІВ (ВИПРАВЛЕНО)
+        // 6. РОЗРАХУНОК ВІДСОТКІВ
         // ================================================================
         function calculatePercentages() {
             // ---- Витрати ----
@@ -1425,7 +1419,6 @@
                 if (percentCell) {
                     percentCell.textContent = percent.toFixed(1) + '%';
                 } else {
-                    // Якщо комірка не знайдена за id, знаходимо її в рядку
                     var cells = row.querySelectorAll('td');
                     if (cells.length >= 5) {
                         cells[4].textContent = percent.toFixed(1) + '%';
@@ -1944,16 +1937,15 @@
                 });
             });
 
-            // --- ПЕРШИЙ ЗАПУСК (викликаємо calculatePercentages після завантаження) ---
+            // --- ПЕРШИЙ ЗАПУСК ---
             applyFiltersAndPaginate();
-            // Додатковий виклик через 300ms для впевненості
             setTimeout(function() {
                 calculatePercentages();
             }, 300);
         });
 
         // ================================================================
-        // 10. МОДАЛЬНІ ВІКНА (скорочено)
+        // 10. МОДАЛЬНІ ВІКНА
         // ================================================================
 
         function populateCategories(selectElement, categories) {
@@ -2291,23 +2283,6 @@
             });
         });
 
-        function filterByCategory(category, type) {
-            // Встановлюємо фільтр категорії
-            var categoryFilter = document.getElementById('categoryFilter');
-            if (categoryFilter) {
-                categoryFilter.value = category;
-                categoryFilter.dispatchEvent(new Event('change'));
-            }
-            // Встановлюємо фільтр типу
-            var typeFilter = document.getElementById('typeFilter');
-            if (typeFilter) {
-                typeFilter.value = type;
-                typeFilter.dispatchEvent(new Event('change'));
-            }
-            // Прокручуємо до таблиці
-            document.querySelector('.table-wrap-animated').scrollIntoView({ behavior: 'smooth' });
-        }
-
         // ---- Теплі клавіші ----
         document.addEventListener('keydown', function(e) {
             var openModals = document.querySelectorAll('.modal.show');
@@ -2344,12 +2319,12 @@
             }
         }, 500);
 
-        // Додатковий виклик calculatePercentages через 1 секунду після завантаження
         setTimeout(function() {
             calculatePercentages();
         }, 1000);
 
     })();
 </script>
+
 </body>
 </html>
