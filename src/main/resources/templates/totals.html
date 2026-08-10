@@ -684,11 +684,14 @@
         <h2>Підсумки</h2>
     </div>
 
-    <div class="ledger-head  no-print">
+    <div class="ledger-head no-print">
         <h1>Підсумки</h1>
         <div class="d-flex flex-wrap gap-2 no-print">
             <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded" data-bs-toggle="modal" data-bs-target="#transactionModal">
                 <i class="fas fa-plus me-1"></i> Додати
+            </button>
+            <button class="btn btn-success btn-sm btn-rounded" onclick="exportTotals()">
+                <i class="fas fa-file-excel me-1"></i> Excel
             </button>
             <button class="btn btn-warning btn-sm btn-rounded" onclick="window.print()">
                 <i class="fas fa-print me-1"></i> Друк
@@ -696,6 +699,17 @@
         </div>
     </div>
 
+    <script>
+        function exportTotals() {
+            var from = document.getElementById('dateFrom').value;
+            var to = document.getElementById('dateTo').value;
+            var url = '/export/totals';
+            if (from && to) {
+                url += '?startDate=' + from + '&endDate=' + to;
+            }
+            window.location.href = url;
+        }
+    </script>
     <!-- ===== КАРТКА БАЛАНСУ ===== -->
     <div class="balance-row stats-animated">
         <div class="balance-cell">
@@ -871,8 +885,7 @@
                             <td class="col-percent" id="percent-${stat.index}" th:text="'0%'"></td>
                             <td class="col-actions no-print">
                                 <button class="btn btn-sm btn-outline-primary category-detail-btn"
-                                        th:data-category="${entry.key.name}"
-                                        th:data-type="EXPENSE"
+                                        onclick="filterByCategory('${entry.key.name}', 'EXPENSE')"
                                         title="Переглянути деталі">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -2277,6 +2290,23 @@
                 }
             });
         });
+
+        function filterByCategory(category, type) {
+            // Встановлюємо фільтр категорії
+            var categoryFilter = document.getElementById('categoryFilter');
+            if (categoryFilter) {
+                categoryFilter.value = category;
+                categoryFilter.dispatchEvent(new Event('change'));
+            }
+            // Встановлюємо фільтр типу
+            var typeFilter = document.getElementById('typeFilter');
+            if (typeFilter) {
+                typeFilter.value = type;
+                typeFilter.dispatchEvent(new Event('change'));
+            }
+            // Прокручуємо до таблиці
+            document.querySelector('.table-wrap-animated').scrollIntoView({ behavior: 'smooth' });
+        }
 
         // ---- Теплі клавіші ----
         document.addEventListener('keydown', function(e) {

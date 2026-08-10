@@ -3,7 +3,13 @@ package org.lazycent.controller;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
 
+import java.io.ByteArrayOutputStream;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -622,5 +628,221 @@ public class BudgetController {
             redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні дня: " + e.getMessage());
         }
         return "redirect:/all-days";
+    }
+
+    // ==================== ЕКСПОРТ ПІДСУМКІВ В EXCEL ====================
+
+    @GetMapping("/export/totals")
+    public ResponseEntity<byte[]> exportTotalsToExcel(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) throws Exception {
+
+        if (startDate == null) startDate = LocalDate.now().minusDays(30);
+        if (endDate == null) endDate = LocalDate.now();
+
+        TotalBudget totalBudget = budgetService.getTotalBudget(startDate, endDate);
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Підсумки");
+
+            // Стилі
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(BorderStyle.THIN);
+            headerStyle.setBorderTop(BorderStyle.THIN);
+            headerStyle.setBorderLeft(BorderStyle.THIN);
+            headerStyle.setBorderRight(BorderStyle.THIN);
+
+            CellStyle amountStyle = workbook.createCellStyle();
+            amountStyle.setAlignment(HorizontalAlignment.RIGHT);
+            amountStyle.setBorderBottom(BorderStyle.THIN);
+            amountStyle.setBorderTop(BorderStyle.THIN);
+            amountStyle.setBorderLeft(BorderStyle.THIN);
+            amountStyle.setBorderRight(BorderStyle.THIN);
+            amountStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
+
+            // Використовуємо PINK замість LIGHT_RED
+            CellStyle expenseStyle = workbook.createCellStyle();
+            expenseStyle.cloneStyleFrom(amountStyle);
+            expenseStyle.setFillForegroundColor(IndexedColors.PINK.getIndex());
+            expenseStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            // Використовуємо LIGHT_GREEN (доступний)
+            CellStyle incomeStyle = workbook.createCellStyle();
+            incomeStyle.cloneStyleFrom(amountStyle);
+            incomeStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+            incomeStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle dateStyle = workbook.createCellStyle();
+            dateStyle.setAlignment(HorizontalAlignment.CENTER);
+            dateStyle.setBorderBottom(BorderStyle.THIN);
+            dateStyle.setBorderTop(BorderStyle.THIN);
+            dateStyle.setBorderLeft(BorderStyle.THIN);
+            dateStyle.setBorderRight(BorderStyle.THIN);
+
+            CellStyle summaryStyle = workbook.createCellStyle();
+            Font summaryFont = workbook.createFont();
+            summaryFont.setBold(true);
+            summaryStyle.setFont(summaryFont);
+            summaryStyle.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+            summaryStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            summaryStyle.setAlignment(HorizontalAlignment.CENTER);
+            summaryStyle.setBorderBottom(BorderStyle.THIN);
+            summaryStyle.setBorderTop(BorderStyle.THIN);
+            summaryStyle.setBorderLeft(BorderStyle.THIN);
+            summaryStyle.setBorderRight(BorderStyle.THIN);
+
+            int rowNum = 0;
+
+            // Заголовок
+            Row titleRow = sheet.createRow(rowNum++);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("Підсумки за період: " + startDate.format(dateFormatter) + " — " + endDate.format(dateFormatter));
+            titleCell.setCellStyle(summaryStyle);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+
+            rowNum++;
+
+            // Загальні підсумки
+            Row summaryRow1 = sheet.createRow(rowNum++);
+            summaryRow1.createCell(0).setCellValue("Показник");
+            summaryRow1.createCell(1).setCellValue("Сума");
+            CellStyle headerLeft = workbook.createCellStyle();
+            headerLeft.cloneStyleFrom(headerStyle);
+            headerLeft.setAlignment(HorizontalAlignment.LEFT);
+            summaryRow1.getCell(0).setCellStyle(headerLeft);
+
+            Row expenseRow = sheet.createRow(rowNum++);
+            expenseRow.createCell(0).setCellValue("Витрати:");
+            expenseRow.createCell(1).setCellValue(totalBudget.getTotalExpenses() != null ? totalBudget.getTotalExpenses() : 0);
+            expenseRow.getCell(1).setCellStyle(expenseStyle);
+
+            Row incomeRow = sheet.createRow(rowNum++);
+            incomeRow.createCell(0).setCellValue("Доходи:");
+            incomeRow.createCell(1).setCellValue(totalBudget.getTotalIncomes() != null ? totalBudget.getTotalIncomes() : 0);
+            incomeRow.getCell(1).setCellStyle(incomeStyle);
+
+            Row balanceRow = sheet.createRow(rowNum++);
+            balanceRow.createCell(0).setCellValue("Баланс:");
+            Double balance = (totalBudget.getTotalIncomes() != null ? totalBudget.getTotalIncomes() : 0)
+                    - (totalBudget.getTotalExpenses() != null ? totalBudget.getTotalExpenses() : 0);
+            balanceRow.createCell(1).setCellValue(balance);
+            balanceRow.getCell(1).setCellStyle(balance >= 0 ? incomeStyle : expenseStyle);
+
+            rowNum++;
+
+            // ===== ВИТРАТИ ЗА КАТЕГОРІЯМИ =====
+            Row catHeaderRow = sheet.createRow(rowNum++);
+            Cell catHeader1 = catHeaderRow.createCell(0);
+            catHeader1.setCellValue("ВИТРАТИ ЗА КАТЕГОРІЯМИ");
+            catHeader1.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum - 1, rowNum - 1, 0, 2));
+
+            Row catSubHeader = sheet.createRow(rowNum++);
+            catSubHeader.createCell(0).setCellValue("Категорія");
+            catSubHeader.createCell(1).setCellValue("Сума");
+            catSubHeader.createCell(2).setCellValue("Частка, %");
+            catSubHeader.getCell(0).setCellStyle(headerStyle);
+            catSubHeader.getCell(1).setCellStyle(headerStyle);
+            catSubHeader.getCell(2).setCellStyle(headerStyle);
+
+            Double totalExpenses = totalBudget.getTotalExpenses() != null ? totalBudget.getTotalExpenses() : 0;
+            for (Map.Entry<Category, Double> entry : totalBudget.getExpensesByCategory().entrySet()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(entry.getKey().getName());
+                row.createCell(1).setCellValue(entry.getValue());
+                row.getCell(1).setCellStyle(amountStyle);
+                double percent = totalExpenses > 0 ? (entry.getValue() / totalExpenses * 100) : 0;
+                row.createCell(2).setCellValue(percent);
+            }
+
+            rowNum++;
+
+            // ===== ДОХОДИ ЗА КАТЕГОРІЯМИ =====
+            Row incomeCatHeader = sheet.createRow(rowNum++);
+            Cell incomeCatHeader1 = incomeCatHeader.createCell(0);
+            incomeCatHeader1.setCellValue("ДОХОДИ ЗА КАТЕГОРІЯМИ");
+            incomeCatHeader1.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(rowNum - 1, rowNum - 1, 0, 2));
+
+            Row incomeCatSubHeader = sheet.createRow(rowNum++);
+            incomeCatSubHeader.createCell(0).setCellValue("Категорія");
+            incomeCatSubHeader.createCell(1).setCellValue("Сума");
+            incomeCatSubHeader.createCell(2).setCellValue("Частка, %");
+            incomeCatSubHeader.getCell(0).setCellStyle(headerStyle);
+            incomeCatSubHeader.getCell(1).setCellStyle(headerStyle);
+            incomeCatSubHeader.getCell(2).setCellStyle(headerStyle);
+
+            Double totalIncomes = totalBudget.getTotalIncomes() != null ? totalBudget.getTotalIncomes() : 0;
+            for (Map.Entry<Category, Double> entry : totalBudget.getIncomesByCategory().entrySet()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(entry.getKey().getName());
+                row.createCell(1).setCellValue(entry.getValue());
+                row.getCell(1).setCellStyle(amountStyle);
+                double percent = totalIncomes > 0 ? (entry.getValue() / totalIncomes * 100) : 0;
+                row.createCell(2).setCellValue(percent);
+            }
+
+            // Автоматичне підлаштування ширини
+            for (int i = 0; i < 3; i++) {
+                sheet.autoSizeColumn(i);
+                int currentWidth = sheet.getColumnWidth(i);
+                sheet.setColumnWidth(i, Math.min(currentWidth + 500, 12000));
+            }
+
+            // ===== ЛИСТ 2: ДИНАМІКА ПО ДНЯХ =====
+            Sheet dailySheet = workbook.createSheet("Динаміка по днях");
+            int dailyRowNum = 0;
+
+            Row dailyTitle = dailySheet.createRow(dailyRowNum++);
+            Cell dailyTitleCell = dailyTitle.createCell(0);
+            dailyTitleCell.setCellValue("Динаміка витрат та доходів по днях");
+            dailyTitleCell.setCellStyle(summaryStyle);
+            dailySheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 3));
+
+            Row dailyHeader = dailySheet.createRow(dailyRowNum++);
+            dailyHeader.createCell(0).setCellValue("Дата");
+            dailyHeader.createCell(1).setCellValue("День тижня");
+            dailyHeader.createCell(2).setCellValue("Витрати");
+            dailyHeader.createCell(3).setCellValue("Доходи");
+            dailyHeader.getCell(0).setCellStyle(headerStyle);
+            dailyHeader.getCell(1).setCellStyle(headerStyle);
+            dailyHeader.getCell(2).setCellStyle(headerStyle);
+            dailyHeader.getCell(3).setCellStyle(headerStyle);
+
+            for (TotalBudget.DayBudgetSummary summary : totalBudget.getDailySummaries().values()) {
+                Row row = dailySheet.createRow(dailyRowNum++);
+                row.createCell(0).setCellValue(summary.getDate() != null ? dateFormatter.format(summary.getDate()) : "");
+                row.createCell(1).setCellValue(summary.getDayName() != null ? summary.getDayName() : "");
+                row.createCell(2).setCellValue(summary.getExpenses() != null ? summary.getExpenses() : 0);
+                row.getCell(2).setCellStyle(amountStyle);
+                row.createCell(3).setCellValue(summary.getIncomes() != null ? summary.getIncomes() : 0);
+                row.getCell(3).setCellStyle(amountStyle);
+            }
+
+            for (int i = 0; i < 4; i++) {
+                dailySheet.autoSizeColumn(i);
+                int currentWidth = dailySheet.getColumnWidth(i);
+                dailySheet.setColumnWidth(i, Math.min(currentWidth + 500, 12000));
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            byte[] bytes = out.toByteArray();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            String filename = "totals_" + startDate.format(dateFormatter) + "_" + endDate.format(dateFormatter) + ".xlsx";
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(bytes.length);
+
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        }
     }
 }
