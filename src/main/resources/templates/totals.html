@@ -61,6 +61,7 @@
             margin-bottom: 1.5rem;
             border-radius: 0.5rem;
             overflow: hidden;
+            text-align: center;
         }
         .balance-cell {
             background: var(--bs-card-bg);
@@ -97,10 +98,169 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ===== КРАСИВІ АНІМАЦІЇ ПРИ ЗАВАНТАЖЕННІ ===== */
+        @keyframes slideUpFade {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            60% {
+                transform: translateY(-5px) scale(1.01);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideLeftFade {
+            0% {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideRightFade {
+            0% {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideUpTable {
+            0% {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes blurFade {
+            0% {
+                opacity: 0;
+                filter: blur(10px);
+                transform: scale(1.1);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulseAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes buttonSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes rowStagger {
+            0% {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ===== КЛАСИ АНІМАЦІЙ ===== */
+
+        .ledger-head-animated {
+            animation: blurFade 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .balance-animated {
+            animation: slideUpFade 0.7s ease forwards;
+            opacity: 0;
+        }
+
+        .chart-animated {
+            animation: pulseAppear 0.8s ease forwards;
+            opacity: 0;
+            animation-delay: 0.2s;
+        }
+
+        .table-wrap-animated {
+            animation: slideUpTable 0.7s ease forwards;
+            opacity: 0;
+            animation-delay: 0.3s;
+        }
+
+        .btn-animated {
+            animation: buttonSlide 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .btn-animated:nth-child(1) { animation-delay: 0.1s; }
+        .btn-animated:nth-child(2) { animation-delay: 0.2s; }
+        .btn-animated:nth-child(3) { animation-delay: 0.3s; }
+
+        .category-card-animated {
+            animation: slideLeftFade 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .category-card-animated:nth-child(odd) {
+            animation: slideLeftFade 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .category-card-animated:nth-child(even) {
+            animation: slideRightFade 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        .category-card-animated:nth-child(1) { animation-delay: 0.05s; }
+        .category-card-animated:nth-child(2) { animation-delay: 0.10s; }
+        .category-card-animated:nth-child(3) { animation-delay: 0.15s; }
+        .category-card-animated:nth-child(4) { animation-delay: 0.20s; }
+        .category-card-animated:nth-child(5) { animation-delay: 0.25s; }
+        .category-card-animated:nth-child(6) { animation-delay: 0.30s; }
+        .category-card-animated:nth-child(7) { animation-delay: 0.35s; }
+        .category-card-animated:nth-child(8) { animation-delay: 0.40s; }
+        .category-card-animated:nth-child(9) { animation-delay: 0.45s; }
+        .category-card-animated:nth-child(10) { animation-delay: 0.50s; }
+
+        .row-animate {
+            animation: rowStagger 0.4s ease forwards;
+            opacity: 0;
+        }
+
         .toolbar-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; }
         .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; text-align: center; }
-        .table-wrap-animated { animation: fadeIn 0.5s ease forwards; opacity: 0; animation-delay: 0.10s; }
-        .row-animate { animation: fadeInRow 0.3s ease forwards; opacity: 0; }
 
         /* ===== ЗАГАЛЬНІ ===== */
         .card-body { padding: 5px !important; }
@@ -677,16 +837,17 @@
         <h2>Підсумки</h2>
     </div>
 
-    <div class="ledger-head no-print">
+    <!-- ===== ЗАГОЛОВОК З АНІМАЦІЄЮ ===== -->
+    <div class="ledger-head no-print ledger-head-animated">
         <h1>Підсумки</h1>
         <div class="d-flex flex-wrap gap-2 no-print">
-            <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded" data-bs-toggle="modal" data-bs-target="#transactionModal">
+            <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded btn-animated" data-bs-toggle="modal" data-bs-target="#transactionModal">
                 <i class="fas fa-plus me-1"></i> Додати
             </button>
-            <button class="btn btn-success btn-sm btn-rounded" onclick="exportTotals()">
+            <button class="btn btn-success btn-sm btn-rounded btn-animated" onclick="exportTotals()">
                 <i class="fas fa-file-excel me-1"></i> Excel
             </button>
-            <button class="btn btn-warning btn-sm btn-rounded" onclick="window.print()">
+            <button class="btn btn-warning btn-sm btn-rounded btn-animated" onclick="window.print()">
                 <i class="fas fa-print me-1"></i> Друк
             </button>
         </div>
@@ -724,8 +885,8 @@
         }
     </script>
 
-    <!-- ===== КАРТКА БАЛАНСУ ===== -->
-    <div class="balance-row stats-animated">
+    <!-- ===== КАРТКА БАЛАНСУ З АНІМАЦІЄЮ ===== -->
+    <div class="balance-row balance-animated">
         <div class="balance-cell">
             <div class="label">Чистий баланс</div>
             <div class="amount" th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</div>
@@ -740,8 +901,8 @@
         </div>
     </div>
 
-    <!-- ===== ДІАГРАМИ (АНАЛІТИКА) ===== -->
-    <div class="chart-section stats-animated" id="chartSection">
+    <!-- ===== ДІАГРАМИ (АНАЛІТИКА) З АНІМАЦІЄЮ ===== -->
+    <div class="chart-section chart-animated" id="chartSection">
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card chart-card">
@@ -808,7 +969,7 @@
         </div>
     </div>
 
-    <!-- ===== КАРТКА КАТЕГОРІЙ ===== -->
+    <!-- ===== КАРТКА КАТЕГОРІЙ З АНІМАЦІЄЮ ===== -->
     <div class="card shadow mt-4 table-wrap-animated">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem; background-color: var(--bs-card-bg); border-bottom: 1px solid var(--bs-border-color);">
             <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -910,19 +1071,19 @@
                             <td class="col-percent" id="percent-income-${stat.index}" th:text="'0%'"></td>
                         </tr>
                         <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory)}" id="emptyRow">
-                            <td colspan="6" class="text-center text-muted py-3">Немає даних за обраний період</td>
+                            <td colspan="5" class="text-center text-muted py-3">Немає даних за обраний період</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- ===== КАРТКИ КАТЕГОРІЙ ===== -->
+            <!-- ===== КАРТКИ КАТЕГОРІЙ З АНІМАЦІЄЮ ===== -->
             <div id="cardsView" class="cards-view-container">
                 <div class="row" id="cardsContainer">
                     <!-- Витрати -->
                     <th:block th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}">
-                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="EXPENSE"
+                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper category-card-animated" data-type="EXPENSE"
                              th:data-category="${entry.key.name}"
                              th:data-amount="${entry.value}"
                              th:data-percent="0">
@@ -944,7 +1105,7 @@
                     </th:block>
                     <!-- Доходи -->
                     <th:block th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}">
-                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="INCOME"
+                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper category-card-animated" data-type="INCOME"
                              th:data-category="${entry.key.name}"
                              th:data-amount="${entry.value}"
                              th:data-percent="0">
@@ -1221,8 +1382,7 @@
                                 <i class="fas fa-arrow-down me-1"></i> Витрата
                             </button>
                             <button type="button" class="btn btn-outline-success" id="cloneTypeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> Дохід
-                            </button>
+                                <i class="fas fa-arrow-up me-1"></i> Дохід                            </button>
                         </div>
                     </div>
 
