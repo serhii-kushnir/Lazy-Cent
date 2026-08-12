@@ -659,13 +659,11 @@
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-
                 <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
-                    <option value="0">Всі</option>
-                    <option value="6" selected>6</option>
-                    <option value="12">12</option>
-                    <option value="24">24</option>
-                    <option value="48">48</option>
+                    <option value="0" selected>Всі</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
                 </select>
                 <button id="loadMoreBtn" class="btn btn-primary btn-sm load-more-btn">
                     <i class="fas fa-plus-circle me-1"></i> Завантажити ще
@@ -1625,7 +1623,7 @@
         // 9. ФІЛЬТРАЦІЯ ТА ПАГІНАЦІЯ
         // ================================================================
         let currentPage = 1;
-        let pageSize = 6;
+        let pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
         let filteredItems = [];
 
         function getFilteredItems() {
