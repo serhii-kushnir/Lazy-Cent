@@ -112,7 +112,7 @@
             width: 100%;
             font-size: 0.8rem;
             border-collapse: collapse;
-            min-width: 800px; /* Щоб не стискалася на малих екранах */
+            min-width: 800px;
         }
         .table-transactions th, .table-transactions td {
             border-bottom: none !important;
@@ -169,7 +169,6 @@
         .table-transactions .col-center { width: auto; white-space: nowrap; text-align: center; }
         .table-transactions .col-name { width: auto; min-width: 140px; max-width: 220px; word-break: break-word; text-align: left; }
         .table-transactions .col-amount { width: auto; white-space: nowrap; text-align: center; }
-        /* КОЛОНКА ДІЙ – достатня ширина для всіх кнопок */
         .table-transactions .col-actions {
             width: 120px;
             min-width: 120px;
@@ -181,7 +180,6 @@
         .table-transactions .col-details { width: 150px; min-width: 100px; max-width: 180px; white-space: normal; word-break: break-word; text-align: center; }
         .table-transactions .col-category { width: 130px; min-width: 130px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
 
-        /* Кнопки дій у таблиці – компактні та завжди видимі */
         .table-transactions .col-actions .btn {
             padding: 0.15rem 0.3rem;
             font-size: 0.65rem;
@@ -452,7 +450,6 @@
             .table-transactions .col-buyer-seller { min-width: 60px; max-width: 80px; }
             .table-transactions .col-details { min-width: 60px; max-width: 80px; }
             .table-transactions .col-category { width: 90px; min-width: 90px; max-width: 90px; }
-            /* Колонка дій на мобільних – ширша, щоб помістити всі кнопки */
             .table-transactions .col-actions {
                 width: 100px;
                 min-width: 100px;
@@ -576,6 +573,38 @@
         [data-bs-theme="dark"] .chart-legend-table td { color: #e6e6e6 !important; }
         [data-bs-theme="dark"] .chart-legend-table .amount-col { color: #9aa3b2 !important; }
 
+        /* ===== ПЕРЕМИКАЧ АНАЛІТИКИ (додано) ===== */
+        .analytics-toggle {
+            display: flex;
+            gap: 0.3rem;
+            background: #e9ecef;
+            border-radius: 0.5rem;
+            padding: 0.15rem;
+            flex-shrink: 0;
+        }
+        [data-bs-theme="dark"] .analytics-toggle { background: #2a2e37; }
+        .analytics-toggle .btn {
+            border: none;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 0.375rem;
+            background: transparent;
+            color: #495057;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .analytics-toggle .btn.active {
+            background: #fff;
+            color: #0d6efd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        [data-bs-theme="dark"] .analytics-toggle .btn { color: #adb5bd; }
+        [data-bs-theme="dark"] .analytics-toggle .btn.active {
+            background: #1d2027;
+            color: #6ea8fe;
+        }
+        .analytics-toggle .btn i { margin-right: 0.2rem; }
+
         /* ===== МОДАЛЬНІ ВІКНА ===== */
         .delete-details {
             background: #f8f9fa;
@@ -681,13 +710,12 @@
         </div>
     </div>
 
-    <!-- ===== КАРТКА БАЛАНСУ (адаптивна) ===== -->
+    <!-- ===== КАРТКА БАЛАНСУ ===== -->
     <div class="row mb-3 stats-animated">
         <div class="col-12">
             <div class="card balance-card">
                 <div class="card-body p-2 p-sm-3">
                     <div class="row g-1 g-sm-2">
-                        <!-- Початковий баланс -->
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-flag-checkered text-secondary fa-1x fa-sm-2x"></i></div>
                             <div class="text-truncate" style="min-width:0;">
@@ -695,7 +723,6 @@
                                 <h5 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
-                        <!-- Доходи -->
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-arrow-up text-success fa-1x fa-sm-2x"></i></div>
                             <div class="text-truncate" style="min-width:0;">
@@ -703,7 +730,6 @@
                                 <h5 class="mb-0 fw-bold text-success" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
-                        <!-- Витрати -->
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-arrow-down text-danger fa-1x fa-sm-2x"></i></div>
                             <div class="text-truncate" style="min-width:0;">
@@ -711,7 +737,6 @@
                                 <h5 class="mb-0 fw-bold text-danger" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
                             </div>
                         </div>
-                        <!-- Баланс -->
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-balance-scale fa-1x fa-sm-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
                             <div class="text-truncate" style="min-width:0;">
@@ -725,27 +750,40 @@
         </div>
     </div>
 
-    <!-- ДІАГРАМИ -->
+    <!-- ===== ДІАГРАМИ (оновлено з перемикачем і стовпчиками) ===== -->
     <div class="chart-section" id="chartSection">
         <div class="row mb-4 stats-animated">
             <div class="col-12">
                 <div class="card chart-card">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-chart-pie me-2"></i>Аналітика витрат та доходів</span>
-                        <div>
-                            <span class="badge bg-light text-dark me-2" id="chartTotalLabel">Всього: 0</span>
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
+                        <span><i class="fas fa-chart-pie me-2"></i>Аналітика</span>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <!-- Новий перемикач режимів -->
+                            <div class="analytics-toggle" id="analyticsToggle">
+                                <button class="btn active" data-mode="charts" title="Кругові діаграми">
+                                    <i class="fas fa-chart-pie"></i> <span class="d-none d-sm-inline">Кругові</span>
+                                </button>
+                                <button class="btn" data-mode="bar" title="Стовпчиковий графік">
+                                    <i class="fas fa-chart-bar"></i> <span class="d-none d-sm-inline">Стовпчики</span>
+                                </button>
+                                <button class="btn" data-mode="both" title="Обидва">
+                                    <i class="fas fa-chart-simple"></i> <span class="d-none d-sm-inline">Обидва</span>
+                                </button>
+                            </div>
                             <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn" title="Приховати/показати діаграми">
-                                <i class="fas fa-chevron-down toggle-icon" id="chartToggleIcon"></i>
+                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
                             </button>
                         </div>
                     </div>
                     <div class="card-body" id="chartBody">
-                        <div class="chart-row-container">
+                        <div class="chart-row-container" id="chartsContainer">
                             <div class="chart-col" id="incomeChartCol" th:unless="${dayBudget.incomes.empty}">
                                 <div class="text-center">
                                     <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i>Доходи</h6>
                                     <div class="chart-flex">
-                                        <div class="chart-container mx-auto"><canvas id="incomeChart"></canvas></div>
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="incomeChart"></canvas>
+                                        </div>
                                         <div class="chart-legend-table" id="incomeLegend"></div>
                                     </div>
                                 </div>
@@ -754,8 +792,21 @@
                                 <div class="text-center">
                                     <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i>Витрати</h6>
                                     <div class="chart-flex">
-                                        <div class="chart-container mx-auto"><canvas id="expenseChart"></canvas></div>
+                                        <div class="chart-container mx-auto">
+                                            <canvas id="expenseChart"></canvas>
+                                        </div>
                                         <div class="chart-legend-table" id="expenseLegend"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- НОВИЙ БЛОК ДЛЯ СТОВПЧИКОВОЇ ДІАГРАМИ -->
+                        <div class="row mt-3" id="barChartRow">
+                            <div class="col-12">
+                                <div class="text-center">
+                                    <h6 class="text-primary mb-1"><i class="fas fa-chart-bar me-1"></i>Порівняння витрат і доходів за категоріями</h6>
+                                    <div style="max-height: 300px; max-width: 100%;">
+                                        <canvas id="barChart" style="max-height: 280px; width: 100%;"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -787,9 +838,8 @@
         </div>
         <div class="card-body">
 
-            <!-- ===== ПАНЕЛЬ ІНСТРУМЕНТІВ ===== -->
+            <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
             <div class="table-toolbar no-print">
-                <!-- Пошук – на десктопі гнучкий, на мобільних – вся ширина -->
                 <div class="search-input">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -797,7 +847,6 @@
                     </div>
                 </div>
 
-                <!-- Фільтри та кнопки – без змін -->
                 <select id="typeFilter" class="form-select form-select-sm filter-select">
                     <option value="all">Всі</option>
                     <option value="expense">Витрати</option>
@@ -822,7 +871,6 @@
                 <span class="info-text" id="visibleInfo">Показано: 0 з 0</span>
             </div>
 
-
             <!-- ТАБЛИЦЯ -->
             <div id="tableView" class="table-view-container">
                 <div class="table-responsive">
@@ -846,7 +894,6 @@
                         <!-- Витрати -->
                         <tr th:each="expense : ${dayBudget.expenses}" class="transaction-row" data-type="expense" th:data-id="${expense.id}">
                             <td class="col-num"></td>
-                            <!-- ТИП – ТІЛЬКИ ТЕКСТ, БЕЗ ФОНУ -->
                             <td class="col-type"><span class="type-text expense">Витрата</span></td>
                             <td class="col-center"><span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span><span th:unless="${expense.time != null}" class="text-muted">—</span></td>
                             <td class="col-name" th:text="${expense.description}"></td>
@@ -855,7 +902,6 @@
                             <td class="col-buyer-seller" th:text="${expense.buyer}"></td>
                             <td class="col-buyer-seller" th:text="${expense.seller}"></td>
                             <td class="col-details"><span th:if="${expense.details != null and expense.details.length() > 0}" th:text="${expense.details}" th:title="${expense.details}"></span><span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span></td>
-                            <!-- КАТЕГОРІЯ – ТІЛЬКИ ТЕКСТ, БЕЗ ФОНУ -->
                             <td class="col-category"><span class="category-text" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
                             <td class="col-actions no-print">
                                 <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" title="Редагувати"><i class="fas fa-edit"></i></a>
@@ -866,7 +912,6 @@
                         <!-- Доходи -->
                         <tr th:each="income : ${dayBudget.incomes}" class="transaction-row" data-type="income" th:data-id="${income.id}">
                             <td class="col-num"></td>
-                            <!-- ТИП – ТІЛЬКИ ТЕКСТ, БЕЗ ФОНУ -->
                             <td class="col-type"><span class="type-text income">Дохід</span></td>
                             <td class="col-center"><span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span><span th:unless="${income.time != null}" class="text-muted">—</span></td>
                             <td class="col-name" th:text="${income.description}"></td>
@@ -875,7 +920,6 @@
                             <td class="col-buyer-seller" th:text="${income.buyer}"></td>
                             <td class="col-buyer-seller" th:text="${income.seller}"></td>
                             <td class="col-details"><span th:if="${income.details != null and income.details.length() > 0}" th:text="${income.details}" th:title="${income.details}"></span><span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span></td>
-                            <!-- КАТЕГОРІЯ – ТІЛЬКИ ТЕКСТ, БЕЗ ФОНУ -->
                             <td class="col-category"><span class="category-text" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
                             <td class="col-actions no-print">
                                 <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" title="Редагувати"><i class="fas fa-edit"></i></a>
@@ -891,7 +935,7 @@
                 </div>
             </div>
 
-            <!-- КАРТКИ (одна колонка, як таблиця) -->
+            <!-- КАРТКИ -->
             <div id="cardsView" class="cards-view-container">
                 <div class="row" id="cardsContainer">
                     <!-- Витрати -->
@@ -911,7 +955,6 @@
                                     <div class="row"><span class="label"><i class="fas fa-user me-1"></i>Покупець</span><span class="value" th:text="${expense.buyer} ?: '—'"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-store me-1"></i>Продавець</span><span class="value" th:text="${expense.seller} ?: '—'"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-file-alt me-1"></i>Деталі</span><span class="value" th:text="${expense.details} ?: '—'"></span></div>
-                                    <!-- КАТЕГОРІЯ – ТІЛЬКИ ТЕКСТ, БЕЗ ФОНУ -->
                                     <div class="row"><span class="label"><i class="fas fa-folder me-1"></i>Категорія</span><span class="value category-text" th:text="${expense.category.name}" style="color: #dc3545;"></span></div>
                                 </div>
                                 <div class="card-footer">
@@ -939,7 +982,6 @@
                                     <div class="row"><span class="label"><i class="fas fa-user me-1"></i>Покупець</span><span class="value" th:text="${income.buyer} ?: '—'"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-store me-1"></i>Продавець</span><span class="value" th:text="${income.seller} ?: '—'"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-file-alt me-1"></i>Деталі</span><span class="value" th:text="${income.details} ?: '—'"></span></div>
-                                    <!-- КАТЕГОРІЯ – ТІЛЬКИ ТЕКСТ, БЕЗ ФОНУ -->
                                     <div class="row"><span class="label"><i class="fas fa-folder me-1"></i>Категорія</span><span class="value category-text" th:text="${income.category.name}" style="color: #198754;"></span></div>
                                 </div>
                                 <div class="card-footer">
@@ -962,7 +1004,7 @@
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ТРАНЗАКЦІЇ ===== -->
+<!-- ... (залишаємо без змін) ... -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -972,9 +1014,7 @@
             </div>
             <form id="transactionForm" method="post" th:action="@{'/day/' + ${dayBudget.date} + '/expense'}">
                 <div class="modal-body">
-                    <!-- ПРИХОВАНЕ ПОЛЕ ДЛЯ ТИПУ (обов'язково) -->
                     <input type="hidden" id="transactionType" name="type" value="EXPENSE">
-
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
@@ -986,19 +1026,15 @@
                             </button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionDate" class="form-label">Дата</label>
-                        <input type="date" class="form-control" id="transactionDate" name="date"
-                               th:value="${dayBudget.date}" readonly disabled>
+                        <input type="date" class="form-control" id="transactionDate" name="date" th:value="${dayBudget.date}" readonly disabled>
                         <input type="hidden" name="date" th:value="${dayBudget.date}">
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionTime" class="form-label">Час (необов'язково)</label>
                         <input type="time" class="form-control" id="transactionTime" name="time" step="60">
                     </div>
-
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
                         <select class="form-select" id="categorySelect" name="categoryId" required>
@@ -1006,49 +1042,39 @@
                         </select>
                         <div class="invalid-feedback">Виберіть категорію</div>
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionName" class="form-label">Найменування</label>
-                        <input type="text" class="form-control" id="transactionName" name="description"
-                               placeholder="наприклад, Продукти, обід, канцелярія" required>
+                        <input type="text" class="form-control" id="transactionName" name="description" placeholder="наприклад, Продукти, обід, канцелярія" required>
                         <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionAmount" class="form-label">Сума (₴)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   placeholder="0.0" value="0.00" required>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount" placeholder="0.0" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
                         <div class="invalid-feedback">Введіть суму</div>
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
-                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
-                                   placeholder="1" value="1" min="1">
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity" placeholder="1" value="1" min="1">
                             <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
                         <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
                         <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
                     </div>
-
                     <div class="mb-3">
                         <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
-                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
-                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3" placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
                         <div class="char-counter"><span id="charCount">0</span> / 250</div>
                     </div>
                 </div>
@@ -1153,7 +1179,6 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДУБЛЮВАННЯ (універсальне) ===== -->
 <div class="modal fade no-print" id="cloneModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1163,10 +1188,7 @@
             </div>
             <form id="cloneForm" method="post">
                 <div class="modal-body">
-                    <!-- Приховане поле для типу -->
                     <input type="hidden" name="type" id="cloneType" value="EXPENSE">
-
-                    <!-- Перемикач типу -->
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
@@ -1178,7 +1200,6 @@
                             </button>
                         </div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Категорія</label>
                         <select name="categoryId" class="form-select" id="cloneCategory" required>
@@ -1186,70 +1207,35 @@
                         </select>
                         <div class="invalid-feedback">Виберіть категорію</div>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Найменування</label>
                         <input type="text" name="description" class="form-control" id="cloneDescription" required>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Покупець</label>
                         <input type="text" name="buyer" class="form-control" id="cloneBuyer">
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Продавець</label>
                         <input type="text" name="seller" class="form-control" id="cloneSeller">
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Сума (₴)</label>
                         <input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required>
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Кількість</label>
                         <input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1">
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Час</label>
                         <input type="time" class="form-control" id="cloneTime" name="time" step="60">
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Додаткові деталі</label>
                         <textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea>
                         <div class="char-counter"><span id="cloneCharCount">0</span> / 250</div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-                    <button type="submit" class="btn btn-primary">Дублювати</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade no-print" id="cloneIncomeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-copy me-2"></i>Дублювати дохід</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="cloneIncomeForm" method="post" th:action="@{/day/{date}/income(date=${dayBudget.date})}">
-                <div class="modal-body">
-                    <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="cloneIncomeCategory" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
-                    <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="cloneIncomeDescription" required></div>
-                    <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneIncomeBuyer"></div>
-                    <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="cloneIncomeSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneIncomeAmount" required></div>
-                    <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneIncomeQuantity" min="1"></div>
-                    <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="cloneIncomeTime" name="time" step="60"></div>
-                    <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="cloneIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneIncomeCharCount">0</span> / 250</div></div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
@@ -1271,7 +1257,7 @@
         'use strict';
 
         // ================================================================
-        // 0. КОЛІРНА ПАЛІТРА ДЛЯ ДІАГРАМ
+        // 0. КОЛІРНА ПАЛІТРА
         // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
         function getCategoryColor(name, index) {
@@ -1311,10 +1297,9 @@
         }
 
         // ================================================================
-        // 2. ОТРИМУЄМО ДАТУ
+        // 2. ДАТА
         // ================================================================
         let currentDate = '';
-
         const dateInput = document.getElementById('transactionDate');
         if (dateInput && dateInput.value) {
             currentDate = dateInput.value;
@@ -1342,15 +1327,15 @@
         }
         console.log('📅 Current date:', currentDate);
 
-        // Ключі localStorage
         const STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
         const COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
         const FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
         const CHART_VISIBLE_KEY = 'lazycent_chart_visible_' + currentDate;
         const VIEW_MODE_KEY = 'lazycent_view_mode_' + currentDate;
+        const ANALYTICS_MODE_KEY = 'daydetail-analytics-mode';
 
         // ================================================================
-        // 3. КАТЕГОРІЇ ДЛЯ МОДАЛКИ ДОДАВАННЯ
+        // 3. КАТЕГОРІЇ
         // ================================================================
         let expenseCategories = /*[[${expenseCategories}]]*/ null;
         let incomeCategories = /*[[${incomeCategories}]]*/ null;
@@ -1411,7 +1396,7 @@
         }
 
         // ================================================================
-        // 4. ПЕРЕМИКАЧ ТИПУ В МОДАЛЦІ ДОДАВАННЯ (ГОЛОВНЕ ВИПРАВЛЕННЯ)
+        // 4. ПЕРЕМИКАЧ ТИПУ
         // ================================================================
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
@@ -1452,14 +1437,11 @@
         }
 
         if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
-            // Встановлюємо початковий тип – Витрата
             setTransactionType('EXPENSE');
-
             typeExpenseBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 setTransactionType('EXPENSE');
             });
-
             typeIncomeBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 setTransactionType('INCOME');
@@ -1467,7 +1449,310 @@
         }
 
         // ================================================================
-        // 5. ДОДАТКОВІ ОБРОБНИКИ (СУМА, КІЛЬКІСТЬ, ЛІЧИЛЬНИК)
+        // 5. ДІАГРАМИ (оновлені)
+        // ================================================================
+        function renderChart(type) {
+            const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
+            const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
+            const chartCanvas = document.getElementById(canvasId);
+            const legendContainer = document.getElementById(legendId);
+            if (!chartCanvas) return;
+
+            if (typeof Chart === 'undefined') {
+                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+                return;
+            }
+
+            const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
+            const categoryMap = new Map();
+
+            rows.forEach(row => {
+                const catCell = row.querySelector('.col-category .category-text');
+                if (!catCell) return;
+                const catName = catCell.textContent.trim();
+                const amountCell = row.querySelector('td:nth-child(6)');
+                if (!amountCell) return;
+                const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
+                const amount = parseFloat(amountText) || 0;
+                if (amount > 0) {
+                    categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
+                }
+            });
+
+            const entries = Array.from(categoryMap.entries()).sort((a, b) => b[1] - a[1]);
+            const labels = entries.map(e => e[0]);
+            const data = entries.map(e => e[1]);
+
+            const chartCol = document.getElementById(type + 'ChartCol');
+            if (data.length === 0) {
+                if (chartCol) chartCol.style.display = 'none';
+                return;
+            } else {
+                if (chartCol) chartCol.style.display = '';
+            }
+
+            const colors = labels.map((name, idx) => getCategoryColor(name, idx));
+            const chartKey = type + 'ChartInstance';
+
+            if (window[chartKey]) {
+                try { window[chartKey].destroy(); } catch(e) {}
+                window[chartKey] = null;
+            }
+
+            try {
+                window[chartKey] = new Chart(chartCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        onClick: function(e, elements) {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const category = labels[index];
+                                const categoryFilter = document.getElementById('categoryFilter');
+                                if (categoryFilter) {
+                                    categoryFilter.value = category;
+                                    categoryFilter.dispatchEvent(new Event('change'));
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        cutout: '55%'
+                    }
+                });
+
+                if (legendContainer) {
+                    const total = data.reduce((a, b) => a + b, 0);
+                    let html = '<table class="chart-legend-table"><tbody>';
+                    entries.forEach(([name, amount], idx) => {
+                        const color = getCategoryColor(name, idx);
+                        const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                        html += '<tr>' +
+                            '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
+                            '<td class="category-col">' + name + '</td>' +
+                            '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                            '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
+                            '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    legendContainer.innerHTML = html;
+                }
+
+                const totalLabel = document.getElementById('chartTotalLabel');
+                if (totalLabel) {
+                    const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
+                    const incomeTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="income"]');
+                    totalLabel.textContent = 'Всього: ' + (expenseTotal.length + incomeTotal.length);
+                }
+            } catch(e) {
+                console.error('Помилка діаграми ' + type + ':', e);
+                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Помилка створення діаграми.</p>';
+            }
+        }
+
+        // === НОВА СТОВПЧИКОВА ДІАГРАМА ===
+        function renderBarChart() {
+            const canvas = document.getElementById('barChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') {
+                canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
+                return;
+            }
+
+            const savedMode = localStorage.getItem(ANALYTICS_MODE_KEY) || 'both';
+            const shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
+            const row = document.getElementById('barChartRow');
+            if (!row) return;
+
+            // Збираємо дані з видимих рядків
+            const rows = document.querySelectorAll('#transactionsBody .transaction-row');
+            const expenseMap = new Map();
+            const incomeMap = new Map();
+            let hasData = false;
+
+            rows.forEach(row => {
+                if (row.style.display === 'none') return;
+                const type = row.dataset.type;
+                const catCell = row.querySelector('.col-category .category-text');
+                if (!catCell) return;
+                const catName = catCell.textContent.trim();
+                const amountCell = row.querySelector('td:nth-child(6)');
+                if (!amountCell) return;
+                const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
+                const amount = parseFloat(amountText) || 0;
+                if (amount > 0) {
+                    hasData = true;
+                    if (type === 'expense') {
+                        expenseMap.set(catName, (expenseMap.get(catName) || 0) + amount);
+                    } else {
+                        incomeMap.set(catName, (incomeMap.get(catName) || 0) + amount);
+                    }
+                }
+            });
+
+            // Об'єднуємо всі унікальні категорії
+            const allCategories = new Set([...expenseMap.keys(), ...incomeMap.keys()]);
+            const sortedCategories = Array.from(allCategories).sort();
+
+            if (sortedCategories.length === 0 || !hasData || !shouldShowBar) {
+                row.style.display = 'none';
+                return;
+            }
+            row.style.display = '';
+
+            const expenseData = sortedCategories.map(cat => expenseMap.get(cat) || 0);
+            const incomeData = sortedCategories.map(cat => incomeMap.get(cat) || 0);
+
+            if (window.barChartInstance) { window.barChartInstance.destroy(); }
+
+            window.barChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: sortedCategories,
+                    datasets: [
+                        {
+                            label: 'Витрати',
+                            data: expenseData,
+                            backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                            borderColor: '#dc3545',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Доходи',
+                            data: incomeData,
+                            backgroundColor: 'rgba(25, 135, 84, 0.8)',
+                            borderColor: '#198754',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 10,
+                                font: { size: 11 }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 30,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + ' ₴';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderAllCharts() {
+            setTimeout(function() {
+                renderChart('expense');
+                renderChart('income');
+                renderBarChart();
+            }, 100);
+        }
+
+        function assignCategoryColors() {
+            document.querySelectorAll('.category-text').forEach(el => {
+                const name = el.getAttribute('data-category');
+                if (name) {
+                    el.style.color = getCategoryColor(name, 0);
+                }
+            });
+        }
+
+        // ================================================================
+        // 6. ТОГЛ ДІАГРАМ + ПЕРЕМИКАЧ РЕЖИМІВ
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyticsToggle = document.getElementById('analyticsToggle');
+            const chartsContainer = document.getElementById('chartsContainer');
+            const barRow = document.getElementById('barChartRow');
+
+            function setAnalyticsMode(mode) {
+                analyticsToggle.querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.mode === mode);
+                });
+                if (mode === 'charts') {
+                    chartsContainer.style.display = 'flex';
+                    barRow.style.display = 'none';
+                } else if (mode === 'bar') {
+                    chartsContainer.style.display = 'none';
+                    barRow.style.display = '';
+                } else { // both
+                    chartsContainer.style.display = 'flex';
+                    barRow.style.display = '';
+                }
+                localStorage.setItem(ANALYTICS_MODE_KEY, mode);
+                setTimeout(renderAllCharts, 100);
+            }
+
+            const savedMode = localStorage.getItem(ANALYTICS_MODE_KEY) || 'both';
+            setAnalyticsMode(savedMode);
+
+            analyticsToggle.addEventListener('click', function(e) {
+                const btn = e.target.closest('.btn');
+                if (!btn || btn.classList.contains('active')) return;
+                setAnalyticsMode(btn.dataset.mode);
+            });
+
+            // Згортання
+            const toggleChartBtn = document.getElementById('toggleChartBtn');
+            const chartBody = document.getElementById('chartBody');
+            const chartIcon = document.getElementById('chartToggleIcon');
+            if (toggleChartBtn && chartBody) {
+                const savedCollapsed = localStorage.getItem(CHART_VISIBLE_KEY);
+                if (savedCollapsed === 'true') {
+                    chartBody.style.display = 'none';
+                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                }
+                toggleChartBtn.addEventListener('click', function() {
+                    const isHidden = chartBody.style.display === 'none';
+                    if (isHidden) {
+                        chartBody.style.display = '';
+                        chartIcon.className = 'fas fa-chevron-up toggle-icon';
+                        localStorage.setItem(CHART_VISIBLE_KEY, 'false');
+                        setTimeout(renderAllCharts, 100);
+                    } else {
+                        chartBody.style.display = 'none';
+                        chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                        localStorage.setItem(CHART_VISIBLE_KEY, 'true');
+                    }
+                });
+            }
+        });
+
+        // ================================================================
+        // 7. ІНШІ ОБРОБНИКИ (СУМА, КІЛЬКІСТЬ, ЛІЧИЛЬНИК)
         // ================================================================
         function formatAmountField() {
             const amountInput = document.getElementById('transactionAmount');
@@ -1520,9 +1805,6 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ================================================================
-        // 6. СКИДАННЯ МОДАЛКИ ДОДАВАННЯ
-        // ================================================================
         document.getElementById('transactionModal')?.addEventListener('hidden.bs.modal', function() {
             const form = document.getElementById('transactionForm');
             if (form) form.reset();
@@ -1533,9 +1815,6 @@
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         });
 
-        // ================================================================
-        // 7. ВАЛІДАЦІЯ ДОДАВАННЯ
-        // ================================================================
         transactionForm?.addEventListener('submit', function(e) {
             let valid = true;
             const name = document.getElementById('transactionName');
@@ -1550,216 +1829,6 @@
             }
         });
 
-        // ================================================================
-        // 8. ОБРОБНИКИ ДЛЯ РЕДАГУВАННЯ, ДУБЛЮВАННЯ, ВИДАЛЕННЯ
-        // ================================================================
-
-        // --- Редагування ---
-        document.querySelectorAll('.action-edit').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const type = this.dataset.type;
-                const id = this.dataset.id;
-                const category = this.dataset.category;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1;
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-
-                if (type === 'expense') {
-                    const modalEl = document.getElementById('editExpenseModal');
-                    if (modalEl) {
-                        document.getElementById('editExpenseId').value = id;
-                        document.getElementById('editExpenseCategory').value = category;
-                        document.getElementById('editExpenseDescription').value = description;
-                        document.getElementById('editExpenseAmount').value = amount.toFixed(2);
-                        document.getElementById('editExpenseQuantity').value = quantity;
-                        document.getElementById('editExpenseTime').value = time;
-                        document.getElementById('editExpenseDetails').value = details;
-                        document.getElementById('editExpenseBuyer').value = buyer;
-                        document.getElementById('editExpenseSeller').value = seller;
-                        document.getElementById('editExpenseCharCount').textContent = details.length;
-                        document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                        modal.show();
-                    }
-                } else {
-                    const modalEl = document.getElementById('editIncomeModal');
-                    if (modalEl) {
-                        document.getElementById('editIncomeId').value = id;
-                        document.getElementById('editIncomeCategory').value = category;
-                        document.getElementById('editIncomeDescription').value = description;
-                        document.getElementById('editIncomeAmount').value = amount.toFixed(2);
-                        document.getElementById('editIncomeQuantity').value = quantity;
-                        document.getElementById('editIncomeTime').value = time;
-                        document.getElementById('editIncomeDetails').value = details;
-                        document.getElementById('editIncomeBuyer').value = buyer;
-                        document.getElementById('editIncomeSeller').value = seller;
-                        document.getElementById('editIncomeCharCount').textContent = details.length;
-                        document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                        modal.show();
-                    }
-                }
-            });
-        });
-
-        // --- Дублювання ---
-        function loadCloneCategories(type) {
-            const categorySelect = document.getElementById('cloneCategory');
-            if (!categorySelect) return;
-            const url = type === 'expense' ? '/categories/expense' : '/categories/income';
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    categorySelect.innerHTML = '';
-                    if (!data || data.length === 0) {
-                        const opt = document.createElement('option');
-                        opt.value = '';
-                        opt.textContent = 'Немає категорій';
-                        opt.disabled = true;
-                        categorySelect.appendChild(opt);
-                        return;
-                    }
-                    data.forEach(cat => {
-                        const opt = document.createElement('option');
-                        opt.value = cat.id;
-                        opt.textContent = cat.name;
-                        categorySelect.appendChild(opt);
-                    });
-                })
-                .catch(err => console.warn('Помилка завантаження категорій:', err));
-        }
-
-        function setCloneType(type) {
-            const typeInput = document.getElementById('cloneType');
-            const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
-            const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
-            const form = document.getElementById('cloneForm');
-            if (type === 'EXPENSE') {
-                typeInput.value = 'EXPENSE';
-                expenseBtn.className = 'btn active-expense';
-                incomeBtn.className = 'btn btn-outline-success';
-                loadCloneCategories('expense');
-                form.action = '/day/' + currentDate + '/expense';
-            } else {
-                typeInput.value = 'INCOME';
-                incomeBtn.className = 'btn active-income';
-                expenseBtn.className = 'btn btn-outline-danger';
-                loadCloneCategories('income');
-                form.action = '/day/' + currentDate + '/income';
-            }
-        }
-
-        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
-            setCloneType('EXPENSE');
-        });
-        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
-            setCloneType('INCOME');
-        });
-
-        const cloneDetailsTextarea = document.getElementById('cloneDetails');
-        const cloneCharCount = document.getElementById('cloneCharCount');
-        if (cloneDetailsTextarea && cloneCharCount) {
-            cloneDetailsTextarea.addEventListener('input', function() {
-                const len = this.value.length;
-                cloneCharCount.textContent = len;
-                cloneCharCount.style.color = len >= 250 ? '#dc3545' : '';
-            });
-        }
-
-        document.getElementById('cloneModal')?.addEventListener('hidden.bs.modal', function() {
-            document.getElementById('cloneForm').reset();
-            document.getElementById('cloneCharCount').textContent = '0';
-        });
-
-        document.querySelectorAll('.action-duplicate').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const type = this.dataset.type;
-                const category = this.dataset.category;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1;
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-
-                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
-
-                document.getElementById('cloneCategory').value = category;
-                document.getElementById('cloneDescription').value = description;
-                document.getElementById('cloneAmount').value = amount.toFixed(2);
-                document.getElementById('cloneQuantity').value = quantity;
-                document.getElementById('cloneTime').value = time;
-                document.getElementById('cloneDetails').value = details;
-                document.getElementById('cloneBuyer').value = buyer;
-                document.getElementById('cloneSeller').value = seller;
-                document.getElementById('cloneCharCount').textContent = details.length;
-
-                setCloneType(initialType);
-
-                const modalEl = document.getElementById('cloneModal');
-                if (modalEl) {
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    modal.show();
-                }
-            });
-        });
-
-        // --- Видалення ---
-        document.querySelectorAll('.action-delete').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const id = this.dataset.id;
-                const type = this.dataset.type;
-                const description = this.dataset.description || '';
-                const amount = parseFloat(this.dataset.amount) || 0;
-                const category = this.dataset.category || '';
-                const details = this.dataset.details || '';
-                const time = this.dataset.time || '';
-                const quantity = this.dataset.quantity || '1';
-                const buyer = this.dataset.buyer || '';
-                const seller = this.dataset.seller || '';
-
-                const deleteForm = document.getElementById('deleteForm');
-                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
-
-                document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
-                document.getElementById('deleteTime').textContent = time || '—';
-                document.getElementById('deleteDescription').textContent = description || '—';
-                document.getElementById('deleteQuantity').textContent = quantity || '1';
-                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ₴';
-                document.getElementById('deleteBuyer').textContent = buyer || '—';
-                document.getElementById('deleteSeller').textContent = seller || '—';
-                document.getElementById('deleteCategory').textContent = category || '—';
-
-                const detailsRow = document.getElementById('deleteDetailsRow');
-                if (details && details.trim().length > 0) {
-                    document.getElementById('deleteDetails').textContent = details;
-                    detailsRow.style.display = '';
-                } else {
-                    detailsRow.style.display = 'none';
-                }
-
-                const modalEl = document.getElementById('deleteConfirmModal');
-                if (modalEl) {
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    modal.show();
-                }
-            });
-        });
-
-        // Tooltips
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
-
-        // ================================================================
-        // 9. АВТОЗАПОВНЕННЯ ЧАСУ
-        // ================================================================
         document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
             const timeInput = document.getElementById('transactionTime');
             if (timeInput && !timeInput.value) {
@@ -1776,7 +1845,7 @@
         });
 
         // ================================================================
-        // 10. ТЕПЛІ КЛАВІШІ
+        // 8. ТЕПЛІ КЛАВІШІ
         // ================================================================
         document.addEventListener('keydown', function(e) {
             const openModals = document.querySelectorAll('.modal.show');
@@ -1802,57 +1871,7 @@
         });
 
         // ================================================================
-        // 11. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
-        // ================================================================
-        function saveFilters() {
-            try {
-                const filters = {
-                    type: typeFilter.value,
-                    category: categoryFilter.value,
-                    search: searchInput.value,
-                    pageSize: pageSizeSelect.value
-                };
-                localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
-            } catch(e) {}
-        }
-
-        function restoreFilters() {
-            try {
-                const stored = localStorage.getItem(FILTERS_KEY);
-                if (stored) {
-                    const filters = JSON.parse(stored);
-                    if (filters.type) typeFilter.value = filters.type;
-                    if (filters.category) categoryFilter.value = filters.category;
-                    if (filters.search) searchInput.value = filters.search;
-                    if (filters.pageSize) pageSizeSelect.value = filters.pageSize;
-                    return true;
-                }
-            } catch(e) {}
-            return false;
-        }
-
-        // ================================================================
-        // 12. ЗБЕРЕЖЕННЯ СТАНУ ДІАГРАМ
-        // ================================================================
-        function saveChartVisibility(visible) {
-            try {
-                localStorage.setItem(CHART_VISIBLE_KEY, JSON.stringify({ visible: visible }));
-            } catch(e) {}
-        }
-
-        function restoreChartVisibility() {
-            try {
-                const stored = localStorage.getItem(CHART_VISIBLE_KEY);
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    return data.visible;
-                }
-            } catch(e) {}
-            return true;
-        }
-
-        // ================================================================
-        // 13. ПЕРЕМИКАЧ ВИГЛЯДУ
+        // 9. ПЕРЕМИКАЧ ВИГЛЯДУ
         // ================================================================
         const viewToggle = document.getElementById('viewToggle');
         const tableView = document.getElementById('tableView');
@@ -1889,143 +1908,7 @@
         });
 
         // ================================================================
-        // 14. ДІАГРАМИ
-        // ================================================================
-        function renderChart(type) {
-            const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
-            const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
-            const chartCanvas = document.getElementById(canvasId);
-            const legendContainer = document.getElementById(legendId);
-            if (!chartCanvas) return;
-            if (typeof Chart === 'undefined') {
-                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
-                return;
-            }
-            const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
-            const categoryMap = new Map();
-            rows.forEach(row => {
-                const catCell = row.querySelector('.col-category .category-text');
-                if (!catCell) return;
-                const catName = catCell.textContent.trim();
-                const amountCell = row.querySelector('td:nth-child(6)');
-                if (!amountCell) return;
-                const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
-                const amount = parseFloat(amountText) || 0;
-                if (amount > 0) {
-                    categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
-                }
-            });
-            const entries = Array.from(categoryMap.entries()).sort((a,b) => b[1] - a[1]);
-            const labels = entries.map(e => e[0]);
-            const data = entries.map(e => e[1]);
-            const chartCol = document.getElementById(type + 'ChartCol');
-            if (data.length === 0) {
-                if (chartCol) chartCol.style.display = 'none';
-                return;
-            } else {
-                if (chartCol) chartCol.style.display = '';
-            }
-            const colors = labels.map((name, idx) => getCategoryColor(name, idx));
-            const chartKey = type + 'ChartInstance';
-            if (window[chartKey]) {
-                try { window[chartKey].destroy(); } catch(e) {}
-                window[chartKey] = null;
-            }
-            try {
-                window[chartKey] = new Chart(chartCanvas, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors,
-                            borderColor: '#ffffff',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        onClick: function(e, elements) {
-                            if (elements.length > 0) {
-                                const index = elements[0].index;
-                                const category = labels[index];
-                                categoryFilter.value = category;
-                                categoryFilter.dispatchEvent(new Event('change'));
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        cutout: '55%'
-                    }
-                });
-                if (legendContainer) {
-                    const total = data.reduce((a,b) => a+b, 0);
-                    let html = '<table class="chart-legend-table"><tbody>';
-                    entries.forEach(([name, amount], idx) => {
-                        const color = getCategoryColor(name, idx);
-                        const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                        html += '<tr>' +
-                            '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
-                            '<td class="category-col">' + name + '</td>' +
-                            '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
-                            '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
-                            '</tr>';
-                    });
-                    html += '</tbody></table>';
-                    legendContainer.innerHTML = html;
-                }
-                const totalLabel = document.getElementById('chartTotalLabel');
-                if (totalLabel) {
-                    const expenseTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="expense"]');
-                    const incomeTotal = document.querySelectorAll('#transactionsBody .transaction-row[data-type="income"]');
-                    totalLabel.textContent = 'Всього: ' + (expenseTotal.length + incomeTotal.length);
-                }
-            } catch(e) {
-                console.error('Помилка діаграми ' + type + ':', e);
-                chartCanvas.parentElement.innerHTML = '<p class="text-muted">Помилка створення діаграми.</p>';
-            }
-        }
-
-        function renderAllCharts() {
-            renderChart('expense');
-            renderChart('income');
-        }
-
-        function assignCategoryColors() {
-            document.querySelectorAll('.category-text').forEach(el => {
-                const name = el.getAttribute('data-category');
-                if (name) {
-                    el.style.color = getCategoryColor(name, 0);
-                }
-            });
-        }
-
-        // ================================================================
-        // 15. ТОГЛ ДІАГРАМ
-        // ================================================================
-        function toggleCharts() {
-            const chartBody = document.getElementById('chartBody');
-            const icon = document.getElementById('chartToggleIcon');
-            if (!chartBody) return;
-            const isHidden = chartBody.style.display === 'none';
-            if (isHidden) {
-                chartBody.style.display = '';
-                icon.className = 'fas fa-chevron-up toggle-icon';
-                setTimeout(renderAllCharts, 100);
-                saveChartVisibility(true);
-            } else {
-                chartBody.style.display = 'none';
-                icon.className = 'fas fa-chevron-down toggle-icon';
-                saveChartVisibility(false);
-            }
-        }
-
-        document.getElementById('toggleChartBtn')?.addEventListener('click', toggleCharts);
-
-        // ================================================================
-        // 16. ЛОГІКА ТАБЛИЦІ
+        // 10. ЛОГІКА ТАБЛИЦІ
         // ================================================================
         const searchInput = document.getElementById('searchInput');
         const typeFilter = document.getElementById('typeFilter');
@@ -2117,6 +2000,7 @@
                 visibleInfo.textContent = 'Показано: ' + total + ' з ' + total;
                 applyRowAnimation(visibleRows);
                 updateCards(visibleRows);
+                setTimeout(renderAllCharts, 50);
                 return;
             }
 
@@ -2137,6 +2021,7 @@
             visibleInfo.textContent = 'Показано: ' + shown + ' з ' + total;
             applyRowAnimation(rowsToShow);
             updateCards(rowsToShow);
+            setTimeout(renderAllCharts, 50);
         }
 
         function getFilteredRows() {
@@ -2194,10 +2079,10 @@
             applyStoredSort();
             assignCategoryColors();
 
-            const chartVisible = restoreChartVisibility();
+            const chartVisible = localStorage.getItem(CHART_VISIBLE_KEY);
             const chartBody = document.getElementById('chartBody');
             const icon = document.getElementById('chartToggleIcon');
-            if (!chartVisible && chartBody) {
+            if (chartVisible === 'true' && chartBody) {
                 chartBody.style.display = 'none';
                 if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
             }
@@ -2225,6 +2110,9 @@
             }, 300);
         }
 
+        // ================================================================
+        // 11. ФІЛЬТРИ
+        // ================================================================
         searchInput.addEventListener('input', function() {
             searchText = this.value.toLowerCase().trim();
             applyFiltersAndLoad();
@@ -2248,13 +2136,43 @@
         loadMoreBtn.addEventListener('click', loadMore);
 
         // ================================================================
-        // 17. СОРТУВАННЯ
+        // 12. ЗБЕРЕЖЕННЯ ФІЛЬТРІВ
+        // ================================================================
+        function saveFilters() {
+            try {
+                const filters = {
+                    type: typeFilter.value,
+                    category: categoryFilter.value,
+                    search: searchInput.value,
+                    pageSize: pageSizeSelect.value
+                };
+                localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
+            } catch(e) {}
+        }
+
+        function restoreFilters() {
+            try {
+                const stored = localStorage.getItem(FILTERS_KEY);
+                if (stored) {
+                    const filters = JSON.parse(stored);
+                    if (filters.type) typeFilter.value = filters.type;
+                    if (filters.category) categoryFilter.value = filters.category;
+                    if (filters.search) searchInput.value = filters.search;
+                    if (filters.pageSize) pageSizeSelect.value = filters.pageSize;
+                    return true;
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        // ================================================================
+        // 13. СОРТУВАННЯ
         // ================================================================
         function saveSortState(column, direction) {
             if (!currentDate) return;
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({ column, direction }));
-            } catch (e) { /* ignore */ }
+            } catch(e) { /* ignore */ }
         }
 
         function applyStoredSort() {
@@ -2272,7 +2190,7 @@
                         return;
                     }
                 }
-            } catch (e) { /* ignore */ }
+            } catch(e) { /* ignore */ }
             setTimeout(() => sortRowsBy('time', 'desc'), 50);
         }
 
@@ -2343,7 +2261,7 @@
         });
 
         // ================================================================
-        // 18. РЕСАЙЗ КОЛОНОК
+        // 14. РЕСАЙЗ КОЛОНОК
         // ================================================================
         function restoreColumnWidths() {
             const table = document.getElementById('transactionsTable');
@@ -2424,7 +2342,7 @@
         }
 
         // ================================================================
-        // 19. ЗАПУСК
+        // 15. ЗАПУСК
         // ================================================================
         init();
 

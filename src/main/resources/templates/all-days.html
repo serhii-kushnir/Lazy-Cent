@@ -1244,7 +1244,6 @@
             const balances = [];
 
             items.forEach(item => {
-                // Перевіряємо, чи елемент видимий (не hidden)
                 const isVisible = item.style.display !== 'none';
                 if (!isVisible) return;
 
@@ -1263,7 +1262,7 @@
         }
 
         // ================================================================
-        // 5. РЕНДЕРИНГ ДІАГРАМ
+        // 5. РЕНДЕРИНГ ДІАГРАМ (ВИПРАВЛЕНО)
         // ================================================================
 
         function renderExpenseChart() {
@@ -1275,7 +1274,6 @@
             }
             const data = getFilteredDayData();
 
-            // Фільтруємо тільки дні з витратами > 0
             const filteredDates = [];
             const filteredAmounts = [];
             data.dates.forEach((date, idx) => {
@@ -1401,6 +1399,7 @@
             }
         }
 
+        // ========== ВИПРАВЛЕНА ФУНКЦІЯ renderBarChart ==========
         function renderBarChart() {
             const canvas = document.getElementById('barChart');
             if (!canvas) return;
@@ -1408,15 +1407,23 @@
                 canvas.parentElement.innerHTML = '<p class="text-muted">Chart.js не завантажено.</p>';
                 return;
             }
+
+            // Отримуємо поточний режим аналітики з localStorage
+            const savedMode = localStorage.getItem('alldays-analytics-mode') || 'both';
+            const shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
+
             const data = getFilteredDayData();
-            if (data.dates.length === 0) {
-                const row = document.getElementById('barChartRow');
-                if (row) row.style.display = 'none';
+            const row = document.getElementById('barChartRow');
+            if (!row) return;
+
+            // Якщо немає даних або режим не дозволяє показувати стовпчики – ховаємо
+            if (data.dates.length === 0 || !shouldShowBar) {
+                row.style.display = 'none';
                 return;
             }
-            const row = document.getElementById('barChartRow');
-            if (row) row.style.display = '';
 
+            // Інакше – показуємо та будуємо діаграму
+            row.style.display = '';
             if (window.barChartInstance) { window.barChartInstance.destroy(); }
 
             const barColors = data.balances.map(b => b >= 0 ? '#198754' : '#dc3545');
@@ -1466,7 +1473,7 @@
             setTimeout(function() {
                 renderExpenseChart();
                 renderIncomeChart();
-                renderBarChart();
+                renderBarChart();  // тепер вона сама вирішить, чи показуватися
             }, 100);
         }
 
@@ -1474,7 +1481,6 @@
         // 6. ПЕРЕМИКАЧ РЕЖИМІВ АНАЛІТИКИ + ЗГОРТАННЯ
         // ================================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Перемикач режимів ---
             const analyticsToggle = document.getElementById('analyticsToggle');
             const chartsContainer = document.getElementById('chartsContainer');
             const barRow = document.getElementById('barChartRow');
@@ -1485,13 +1491,13 @@
                 });
                 if (mode === 'charts') {
                     chartsContainer.style.display = 'flex';
-                    barRow.style.display = 'none';
+                    barRow.style.display = 'none';  // ховаємо одразу
                 } else if (mode === 'bar') {
                     chartsContainer.style.display = 'none';
-                    barRow.style.display = '';
+                    barRow.style.display = '';      // показуємо
                 } else { // both
                     chartsContainer.style.display = 'flex';
-                    barRow.style.display = '';
+                    barRow.style.display = '';      // показуємо
                 }
                 localStorage.setItem('alldays-analytics-mode', mode);
                 setTimeout(renderAllCharts, 100);
@@ -1546,10 +1552,8 @@
                 return;
             }
 
-            // Початковий режим – таблиця
             setViewMode('table');
 
-            // Обробники подій
             searchInput.addEventListener('input', applyFiltersAndPaginate);
             dateFrom.addEventListener('change', applyFiltersAndPaginate);
             dateTo.addEventListener('change', applyFiltersAndPaginate);
@@ -1566,7 +1570,6 @@
             });
             loadMoreBtn.addEventListener('click', loadMore);
 
-            // Сортування
             document.querySelectorAll('.sortable').forEach(th => {
                 th.addEventListener('click', function() {
                     const column = this.dataset.sort;
@@ -1578,7 +1581,6 @@
                 });
             });
 
-            // Перемикач вигляду
             viewToggle.addEventListener('click', function(e) {
                 const btn = e.target.closest('button');
                 if (!btn) return;
@@ -1586,7 +1588,6 @@
                 setTimeout(renderAllCharts, 200);
             });
 
-            // Видалення дня (делегування)
             document.addEventListener('click', function(e) {
                 const deleteBtn = e.target.closest('.action-delete-day');
                 if (deleteBtn) {
@@ -1594,10 +1595,7 @@
                 }
             });
 
-            // Перше застосування фільтрів
             applyFiltersAndPaginate();
-
-            // Відкладений рендеринг діаграм
             setTimeout(renderAllCharts, 300);
         });
 
@@ -1809,6 +1807,7 @@
             deleteForm.action = '/day/delete/' + id;
             new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
         }
+
 
         // ================================================================
         // 12. МОДАЛЬНІ ВІКНА (додавання, редагування, дублювання)
