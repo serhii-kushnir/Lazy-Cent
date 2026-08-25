@@ -1,6 +1,7 @@
 package org.lazycent.repository;
 
 import org.lazycent.model.Income;
+import org.lazycent.model.User;
 import org.lazycent.model.dto.CategorySummaryDto;
 import org.lazycent.model.dto.DailySummaryDto;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,7 +24,18 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
     List<Object[]> sumIncomesByCategory(@Param("startDate") LocalDate startDate,
                                         @Param("endDate") LocalDate endDate);
 
-    // ОПТИМІЗОВАНИЙ ЗАПИТ: щоденні підсумки доходів за період
+    // Нові методи з користувачем
+    @Query("SELECT SUM(i.amount) FROM Income i WHERE i.dayBudget.date = :date AND i.dayBudget.owner = :user")
+    Double sumIncomesByDateAndUser(@Param("date") LocalDate date, @Param("user") User user);
+
+    @Query("SELECT i.category, SUM(i.amount) FROM Income i " +
+            "WHERE i.dayBudget.date BETWEEN :startDate AND :endDate " +
+            "AND i.dayBudget.owner = :user " +
+            "GROUP BY i.category")
+    List<Object[]> sumIncomesByCategoryAndUser(@Param("startDate") LocalDate startDate,
+                                               @Param("endDate") LocalDate endDate,
+                                               @Param("user") User user);
+
     @Query("SELECT new org.lazycent.model.dto.DailySummaryDto(" +
             "i.dayBudget.date, " +
             "i.dayBudget.dayName, " +
@@ -32,12 +44,13 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             "0.0) " +
             "FROM Income i " +
             "WHERE i.dayBudget.date BETWEEN :startDate AND :endDate " +
+            "AND i.dayBudget.owner = :user " +
             "GROUP BY i.dayBudget.date, i.dayBudget.dayName " +
             "ORDER BY i.dayBudget.date ASC")
     List<DailySummaryDto> getDailyIncomeSummaries(@Param("startDate") LocalDate startDate,
-                                                  @Param("endDate") LocalDate endDate);
+                                                  @Param("endDate") LocalDate endDate,
+                                                  @Param("user") User user);
 
-    // ОПТИМІЗОВАНИЙ ЗАПИТ: підсумки за категоріями (з іменами категорій)
     @Query("SELECT new org.lazycent.model.dto.CategorySummaryDto(" +
             "c.name, " +
             "COALESCE(SUM(i.amount), 0.0), " +
@@ -45,8 +58,10 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             "FROM Income i " +
             "JOIN i.category c " +
             "WHERE i.dayBudget.date BETWEEN :startDate AND :endDate " +
+            "AND i.dayBudget.owner = :user " +
             "GROUP BY c.id, c.name " +
             "ORDER BY SUM(i.amount) DESC")
     List<CategorySummaryDto> getIncomeCategorySummaries(@Param("startDate") LocalDate startDate,
-                                                        @Param("endDate") LocalDate endDate);
+                                                        @Param("endDate") LocalDate endDate,
+                                                        @Param("user") User user);
 }

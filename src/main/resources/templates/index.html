@@ -134,6 +134,7 @@
     <div class="row mb-5">
         <div class="col-12 text-center">
             <h3 class="mb-4"><i class="fas fa-plus-circle text-success"></i> Швидке додавання</h3>
+            <!-- Єдина кнопка для відкриття модального вікна -->
             <button class="btn btn-primary btn-add-transaction" data-bs-toggle="modal" data-bs-target="#transactionModal">
                 <i class="fas fa-plus me-2"></i> Додати транзакцію
             </button>
@@ -147,9 +148,9 @@
                     <i class="fas fa-info-circle me-2"></i> Інформація
                 </div>
                 <div class="card-body">
-                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій витрат: <span id="expenseCount">5</span></p>
-                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій доходів: <span id="incomeCount">4</span></p>
-                    <p><i class="fas fa-calendar me-2"></i> <span th:text="${#dates.format(#dates.createNow(), 'MMMM yyyy')}"></span></p>
+                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій витрат: <span id="expenseCount">0</span></p>
+                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій доходів: <span id="incomeCount">0</span></p>
+                    <p><i class="fas fa-calendar me-2"></i> <span th:text="${#temporals.format(today, 'MMMM yyyy')}"></span></p>
                 </div>
             </div>
         </div>
@@ -166,9 +167,9 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="transactionForm" method="post">
+            <!-- ВИПРАВЛЕНО: використовуємо th:action замість action + CSRF -->
+            <form id="transactionForm" th:action="@{/quick-expense}" method="post">
                 <div class="modal-body">
-                    <!-- ПРИХОВАНЕ ПОЛЕ ДЛЯ ТИПУ -->
                     <input type="hidden" name="type" id="transactionType" value="EXPENSE">
 
                     <div class="mb-3">
@@ -181,10 +182,10 @@
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
                             <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> Расход
+                                <i class="fas fa-arrow-down me-1"></i> Витрата
                             </button>
                             <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> Доход
+                                <i class="fas fa-arrow-up me-1"></i> Дохід
                             </button>
                         </div>
                     </div>
@@ -198,7 +199,7 @@
                     <div class="mb-3">
                         <label for="transactionDate" class="form-label">Дата</label>
                         <input type="date" class="form-control" id="transactionDate" name="date"
-                               th:value="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}" required>
+                               th:value="${#temporals.format(today, 'yyyy-MM-dd')}" required>
                     </div>
                     <div class="mb-3">
                         <label for="transactionTime" class="form-label">Час (необов'язково)</label>
@@ -271,28 +272,9 @@
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
 
-        // Якщо transactionType немає – створюємо його
-        if (!transactionType) {
-            console.warn('transactionType not found, creating hidden input');
-            const hidden = document.createElement('input');
-            hidden.type = 'hidden';
-            hidden.name = 'type';
-            hidden.id = 'transactionType';
-            hidden.value = 'EXPENSE';
-            transactionForm.prepend(hidden);
-            // Оновлюємо посилання
-            transactionType = document.getElementById('transactionType');
-        }
-
-        // ---- КАТЕГОРІЇ ----
-        let expenseCategories = [];
-        let incomeCategories = [];
-
-        const modelExpense = /*[[${expenseCategories}]]*/ null;
-        const modelIncome = /*[[${incomeCategories}]]*/ null;
-
-        if (modelExpense && modelExpense.length > 0) expenseCategories = modelExpense;
-        if (modelIncome && modelIncome.length > 0) incomeCategories = modelIncome;
+        // ---- КАТЕГОРІЇ з моделі ----
+        let expenseCategories = /*[[${expenseCategories}]]*/ [];
+        let incomeCategories = /*[[${incomeCategories}]]*/ [];
 
         function populateCategories(categories) {
             if (!categorySelect) return;
@@ -311,56 +293,24 @@
                 opt.textContent = cat.name;
                 categorySelect.appendChild(opt);
             });
-            if (categorySelect.options.length > 0 && !categorySelect.value) {
-                categorySelect.selectedIndex = 0;
-            }
-        }
-
-        async function fetchExpenseCategories() {
-            try {
-                const response = await fetch('/categories/expense');
-                const data = await response.json();
-                expenseCategories = data;
-                if (transactionType && transactionType.value === 'EXPENSE') {
-                    populateCategories(expenseCategories);
-                }
-            } catch (err) {
-                console.warn('Помилка завантаження категорій витрат:', err);
-            }
-        }
-
-        async function fetchIncomeCategories() {
-            try {
-                const response = await fetch('/categories/income');
-                const data = await response.json();
-                incomeCategories = data;
-                if (transactionType && transactionType.value === 'INCOME') {
-                    populateCategories(incomeCategories);
-                }
-            } catch (err) {
-                console.warn('Помилка завантаження категорій доходів:', err);
+            if (categorySelect.options.length > 1) {
+                categorySelect.selectedIndex = 1;
             }
         }
 
         // ---- ВСТАНОВЛЕННЯ ТИПУ ----
         function setTransactionType(type) {
             if (!transactionType) return;
+            const dateVal = document.getElementById('transactionDate').value;
+            if (!dateVal) return;
             if (type === 'EXPENSE') {
-                if (expenseCategories.length === 0) {
-                    fetchExpenseCategories();
-                } else {
-                    populateCategories(expenseCategories);
-                }
+                populateCategories(expenseCategories);
                 transactionType.value = 'EXPENSE';
                 typeExpenseBtn.className = 'btn active-expense';
                 typeIncomeBtn.className = 'btn btn-outline-success';
                 transactionForm.action = '/quick-expense';
             } else {
-                if (incomeCategories.length === 0) {
-                    fetchIncomeCategories();
-                } else {
-                    populateCategories(incomeCategories);
-                }
+                populateCategories(incomeCategories);
                 transactionType.value = 'INCOME';
                 typeIncomeBtn.className = 'btn active-income';
                 typeExpenseBtn.className = 'btn btn-outline-danger';
@@ -369,17 +319,30 @@
         }
 
         // ---- ІНІЦІАЛІЗАЦІЯ ----
-        if (expenseCategories.length === 0) {
-            fetchExpenseCategories();
-        } else {
-            populateCategories(expenseCategories);
+        // Якщо категорії порожні – завантажуємо через fetch
+        if (!expenseCategories || expenseCategories.length === 0) {
+            fetch('/categories/expense')
+                .then(r => r.json())
+                .then(data => {
+                    expenseCategories = data;
+                    if (transactionType.value === 'EXPENSE') populateCategories(expenseCategories);
+                })
+                .catch(err => console.warn('Помилка завантаження витрат:', err));
         }
-        if (incomeCategories.length === 0) {
-            fetchIncomeCategories();
+        if (!incomeCategories || incomeCategories.length === 0) {
+            fetch('/categories/income')
+                .then(r => r.json())
+                .then(data => {
+                    incomeCategories = data;
+                    if (transactionType.value === 'INCOME') populateCategories(incomeCategories);
+                })
+                .catch(err => console.warn('Помилка завантаження доходів:', err));
         }
 
+        // Встановлюємо початковий тип
         setTransactionType('EXPENSE');
 
+        // ---- ПЕРЕМИКАННЯ ТИПУ ----
         typeExpenseBtn.addEventListener('click', function() { setTransactionType('EXPENSE'); });
         typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
 
@@ -435,10 +398,11 @@
                     const minutes = String(now.getMinutes()).padStart(2, '0');
                     timeInput.value = hours + ':' + minutes;
                 }
-                const dateInput = document.getElementById('transactionDate');
-                if (dateInput && !dateInput.value) {
-                    dateInput.value = new Date().toISOString().split('T')[0];
-                }
+                // Оновлюємо категорії при відкритті
+                const currentType = transactionType.value;
+                if (currentType === 'EXPENSE') populateCategories(expenseCategories);
+                else populateCategories(incomeCategories);
+
                 document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             });
 
@@ -492,10 +456,10 @@
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
         // ---- ЛІЧИЛЬНИКИ КАТЕГОРІЙ ----
-        if (expenseCategories.length > 0) {
+        if (expenseCategories && expenseCategories.length > 0) {
             document.getElementById('expenseCount').textContent = expenseCategories.length;
         }
-        if (incomeCategories.length > 0) {
+        if (incomeCategories && incomeCategories.length > 0) {
             document.getElementById('incomeCount').textContent = incomeCategories.length;
         }
     })();

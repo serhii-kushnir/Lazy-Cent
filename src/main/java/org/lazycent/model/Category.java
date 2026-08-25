@@ -16,9 +16,14 @@ public class Category {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private String type; // "EXPENSE" або "INCOME"
+
+    // НОВЕ ПОЛЕ – власник категорії
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
 }
