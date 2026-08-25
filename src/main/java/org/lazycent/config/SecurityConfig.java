@@ -1,4 +1,3 @@
-// config/SecurityConfig.java
 package org.lazycent.config;
 
 import org.lazycent.service.CustomUserDetailsService;
@@ -25,7 +24,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/register", "/h2-console/**",
+                .requestMatchers("/login", "/register",
                                  "/webjars/**", "/lib/**", "/css/**", "/js/**", "/img/**").permitAll()
                 .anyRequest().authenticated()
             )
