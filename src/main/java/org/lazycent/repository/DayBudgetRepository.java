@@ -22,4 +22,6 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     List<DayBudget> findByOwnerAndDateBetween(User owner, LocalDate start, LocalDate end);
 
     long countByOwner(User owner);
+
+
 }

@@ -34,6 +34,7 @@ public class DataLoader implements CommandLineRunner {
     @Value("${app.demo.random-days:14}")
     private int randomDays;
 
+
     @Override
     @Transactional
     public void run(String... args) {
