@@ -179,7 +179,7 @@
 </th:block>
 
 <!-- ===================== НАВБАР ===================== -->
-<!-- fragments.html (додати в навбар) -->
+<!-- fragments.html - оновлений навбар -->
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
@@ -211,8 +211,8 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:classappend="${active == 'settings'} ? ' active'" href="/settings">
-                        <i class="fas fa-cog me-1"></i>Налаштування
+                    <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" href="/notes">
+                        <i class="fas fa-sticky-note me-1"></i>Нотатки
                     </a>
                 </li>
 
@@ -222,7 +222,10 @@
                         <i class="fas fa-user"></i> <span sec:authentication="name"></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="/logout">Вийти</a></li>
+                        <!-- ПЕРЕНЕСЕНО: Налаштування тепер тут -->
+                        <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Налаштування</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Вийти</a></li>
                     </ul>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
@@ -241,7 +244,6 @@
         </div>
     </div>
 </nav>
-
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
