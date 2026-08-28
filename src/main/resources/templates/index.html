@@ -114,13 +114,11 @@
         [data-bs-theme="dark"] .form-check-label { color: #e6e6e6; }
         [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
 
+        /* Статистичні картки – без hover, тільки плавна анімація */
         .stat-card {
             border-radius: 0.75rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            /* hover ефект відсутній */
         }
         .stat-card .stat-icon {
             font-size: 1.8rem;
@@ -160,49 +158,6 @@
             <h1 class="display-4"><i class="fas fa-coins text-warning"></i> Lazy Cent</h1>
             <p class="lead">Ваш особистий фінансовий помічник</p>
             <hr>
-        </div>
-    </div>
-
-    <!-- ===== СТАТИСТИКА ===== -->
-    <div class="row mb-4 animate-fade-up delay-1">
-        <div class="col-12">
-            <h3 class="text-center mb-3"><i class="fas fa-chart-simple text-primary"></i> Ваша фінансова статистика</h3>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card stat-card h-100 text-center">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-sun me-2"></i> Сьогодні
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card stat-card h-100 text-center">
-                <div class="card-header bg-success text-white">
-                    <i class="fas fa-calendar-week me-2"></i> Цей тиждень
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-3">
-            <div class="card stat-card h-100 text-center">
-                <div class="card-header bg-info text-white">
-                    <i class="fas fa-calendar-alt me-2"></i> Цей місяць
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -271,21 +226,52 @@
         </div>
     </div>
 
-    <!-- ===== ІНФОРМАЦІЯ ===== -->
-    <div class="row">
-        <div class="col-12 animate-fade-up delay-4">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <i class="fas fa-info-circle me-2"></i> Інформація
+    <!-- ===== ВАША ФІНАНСОВА СТАТИСТИКА ===== -->
+    <div class="row animate-fade-up delay-2">
+        <div class="col-12">
+            <h3 class="text-center mb-3"><i class="fas fa-chart-simple text-primary"></i> Ваша фінансова статистика</h3>
+        </div>
+        <!-- Сьогодні -->
+        <div class="col-md-4 mb-3 animate-fade-up delay-1">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-sun me-2"></i> Сьогодні
                 </div>
                 <div class="card-body">
-                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій витрат: <span id="expenseCount">0</span></p>
-                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій доходів: <span id="incomeCount">0</span></p>
-                    <p><i class="fas fa-calendar me-2"></i> <span th:text="${#temporals.format(today, 'MMMM yyyy')}"></span></p>
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+        <!-- Тиждень -->
+        <div class="col-md-4 mb-3 animate-fade-up delay-2">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-calendar-week me-2"></i> Цей тиждень
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+        <!-- Місяць -->
+        <div class="col-md-4 mb-3 animate-fade-up delay-3">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-calendar-alt me-2"></i> Цей місяць
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <!-- ===== МОДАЛЬНЕ ВІКНО ТРАНЗАКЦІЇ ===== -->
@@ -579,5 +565,5 @@
         }
     })();
 </script>
-</body>
+</body>ф
 </html>

@@ -6,16 +6,17 @@
 
 <!-- ===================== HEAD-АСЕТИ ===================== -->
 <th:block th:fragment="themeAssets">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <script src="/lib/chart.js/chart.umd.min.js"></script>
     <style>
+        /* ===== ОСНОВНІ ПЕРЕХОДИ ===== */
         :root { --wm-transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
         body { transition: var(--wm-transition); }
-        .card, .navbar, .table { transition: var(--wm-transition); }
+        .card, .navbar, .table, .modal-content { transition: var(--wm-transition); }
 
-        /* --- СТИЛІ ДЛЯ НАВБАРА ТА ФУТЕРА --- */
+        /* ===== НАВБАР ТА ФУТЕР ===== */
         .wm-navbar {
             background-color: #f8f9fa !important;
             color: #1B2430 !important;
@@ -47,7 +48,7 @@
             border-top: 1px solid #e9ecef;
         }
 
-        /* ===== ТОСТИ (з кольорами) ===== */
+        /* ===== ТОСТИ ===== */
         .toast-container {
             position: fixed;
             top: 70px;
@@ -69,9 +70,8 @@
             opacity: 1;
             transform: translateX(0);
         }
-        /* Кольори для успіху та помилки */
         .toast.success {
-            border-left-color: #198754 !important; /* зелений */
+            border-left-color: #198754 !important;
         }
         .toast.success .toast-header {
             color: #198754;
@@ -80,7 +80,7 @@
             color: #198754;
         }
         .toast.error {
-            border-left-color: #dc3545 !important; /* червоний */
+            border-left-color: #dc3545 !important;
         }
         .toast.error .toast-header {
             color: #dc3545;
@@ -115,7 +115,7 @@
             color: #f87171;
         }
 
-        /* --- ГАРАНТІЯ, ЩО МОДАЛЬНІ ВІКНА ПОВЕРХ ВСЬОГО --- */
+        /* ===== МОДАЛЬНІ ВІКНА ===== */
         .modal {
             z-index: 1060 !important;
         }
@@ -123,7 +123,72 @@
             z-index: 1050 !important;
         }
 
-        /* --- ТЕМНА ТЕМА --- */
+        /* ===== М'ЯКША БІЛА ТЕМА ===== */
+        [data-bs-theme="light"] body {
+            background-color: #f0f2f5 !important;
+        }
+        [data-bs-theme="light"] .card {
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        [data-bs-theme="light"] .card-header {
+            background-color: rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        [data-bs-theme="light"] .navbar.wm-navbar {
+            background-color: #ffffff !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        [data-bs-theme="light"] .wm-footer {
+            background-color: #ffffff !important;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        [data-bs-theme="light"] .bg-body {
+            background-color: #f8f9fa !important;
+        }
+        [data-bs-theme="light"] .settings-card {
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        [data-bs-theme="light"] .stat-card {
+            background-color: #ffffff;
+        }
+        [data-bs-theme="light"] .modal-content {
+            background-color: #ffffff;
+        }
+        [data-bs-theme="light"] .form-control,
+        [data-bs-theme="light"] .form-select {
+            background-color: #ffffff;
+            border-color: #d1d5db;
+        }
+        [data-bs-theme="light"] .table {
+            background-color: #ffffff;
+        }
+        [data-bs-theme="light"] .table th {
+            background-color: #f8f9fa;
+        }
+        [data-bs-theme="light"] .settings-card {
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        [data-bs-theme="light"] .note-card {
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+        /* Адаптація для темної теми (залишається стандартною) */
+        [data-bs-theme="dark"] body {
+            background-color: #14161a;
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .card {
+            background-color: #1d2027;
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .card-header {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-bottom-color: #2a2e37;
+        }
         [data-bs-theme="dark"] .wm-navbar {
             background-color: #1d2027 !important;
             color: #e6e6e6 !important;
@@ -152,24 +217,87 @@
             color: #e6e6e6 !important;
             border-top-color: #2a2e37;
         }
-
-        [data-bs-theme="dark"] body { background-color: #14161a; }
-        [data-bs-theme="dark"] .card { background-color: #1d2027; border-color: #2a2e37; }
-        [data-bs-theme="dark"] .table { color: #e6e6e6; }
         [data-bs-theme="dark"] .form-control,
-        [data-bs-theme="dark"] .form-select { background-color: #23262e; color: #e6e6e6; border-color: #3a3f4a; }
+        [data-bs-theme="dark"] .form-select {
+            background-color: #23262e;
+            color: #e6e6e6;
+            border-color: #3a3f4a;
+        }
+        [data-bs-theme="dark"] .table {
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .table th {
+            background-color: #1d2027;
+        }
+        [data-bs-theme="dark"] .settings-card {
+            background-color: #1d2027;
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .note-card {
+            background-color: #1d2027;
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .stat-card {
+            background-color: #1d2027;
+        }
+        [data-bs-theme="dark"] .modal-content {
+            background-color: #1d2027;
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .modal-header,
+        [data-bs-theme="dark"] .modal-footer {
+            border-color: #2a2e37;
+        }
+        [data-bs-theme="dark"] .btn-close {
+            filter: invert(1);
+        }
         [data-bs-theme="dark"] .alert-info {
             background-color: #1d3a4f;
             border-color: #2a5a7a;
             color: #b8d4f0;
         }
-        [data-bs-theme="dark"] .card-header.bg-danger { background-color: #7a2a2a !important; }
-        [data-bs-theme="dark"] .card-header.bg-success { background-color: #1f6d3b !important; }
-        [data-bs-theme="dark"] .card-header.bg-warning { background-color: #6d5a1f !important; color: #e6e6e6 !important; }
-        [data-bs-theme="dark"] .btn-outline-primary { color: #6ea8fe; border-color: #6ea8fe; }
-        [data-bs-theme="dark"] .btn-outline-primary:hover { background-color: #6ea8fe; color: #14161a; }
+        /* Загальні стилі */
+        .btn-danger-soft {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid transparent;
+        }
+        .btn-danger-soft:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .btn-danger-soft {
+            color: #f87171;
+            background: rgba(220, 53, 69, 0.15);
+        }
+        [data-bs-theme="dark"] .btn-danger-soft:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+        .btn-success-soft {
+            color: #198754;
+            background: rgba(25, 135, 84, 0.1);
+            border: 1px solid transparent;
+        }
+        .btn-success-soft:hover {
+            background: #198754;
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .btn-success-soft {
+            color: #6ee7b7;
+            background: rgba(25, 135, 84, 0.15);
+        }
+        [data-bs-theme="dark"] .btn-success-soft:hover {
+            background: #198754;
+            color: #fff;
+        }
+        .bg-info-soft {
+            background-color: rgba(13, 202, 240, 0.08);
+        }
+        [data-bs-theme="dark"] .bg-info-soft {
+            background-color: rgba(13, 202, 240, 0.15);
+        }
     </style>
-
     <script>
         (function () {
             const saved = localStorage.getItem('lazycent-theme');
@@ -179,11 +307,10 @@
 </th:block>
 
 <!-- ===================== НАВБАР ===================== -->
-<!-- fragments.html - оновлений навбар -->
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            💰 Lazy Cent
+            <img src="/logo.svg" alt="Lazy Cent" height="40" style="height: 40px; width: auto;">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -215,9 +342,6 @@
                         <i class="fas fa-sticky-note me-1"></i>Нотатки
                     </a>
                 </li>
-
-                <!-- Блок авторизації -->
-                <!-- Замість username використовуємо nickname -->
                 <!-- Блок авторизації -->
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -242,7 +366,6 @@
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
                     <a class="nav-link" href="/register">Реєстрація</a>
                 </li>
-
                 <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
                     <button id="themeToggle" class="btn btn-outline-light btn-sm" type="button" title="Перемкнути тему">
                         <i class="fas fa-moon"></i>
@@ -252,6 +375,7 @@
         </div>
     </div>
 </nav>
+
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
@@ -282,19 +406,14 @@
         const successMessage = /*[[${successMessage}]]*/ null;
         const errorMessage = /*[[${errorMessage}]]*/ null;
         /*]]>*/
-
         (function() {
             function showToast(message, type) {
                 const toastElement = document.getElementById('liveToast');
                 if (!toastElement) return;
-
                 const toastTitle = document.getElementById('toastTitle');
                 const toastMessage = document.getElementById('toastMessage');
                 const toastIcon = document.getElementById('toastIcon');
-
-                // Видаляємо старі класи
                 toastElement.classList.remove('success', 'error');
-
                 if (type === 'success') {
                     toastElement.classList.add('success');
                     toastIcon.className = 'fas fa-check-circle me-2';
@@ -307,12 +426,10 @@
                     toastIcon.className = 'fas fa-info-circle me-2';
                     toastTitle.textContent = 'Інформація';
                 }
-
                 toastMessage.textContent = message;
                 const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
                 toast.show();
             }
-
             if (successMessage) {
                 showToast(successMessage, 'success');
             } else if (errorMessage) {
