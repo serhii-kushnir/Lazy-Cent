@@ -24,7 +24,8 @@
             <i class="fas fa-plus-circle me-2"></i>Додати нову категорію
         </div>
         <div class="card-body">
-            <form action="/categories/add" method="post">
+            <!-- ВИПРАВЛЕНО: th:action замість th:th:action -->
+            <form th:action="@{/categories/add}" method="post">
                 <div class="row">
                     <div class="col-md-5">
                         <input type="text" name="name" class="form-control" placeholder="Назва категорії" required>
@@ -57,13 +58,12 @@
                 <tr th:each="cat : ${expenseCategories}">
                     <td th:text="${cat.name}"></td>
                     <td>
-                        <!-- ВИПРАВЛЕНО: додано th:action -->
+                        <!-- ВИПРАВЛЕНО: th:action замість th:th:action -->
                         <form th:action="@{/categories/delete/{id}(id=${cat.id})}" method="post" style="display:inline;">
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Видалити категорію?')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
-                        <!-- ВИПРАВЛЕНО: додано th:data-id та th:data-name -->
                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editCategoryModal"
                                 th:data-id="${cat.id}" th:data-name="${cat.name}">
                             <i class="fas fa-edit"></i>
@@ -89,13 +89,12 @@
                 <tr th:each="cat : ${incomeCategories}">
                     <td th:text="${cat.name}"></td>
                     <td>
-                        <!-- ВИПРАВЛЕНО: додано th:action -->
+                        <!-- ВИПРАВЛЕНО: th:action замість th:th:action -->
                         <form th:action="@{/categories/delete/{id}(id=${cat.id})}" method="post" style="display:inline;">
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Видалити категорію?')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </form>
-                        <!-- ВИПРАВЛЕНО: додано th:data-id та th:data-name -->
                         <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editCategoryModal"
                                 th:data-id="${cat.id}" th:data-name="${cat.name}">
                             <i class="fas fa-edit"></i>
@@ -116,6 +115,7 @@
                 <h5 class="modal-title">Редагувати категорію</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <!-- ВИПРАВЛЕНО: action буде встановлено через JavaScript -->
             <form id="editCategoryForm" method="post">
                 <div class="modal-body">
                     <input type="text" name="name" class="form-control" id="editCategoryName" required>
@@ -133,10 +133,10 @@
     const editModal = document.getElementById('editCategoryModal');
     editModal.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
-        // Використовуємо getAttribute, оскільки дані вже встановлені через th:data-*
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const form = document.getElementById('editCategoryForm');
+        // ВИПРАВЛЕНО: встановлюємо action правильно (не th:action)
         form.action = '/categories/update/' + id;
         document.getElementById('editCategoryName').value = name;
     });

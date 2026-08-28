@@ -750,7 +750,7 @@
         </div>
     </div>
 
-    <!-- ===== ДІАГРАМИ (оновлено з перемикачем і стовпчиками) ===== -->
+    <!-- ===== ДІАГРАМИ ===== -->
     <div class="chart-section" id="chartSection">
         <div class="row mb-4 stats-animated">
             <div class="col-12">
@@ -758,7 +758,6 @@
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
                         <span><i class="fas fa-chart-pie me-2"></i>Аналітика</span>
                         <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <!-- Новий перемикач режимів -->
                             <div class="analytics-toggle" id="analyticsToggle">
                                 <button class="btn active" data-mode="charts" title="Кругові діаграми">
                                     <i class="fas fa-chart-pie"></i> <span class="d-none d-sm-inline">Кругові</span>
@@ -800,7 +799,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- НОВИЙ БЛОК ДЛЯ СТОВПЧИКОВОЇ ДІАГРАМИ -->
                         <div class="row mt-3" id="barChartRow">
                             <div class="col-12">
                                 <div class="text-center">
@@ -810,9 +808,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="text-center mt-2">
-                            <small class="text-muted"><i class="fas fa-mouse-pointer me-1"></i>Клікніть на сектор діаграми, щоб відфільтрувати категорію</small>
                         </div>
                     </div>
                 </div>
@@ -1003,8 +998,9 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-<!-- ... (залишаємо без змін) ... -->
+<!-- ===== МОДАЛЬНІ ВІКНА (з CSRF) ===== -->
+
+<!-- Додавання транзакції -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1013,6 +1009,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="transactionForm" method="post" th:action="@{'/day/' + ${dayBudget.date} + '/expense'}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" id="transactionType" name="type" value="EXPENSE">
                     <div class="mb-3">
@@ -1088,6 +1085,7 @@
     </div>
 </div>
 
+<!-- Підтвердження видалення транзакції (deleteConfirmModal) -->
 <div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1114,6 +1112,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                 <form id="deleteForm" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-danger">Видалити</button>
                 </form>
             </div>
@@ -1121,6 +1120,7 @@
     </div>
 </div>
 
+<!-- Редагування витрати -->
 <div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1129,6 +1129,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editExpenseForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
                     <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editExpenseCategory" required><option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
@@ -1150,6 +1151,7 @@
     </div>
 </div>
 
+<!-- Редагування доходу -->
 <div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1158,6 +1160,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editIncomeForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
                     <div class="mb-3"><label class="form-label">Категорія</label><select name="categoryId" class="form-select" id="editIncomeCategory" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
@@ -1179,6 +1182,7 @@
     </div>
 </div>
 
+<!-- Дублювання -->
 <div class="modal fade no-print" id="cloneModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1187,6 +1191,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="cloneForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="type" id="cloneType" value="EXPENSE">
                     <div class="mb-3">
@@ -1251,24 +1256,42 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
-
 <script>
     (function() {
         'use strict';
 
         // ================================================================
-        // 0. КОЛІРНА ПАЛІТРА
+        // ГЛОБАЛЬНІ ФУНКЦІЇ (доступні з будь-якого місця)
         // ================================================================
-        const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
-        function getCategoryColor(name, index) {
-            if (!name) return '#6c757d';
-            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) {
-                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        window.populateCategories = function(selectElement, categories) {
+            if (!selectElement) return;
+            selectElement.innerHTML = '';
+            if (!categories || categories.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Немає категорій';
+                opt.disabled = true;
+                selectElement.appendChild(opt);
+                return;
             }
-            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
-        }
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                selectElement.appendChild(opt);
+            });
+        };
+
+        window.fetchCategories = async function(type) {
+            const url = type === 'EXPENSE' ? '/categories/expense' : '/categories/income';
+            try {
+                const response = await fetch(url);
+                return await response.json();
+            } catch (err) {
+                console.warn('Помилка завантаження категорій:', err);
+                return [];
+            }
+        };
 
         // ================================================================
         // 1. TOAST
@@ -1335,52 +1358,36 @@
         const ANALYTICS_MODE_KEY = 'daydetail-analytics-mode';
 
         // ================================================================
-        // 3. КАТЕГОРІЇ
+        // 3. КАТЕГОРІЇ (локальні змінні)
         // ================================================================
         let expenseCategories = /*[[${expenseCategories}]]*/ null;
         let incomeCategories = /*[[${incomeCategories}]]*/ null;
         const categorySelect = document.getElementById('categorySelect');
 
-        function populateCategories(categories) {
-            if (!categorySelect) return;
-            categorySelect.innerHTML = '';
-            if (!categories || categories.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Немає категорій';
-                opt.disabled = true;
-                categorySelect.appendChild(opt);
-                return;
-            }
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                categorySelect.appendChild(opt);
-            });
+        // Локальна функція для заповнення, яка використовує глобальну
+        function populateCategoriesLocal(categories) {
+            window.populateCategories(categorySelect, categories);
         }
 
         function fetchExpenseCategories() {
-            fetch('/categories/expense')
-                .then(r => r.json())
+            window.fetchCategories('EXPENSE')
                 .then(data => {
                     expenseCategories = data;
                     const typeInput = document.getElementById('transactionType');
                     if (typeInput && typeInput.value === 'EXPENSE') {
-                        populateCategories(expenseCategories);
+                        populateCategoriesLocal(expenseCategories);
                     }
                 })
                 .catch(err => console.warn('Помилка завантаження категорій витрат:', err));
         }
 
         function fetchIncomeCategories() {
-            fetch('/categories/income')
-                .then(r => r.json())
+            window.fetchCategories('INCOME')
                 .then(data => {
                     incomeCategories = data;
                     const typeInput = document.getElementById('transactionType');
                     if (typeInput && typeInput.value === 'INCOME') {
-                        populateCategories(incomeCategories);
+                        populateCategoriesLocal(incomeCategories);
                     }
                 })
                 .catch(err => console.warn('Помилка завантаження категорій доходів:', err));
@@ -1389,7 +1396,7 @@
         if (!expenseCategories || expenseCategories.length === 0) {
             fetchExpenseCategories();
         } else {
-            populateCategories(expenseCategories);
+            populateCategoriesLocal(expenseCategories);
         }
         if (!incomeCategories || incomeCategories.length === 0) {
             fetchIncomeCategories();
@@ -1414,7 +1421,7 @@
 
             if (type === 'EXPENSE') {
                 if (expenseCategories && expenseCategories.length > 0) {
-                    populateCategories(expenseCategories);
+                    populateCategoriesLocal(expenseCategories);
                 } else {
                     fetchExpenseCategories();
                 }
@@ -1424,7 +1431,7 @@
                 transactionForm.action = '/day/' + dateVal + '/expense';
             } else {
                 if (incomeCategories && incomeCategories.length > 0) {
-                    populateCategories(incomeCategories);
+                    populateCategoriesLocal(incomeCategories);
                 } else {
                     fetchIncomeCategories();
                 }
@@ -1449,8 +1456,19 @@
         }
 
         // ================================================================
-        // 5. ДІАГРАМИ (оновлені)
+        // 5. ДІАГРАМИ (без змін)
         // ================================================================
+        const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
+        function getCategoryColor(name, index) {
+            if (!name) return '#6c757d';
+            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
+        }
+
         function renderChart(type) {
             const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
             const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
@@ -1561,7 +1579,6 @@
             }
         }
 
-        // === НОВА СТОВПЧИКОВА ДІАГРАМА ===
         function renderBarChart() {
             const canvas = document.getElementById('barChart');
             if (!canvas) return;
@@ -1575,7 +1592,6 @@
             const row = document.getElementById('barChartRow');
             if (!row) return;
 
-            // Збираємо дані з видимих рядків
             const rows = document.querySelectorAll('#transactionsBody .transaction-row');
             const expenseMap = new Map();
             const incomeMap = new Map();
@@ -1601,7 +1617,6 @@
                 }
             });
 
-            // Об'єднуємо всі унікальні категорії
             const allCategories = new Set([...expenseMap.keys(), ...incomeMap.keys()]);
             const sortedCategories = Array.from(allCategories).sort();
 
@@ -1708,7 +1723,7 @@
                 } else if (mode === 'bar') {
                     chartsContainer.style.display = 'none';
                     barRow.style.display = '';
-                } else { // both
+                } else {
                     chartsContainer.style.display = 'flex';
                     barRow.style.display = '';
                 }
@@ -1725,7 +1740,6 @@
                 setAnalyticsMode(btn.dataset.mode);
             });
 
-            // Згортання
             const toggleChartBtn = document.getElementById('toggleChartBtn');
             const chartBody = document.getElementById('chartBody');
             const chartIcon = document.getElementById('chartToggleIcon');
@@ -2345,6 +2359,186 @@
         // 15. ЗАПУСК
         // ================================================================
         init();
+
+        // ================================================================
+        // 16. ОБРОБНИКИ ДЛЯ ДУБЛЮВАННЯ (з використанням глобальних функцій)
+        // ================================================================
+        const cloneModalEl = document.getElementById('cloneModal');
+        const cloneTypeInput = document.getElementById('cloneType');
+
+        document.querySelectorAll('.action-duplicate').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.type;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                document.getElementById('cloneCategory').value = category;
+                document.getElementById('cloneDescription').value = description;
+                document.getElementById('cloneAmount').value = amount.toFixed(2);
+                document.getElementById('cloneQuantity').value = quantity;
+                document.getElementById('cloneTime').value = time;
+                document.getElementById('cloneDetails').value = details;
+                document.getElementById('cloneBuyer').value = buyer;
+                document.getElementById('cloneSeller').value = seller;
+                document.getElementById('cloneCharCount').textContent = details.length;
+
+                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+                cloneTypeInput.value = initialType;
+                const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
+                const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
+                if (initialType === 'EXPENSE') {
+                    expenseBtn.className = 'btn active-expense';
+                    incomeBtn.className = 'btn btn-outline-success';
+                    // Використовуємо ГЛОБАЛЬНУ функцію
+                    window.fetchCategories('EXPENSE').then(cats => {
+                        window.populateCategories(document.getElementById('cloneCategory'), cats);
+                    });
+                    document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
+                } else {
+                    incomeBtn.className = 'btn active-income';
+                    expenseBtn.className = 'btn btn-outline-danger';
+                    window.fetchCategories('INCOME').then(cats => {
+                        window.populateCategories(document.getElementById('cloneCategory'), cats);
+                    });
+                    document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
+                }
+
+                if (cloneModalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(cloneModalEl);
+                    modal.show();
+                }
+            });
+        });
+
+        // Перемикач типу в модалці дублювання
+        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
+            cloneTypeInput.value = 'EXPENSE';
+            this.className = 'btn active-expense';
+            document.getElementById('cloneTypeIncomeBtn').className = 'btn btn-outline-success';
+            window.fetchCategories('EXPENSE').then(cats => {
+                window.populateCategories(document.getElementById('cloneCategory'), cats);
+            });
+            document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
+        });
+        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
+            cloneTypeInput.value = 'INCOME';
+            this.className = 'btn active-income';
+            document.getElementById('cloneTypeExpenseBtn').className = 'btn btn-outline-danger';
+            window.fetchCategories('INCOME').then(cats => {
+                window.populateCategories(document.getElementById('cloneCategory'), cats);
+            });
+            document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
+        });
+
+        // ================================================================
+        // 17. ІНШІ ОБРОБНИКИ (редагування, видалення) – вже є в коді
+        // ================================================================
+        // Редагування
+        document.querySelectorAll('.action-edit').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const type = this.dataset.type;
+                const id = this.dataset.id;
+                const category = this.dataset.category;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const quantity = this.dataset.quantity || 1;
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                if (type === 'expense') {
+                    const modalEl = document.getElementById('editExpenseModal');
+                    if (modalEl) {
+                        document.getElementById('editExpenseId').value = id;
+                        document.getElementById('editExpenseCategory').value = category;
+                        document.getElementById('editExpenseDescription').value = description;
+                        document.getElementById('editExpenseAmount').value = amount.toFixed(2);
+                        document.getElementById('editExpenseQuantity').value = quantity;
+                        document.getElementById('editExpenseTime').value = time;
+                        document.getElementById('editExpenseDetails').value = details;
+                        document.getElementById('editExpenseBuyer').value = buyer;
+                        document.getElementById('editExpenseSeller').value = seller;
+                        document.getElementById('editExpenseCharCount').textContent = details.length;
+                        document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
+                } else {
+                    const modalEl = document.getElementById('editIncomeModal');
+                    if (modalEl) {
+                        document.getElementById('editIncomeId').value = id;
+                        document.getElementById('editIncomeCategory').value = category;
+                        document.getElementById('editIncomeDescription').value = description;
+                        document.getElementById('editIncomeAmount').value = amount.toFixed(2);
+                        document.getElementById('editIncomeQuantity').value = quantity;
+                        document.getElementById('editIncomeTime').value = time;
+                        document.getElementById('editIncomeDetails').value = details;
+                        document.getElementById('editIncomeBuyer').value = buyer;
+                        document.getElementById('editIncomeSeller').value = seller;
+                        document.getElementById('editIncomeCharCount').textContent = details.length;
+                        document.getElementById('editIncomeForm').action = '/income/edit/' + id;
+                        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        modal.show();
+                    }
+                }
+            });
+        });
+
+        // Видалення
+        document.querySelectorAll('.action-delete').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.dataset.id;
+                const type = this.dataset.type;
+                const description = this.dataset.description || '';
+                const amount = parseFloat(this.dataset.amount) || 0;
+                const category = this.dataset.category || '';
+                const details = this.dataset.details || '';
+                const time = this.dataset.time || '';
+                const quantity = this.dataset.quantity || '1';
+                const buyer = this.dataset.buyer || '';
+                const seller = this.dataset.seller || '';
+
+                const deleteForm = document.getElementById('deleteForm');
+                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
+
+                document.getElementById('deleteType').textContent = (type === 'expense') ? 'Витрата' : 'Дохід';
+                document.getElementById('deleteTime').textContent = time || '—';
+                document.getElementById('deleteDescription').textContent = description || '—';
+                document.getElementById('deleteQuantity').textContent = quantity || '1';
+                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ₴';
+                document.getElementById('deleteBuyer').textContent = buyer || '—';
+                document.getElementById('deleteSeller').textContent = seller || '—';
+                document.getElementById('deleteCategory').textContent = category || '—';
+
+                const detailsRow = document.getElementById('deleteDetailsRow');
+                if (details && details.trim().length > 0) {
+                    document.getElementById('deleteDetails').textContent = details;
+                    detailsRow.style.display = '';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+
+                const modalEl = document.getElementById('deleteConfirmModal');
+                if (modalEl) {
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                }
+            });
+        });
+
+        // ---- Теплі клавіші (вже є вище) ----
+        // ---- Ініціалізація TOOLTIP ----
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
     })();
 </script>

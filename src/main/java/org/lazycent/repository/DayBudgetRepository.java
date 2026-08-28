@@ -1,6 +1,7 @@
 package org.lazycent.repository;
 
 import org.lazycent.model.DayBudget;
+import org.lazycent.model.User;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -13,10 +14,14 @@ import java.util.Optional;
 public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
 
     @EntityGraph(attributePaths = {"expenses", "incomes"})
-    Optional<DayBudget> findByDate(LocalDate date);
+    Optional<DayBudget> findByDateAndOwner(LocalDate date, User owner);
 
     @EntityGraph(attributePaths = {"expenses", "incomes"})
-    List<DayBudget> findAllByOrderByDateAsc();
+    List<DayBudget> findAllByOwnerOrderByDateAsc(User owner);
 
-    List<DayBudget> findByDateBetween(LocalDate start, LocalDate end);
+    List<DayBudget> findByOwnerAndDateBetween(User owner, LocalDate start, LocalDate end);
+
+    long countByOwner(User owner);
+
+
 }

@@ -1145,7 +1145,9 @@
                 <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Додати нову транзакцію</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <!-- ВИПРАВЛЕНО: додано CSRF-токен -->
             <form id="transactionForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="type" id="transactionType" value="EXPENSE">
 
@@ -1260,6 +1262,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                 <form id="deleteForm" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-danger">Видалити</button>
                 </form>
             </div>
@@ -1276,7 +1279,7 @@
             </div>
             <form id="editExpenseForm" method="post">
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="editExpenseId">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div class="mb-3"><label class="form-label">Категорія</label>
                         <select name="categoryId" class="form-select" id="editExpenseCategory" required>
                             <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
@@ -1324,7 +1327,7 @@
             </div>
             <form id="editIncomeForm" method="post">
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="editIncomeId">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div class="mb-3"><label class="form-label">Категорія</label>
                         <select name="categoryId" class="form-select" id="editIncomeCategory" required>
                             <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
@@ -1372,7 +1375,7 @@
             </div>
             <form id="cloneForm" method="post">
                 <div class="modal-body">
-                    <input type="hidden" name="type" id="cloneType" value="EXPENSE">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
@@ -1381,7 +1384,8 @@
                                 <i class="fas fa-arrow-down me-1"></i> Витрата
                             </button>
                             <button type="button" class="btn btn-outline-success" id="cloneTypeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> Дохід                            </button>
+                                <i class="fas fa-arrow-up me-1"></i> Дохід
+                            </button>
                         </div>
                     </div>
 

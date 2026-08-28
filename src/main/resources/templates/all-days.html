@@ -509,6 +509,7 @@
             .chart-legend-table .color-dot { width: 6px !important; height: 6px !important; }
         }
     </style>
+
 </head>
 <body>
 <nav th:replace="~{fragments :: navbar('all-days')}"></nav>
@@ -837,6 +838,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="transactionForm" method="post">
+                <!-- CSRF ТОКЕН -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="type" id="transactionType" value="EXPENSE">
 
@@ -952,6 +955,8 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                 <form id="deleteForm" method="post" style="display:inline;">
+                    <!-- CSRF ТОКЕН -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-danger">Видалити</button>
                 </form>
             </div>
@@ -968,6 +973,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editExpenseForm" method="post">
+                <!-- CSRF ТОКЕН -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
                     <div class="mb-3"><label class="form-label">Категорія</label>
@@ -1017,6 +1024,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editIncomeForm" method="post">
+                <!-- CSRF ТОКЕН -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
                     <div class="mb-3"><label class="form-label">Категорія</label>
@@ -1066,6 +1075,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="cloneForm" method="post">
+                <!-- CSRF ТОКЕН -->
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="type" id="cloneType" value="EXPENSE">
 
@@ -1144,6 +1155,8 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
                 <form id="deleteDayForm" method="post" style="display:inline;">
+                    <!-- CSRF ТОКЕН -->
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-danger">Видалити день</button>
                 </form>
             </div>
@@ -1262,7 +1275,7 @@
         }
 
         // ================================================================
-        // 5. РЕНДЕРИНГ ДІАГРАМ (ВИПРАВЛЕНО)
+        // 5. РЕНДЕРИНГ ДІАГРАМ
         // ================================================================
 
         function renderExpenseChart() {
@@ -1399,7 +1412,6 @@
             }
         }
 
-        // ========== ВИПРАВЛЕНА ФУНКЦІЯ renderBarChart ==========
         function renderBarChart() {
             const canvas = document.getElementById('barChart');
             if (!canvas) return;
@@ -1408,7 +1420,6 @@
                 return;
             }
 
-            // Отримуємо поточний режим аналітики з localStorage
             const savedMode = localStorage.getItem('alldays-analytics-mode') || 'both';
             const shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
 
@@ -1416,13 +1427,11 @@
             const row = document.getElementById('barChartRow');
             if (!row) return;
 
-            // Якщо немає даних або режим не дозволяє показувати стовпчики – ховаємо
             if (data.dates.length === 0 || !shouldShowBar) {
                 row.style.display = 'none';
                 return;
             }
 
-            // Інакше – показуємо та будуємо діаграму
             row.style.display = '';
             if (window.barChartInstance) { window.barChartInstance.destroy(); }
 
@@ -1473,7 +1482,7 @@
             setTimeout(function() {
                 renderExpenseChart();
                 renderIncomeChart();
-                renderBarChart();  // тепер вона сама вирішить, чи показуватися
+                renderBarChart();
             }, 100);
         }
 
@@ -1491,13 +1500,13 @@
                 });
                 if (mode === 'charts') {
                     chartsContainer.style.display = 'flex';
-                    barRow.style.display = 'none';  // ховаємо одразу
+                    barRow.style.display = 'none';
                 } else if (mode === 'bar') {
                     chartsContainer.style.display = 'none';
-                    barRow.style.display = '';      // показуємо
-                } else { // both
+                    barRow.style.display = '';
+                } else {
                     chartsContainer.style.display = 'flex';
-                    barRow.style.display = '';      // показуємо
+                    barRow.style.display = '';
                 }
                 localStorage.setItem('alldays-analytics-mode', mode);
                 setTimeout(renderAllCharts, 100);
@@ -1512,7 +1521,6 @@
                 setAnalyticsMode(btn.dataset.mode);
             });
 
-            // --- Згортання блоку аналітики ---
             const toggleChartBtn = document.getElementById('toggleChartBtn');
             const chartBody = document.getElementById('chartBody');
             const chartIcon = document.getElementById('chartToggleIcon');
@@ -1807,7 +1815,6 @@
             deleteForm.action = '/day/delete/' + id;
             new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
         }
-
 
         // ================================================================
         // 12. МОДАЛЬНІ ВІКНА (додавання, редагування, дублювання)

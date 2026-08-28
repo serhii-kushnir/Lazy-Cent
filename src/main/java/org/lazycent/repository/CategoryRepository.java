@@ -1,6 +1,7 @@
 package org.lazycent.repository;
 
 import org.lazycent.model.Category;
+import org.lazycent.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,9 +10,26 @@ import java.util.Optional;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
+
+    // ---- Застарілі методи (без користувача) ----
+    @Deprecated
     List<Category> findByType(String type);
+
+    @Deprecated
     Optional<Category> findByName(String name);
 
-    // Новий метод для регістронезалежного пошуку
+    @Deprecated
     Optional<Category> findByNameIgnoreCase(String name);
+
+    // ---- НОВІ МЕТОДИ З КОРИСТУВАЧЕМ ----
+
+    List<Category> findByTypeAndOwner(String type, User owner);
+
+    Optional<Category> findByNameAndOwner(String name, User owner);
+
+    Optional<Category> findByNameIgnoreCaseAndOwner(String name, User owner);
+
+    List<Category> findAllByOwner(User owner);
+
+    long countByOwner(User owner);
 }

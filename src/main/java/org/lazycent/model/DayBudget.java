@@ -8,6 +8,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@Table(
+        name = "day_budget",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"date", "user_id"})  // ← головне
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +24,7 @@ public class DayBudget {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)          // ← ТІЛЬКИ nullable, БЕЗ unique
     private LocalDate date;
 
     private String dayName;
@@ -33,6 +37,10 @@ public class DayBudget {
 
     private Double startingBalance;
     private Double remainingBalance;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User owner;
 
     public Double getTotalExpenses() {
         if (expenses == null) return 0.0;
