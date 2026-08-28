@@ -67,14 +67,30 @@ public class BudgetController {
 
     // ==================== ГОЛОВНА ====================
 
+// controller/BudgetController.java - оновити метод index
+
     @GetMapping("/")
     public String index(@AuthenticationPrincipal User currentUser, Model model) {
         model.addAttribute("today", LocalDate.now());
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories(currentUser));
         model.addAttribute("incomeCategories", budgetService.getIncomeCategories(currentUser));
+
+        // Додаємо підсумки
+        TotalBudget todaySummary = budgetService.getTodaySummary(currentUser);
+        TotalBudget weekSummary = budgetService.getWeekSummary(currentUser);
+        TotalBudget monthSummary = budgetService.getMonthSummary(currentUser);
+
+        // Якщо null - створити порожні об'єкти
+        if (todaySummary == null) todaySummary = new TotalBudget();
+        if (weekSummary == null) weekSummary = new TotalBudget();
+        if (monthSummary == null) monthSummary = new TotalBudget();
+
+        model.addAttribute("todaySummary", todaySummary);
+        model.addAttribute("weekSummary", weekSummary);
+        model.addAttribute("monthSummary", monthSummary);
+
         return "index";
     }
-
     // ==================== БЮДЖЕТ (НОВИЙ ДАШБОРД) ====================
 
     @GetMapping("/budget")

@@ -12,6 +12,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
@@ -462,5 +463,24 @@ public class BudgetService {
             dayBudgetRepository.save(budget);
             previousBalance = budget.getRemainingBalance();
         }
+    }
+
+    // service/BudgetService.java - додати методи
+
+    public TotalBudget getTodaySummary(User user) {
+        LocalDate today = LocalDate.now();
+        return getTotalBudget(today, today, user);
+    }
+
+    public TotalBudget getWeekSummary(User user) {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(DayOfWeek.MONDAY);
+        return getTotalBudget(startOfWeek, today, user);
+    }
+
+    public TotalBudget getMonthSummary(User user) {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfMonth = today.withDayOfMonth(1);
+        return getTotalBudget(startOfMonth, today, user);
     }
 }

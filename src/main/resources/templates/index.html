@@ -7,17 +7,58 @@
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <style>
-        .feature-card { transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
-        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .quick-link { text-decoration: none; color: inherit; }
-        .btn-add-transaction {
-            padding: 1rem 2rem;
-            font-size: 1.25rem;
-            border-radius: 50px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s;
+        /* ===== АНІМАЦІЇ ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        .btn-add-transaction:hover { transform: scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.2); }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+        .animate-scale { animation: scaleIn 0.5s ease forwards; opacity: 0; }
+
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.10s; }
+        .delay-3 { animation-delay: 0.15s; }
+        .delay-4 { animation-delay: 0.20s; }
+
+        .feature-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .quick-link { text-decoration: none; color: inherit; }
+
+        /* ЗБІЛЬШЕНА КНОПКА ДОДАВАННЯ */
+        .btn-add-transaction {
+            padding: 1.2rem 3.5rem !important;
+            font-size: 1.5rem !important;
+            border-radius: 60px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .btn-add-transaction:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        }
+        .btn-add-transaction i {
+            font-size: 1.8rem;
+        }
+
         .transaction-type-toggle {
             display: flex;
             gap: 1rem;
@@ -85,7 +126,7 @@
 
 <div class="container mt-4">
     <div class="row mb-4">
-        <div class="col text-center">
+        <div class="col text-center animate-fade-down">
             <h1 class="display-4"><i class="fas fa-coins text-warning"></i> Lazy Cent</h1>
             <p class="lead">Ваш особистий фінансовий помічник</p>
             <hr>
@@ -93,9 +134,9 @@
     </div>
 
     <div class="row mb-5">
-        <div class="col-12 text-center">
+        <div class="col-12 text-center animate-scale delay-1">
             <h3 class="mb-4"><i class="fas fa-plus-circle text-success"></i> Швидке додавання</h3>
-            <!-- Єдина кнопка для відкриття модального вікна -->
+            <!-- Єдина кнопка для відкриття модального вікна - ЗБІЛЬШЕНА -->
             <button class="btn btn-primary btn-add-transaction" data-bs-toggle="modal" data-bs-target="#transactionModal">
                 <i class="fas fa-plus me-2"></i> Додати транзакцію
             </button>
@@ -104,9 +145,11 @@
 
     <div class="row mb-5">
         <div class="col-12">
-            <h3 class="text-center mb-4"><i class="fas fa-bolt text-primary"></i> Швидкий доступ</h3>
+            <h3 class="text-center mb-4 animate-fade-down delay-1"><i class="fas fa-bolt text-primary"></i> Швидкий доступ</h3>
         </div>
-        <div class="col-md-4 mb-3">
+
+        <!-- Картка "Бюджет" -->
+        <div class="col-md-3 mb-3 animate-fade-up delay-1">
             <a href="/budget" class="quick-link">
                 <div class="card feature-card text-center bg-primary text-white h-100">
                     <div class="card-body d-flex flex-column">
@@ -117,7 +160,9 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4 mb-3">
+
+        <!-- Картка "Підсумки" -->
+        <div class="col-md-3 mb-3 animate-fade-up delay-2">
             <a href="/totals" class="quick-link">
                 <div class="card feature-card text-center bg-success text-white h-100">
                     <div class="card-body d-flex flex-column">
@@ -128,7 +173,9 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-4 mb-3">
+
+        <!-- Картка "Всі дні" -->
+        <div class="col-md-3 mb-3 animate-fade-up delay-3">
             <a href="/all-days" class="quick-link">
                 <div class="card feature-card text-center bg-info text-white h-100">
                     <div class="card-body d-flex flex-column">
@@ -139,18 +186,62 @@
                 </div>
             </a>
         </div>
+
+        <!-- Нова картка "Нотатки" -->
+        <div class="col-md-3 mb-3 animate-fade-up delay-4">
+            <a href="/notes" class="quick-link">
+                <div class="card feature-card text-center bg-warning text-dark h-100">
+                    <div class="card-body d-flex flex-column">
+                        <i class="fas fa-sticky-note fa-3x mb-3"></i>
+                        <h4>Нотатки</h4>
+                        <p class="flex-fill">Швидкі нотатки та ідеї, як у Google Keep</p>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 
-    <div class="row">
+    <!-- Статистика за день, тиждень, місяць -->
+    <div class="row mb-4 animate-fade-up delay-1">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <i class="fas fa-info-circle me-2"></i> Інформація
+            <h3 class="text-center mb-3"><i class="fas fa-chart-simple text-primary"></i> Ваша фінансова статистика</h3>
+        </div>
+        <!-- Сьогодні -->
+        <div class="col-md-4 mb-3 animate-fade-up delay-1">
+            <div class="card h-100 text-center">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-sun me-2"></i> Сьогодні
                 </div>
                 <div class="card-body">
-                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій витрат: <span id="expenseCount">0</span></p>
-                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій доходів: <span id="incomeCount">0</span></p>
-                    <p><i class="fas fa-calendar me-2"></i> <span th:text="${#temporals.format(today, 'MMMM yyyy')}"></span></p>
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+        <!-- Тиждень -->
+        <div class="col-md-4 mb-3 animate-fade-up delay-2">
+            <div class="card h-100 text-center">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-calendar-week me-2"></i> Цей тиждень
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+        <!-- Місяць -->
+        <div class="col-md-4 mb-3 animate-fade-up delay-3">
+            <div class="card h-100 text-center">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-calendar-alt me-2"></i> Цей місяць
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
                 </div>
             </div>
         </div>
@@ -167,7 +258,6 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <!-- ВИПРАВЛЕНО: використовуємо th:action замість action + CSRF -->
             <form id="transactionForm" th:action="@{/quick-expense}" method="post">
                 <div class="modal-body">
                     <input type="hidden" name="type" id="transactionType" value="EXPENSE">
