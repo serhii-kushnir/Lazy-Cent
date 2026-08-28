@@ -214,8 +214,15 @@ public class BudgetService {
         return total;
     }
 
+    // BudgetService.java – додаємо логування та перевірку на null
     public List<DayBudget> getAllBudgets(User user) {
-        return dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
+        if (user == null) {
+            log.warn("getAllBudgets: user is null");
+            return List.of();
+        }
+        List<DayBudget> budgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
+        log.info("Отримано {} днів для користувача {}", budgets.size(), user.getUsername());
+        return budgets;
     }
 
     // ==================== ДУБЛЮВАННЯ ====================

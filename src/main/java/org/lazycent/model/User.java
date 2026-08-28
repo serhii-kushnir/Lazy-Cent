@@ -33,13 +33,18 @@ public class User implements UserDetails {
     private String password;
 
     @Column(nullable = false)
-    private String role; // "USER" або "ADMIN" тощо
+    private String role;
+
+    @Column(unique = true)
+    private String email;
+
+    private String provider;
+    private String providerId;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<DayBudget> dayBudgets;
 
-    // Реалізація UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));

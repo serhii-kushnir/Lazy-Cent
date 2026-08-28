@@ -34,14 +34,14 @@ public class DataLoader implements CommandLineRunner {
     @Value("${app.demo.random-days:14}")
     private int randomDays;
 
-
     @Override
     @Transactional
     public void run(String... args) {
-        log.info("DataLoader started.");
+        log.info("DataLoader started. demoEnabled={}", demoEnabled);
 
         User defaultUser = userRepository.findByUsername(defaultUsername)
                 .orElseGet(() -> {
+                    log.info("Creating default user: {}", defaultUsername);
                     User user = new User();
                     user.setUsername(defaultUsername);
                     user.setPassword(passwordEncoder.encode(defaultPassword));
@@ -51,11 +51,18 @@ public class DataLoader implements CommandLineRunner {
         log.info("Default user: {} (id={})", defaultUser.getUsername(), defaultUser.getId());
 
         if (demoEnabled) {
+            log.info("Creating default categories for user...");
             demoDataService.createDefaultCategories(defaultUser);
-            if (dayBudgetRepository.countByOwner(defaultUser) == 0) {
+
+            long dayBudgetCount = dayBudgetRepository.countByOwner(defaultUser);
+            log.info("Day budgets count for user: {}", dayBudgetCount);
+
+            if (dayBudgetCount == 0) {
+                log.info("Generating {} days of random demo transactions...", randomDays);
                 demoDataService.createRandomTransactions(defaultUser, randomDays);
+                log.info("Demo transactions created.");
             } else {
-                log.info("Day budgets already exist for user {}, skipping demo transactions.", defaultUser.getUsername());
+                log.info("Day budgets already exist, skipping demo transactions.");
             }
         }
 

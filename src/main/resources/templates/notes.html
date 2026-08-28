@@ -578,7 +578,12 @@
 
         // --- Оновлення лічильника ---
         function updateNoteCount() {
-            const visible = document.querySelectorAll('.note-card[style*="display: block"]').length;
+            const cards = document.querySelectorAll('.note-card');
+            let visible = 0;
+            cards.forEach(c => {
+                const display = c.style.display;
+                if (display !== 'none') visible++;
+            });
             document.getElementById('noteCount').textContent = visible + ' нотаток';
         }
 

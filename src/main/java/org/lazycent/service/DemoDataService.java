@@ -1,3 +1,4 @@
+// DemoDataService.java – повний код з логуванням
 package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
@@ -52,15 +53,14 @@ public class DemoDataService {
             "Я", "Клієнт", "Друг", "Колега"
     );
 
-    // ========== СТВОРЕННЯ КАТЕГОРІЙ ==========
-
     @Transactional
     public void createDefaultCategories(User user) {
-        if (categoryRepository.countByOwner(user) > 0) {
-            log.info("Categories already exist for user {}, skipping creation.", user.getUsername());
+        long count = categoryRepository.countByOwner(user);
+        if (count > 0) {
+            log.info("Категорії вже існують для користувача {}, пропускаємо.", user.getUsername());
             return;
         }
-        log.info("Creating default categories for user {}...", user.getUsername());
+        log.info("Створюємо категорії для користувача {}...", user.getUsername());
         createCategory("Їжа", "EXPENSE", user);
         createCategory("Дорога", "EXPENSE", user);
         createCategory("Ліки", "EXPENSE", user);
@@ -70,7 +70,7 @@ public class DemoDataService {
         createCategory("Зарплата (М)", "INCOME", user);
         createCategory("Зарплата (С)", "INCOME", user);
         createCategory("Різне (дохід)", "INCOME", user);
-        log.info("Default categories created for user {}.", user.getUsername());
+        log.info("Категорії створено для користувача {}.", user.getUsername());
     }
 
     private void createCategory(String name, String type, User user) {
@@ -83,44 +83,39 @@ public class DemoDataService {
         }
     }
 
-    // ========== ГЕНЕРАЦІЯ ВИПАДКОВИХ ТРАНЗАКЦІЙ ==========
-
     @Transactional
     public void createRandomTransactions(User user, int days) {
-        log.info("Creating random demo transactions for user {} for the last {} days...",
-                user.getUsername(), days);
+        log.info("=== ПОЧАТОК СТВОРЕННЯ ДЕМО-ДАННИХ для користувача: {} (id={}) ===", user.getUsername(), user.getId());
+
+        // Перевіряємо наявність категорій
+        long categoryCount = categoryRepository.countByOwner(user);
+        if (categoryCount == 0) {
+            log.warn("Категорії не знайдено для користувача {}. Створюємо...", user.getUsername());
+            createDefaultCategories(user);
+            categoryCount = categoryRepository.countByOwner(user);
+            log.info("Створено {} категорій.", categoryCount);
+        }
+
+        // Перевіряємо, чи вже є транзакції
+        long existingDayCount = dayBudgetRepository.countByOwner(user);
+        if (existingDayCount > 0) {
+            log.info("Дні вже існують для користувача {}. Пропускаємо генерацію.", user.getUsername());
+            return;
+        }
 
         LocalDate today = LocalDate.now();
         Double runningBalance = 0.0;
 
-        // Отримуємо категорії користувача
-        Category food = categoryRepository.findByNameAndOwner("Їжа", user).orElse(null);
-        Category transport = categoryRepository.findByNameAndOwner("Дорога", user).orElse(null);
-        Category medicine = categoryRepository.findByNameAndOwner("Ліки", user).orElse(null);
-        Category clothes = categoryRepository.findByNameAndOwner("Одяг", user).orElse(null);
-        Category miscExpense = categoryRepository.findByNameAndOwner("Різне", user).orElse(null);
-        Category tips = categoryRepository.findByNameAndOwner("Чаєві", user).orElse(null);
-        Category salaryM = categoryRepository.findByNameAndOwner("Зарплата (М)", user).orElse(null);
-        Category salaryS = categoryRepository.findByNameAndOwner("Зарплата (С)", user).orElse(null);
-        Category miscIncome = categoryRepository.findByNameAndOwner("Різне (дохід)", user).orElse(null);
-
-        // Якщо не вистачає базових категорій – створюємо їх
-        if (food == null) {
-            createCategory("Їжа", "EXPENSE", user);
-            food = categoryRepository.findByNameAndOwner("Їжа", user).orElseThrow();
-        }
-        if (transport == null) {
-            createCategory("Дорога", "EXPENSE", user);
-            transport = categoryRepository.findByNameAndOwner("Дорога", user).orElseThrow();
-        }
-        if (tips == null) {
-            createCategory("Чаєві", "INCOME", user);
-            tips = categoryRepository.findByNameAndOwner("Чаєві", user).orElseThrow();
-        }
-        if (salaryM == null) {
-            createCategory("Зарплата (М)", "INCOME", user);
-            salaryM = categoryRepository.findByNameAndOwner("Зарплата (М)", user).orElseThrow();
-        }
+        // Отримуємо категорії
+        Category food = getCategory(user, "Їжа", "EXPENSE");
+        Category transport = getCategory(user, "Дорога", "EXPENSE");
+        Category medicine = getCategory(user, "Ліки", "EXPENSE");
+        Category clothes = getCategory(user, "Одяг", "EXPENSE");
+        Category miscExpense = getCategory(user, "Різне", "EXPENSE");
+        Category tips = getCategory(user, "Чаєві", "INCOME");
+        Category salaryM = getCategory(user, "Зарплата (М)", "INCOME");
+        Category salaryS = getCategory(user, "Зарплата (С)", "INCOME");
+        Category miscIncome = getCategory(user, "Різне (дохід)", "INCOME");
 
         record ExpenseCategoryOption(Category category, List<String> descriptions, double minAmount, double maxAmount) {}
         List<ExpenseCategoryOption> expenseOptions = new java.util.ArrayList<>();
@@ -135,11 +130,11 @@ public class DemoDataService {
         incomeOptions.add(new IncomeCategoryOption(tips, TIPS_DESCRIPTIONS, 50.0, 400.0));
         if (miscIncome != null) incomeOptions.add(new IncomeCategoryOption(miscIncome, MISC_INCOME_DESCRIPTIONS, 100.0, 1000.0));
 
+        int createdDays = 0;
         for (int i = days - 1; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
             final Double currentBalance = runningBalance;
 
-            // Отримуємо або створюємо DayBudget
             DayBudget budget = dayBudgetRepository.findByDateAndOwner(date, user)
                     .orElseGet(() -> {
                         DayBudget b = new DayBudget();
@@ -150,13 +145,11 @@ public class DemoDataService {
                         return b;
                     });
 
-            // Якщо бюджет новий – зберігаємо його одразу, щоб отримати ID
             boolean isNew = (budget.getId() == null);
             if (isNew) {
                 budget = dayBudgetRepository.save(budget);
-                log.debug("Created new DayBudget for date {}", date);
-            } else {
-                log.debug("Using existing DayBudget for date {}", date);
+                createdDays++;
+                log.debug("Створено DayBudget для дати {}", date);
             }
 
             double dayExpenses = 0.0;
@@ -213,19 +206,30 @@ public class DemoDataService {
 
             // Оновлюємо баланс
             budget.setRemainingBalance(runningBalance + dayIncomes - dayExpenses);
-            // Зберігаємо бюджет (для вже існуючого виконається UPDATE, для нового – UPDATE, бо він уже збережений)
             dayBudgetRepository.save(budget);
             runningBalance = budget.getRemainingBalance();
 
-            log.info("Day {}: expenses={}₴, incomes={}₴, balance={}₴",
-                    date, dayExpenses, dayIncomes, budget.getRemainingBalance());
+            log.info("День {}: витрати={}₴, доходи={}₴, баланс={}₴", date, dayExpenses, dayIncomes, budget.getRemainingBalance());
         }
 
-        log.info("Random demo transactions created for user {} for {} days.",
-                user.getUsername(), days);
+        // Підсумкове логування
+        long totalDays = dayBudgetRepository.countByOwner(user);
+        log.info("=== ЗАВЕРШЕНО СТВОРЕННЯ ДЕМО-ДАННИХ для користувача {} ===", user.getUsername());
+        log.info("Створено {} днів, всього днів у базі: {}", createdDays, totalDays);
+
+        // Перевіряємо, чи є витрати/доходи
+        long expenseCount = expenseRepository.count(); // можна додати пошук за користувачем, але це для логу
+        log.info("Загальна кількість витрат у базі: {}", expenseCount);
     }
 
-    // ========== ДОПОМІЖНІ МЕТОДИ ==========
+    private Category getCategory(User user, String name, String type) {
+        Category cat = categoryRepository.findByNameAndOwner(name, user).orElse(null);
+        if (cat == null) {
+            createCategory(name, type, user);
+            cat = categoryRepository.findByNameAndOwner(name, user).orElseThrow();
+        }
+        return cat;
+    }
 
     private String randomFrom(List<String> options) {
         return options.get(random.nextInt(options.size()));

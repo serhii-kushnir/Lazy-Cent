@@ -1,3 +1,4 @@
+// Note.java – переконайтеся, що є поле textColor
 package org.lazycent.model;
 
 import jakarta.persistence.*;
@@ -27,7 +28,7 @@ public class Note {
     @Column(length = 5000)
     private String content;
 
-    private String color; // фон (background)
+    private String color; // фон
 
     @Column(nullable = false)
     private String textColor = "#212529"; // колір тексту

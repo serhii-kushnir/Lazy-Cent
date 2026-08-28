@@ -308,6 +308,9 @@
             <!-- ============================================================ -->
             <!-- СЕКЦІЯ: ПРОФІЛЬ -->
             <!-- ============================================================ -->
+            <!-- Секція профілю в settings.html -->
+            <!-- templates/settings.html (тільки секція профілю) -->
+            <!-- Секція профілю -->
             <div class="settings-section active" id="section-profile">
                 <div class="card settings-card animate-fade">
                     <div class="card-header">
@@ -321,6 +324,7 @@
                                     <label class="form-label">Ім'я користувача</label>
                                     <input type="text" class="form-control" name="username"
                                            th:value="${#authentication.name}" required>
+                                    <div class="form-text">Використовується для входу в систему</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Email</label>
@@ -348,37 +352,7 @@
                         </form>
                     </div>
                 </div>
-
-                <!-- Статистика акаунта -->
-                <div class="card settings-card mt-3 animate-fade delay-1">
-                    <div class="card-header">
-                        <i class="fas fa-chart-simple me-2"></i> Статистика акаунта
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3 text-center">
-                            <div class="col-4">
-                                <div class="p-2 border rounded">
-                                    <div class="text-muted small">Всього транзакцій</div>
-                                    <div class="h4 mb-0" id="totalTransactions">0</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-2 border rounded">
-                                    <div class="text-muted small">Категорій</div>
-                                    <div class="h4 mb-0" id="totalCategories">0</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-2 border rounded">
-                                    <div class="text-muted small">Днів з даними</div>
-                                    <div class="h4 mb-0" id="totalDays">0</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-
             <!-- ============================================================ -->
             <!-- СЕКЦІЯ: КАТЕГОРІЇ -->
             <!-- ============================================================ -->

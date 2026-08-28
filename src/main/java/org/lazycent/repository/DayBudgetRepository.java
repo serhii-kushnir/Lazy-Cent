@@ -1,3 +1,4 @@
+// DayBudgetRepository.java – додаємо EntityGraph для завантаження даних
 package org.lazycent.repository;
 
 import org.lazycent.model.DayBudget;
@@ -22,6 +23,4 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     List<DayBudget> findByOwnerAndDateBetween(User owner, LocalDate start, LocalDate end);
 
     long countByOwner(User owner);
-
-
 }

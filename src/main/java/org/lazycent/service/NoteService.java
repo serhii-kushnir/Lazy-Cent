@@ -1,4 +1,4 @@
-// service/NoteService.java
+// NoteService.java
 package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
@@ -47,26 +47,33 @@ public class NoteService {
 
     @Transactional(readOnly = true)
     public List<Note> getActiveNotes(User user) {
+        if (user == null) {
+            return List.of();
+        }
         return noteRepository.findByOwnerAndArchivedFalseOrderByPinnedDescUpdatedAtDesc(user);
     }
 
     @Transactional(readOnly = true)
     public List<Note> getArchivedNotes(User user) {
+        if (user == null) {
+            return List.of();
+        }
         return noteRepository.findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(user);
     }
 
     @Transactional(readOnly = true)
     public List<Note> searchNotes(User user, String query) {
+        if (user == null) {
+            return List.of();
+        }
         return noteRepository.searchNotes(user, query);
     }
 
     @Transactional(readOnly = true)
-    public List<Note> searchNotes(User user, boolean archived, String query) {
-        return noteRepository.searchNotes(user, archived, query);
-    }
-
-    @Transactional(readOnly = true)
     public Note getNoteById(Long id, User user) {
+        if (user == null) {
+            throw new RuntimeException("Користувач не знайдений");
+        }
         Note note = noteRepository.findById(id).orElseThrow(() -> new RuntimeException("Note not found"));
         if (!note.getOwner().equals(user)) {
             throw new RuntimeException("Access denied");

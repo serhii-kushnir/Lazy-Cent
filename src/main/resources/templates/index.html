@@ -41,7 +41,6 @@
         }
         .quick-link { text-decoration: none; color: inherit; }
 
-        /* ЗБІЛЬШЕНА КНОПКА ДОДАВАННЯ */
         .btn-add-transaction {
             padding: 1.2rem 3.5rem !important;
             font-size: 1.5rem !important;
@@ -114,6 +113,19 @@
         [data-bs-theme="dark"] .btn-close { filter: invert(1); }
         [data-bs-theme="dark"] .form-check-label { color: #e6e6e6; }
         [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
+
+        .stat-card {
+            border-radius: 0.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .stat-card .stat-icon {
+            font-size: 1.8rem;
+            opacity: 0.5;
+        }
     </style>
     <div th:replace="~{fragments :: themeAssets}"></div>
 </head>
@@ -125,6 +137,24 @@
 <div th:replace="~{fragments :: toastContainer}"></div>
 
 <div class="container mt-4">
+
+    <!-- ===== БАНЕР ДЕМО-ДАНИХ ===== -->
+    <div th:if="${showDemoBanner}" class="alert alert-info alert-dismissible fade show animate-fade-up" role="alert">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Ласкаво просимо до Lazy Cent!</strong>
+                <span class="d-none d-sm-inline">Додайте демонстраційні дані, щоб побачити, як працює додаток.</span>
+            </div>
+            <form th:action="@{/generate-demo}" method="post" style="display: inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fas fa-magic me-1"></i> Додати демо-дані
+                </button>
+            </form>
+        </div>
+    </div>
+
     <div class="row mb-4">
         <div class="col text-center animate-fade-down">
             <h1 class="display-4"><i class="fas fa-coins text-warning"></i> Lazy Cent</h1>
@@ -133,22 +163,65 @@
         </div>
     </div>
 
+    <!-- ===== СТАТИСТИКА ===== -->
+    <div class="row mb-4 animate-fade-up delay-1">
+        <div class="col-12">
+            <h3 class="text-center mb-3"><i class="fas fa-chart-simple text-primary"></i> Ваша фінансова статистика</h3>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-sun me-2"></i> Сьогодні
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-calendar-week me-2"></i> Цей тиждень
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-calendar-alt me-2"></i> Цей місяць
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== КНОПКА ДОДАВАННЯ ===== -->
     <div class="row mb-5">
         <div class="col-12 text-center animate-scale delay-1">
             <h3 class="mb-4"><i class="fas fa-plus-circle text-success"></i> Швидке додавання</h3>
-            <!-- Єдина кнопка для відкриття модального вікна - ЗБІЛЬШЕНА -->
             <button class="btn btn-primary btn-add-transaction" data-bs-toggle="modal" data-bs-target="#transactionModal">
                 <i class="fas fa-plus me-2"></i> Додати транзакцію
             </button>
         </div>
     </div>
 
+    <!-- ===== ШВИДКИЙ ДОСТУП ===== -->
     <div class="row mb-5">
         <div class="col-12">
             <h3 class="text-center mb-4 animate-fade-down delay-1"><i class="fas fa-bolt text-primary"></i> Швидкий доступ</h3>
         </div>
 
-        <!-- Картка "Бюджет" -->
         <div class="col-md-3 mb-3 animate-fade-up delay-1">
             <a href="/budget" class="quick-link">
                 <div class="card feature-card text-center bg-primary text-white h-100">
@@ -161,7 +234,6 @@
             </a>
         </div>
 
-        <!-- Картка "Підсумки" -->
         <div class="col-md-3 mb-3 animate-fade-up delay-2">
             <a href="/totals" class="quick-link">
                 <div class="card feature-card text-center bg-success text-white h-100">
@@ -174,7 +246,6 @@
             </a>
         </div>
 
-        <!-- Картка "Всі дні" -->
         <div class="col-md-3 mb-3 animate-fade-up delay-3">
             <a href="/all-days" class="quick-link">
                 <div class="card feature-card text-center bg-info text-white h-100">
@@ -187,7 +258,6 @@
             </a>
         </div>
 
-        <!-- Нова картка "Нотатки" -->
         <div class="col-md-3 mb-3 animate-fade-up delay-4">
             <a href="/notes" class="quick-link">
                 <div class="card feature-card text-center bg-warning text-dark h-100">
@@ -201,54 +271,24 @@
         </div>
     </div>
 
-    <!-- Статистика за день, тиждень, місяць -->
-    <div class="row mb-4 animate-fade-up delay-1">
-        <div class="col-12">
-            <h3 class="text-center mb-3"><i class="fas fa-chart-simple text-primary"></i> Ваша фінансова статистика</h3>
-        </div>
-        <!-- Сьогодні -->
-        <div class="col-md-4 mb-3 animate-fade-up delay-1">
-            <div class="card h-100 text-center">
-                <div class="card-header bg-primary text-white">
-                    <i class="fas fa-sun me-2"></i> Сьогодні
+    <!-- ===== ІНФОРМАЦІЯ ===== -->
+    <div class="row">
+        <div class="col-12 animate-fade-up delay-4">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fas fa-info-circle me-2"></i> Інформація
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                </div>
-            </div>
-        </div>
-        <!-- Тиждень -->
-        <div class="col-md-4 mb-3 animate-fade-up delay-2">
-            <div class="card h-100 text-center">
-                <div class="card-header bg-success text-white">
-                    <i class="fas fa-calendar-week me-2"></i> Цей тиждень
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                </div>
-            </div>
-        </div>
-        <!-- Місяць -->
-        <div class="col-md-4 mb-3 animate-fade-up delay-3">
-            <div class="card h-100 text-center">
-                <div class="card-header bg-info text-white">
-                    <i class="fas fa-calendar-alt me-2"></i> Цей місяць
-                </div>
-                <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 0, 'POINT')} + ' ₴'">0 ₴</strong></p>
+                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій витрат: <span id="expenseCount">0</span></p>
+                    <p><i class="fas fa-check-circle text-success me-2"></i> Всього категорій доходів: <span id="incomeCount">0</span></p>
+                    <p><i class="fas fa-calendar me-2"></i> <span th:text="${#temporals.format(today, 'MMMM yyyy')}"></span></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ТРАНЗАКЦІЇ ===== -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -350,7 +390,6 @@
     (function() {
         'use strict';
 
-        // ---- ЕЛЕМЕНТИ ----
         const typeExpenseBtn = document.getElementById('typeExpenseBtn');
         const typeIncomeBtn = document.getElementById('typeIncomeBtn');
         const transactionType = document.getElementById('transactionType');
@@ -362,7 +401,6 @@
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
 
-        // ---- КАТЕГОРІЇ з моделі ----
         let expenseCategories = /*[[${expenseCategories}]]*/ [];
         let incomeCategories = /*[[${incomeCategories}]]*/ [];
 
@@ -388,7 +426,6 @@
             }
         }
 
-        // ---- ВСТАНОВЛЕННЯ ТИПУ ----
         function setTransactionType(type) {
             if (!transactionType) return;
             const dateVal = document.getElementById('transactionDate').value;
@@ -408,8 +445,6 @@
             }
         }
 
-        // ---- ІНІЦІАЛІЗАЦІЯ ----
-        // Якщо категорії порожні – завантажуємо через fetch
         if (!expenseCategories || expenseCategories.length === 0) {
             fetch('/categories/expense')
                 .then(r => r.json())
@@ -429,14 +464,11 @@
                 .catch(err => console.warn('Помилка завантаження доходів:', err));
         }
 
-        // Встановлюємо початковий тип
         setTransactionType('EXPENSE');
 
-        // ---- ПЕРЕМИКАННЯ ТИПУ ----
         typeExpenseBtn.addEventListener('click', function() { setTransactionType('EXPENSE'); });
         typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
 
-        // ---- КНОПКИ +/- ДЛЯ СУМИ ----
         if (amountInput) {
             document.getElementById('amountMinus').addEventListener('click', function() {
                 let val = parseFloat(amountInput.value) || 0;
@@ -456,7 +488,6 @@
             });
         }
 
-        // ---- КНОПКИ +/- ДЛЯ КІЛЬКОСТІ ----
         if (quantityInput) {
             document.getElementById('quantityMinus').addEventListener('click', function() {
                 let val = parseInt(quantityInput.value) || 1;
@@ -468,7 +499,6 @@
             });
         }
 
-        // ---- ЛІЧИЛЬНИК СИМВОЛІВ ----
         if (detailsTextarea && charCount) {
             detailsTextarea.addEventListener('input', function() {
                 const len = this.value.length;
@@ -478,7 +508,6 @@
             charCount.textContent = detailsTextarea.value.length;
         }
 
-        // ---- АВТОЗАПОВНЕННЯ ЧАСУ ----
         if (modal) {
             modal.addEventListener('show.bs.modal', function() {
                 const timeInput = document.getElementById('transactionTime');
@@ -488,7 +517,6 @@
                     const minutes = String(now.getMinutes()).padStart(2, '0');
                     timeInput.value = hours + ':' + minutes;
                 }
-                // Оновлюємо категорії при відкритті
                 const currentType = transactionType.value;
                 if (currentType === 'EXPENSE') populateCategories(expenseCategories);
                 else populateCategories(incomeCategories);
@@ -506,7 +534,6 @@
             });
         }
 
-        // ---- ВАЛІДАЦІЯ ----
         if (transactionForm) {
             transactionForm.addEventListener('submit', function(e) {
                 let valid = true;
@@ -542,10 +569,8 @@
             });
         }
 
-        // ---- TOOLTIPS ----
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
 
-        // ---- ЛІЧИЛЬНИКИ КАТЕГОРІЙ ----
         if (expenseCategories && expenseCategories.length > 0) {
             document.getElementById('expenseCount').textContent = expenseCategories.length;
         }
