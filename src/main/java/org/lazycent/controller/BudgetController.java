@@ -28,7 +28,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.lazycent.model.dto.CategoryBudgetDto;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -36,6 +39,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -147,6 +151,7 @@ public class BudgetController {
 
     // ==================== БЮДЖЕТ ====================
 
+    // BudgetController.java – оновлений метод viewBudget з передачею даних для діаграм
     @GetMapping("/budget")
     public String viewBudget(
             @RequestParam(value = "month", required = false) Integer month,
@@ -164,46 +169,58 @@ public class BudgetController {
 
         BudgetDashboardDto dashboard = budgetPlanningService.getDashboard(user, month, year);
 
+        // 👇 Створюємо Map<String, Double> для діаграм
+        Map<String, Double> categoryExpenses = new LinkedHashMap<>();
+        if (dashboard.getCategoryExpenses() != null) {
+            for (Map.Entry<Category, Double> entry : dashboard.getCategoryExpenses().entrySet()) {
+                if (entry.getValue() > 0) {
+                    categoryExpenses.put(entry.getKey().getName(), entry.getValue());
+                }
+            }
+        }
+
         model.addAttribute("dashboard", dashboard);
         model.addAttribute("month", month);
         model.addAttribute("year", year);
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories(user));
+        model.addAttribute("categoryExpenses", categoryExpenses); // 👈 новий атрибут
 
         return "budget";
     }
 
+    // BudgetController.java – виправлені методи збереження бюджету та ліміту
+
     @PostMapping("/budget/plan")
     public String saveBudgetPlan(@RequestParam Double totalBudget,
+                                 @RequestParam("month") Integer month,
+                                 @RequestParam("year") Integer year,
                                  Authentication authentication,
                                  RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
         }
-        int month = budgetPlanningService.getCurrentMonth();
-        int year = budgetPlanningService.getCurrentYear();
         budgetPlanningService.saveOrUpdateBudgetPlan(currentUser, month, year, totalBudget);
         redirectAttributes.addFlashAttribute("successMessage", "Бюджет збережено!");
-        return "redirect:/budget";
+        return "redirect:/budget?month=" + month + "&year=" + year;
     }
 
     @PostMapping("/budget/category-limit")
     public String saveCategoryLimit(@RequestParam Long categoryId,
                                     @RequestParam Double limitAmount,
                                     @RequestParam(required = false) String note,
+                                    @RequestParam("month") Integer month,
+                                    @RequestParam("year") Integer year,
                                     Authentication authentication,
                                     RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
         }
-        int month = budgetPlanningService.getCurrentMonth();
-        int year = budgetPlanningService.getCurrentYear();
         budgetPlanningService.saveCategoryLimit(currentUser, categoryId, month, year, limitAmount, note);
         redirectAttributes.addFlashAttribute("successMessage", "Ліміт для категорії збережено!");
-        return "redirect:/budget";
+        return "redirect:/budget?month=" + month + "&year=" + year;
     }
-
     // ==================== ДЕНЬ ====================
 
     @GetMapping("/day/{date}")
@@ -632,5 +649,112 @@ public class BudgetController {
             return (User) principal;
         }
         return null;
+    }
+
+    // BudgetController.java – додати метод для експорту бюджету в Excel
+
+    @GetMapping("/export/budget")
+    public ResponseEntity<byte[]> exportBudgetToExcel(
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "year", required = false) Integer year,
+            Authentication authentication) throws Exception {
+
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        if (month == null) month = LocalDate.now().getMonthValue();
+        if (year == null) year = LocalDate.now().getYear();
+
+        BudgetDashboardDto dashboard = budgetPlanningService.getDashboard(currentUser, month, year);
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Бюджет");
+
+            // Стилі
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setBorderBottom(BorderStyle.THIN);
+            headerStyle.setBorderTop(BorderStyle.THIN);
+            headerStyle.setBorderLeft(BorderStyle.THIN);
+            headerStyle.setBorderRight(BorderStyle.THIN);
+
+            CellStyle numberStyle = workbook.createCellStyle();
+            numberStyle.setAlignment(HorizontalAlignment.RIGHT);
+            numberStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
+
+            // Заголовок
+            Row titleRow = sheet.createRow(0);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("Бюджет на " + month + "/" + year);
+            titleCell.setCellStyle(headerStyle);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
+
+            // Загальна інформація
+            int rowNum = 2;
+            Row infoRow = sheet.createRow(rowNum++);
+            infoRow.createCell(0).setCellValue("Загальний бюджет:");
+            infoRow.createCell(1).setCellValue(dashboard.getTotalBudget());
+
+            infoRow = sheet.createRow(rowNum++);
+            infoRow.createCell(0).setCellValue("Витрачено:");
+            infoRow.createCell(1).setCellValue(dashboard.getTotalExpenses());
+
+            infoRow = sheet.createRow(rowNum++);
+            infoRow.createCell(0).setCellValue("Залишок:");
+            infoRow.createCell(1).setCellValue(dashboard.getRemainingBudget());
+
+            infoRow = sheet.createRow(rowNum++);
+            infoRow.createCell(0).setCellValue("Прогноз:");
+            infoRow.createCell(1).setCellValue(dashboard.getProjectedBalance());
+
+            rowNum++; // порожній рядок
+
+            // Таблиця категорій
+            Row headerRow = sheet.createRow(rowNum++);
+            headerRow.createCell(0).setCellValue("Категорія");
+            headerRow.createCell(1).setCellValue("Витрачено");
+            headerRow.createCell(2).setCellValue("Ліміт");
+            headerRow.createCell(3).setCellValue("Використано %");
+            headerRow.createCell(4).setCellValue("Статус");
+
+            for (int i = 0; i <= 4; i++) {
+                headerRow.getCell(i).setCellStyle(headerStyle);
+            }
+
+            for (CategoryBudgetDto catDto : dashboard.getCategories()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(catDto.getCategory().getName());
+                row.createCell(1).setCellValue(catDto.getSpent());
+                row.createCell(1).setCellStyle(numberStyle);
+                row.createCell(2).setCellValue(catDto.getLimit());
+                row.createCell(2).setCellStyle(numberStyle);
+                row.createCell(3).setCellValue(catDto.getPercentUsed());
+                row.createCell(4).setCellValue(catDto.getStatus());
+            }
+
+            // Автовиправлення ширини колонок
+            for (int i = 0; i <= 4; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            byte[] bytes = out.toByteArray();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            String filename = "budget_" + month + "_" + year + "_" + LocalDate.now().format(dateFormatter) + ".xlsx";
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(bytes.length);
+
+            return ResponseEntity.ok().headers(headers).body(bytes);
+        }
     }
 }

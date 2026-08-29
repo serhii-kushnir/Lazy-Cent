@@ -35,33 +35,13 @@
             to   { opacity: 1; transform: translateX(0); }
         }
 
-        /* Класи для анімацій */
-        .animate-fade-up {
-            animation: fadeInUp 0.5s ease forwards;
-            opacity: 0;
-        }
-        .animate-fade-down {
-            animation: fadeInDown 0.4s ease forwards;
-            opacity: 0;
-        }
-        .animate-fade {
-            animation: fadeIn 0.6s ease forwards;
-            opacity: 0;
-        }
-        .animate-scale {
-            animation: scaleIn 0.5s ease forwards;
-            opacity: 0;
-        }
-        .animate-slide-left {
-            animation: slideInLeft 0.5s ease forwards;
-            opacity: 0;
-        }
-        .animate-slide-right {
-            animation: slideInRight 0.5s ease forwards;
-            opacity: 0;
-        }
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+        .animate-fade { animation: fadeIn 0.6s ease forwards; opacity: 0; }
+        .animate-scale { animation: scaleIn 0.5s ease forwards; opacity: 0; }
+        .animate-slide-left { animation: slideInLeft 0.5s ease forwards; opacity: 0; }
+        .animate-slide-right { animation: slideInRight 0.5s ease forwards; opacity: 0; }
 
-        /* Затримки для елементів */
         .delay-1  { animation-delay: 0.05s; }
         .delay-2  { animation-delay: 0.10s; }
         .delay-3  { animation-delay: 0.15s; }
@@ -73,10 +53,32 @@
         .delay-9  { animation-delay: 0.45s; }
         .delay-10 { animation-delay: 0.50s; }
 
-        /* Існуючі стилі */
+        /* ===== ЗАГАЛЬНІ СТИЛІ ===== */
         .budget-card {
             border-radius: 1rem;
         }
+        .budget-card .card-body {
+            padding: 0.75rem 1rem !important;
+        }
+        .budget-card h3 {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.25rem;
+        }
+        .budget-card h4 {
+            font-size: 1.1rem !important;
+            margin-bottom: 0.1rem;
+        }
+        .budget-card h6 {
+            font-size: 0.75rem !important;
+            margin-bottom: 0.25rem;
+        }
+        .budget-card small {
+            font-size: 0.65rem !important;
+        }
+        .budget-card .card-body .text-muted {
+            font-size: 0.75rem;
+        }
+
         .progress-bar-custom {
             height: 10px;
             border-radius: 10px;
@@ -101,25 +103,6 @@
         .month-nav .btn, .month-nav .form-select {
             min-width: 60px;
         }
-        @media (max-width: 576px) {
-            .month-nav .btn, .month-nav .form-select {
-                font-size: 0.8rem;
-                padding: 0.25rem 0.5rem;
-                min-width: 50px;
-            }
-        }
-        .budget-card .card-body {
-            padding: 1.5rem;
-        }
-        .budget-card h3 {
-            font-size: 2rem;
-        }
-        @media (max-width: 768px) {
-            .budget-card h3 {
-                font-size: 1.5rem;
-            }
-        }
-        /* Стилі для сучасної навігації */
         .month-nav .dropdown-menu {
             min-width: 220px;
         }
@@ -136,6 +119,49 @@
         [data-bs-theme="dark"] .month-nav .btn-outline-secondary {
             border-color: #495057;
         }
+        @media (max-width: 576px) {
+            .month-nav .btn, .month-nav .form-select {
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+                min-width: 50px;
+            }
+            .budget-card h3 {
+                font-size: 1.2rem !important;
+            }
+            .budget-card .card-body {
+                padding: 0.5rem 0.75rem !important;
+            }
+        }
+
+        .action-buttons .btn {
+            border-radius: 50px !important;
+            padding: 0.4rem 1.2rem;
+            font-size: 0.85rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .action-buttons .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .action-buttons .btn i {
+            margin-right: 0.4rem;
+        }
+
+        @media print {
+            .no-print, .month-nav, .action-buttons, .btn, .modal, .modal-backdrop,
+            .navbar, footer, .d-print-none, .no-print { display: none !important; }
+            .d-print-block { display: block !important; }
+            .container-fluid { max-width: 100% !important; padding: 10px !important; }
+            .card { border: 1px solid #ddd !important; box-shadow: none !important; }
+            .card-header { background: #f8f9fa !important; }
+            .table th { background: #f8f9fa !important; }
+            .print-header { display: flex !important; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #333; }
+            .print-header .logo { font-size: 1.2rem; font-weight: 700; }
+            .print-footer { text-align: center; font-size: 0.7rem; color: #666; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
+            .chart-container canvas { max-height: 200px !important; max-width: 200px !important; }
+            .budget-card { page-break-inside: avoid; }
+            .table-responsive { overflow: visible !important; }
+        }
     </style>
 </head>
 <body>
@@ -145,15 +171,22 @@
 
 <div class="container-fluid mt-4">
 
-    <!-- ===== СУЧАСНА НАВІГАЦІЯ ПО МІСЯЦЯХ ===== -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 month-nav animate-fade-down">
+    <!-- ===== 1. ЗАГОЛОВОК ===== -->
+    <div class="d-flex justify-content-between align-items-center mb-3 animate-fade-up">
+        <h2><i class="fas fa-wallet me-2"></i>Бюджет на <span th:text="${month} + '/' + ${year}"></span></h2>
+    </div>
+
+    <div class="print-header d-print-flex" style="display: none;">
+        <span class="logo">💰 LazyCent</span>
+        <h2>Бюджет на <span th:text="${month} + '/' + ${year}"></span></h2>
+    </div>
+
+    <!-- ===== 2. НАВІГАЦІЯ ===== -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 month-nav no-print animate-fade-down">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <!-- Стрілка вліво -->
             <a th:href="@{/budget(month=${month - 1}, year=${month == 1 ? year - 1 : year})}" class="btn btn-outline-secondary">
                 <i class="fas fa-chevron-left"></i>
             </a>
-
-            <!-- Кнопка з поточним місяцем/роком, яка відкриває випадаючий список -->
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <span th:text="${month} + '/' + ${year}"></span>
@@ -178,33 +211,29 @@
                     </form>
                 </div>
             </div>
-
-            <!-- Стрілка вправо -->
             <a th:href="@{/budget(month=${month + 1}, year=${month == 12 ? year + 1 : year})}" class="btn btn-outline-secondary">
                 <i class="fas fa-chevron-right"></i>
             </a>
-
-            <!-- Кнопка "Сьогодні" -->
             <a th:href="@{/budget}" class="btn btn-outline-primary">
                 <i class="fas fa-calendar-alt"></i> Сьогодні
             </a>
         </div>
 
-        <!-- Кнопка встановлення бюджету -->
-        <div>
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#setBudgetModal">
+        <div class="d-flex gap-2 flex-wrap action-buttons no-print">
+            <a th:href="@{/export/budget(month=${month}, year=${year})}" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Експорт
+            </a>
+            <button class="btn btn-warning" onclick="window.print()">
+                <i class="fas fa-print"></i> Друк
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#setBudgetModal">
                 <i class="fas fa-edit me-1"></i> Встановити бюджет
             </button>
         </div>
     </div>
 
-    <!-- Заголовок -->
-    <div class="d-flex justify-content-between align-items-center mb-4 animate-fade-up">
-        <h2><i class="fas fa-wallet me-2"></i>Бюджет на <span th:text="${month} + '/' + ${year}"></span></h2>
-    </div>
-
-    <!-- Картки загального бюджету -->
-    <div class="row g-4 mb-4">
+    <!-- ===== 3. КАРТКИ ===== -->
+    <div class="row g-2 mb-4">
         <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-1">
             <div class="card budget-card h-100">
                 <div class="card-body text-center">
@@ -242,8 +271,8 @@
         </div>
     </div>
 
-    <!-- Прогрес-бар загального бюджету -->
-    <div class="mb-4 animate-fade-up delay-5">
+    <!-- ===== 4. ПРОГРЕС-БАР ===== -->
+    <div class="mb-3 animate-fade-up delay-5">
         <div class="d-flex justify-content-between">
             <span>Використано бюджету</span>
             <span th:text="${#numbers.formatDecimal(dashboard.totalExpenses / (dashboard.totalBudget > 0 ? dashboard.totalBudget : 1) * 100, 1, 'COMMA', 0, 'POINT')} + '%'"></span>
@@ -258,7 +287,7 @@
     </div>
 
     <div class="row">
-        <!-- Ліва колонка: категорії з лімітами -->
+        <!-- ===== 5. ЛІВА КОЛОНКА: КАТЕГОРІЇ ===== -->
         <div class="col-lg-8 animate-slide-left delay-6">
             <div class="card">
                 <div class="card-header-custom">
@@ -308,7 +337,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${dashboard.categories.empty}">
-                                <td colspan="6" class="text-center text-muted">Немає категорій з лімітами. Додайте ліміти, щоб відстежувати витрати.</td>
+                                <td colspan="6" class="text-center text-muted">Немає категорій з лімітами.</td>
                             </tr>
                             </tbody>
                         </table>
@@ -317,31 +346,33 @@
             </div>
         </div>
 
-        <!-- Права колонка: графіки -->
+        <!-- ===== 6. ПРАВА КОЛОНКА: ГРАФІКИ ===== -->
         <div class="col-lg-4 animate-slide-right delay-7">
             <div class="card mb-3">
                 <div class="card-header-custom">
                     <i class="fas fa-chart-pie me-2"></i> Розподіл витрат
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body text-center" id="pieChartContainer">
                     <canvas id="expensePieChart" style="max-width: 100%; max-height: 250px;"></canvas>
                 </div>
             </div>
             <div class="card">
                 <div class="card-header-custom">
-                    <i class="fas fa-chart-line me-2"></i> Динаміка витрат (останні 7 днів)
+                    <i class="fas fa-chart-line me-2"></i> Динаміка витрат за місяць
                 </div>
-                <div class="card-body">
+                <div class="card-body" id="lineChartContainer">
                     <canvas id="expenseLineChart" style="max-width: 100%; max-height: 200px;"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="print-footer d-print-block" style="display: none;">
+        © 2026 LazyCent - Ваш фінансовий помічник
+    </div>
 </div>
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-
 <!-- Встановлення загального бюджету -->
 <div class="modal fade" id="setBudgetModal" tabindex="-1">
     <div class="modal-dialog">
@@ -450,18 +481,20 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // ================================================================
-        // Отримуємо дані з моделі через Thymeleaf як JSON-рядки
+        // ДАНІ ДЛЯ ДІАГРАМ
         // ================================================================
         let categoryData = /*[[${dashboard.categoryExpenses}]]*/ {};
         let dailyData = /*[[${dashboard.dailyExpenses}]]*/ {};
 
-        // Перетворюємо Map<Category, Double> в масиви для діаграм
+        // ================================================================
+        // КРУГОВА ДІАГРАМА
+        // ================================================================
         let categoryLabels = [];
         let categoryValues = [];
 
         if (typeof categoryData === 'object' && categoryData !== null) {
             for (let key in categoryData) {
-                if (categoryData.hasOwnProperty(key)) {
+                if (categoryData.hasOwnProperty(key) && categoryData[key] > 0) {
                     categoryLabels.push(key);
                     categoryValues.push(categoryData[key]);
                 }
@@ -483,23 +516,19 @@
             });
         }
 
-        let dailyLabels = [];
-        let dailyValues = [];
-        if (typeof dailyData === 'object' && dailyData !== null) {
-            const sortedDates = Object.keys(dailyData).sort();
-            const last7 = sortedDates.slice(-7);
-            dailyLabels = last7;
-            dailyValues = last7.map(d => dailyData[d] || 0);
-        }
-
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js не завантажено');
-            return;
-        }
-
-        // Кругова діаграма (топ-5 категорій)
+        const pieContainer = document.getElementById('pieChartContainer');
         const pieCtx = document.getElementById('expensePieChart');
-        if (pieCtx && categoryLabels.length > 0) {
+
+        if (categoryLabels.length === 0) {
+            if (pieContainer) {
+                pieContainer.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-chart-pie fa-3x mb-2 opacity-50"></i>
+                        <p>Немає даних для відображення</p>
+                    </div>
+                `;
+            }
+        } else if (pieCtx && typeof Chart !== 'undefined') {
             const combined = categoryLabels.map((label, idx) => ({ label, value: categoryValues[idx] }));
             combined.sort((a, b) => b.value - a.value);
             const top5 = combined.slice(0, 5);
@@ -532,18 +561,54 @@
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 10,
+                                font: { size: 11 },
+                                color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e6e6e6' : '#212529'
+                            }
+                        }
                     },
                     cutout: '60%'
                 }
             });
-        } else if (pieCtx) {
-            pieCtx.parentElement.innerHTML = '<p class="text-muted">Немає даних для відображення</p>';
         }
 
-        // Лінійна діаграма (останні 7 днів)
+        // ================================================================
+        // ЛІНІЙНА ДІАГРАМА – ВЕСЬ МІСЯЦЬ
+        // ================================================================
+        let dailyLabels = [];
+        let dailyValues = [];
+
+        if (typeof dailyData === 'object' && dailyData !== null) {
+            // Беремо всі дати, сортуємо за зростанням
+            const allDates = Object.keys(dailyData).sort();
+            dailyLabels = allDates;
+            dailyValues = allDates.map(d => dailyData[d] || 0);
+        }
+
+        // Якщо даних немає – генеруємо всі дні поточного місяця з нулями
+        const lineContainer = document.getElementById('lineChartContainer');
         const lineCtx = document.getElementById('expenseLineChart');
-        if (lineCtx && dailyLabels.length > 0) {
+
+        if (dailyLabels.length === 0) {
+            // Отримуємо поточний місяць та рік
+            const year = /*[[${year}]]*/ 2026;
+            const month = /*[[${month}]]*/ 8;
+            const daysInMonth = new Date(year, month, 0).getDate(); // останній день місяця
+            const dates = [];
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+                dates.push(dateStr);
+            }
+            dailyLabels = dates;
+            dailyValues = new Array(daysInMonth).fill(0);
+        }
+
+        if (lineCtx && typeof Chart !== 'undefined') {
             new Chart(lineCtx, {
                 type: 'line',
                 data: {
@@ -555,30 +620,51 @@
                         backgroundColor: 'rgba(220, 53, 69, 0.1)',
                         fill: true,
                         tension: 0.3,
-                        pointBackgroundColor: '#dc3545'
+                        pointBackgroundColor: '#dc3545',
+                        pointRadius: 2,
+                        pointHoverRadius: 5
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: true,
                     plugins: {
-                        legend: { display: false }
+                        legend: {
+                            display: false
+                        }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                callback: function(value) { return value + ' ₴'; }
+                                callback: function(value) { return value + ' ₴'; },
+                                color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e6e6e6' : '#212529',
+                                maxTicksLimit: 8
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e6e6e6' : '#212529',
+                                maxRotation: 45,
+                                minRotation: 30,
+                                autoSkip: true,
+                                maxTicksLimit: 15
                             }
                         }
                     }
                 }
             });
-        } else if (lineCtx) {
-            lineCtx.parentElement.innerHTML = '<p class="text-muted">Немає даних за останні 7 днів</p>';
+        } else if (lineContainer && !lineCtx) {
+            lineContainer.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-chart-line fa-2x mb-2 opacity-50"></i>
+                    <p>Немає даних за цей місяць</p>
+                </div>
+            `;
         }
 
         // ================================================================
-        // Редагування ліміту (кнопки)
+        // РЕДАГУВАННЯ ЛІМІТУ
         // ================================================================
         window.editCategoryLimit = function(btn) {
             const id = btn.dataset.id;
@@ -593,5 +679,6 @@
         };
     });
 </script>
+
 </body>
 </html>

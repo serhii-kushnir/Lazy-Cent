@@ -77,16 +77,19 @@ public class BudgetPlanningService {
         BudgetPlan plan = getBudgetPlan(user, month, year);
         Double totalBudget = plan != null ? plan.getTotalBudget() : 0.0;
 
+        // Отримуємо всі дні місяця з транзакціями
         List<DayBudget> dayBudgets = dayBudgetRepository.findByOwnerAndDateBetween(user, start, end);
         Double totalExpenses = dayBudgets.stream().mapToDouble(DayBudget::getTotalExpenses).sum();
         Double totalIncomes = dayBudgets.stream().mapToDouble(DayBudget::getTotalIncomes).sum();
 
         Double remainingBudget = totalBudget - totalExpenses;
 
+        // Ліміти категорій
         List<CategoryBudgetLimit> limits = getCategoryLimits(user, month, year);
         Map<Long, Double> limitMap = limits.stream()
                 .collect(Collectors.toMap(l -> l.getCategory().getId(), CategoryBudgetLimit::getLimitAmount));
 
+        // Витрати по категоріях
         Map<Category, Double> categoryExpenses = new HashMap<>();
         for (DayBudget db : dayBudgets) {
             for (Expense e : db.getExpenses()) {
@@ -94,6 +97,7 @@ public class BudgetPlanningService {
             }
         }
 
+        // Формуємо DTO для категорій
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
         for (Map.Entry<Category, Double> entry : categoryExpenses.entrySet()) {
             Category cat = entry.getKey();
@@ -107,13 +111,22 @@ public class BudgetPlanningService {
             else status = "OVER";
             categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, Math.min(percentUsed, 100), status));
         }
+        // Сортуємо за відсотком використання (спочатку ті, що перевищили)
         categoryDtos.sort((a, b) -> Double.compare(b.getPercentUsed(), a.getPercentUsed()));
 
+        // ===== ДЕННІ ВИТРАТИ – ЗАПОВНЮЄМО ВСІ ДНІ МІСЯЦЯ =====
         Map<LocalDate, Double> dailyExpenses = new TreeMap<>();
+        LocalDate current = start;
+        while (!current.isAfter(end)) {
+            dailyExpenses.put(current, 0.0);
+            current = current.plusDays(1);
+        }
+        // Заповнюємо реальними значеннями
         for (DayBudget db : dayBudgets) {
             dailyExpenses.put(db.getDate(), db.getTotalExpenses());
         }
 
+        // Прогноз
         LocalDate today = LocalDate.now();
         int daysPassed = today.getDayOfMonth();
         int daysInMonth = start.lengthOfMonth();
