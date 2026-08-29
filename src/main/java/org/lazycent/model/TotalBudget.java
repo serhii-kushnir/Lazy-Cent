@@ -9,8 +9,8 @@ public class TotalBudget {
     private Double totalExpenses;
     private Double totalIncomes;
     private Double balance;
-    private Map<Category, Double> expensesByCategory;   // замість Expense.ExpenseCategory
-    private Map<Category, Double> incomesByCategory;    // замість Income.IncomeCategory
+    private Map<Category, Double> expensesByCategory;
+    private Map<Category, Double> incomesByCategory;
     private Map<LocalDate, DayBudgetSummary> dailySummaries;
 
     @Data

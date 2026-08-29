@@ -52,6 +52,13 @@ public class UserService {
             user.setEmail(email);
         }
 
+        // Якщо користувач через OAuth2 – зміна пароля недоступна
+        if (user.getProvider() != null && !user.getProvider().isEmpty()) {
+            // Просто ігноруємо зміну пароля
+            return;
+        }
+
+        // Зміна пароля тільки для локальних користувачів
         if (currentPassword != null && !currentPassword.isEmpty() &&
                 newPassword != null && !newPassword.isEmpty()) {
             if (!passwordEncoder.matches(currentPassword, user.getPassword())) {

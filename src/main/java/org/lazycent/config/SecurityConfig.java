@@ -1,4 +1,4 @@
-// config/SecurityConfig.java
+// SecurityConfig.java – повертаємо стандартну конфігурацію CSRF (через сесію)
 package org.lazycent.config;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/lib/**", "/css/**", "/js/**", "/webjars/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/login", "/register", "/h2-console/**", "/lib/**", "/css/**", "/js/**", "/webjars/**", "/favicon.ico").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

@@ -1,6 +1,7 @@
-// controller/AuthController.java
+// controller/AuthController.java (виправлений)
 package org.lazycent.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.lazycent.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +18,10 @@ public class AuthController {
         this.userService = userService;
     }
 
+    // ⭐ ВАЖЛИВО: створюємо сесію до рендерингу сторінки, щоб CSRF-токен був доступний
     @GetMapping("/login")
-    public String login() {
+    public String login(HttpServletRequest request) {
+        request.getSession(); // примусове створення сесії
         return "login";
     }
 

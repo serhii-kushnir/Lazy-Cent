@@ -310,6 +310,8 @@
             <!-- ============================================================ -->
             <!-- Секція профілю в settings.html -->
             <!-- templates/settings.html (тільки секція профілю) -->
+            <!-- settings.html – виправлений блок профілю (без прямого звернення до principal.provider) -->
+
             <!-- Секція профілю -->
             <div class="settings-section active" id="section-profile">
                 <div class="card settings-card animate-fade">
@@ -323,29 +325,59 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Ім'я користувача</label>
                                     <input type="text" class="form-control" name="username"
-                                           th:value="${#authentication.name}" required>
-                                    <div class="form-text">Використовується для входу в систему</div>
+                                           th:value="${#authentication.name}"
+                                           th:disabled="${isOAuth2User}"
+                                           required>
+                                    <div th:if="${isOAuth2User}" class="form-text text-muted">
+                                        <i class="fas fa-lock me-1"></i> Змінюється через <strong th:text="${providerName}"></strong>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Email</label>
                                     <input type="email" class="form-control" name="email"
-                                           placeholder="ваш@email.com" th:value="${userEmail}">
+                                           placeholder="ваш@email.com" th:value="${userEmail}"
+                                           th:disabled="${isOAuth2User}">
+                                    <div th:if="${isOAuth2User}" class="form-text text-muted">
+                                        <i class="fas fa-lock me-1"></i> Змінюється через <strong th:text="${providerName}"></strong>
+                                    </div>
                                 </div>
-                                <div class="col-12">
-                                    <hr>
-                                    <h6 class="mt-2">Зміна пароля</h6>
+
+                                <!-- Блок зміни пароля – показуємо тільки для локальних користувачів -->
+                                <div th:unless="${isOAuth2User}">
+                                    <div class="col-12">
+                                        <hr>
+                                        <h6 class="mt-2">Зміна пароля</h6>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Поточний пароль</label>
+                                        <input type="password" class="form-control" name="currentPassword" placeholder="••••••••">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Новий пароль</label>
+                                        <input type="password" class="form-control" name="newPassword" placeholder="••••••••">
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Поточний пароль</label>
-                                    <input type="password" class="form-control" name="currentPassword" placeholder="••••••••">
+
+                                <!-- Повідомлення для OAuth2-користувачів -->
+                                <div th:if="${isOAuth2User}">
+                                    <div class="col-12">
+                                        <div class="alert alert-info mt-2">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Ви зареєстровані через <strong th:text="${providerName}"></strong>.
+                                            Усі дані профілю керуються вашим обліковим записом <strong th:text="${providerName}"></strong>.
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Новий пароль</label>
-                                    <input type="password" class="form-control" name="newPassword" placeholder="••••••••">
-                                </div>
-                                <div class="col-12">
+
+                                <!-- Кнопка збереження – показуємо тільки для локальних користувачів -->
+                                <div class="col-12" th:unless="${isOAuth2User}">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save me-1"></i> Зберегти зміни
+                                    </button>
+                                </div>
+                                <div class="col-12" th:if="${isOAuth2User}">
+                                    <button type="button" class="btn btn-secondary" disabled>
+                                        <i class="fas fa-lock me-1"></i> Зміни недоступні
                                     </button>
                                 </div>
                             </div>
