@@ -17,6 +17,14 @@ public class NoteService {
     private final NoteRepository noteRepository;
 
     @Transactional
+    public void deleteAllNotes(User user) {
+        List<Note> notes = noteRepository.findByOwner(user);
+        if (!notes.isEmpty()) {
+            noteRepository.deleteAll(notes);
+        }
+    }
+
+    @Transactional
     public Note createNote(Note note) {
         return noteRepository.save(note);
     }

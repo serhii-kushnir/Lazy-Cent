@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Умови використання - Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .policy-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .policy-container h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .policy-container .last-updated {
+            color: var(--bs-secondary-color);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .policy-container h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--bs-primary);
+        }
+        .policy-container p {
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+        .policy-container ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .policy-container ul li {
+            margin-bottom: 0.5rem;
+        }
+        .policy-container .highlight-box {
+            background: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-warning);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+        [data-bs-theme="dark"] .policy-container .highlight-box {
+            background: var(--bs-tertiary-bg);
+        }
+        .back-link {
+            margin-top: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav th:replace="~{fragments :: navbarSimple}"></nav>
+
+<div class="container policy-container">
+    <h1>Умови використання</h1>
+    <p class="last-updated">Останнє оновлення: 1 серпня 2026 року</p>
+
+    <p>Ласкаво просимо до Lazy Cent! Використовуючи наш додаток, ви погоджуєтесь з наведеними нижче умовами. Будь ласка, уважно ознайомтеся з ними.</p>
+
+    <h2>1. Загальні положення</h2>
+    <ul>
+        <li>Ви повинні бути старшими 16 років для використання цього додатку.</li>
+        <li>Ви несете повну відповідальність за збереження конфіденційності вашого облікового запису та пароля.</li>
+        <li>Ви зобов’язуєтесь надавати достовірну інформацію про свої фінанси (додаток не несе відповідальності за неправильні дані).</li>
+    </ul>
+
+    <h2>2. Права та обов’язки користувача</h2>
+    <ul>
+        <li>Ви маєте право використовувати всі функції додатку відповідно до їх призначення.</li>
+        <li>Ви не повинні намагатися зламати, дезавуювати або порушувати роботу додатку.</li>
+        <li>Ви не повинні використовувати додаток для незаконних або шахрайських дій.</li>
+        <li>Ви можете експортувати або видалити свої дані в будь-який час.</li>
+    </ul>
+
+    <h2>3. Інтелектуальна власність</h2>
+    <ul>
+        <li>Всі матеріали, дизайн, логотипи та код додатку є власністю Lazy Cent.</li>
+        <li>Ви не маєте права копіювати, модифікувати або розповсюджувати будь-яку частину додатку без попередньої письмової згоди.</li>
+    </ul>
+
+    <h2>4. Відповідальність</h2>
+    <ul>
+        <li>Lazy Cent надає додаток «як є» без будь-яких гарантій. Ми не несемо відповідальності за будь-які збитки, що виникли внаслідок використання або неможливості використання додатку.</li>
+        <li>Ми не гарантуємо безперебійну роботу серверів, але докладаємо максимум зусиль для забезпечення стабільності.</li>
+        <li>Ми не несемо відповідальності за фінансові втрати або неправильні рішення, прийняті на основі даних, наданих додатком.</li>
+    </ul>
+
+    <div class="highlight-box">
+        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+        <strong>Увага:</strong> Lazy Cent є інструментом для обліку фінансів, але не надає професійних фінансових консультацій.
+    </div>
+
+    <h2>5. Зміни до умов</h2>
+    <p>Ми залишаємо за собою право змінювати ці умови в будь-який час. Про зміни буде повідомлено через додаток або електронну пошту. Ваше подальше використання додатку означає прийняття нових умов.</p>
+
+    <h2>6. Контакти</h2>
+    <p>Якщо у вас є питання щодо цих умов, будь ласка, звертайтеся до нас за адресою: <a href="mailto:support@lazycent.com">support@lazycent.com</a>.</p>
+
+    <div class="back-link">
+        <a href="/" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i>На головну</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div th:replace="~{fragments :: navbarSimpleScript}"></div>
+
+</body>
+</html>

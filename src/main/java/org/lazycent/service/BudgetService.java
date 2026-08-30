@@ -1,13 +1,12 @@
 package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lazycent.exception.EntityNotFoundException;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,21 +18,24 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BudgetService {
-
-    private static final Logger log = LoggerFactory.getLogger(BudgetService.class);
 
     private final DayBudgetRepository dayBudgetRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
     private final CategoryRepository categoryRepository;
 
+    // ДОДАЄМО НОВІ РЕПОЗИТОРІЇ
+    private final BudgetPlanRepository budgetPlanRepository;
+    private final CategoryBudgetLimitRepository categoryBudgetLimitRepository;
+
     private static final Map<Integer, String> DAY_NAMES = Map.of(
             1, "Понеділок", 2, "Вівторок", 3, "Середа", 4, "Четвер",
             5, "П'ятниця", 6, "Субота", 7, "Неділя"
     );
 
-    // ==================== ОСНОВНІ МЕТОДИ З КОРИСТУВАЧЕМ ====================
+    // ==================== ОСНОВНІ МЕТОДИ ====================
 
     @Transactional
     public DayBudget getOrCreateDayBudget(LocalDate date, User user) {
@@ -65,13 +67,13 @@ public class BudgetService {
         return DAY_NAMES.getOrDefault(date.getDayOfWeek().getValue(), "Невідомо");
     }
 
-    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ (з перевіркою категорії) ====================
+    // ==================== ДОДАВАННЯ ТРАНЗАКЦІЙ ====================
 
     @Transactional
     public void addTransaction(TransactionRequest request, TransactionType type, User user) {
         LocalDate date = request.getDate();
         DayBudget dayBudget = getOrCreateDayBudget(date, user);
-        Category category = getCategoryById(request.getCategoryId(), user); // ← перевірка власника
+        Category category = getCategoryById(request.getCategoryId(), user);
 
         if (type == TransactionType.EXPENSE) {
             Expense expense = new Expense();
@@ -162,7 +164,7 @@ public class BudgetService {
         }
     }
 
-    // ==================== ОТРИМАННЯ ДАНИХ (з фільтром за користувачем) ====================
+    // ==================== ОТРИМАННЯ ДАНИХ ====================
 
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate, User user) {
         List<DayBudget> budgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user).stream()
@@ -214,7 +216,6 @@ public class BudgetService {
         return total;
     }
 
-    // BudgetService.java – додаємо логування та перевірку на null
     public List<DayBudget> getAllBudgets(User user) {
         if (user == null) {
             log.warn("getAllBudgets: user is null");
@@ -271,7 +272,7 @@ public class BudgetService {
         return original.getDayBudget().getDate();
     }
 
-    // ==================== КАТЕГОРІЇ (тепер персональні) ====================
+    // ==================== КАТЕГОРІЇ ====================
 
     public List<Category> getExpenseCategories(User user) {
         return categoryRepository.findByTypeAndOwner("EXPENSE", user);
@@ -308,8 +309,6 @@ public class BudgetService {
         if (!category.getOwner().equals(user)) {
             throw new AccessDeniedException("Ця категорія не належить вам");
         }
-        // Можна додати перевірку, чи категорія використовується в транзакціях
-        // Якщо використовується – кинути виняток
         categoryRepository.deleteById(id);
     }
 
@@ -334,7 +333,6 @@ public class BudgetService {
         return categoryRepository.save(category);
     }
 
-    // Отримання категорії з перевіркою власника
     public Category getCategoryById(Long id, User user) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
@@ -382,7 +380,7 @@ public class BudgetService {
         expense.setDescription(description);
         expense.setAmount(amount);
         if (categoryId != null) {
-            Category category = getCategoryById(categoryId, user); // перевірка власника
+            Category category = getCategoryById(categoryId, user);
             expense.setCategory(category);
         }
         expense.setQuantity(quantity != null ? quantity : 1);
@@ -422,25 +420,7 @@ public class BudgetService {
         return saved;
     }
 
-    // ==================== ДОПОМІЖНІ МЕТОДИ ====================
-
-    public LocalDate getDateByExpense(Long expenseId, User user) {
-        Expense expense = expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
-        if (!expense.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException("Ця витрата не належить вам");
-        }
-        return expense.getDayBudget().getDate();
-    }
-
-    public LocalDate getDateByIncome(Long incomeId, User user) {
-        Income income = incomeRepository.findById(incomeId)
-                .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
-        if (!income.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException("Цей дохід не належить вам");
-        }
-        return income.getDayBudget().getDate();
-    }
+    // ==================== ВИДАЛЕННЯ ДНЯ ====================
 
     @Transactional
     public void deleteDay(Long dayBudgetId, User user) {
@@ -472,7 +452,7 @@ public class BudgetService {
         }
     }
 
-    // service/BudgetService.java - додати методи
+    // ==================== ПІДСУМКИ ====================
 
     public TotalBudget getTodaySummary(User user) {
         LocalDate today = LocalDate.now();
@@ -489,5 +469,48 @@ public class BudgetService {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
         return getTotalBudget(startOfMonth, today, user);
+    }
+
+    public LocalDate getDateByExpense(Long expenseId, User user) {
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
+        if (!expense.getDayBudget().getOwner().equals(user)) {
+            throw new AccessDeniedException("Ця витрата не належить вам");
+        }
+        return expense.getDayBudget().getDate();
+    }
+
+    public LocalDate getDateByIncome(Long incomeId, User user) {
+        Income income = incomeRepository.findById(incomeId)
+                .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
+        if (!income.getDayBudget().getOwner().equals(user)) {
+            throw new AccessDeniedException("Цей дохід не належить вам");
+        }
+        return income.getDayBudget().getDate();
+    }
+
+    // ==================== НОВИЙ МЕТОД ДЛЯ ОЧИЩЕННЯ ВСІХ ДАНИХ ====================
+
+    @Transactional
+    public void clearAllUserData(User user) {
+        // 1. Видаляємо всі дні (разом з витратами та доходами через каскад)
+        List<DayBudget> dayBudgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
+        if (!dayBudgets.isEmpty()) {
+            dayBudgetRepository.deleteAll(dayBudgets);
+        }
+
+        // 2. Видаляємо всі категорії
+        List<Category> categories = categoryRepository.findAllByOwner(user);
+        if (!categories.isEmpty()) {
+            categoryRepository.deleteAll(categories);
+        }
+
+        // 3. Видаляємо всі плани бюджету
+        budgetPlanRepository.deleteByOwner(user);
+
+        // 4. Видаляємо всі ліміти категорій
+        categoryBudgetLimitRepository.deleteByOwner(user);
+
+        log.info("Всі дані для користувача {} (id={}) видалено", user.getUsername(), user.getId());
     }
 }

@@ -1,6 +1,7 @@
 package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,11 +13,14 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j  // Додано для логування
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final DemoDataService demoDataService;
+    private final BudgetService budgetService;
+    private final NoteService noteService;
 
     @Value("${app.demo.random-days:14}")
     private int demoDays;
@@ -33,10 +37,7 @@ public class UserService {
         user.setRole("USER");
 
         User savedUser = userRepository.save(user);
-        // ✅ Тільки категорії – транзакції через банер
         demoDataService.createDefaultCategories(savedUser);
-        // ❌ НЕ створюємо транзакції автоматично
-        // demoDataService.createRandomTransactions(savedUser, demoDays);
         return savedUser;
     }
 
@@ -52,13 +53,10 @@ public class UserService {
             user.setEmail(email);
         }
 
-        // Якщо користувач через OAuth2 – зміна пароля недоступна
         if (user.getProvider() != null && !user.getProvider().isEmpty()) {
-            // Просто ігноруємо зміну пароля
             return;
         }
 
-        // Зміна пароля тільки для локальних користувачів
         if (currentPassword != null && !currentPassword.isEmpty() &&
                 newPassword != null && !newPassword.isEmpty()) {
             if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
@@ -67,6 +65,12 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(newPassword));
         }
 
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateCurrency(User user, String currency) {
+        user.setPreferredCurrency(currency);
         userRepository.save(user);
     }
 
@@ -100,9 +104,15 @@ public class UserService {
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         User savedUser = userRepository.save(newUser);
-        // ✅ Тільки категорії – транзакції через банер
         demoDataService.createDefaultCategories(savedUser);
-        // ❌ НЕ створюємо транзакції автоматично
         return savedUser;
+    }
+
+    @Transactional
+    public void deleteAccount(User user) {
+        budgetService.clearAllUserData(user);
+        noteService.deleteAllNotes(user);
+        userRepository.delete(user);
+        log.info("Акаунт користувача {} (id={}) видалено", user.getUsername(), user.getId());
     }
 }

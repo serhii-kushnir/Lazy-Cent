@@ -235,6 +235,17 @@
         .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
         [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
 
+        .category-input-group .form-select {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        .category-input-group .btn {
+            border-radius: 0 0.375rem 0.375rem 0;
+            border-left: none;
+        }
+        [data-bs-theme="dark"] .category-input-group .btn {
+            border-color: #3a3f4a;
+        }
+
         /* ===== ПЕРЕМИКАЧ ВИГЛЯДУ ===== */
         .view-toggle {
             display: flex;
@@ -718,28 +729,28 @@
                             <div class="icon-circle"><i class="fas fa-flag-checkered text-secondary fa-1x fa-sm-2x"></i></div>
                             <div class="text-truncate" style="min-width:0;">
                                 <h6 class="text-muted mb-0 small">Поч. баланс</h6>
-                                <h5 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
+                                <h5 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h5>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-arrow-up text-success fa-1x fa-sm-2x"></i></div>
                             <div class="text-truncate" style="min-width:0;">
                                 <h6 class="text-muted mb-0 small">Доходи</h6>
-                                <h5 class="mb-0 fw-bold text-success" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
+                                <h5 class="mb-0 fw-bold text-success" th:text="${#numbers.formatDecimal(dayBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h5>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-arrow-down text-danger fa-1x fa-sm-2x"></i></div>
                             <div class="text-truncate" style="min-width:0;">
                                 <h6 class="text-muted mb-0 small">Витрати</h6>
-                                <h5 class="mb-0 fw-bold text-danger" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
+                                <h5 class="mb-0 fw-bold text-danger" th:text="${#numbers.formatDecimal(dayBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h5>
                             </div>
                         </div>
                         <div class="col-6 col-sm-3 d-flex align-items-center justify-content-center gap-1 gap-sm-2">
                             <div class="icon-circle"><i class="fas fa-balance-scale fa-1x fa-sm-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
                             <div class="text-truncate" style="min-width:0;">
                                 <h6 class="text-muted mb-0 small">Баланс</h6>
-                                <h5 class="mb-0 fw-bold" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ₴'">0.00 ₴</h5>
+                                <h5 class="mb-0 fw-bold" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h5>
                             </div>
                         </div>
                     </div>
@@ -891,7 +902,7 @@
                             <td class="col-center"><span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span><span th:unless="${expense.time != null}" class="text-muted">—</span></td>
                             <td class="col-name" th:text="${expense.description}"></td>
                             <td class="col-center" th:text="${expense.quantity ?: 1}"></td>
-                            <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></td>
+                            <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-buyer-seller" th:text="${expense.buyer}"></td>
                             <td class="col-buyer-seller" th:text="${expense.seller}"></td>
                             <td class="col-details"><span th:if="${expense.details != null and expense.details.length() > 0}" th:text="${expense.details}" th:title="${expense.details}"></span><span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span></td>
@@ -909,7 +920,7 @@
                             <td class="col-center"><span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span><span th:unless="${income.time != null}" class="text-muted">—</span></td>
                             <td class="col-name" th:text="${income.description}"></td>
                             <td class="col-center" th:text="${income.quantity ?: 1}"></td>
-                            <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></td>
+                            <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-buyer-seller" th:text="${income.buyer}"></td>
                             <td class="col-buyer-seller" th:text="${income.seller}"></td>
                             <td class="col-details"><span th:if="${income.details != null and income.details.length() > 0}" th:text="${income.details}" th:title="${income.details}"></span><span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span></td>
@@ -943,7 +954,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row"><span class="label"><i class="fas fa-tag me-1"></i>Найменування</span><span class="value" th:text="${expense.description} ?: '—'"></span></div>
-                                    <div class="row"><span class="label"><i class="fas fa-coins me-1"></i>Сума</span><span class="value text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-coins me-1"></i>Сума</span><span class="value text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-hashtag me-1"></i>Кількість</span><span class="value" th:text="${expense.quantity != null ? expense.quantity : '—'}"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-user me-1"></i>Покупець</span><span class="value" th:text="${expense.buyer} ?: '—'"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-store me-1"></i>Продавець</span><span class="value" th:text="${expense.seller} ?: '—'"></span></div>
@@ -970,7 +981,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row"><span class="label"><i class="fas fa-tag me-1"></i>Найменування</span><span class="value" th:text="${income.description} ?: '—'"></span></div>
-                                    <div class="row"><span class="label"><i class="fas fa-coins me-1"></i>Сума</span><span class="value text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ₴'"></span></div>
+                                    <div class="row"><span class="label"><i class="fas fa-coins me-1"></i>Сума</span><span class="value text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-hashtag me-1"></i>Кількість</span><span class="value" th:text="${income.quantity != null ? income.quantity : '—'}"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-user me-1"></i>Покупець</span><span class="value" th:text="${income.buyer} ?: '—'"></span></div>
                                     <div class="row"><span class="label"><i class="fas fa-store me-1"></i>Продавець</span><span class="value" th:text="${income.seller} ?: '—'"></span></div>
@@ -999,6 +1010,8 @@
 <!-- ===== МОДАЛЬНІ ВІКНА (з CSRF) ===== -->
 
 <!-- Додавання транзакції -->
+<!-- day-detail.html – замініть блок модального вікна додавання транзакції (id="transactionModal") на цей -->
+
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1009,7 +1022,8 @@
             <form id="transactionForm" method="post" th:action="@{'/day/' + ${dayBudget.date} + '/expense'}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
-                    <input type="hidden" id="transactionType" name="type" value="EXPENSE">
+                    <input type="hidden" name="type" id="transactionType" value="EXPENSE">
+
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <div class="transaction-type-toggle">
@@ -1021,55 +1035,75 @@
                             </button>
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionDate" class="form-label">Дата</label>
                         <input type="date" class="form-control" id="transactionDate" name="date" th:value="${dayBudget.date}" readonly disabled>
                         <input type="hidden" name="date" th:value="${dayBudget.date}">
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionTime" class="form-label">Час (необов'язково)</label>
                         <input type="time" class="form-control" id="transactionTime" name="time" step="60">
                     </div>
+
+                    <!-- ПОЛЕ КАТЕГОРІЇ З КНОПКОЮ "+" -->
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
-                        <select class="form-select" id="categorySelect" name="categoryId" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
+                        <div class="input-group category-input-group">
+                            <select class="form-select" id="categorySelect" name="categoryId" required>
+                                <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                            </select>
+                            <a href="/settings" target="_blank" class="btn btn-outline-secondary" type="button" title="Додати нову категорію">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                        </div>
                         <div class="invalid-feedback">Виберіть категорію</div>
+                        <div class="form-text text-muted">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionName" class="form-label">Найменування</label>
-                        <input type="text" class="form-control" id="transactionName" name="description" placeholder="наприклад, Продукти, обід, канцелярія" required>
+                        <input type="text" class="form-control" id="transactionName" name="description"
+                               placeholder="наприклад, Продукти, обід, канцелярія" required>
                         <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
                     </div>
+
                     <div class="mb-3">
-                        <label for="transactionAmount" class="form-label">Сума (₴)</label>
+                        <label for="transactionAmount" class="form-label">Сума</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount" placeholder="0.0" value="0.00" required>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
+                                   placeholder="0.0" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
                         <div class="invalid-feedback">Введіть суму</div>
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
-                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity" placeholder="1" value="1" min="1">
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
+                                   placeholder="1" value="1" min="1">
                             <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
                         </div>
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
                         <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
                         <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
                     </div>
+
                     <div class="mb-3">
                         <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
-                        <textarea class="form-control" id="transactionDetails" name="details" rows="3" placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
+                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
                         <div class="char-counter"><span id="charCount">0</span> / 250</div>
                     </div>
                 </div>
@@ -1134,7 +1168,7 @@
                     <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="editExpenseDescription" required></div>
                     <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="editExpenseBuyer"></div>
                     <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="editExpenseSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required></div>
+                    <div class="mb-3"><label class="form-label">Сума</label><input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required></div>
                     <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="editExpenseTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div></div>
@@ -1165,7 +1199,7 @@
                     <div class="mb-3"><label class="form-label">Найменування</label><input type="text" name="description" class="form-control" id="editIncomeDescription" required></div>
                     <div class="mb-3"><label class="form-label">Покупець</label><input type="text" name="buyer" class="form-control" id="editIncomeBuyer"></div>
                     <div class="mb-3"><label class="form-label">Продавець</label><input type="text" name="seller" class="form-control" id="editIncomeSeller"></div>
-                    <div class="mb-3"><label class="form-label">Сума (₴)</label><input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required></div>
+                    <div class="mb-3"><label class="form-label">Сума</label><input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required></div>
                     <div class="mb-3"><label class="form-label">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label">Час</label><input type="time" class="form-control" id="editIncomeTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label">Додаткові деталі</label><textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div></div>
@@ -1223,7 +1257,7 @@
                         <input type="text" name="seller" class="form-control" id="cloneSeller">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Сума (₴)</label>
+                        <label class="form-label">Сума</label>
                         <input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required>
                     </div>
                     <div class="mb-3">
@@ -1250,6 +1284,9 @@
     </div>
 </div>
 
+<!-- Мітка для передачі символу валюти в JavaScript -->
+<span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
+
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
@@ -1257,6 +1294,11 @@
 <script>
     (function() {
         'use strict';
+
+        // ================================================================
+        // Отримуємо символ валюти з прихованого елемента
+        // ================================================================
+        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
 
         // ================================================================
         // ГЛОБАЛЬНІ ФУНКЦІЇ (доступні з будь-якого місця)
@@ -1454,7 +1496,7 @@
         }
 
         // ================================================================
-        // 5. ДІАГРАМИ (без змін)
+        // 5. ДІАГРАМИ
         // ================================================================
         const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
         function getCategoryColor(name, index) {
@@ -1488,7 +1530,8 @@
                 const catName = catCell.textContent.trim();
                 const amountCell = row.querySelector('td:nth-child(6)');
                 if (!amountCell) return;
-                const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
+                // Використовуємо динамічну валюту
+                const amountText = amountCell.textContent.trim().replace(' ' + currencySymbol, '').replace(/,/g, '');
                 const amount = parseFloat(amountText) || 0;
                 if (amount > 0) {
                     categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
@@ -1557,7 +1600,7 @@
                         html += '<tr>' +
                             '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
                             '<td class="category-col">' + name + '</td>' +
-                            '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                            '<td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td>' +
                             '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
                             '</tr>';
                     });
@@ -1603,7 +1646,7 @@
                 const catName = catCell.textContent.trim();
                 const amountCell = row.querySelector('td:nth-child(6)');
                 if (!amountCell) return;
-                const amountText = amountCell.textContent.trim().replace(' ₴', '').replace(/,/g, '');
+                const amountText = amountCell.textContent.trim().replace(' ' + currencySymbol, '').replace(/,/g, '');
                 const amount = parseFloat(amountText) || 0;
                 if (amount > 0) {
                     hasData = true;
@@ -1677,7 +1720,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return value + ' ₴';
+                                    return value + ' ' + currencySymbol;
                                 }
                             }
                         }
@@ -2513,7 +2556,7 @@
                 document.getElementById('deleteTime').textContent = time || '—';
                 document.getElementById('deleteDescription').textContent = description || '—';
                 document.getElementById('deleteQuantity').textContent = quantity || '1';
-                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ₴';
+                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ' + currencySymbol;
                 document.getElementById('deleteBuyer').textContent = buyer || '—';
                 document.getElementById('deleteSeller').textContent = seller || '—';
                 document.getElementById('deleteCategory').textContent = category || '—';

@@ -307,10 +307,12 @@
 </th:block>
 
 <!-- ===================== НАВБАР ===================== -->
-<nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
+<!-- ===================== НАВБАР (з усіма посиланнями) ===================== -->
+<nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar py-0">
+    <!-- py-0 прибирає padding-top і padding-bottom -->
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
-            <img src="/logo.png" alt="Lazy Cent" height="40" style="height: 40px; width: auto;">
+            <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -322,22 +324,22 @@
                         <i class="fas fa-home me-1"></i>Головна
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" href="/budget">
                         <i class="fas fa-chart-line me-1"></i>Бюджет
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" href="/totals">
                         <i class="fas fa-chart-pie me-1"></i>Підсумки
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" href="/all-days">
                         <i class="fas fa-calendar-alt me-1"></i>Всі дні
                     </a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" href="/notes">
                         <i class="fas fa-sticky-note me-1"></i>Нотатки
                     </a>
@@ -367,7 +369,7 @@
                     <a class="nav-link" href="/register">Реєстрація</a>
                 </li>
                 <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                    <button id="themeToggle" class="btn btn-outline-light btn-sm" type="button" title="Перемкнути тему">
+                    <button id="themeToggle" class="btn btn-outline-secondary btn-sm" type="button" title="Перемкнути тему">
                         <i class="fas fa-moon"></i>
                     </button>
                 </li>
@@ -375,14 +377,57 @@
         </div>
     </div>
 </nav>
+<!-- ===================== ПРОСТИЙ НАВБАР (лише логотип + тема) ===================== -->
+<nav th:fragment="navbarSimple" class="navbar navbar-expand wm-navbar py-0">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <button id="themeToggleSimple" class="btn btn-outline-light btn-sm" type="button" title="Перемкнути тему">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== СКРИПТ ДЛЯ ПРОСТОГО НАВБАРУ ===== -->
+<th:block th:fragment="navbarSimpleScript">
+    <script>
+        (function() {
+            const btn = document.getElementById('themeToggleSimple');
+            if (!btn) return;
+            const icon = btn.querySelector('i');
+            const root = document.documentElement;
+
+            function updateIcon() {
+                const theme = root.getAttribute('data-bs-theme') || 'light';
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+
+            updateIcon();
+
+            btn.addEventListener('click', function() {
+                const current = root.getAttribute('data-bs-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                root.setAttribute('data-bs-theme', next);
+                localStorage.setItem('lazycent-theme', next);
+                updateIcon();
+            });
+        })();
+    </script>
+</th:block>
 
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
         <p class="mb-0">© 2026 Lazy Cent - Ваш фінансовий помічник</p>
+        <p class="small mt-1">
+            <a href="/privacy" class="text-muted text-decoration-none me-3">Політика конфіденціальності</a>
+            <a href="/terms" class="text-muted text-decoration-none">Умови використання</a>
+        </p>
     </div>
 </footer>
-
 <!-- ===================== ТОСТ (контейнер) ===================== -->
 <div th:fragment="toastContainer">
     <div class="toast-container">

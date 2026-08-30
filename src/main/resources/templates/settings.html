@@ -34,7 +34,8 @@
 
         /* ===== ЗАГАЛЬНІ СТИЛІ ===== */
         .settings-container {
-            max-width: 1200px;
+            max-width: 100%;
+            padding: 0 20px;
             margin: 0 auto;
         }
 
@@ -152,28 +153,65 @@
             color: var(--bs-primary);
         }
 
-        /* Перемикачі */
-        .toggle-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--bs-border-color);
+        .btn-danger-soft {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid transparent;
         }
-        .toggle-group:last-child {
-            border-bottom: none;
+        .btn-danger-soft:hover {
+            background: #dc3545;
+            color: #fff;
         }
-        .toggle-group .toggle-label {
-            font-weight: 500;
+        [data-bs-theme="dark"] .btn-danger-soft {
+            color: #f87171;
+            background: rgba(220, 53, 69, 0.15);
         }
-        .toggle-group .toggle-desc {
-            font-size: 0.8rem;
-            color: var(--bs-secondary-color);
+        [data-bs-theme="dark"] .btn-danger-soft:hover {
+            background: #dc3545;
+            color: #fff;
         }
 
-        .form-switch .form-check-input {
-            width: 3rem;
-            height: 1.5rem;
+        .btn-success-soft {
+            color: #198754;
+            background: rgba(25, 135, 84, 0.1);
+            border: 1px solid transparent;
+        }
+        [data-bs-theme="dark"] .btn-success-soft {
+            color: #6ee7b7;
+            background: rgba(25, 135, 84, 0.15);
+        }
+        .btn-success-soft:hover {
+            background: #198754;
+            color: #fff;
+        }
+
+        /* Стилі для таймера */
+        .timer-circle {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            line-height: 48px;
+            border-radius: 50%;
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0.5rem;
+            text-align: center;
+        }
+        .timer-circle.finished {
+            background: rgba(25, 135, 84, 0.1);
+            color: #198754;
+        }
+        .timer-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .timer-text .seconds {
+            color: #dc3545;
+        }
+        .timer-text .seconds.finished {
+            color: #198754;
         }
 
         /* Мобільна адаптація */
@@ -208,7 +246,6 @@
             }
         }
 
-        /* Стилі для списку категорій з прокруткою */
         .category-list {
             max-height: 300px;
             overflow-y: auto;
@@ -221,41 +258,21 @@
             border-radius: 10px;
         }
 
-        /* Кнопка видалення */
-        .btn-danger-soft {
-            color: #dc3545;
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid transparent;
-        }
-        .btn-danger-soft:hover {
-            background: #dc3545;
-            color: #fff;
-        }
-        [data-bs-theme="dark"] .btn-danger-soft {
-            color: #f87171;
-            background: rgba(220, 53, 69, 0.15);
-        }
-        [data-bs-theme="dark"] .btn-danger-soft:hover {
-            background: #dc3545;
-            color: #fff;
+        .alert-info {
+            border-left: 4px solid #0dcaf0;
         }
 
-        .btn-success-soft {
-            color: #198754;
-            background: rgba(25, 135, 84, 0.1);
-            border: 1px solid transparent;
+        .danger-zone {
+            border: 2px solid #dc3545;
+            border-radius: 1rem;
+            background: rgba(220, 53, 69, 0.02);
         }
-        .btn-success-soft:hover {
-            background: #198754;
-            color: #fff;
+        .danger-zone .card-header {
+            color: #dc3545;
+            border-bottom-color: rgba(220, 53, 69, 0.2);
         }
-        [data-bs-theme="dark"] .btn-success-soft {
-            color: #6ee7b7;
-            background: rgba(25, 135, 84, 0.15);
-        }
-        [data-bs-theme="dark"] .btn-success-soft:hover {
-            background: #198754;
-            color: #fff;
+        [data-bs-theme="dark"] .danger-zone {
+            background: rgba(220, 53, 69, 0.05);
         }
     </style>
 </head>
@@ -288,9 +305,7 @@
                             <a class="nav-link" data-section="currency" href="#">
                                 <i class="fas fa-money-bill-wave me-2"></i> Валюта
                             </a>
-                            <a class="nav-link" data-section="preferences" href="#">
-                                <i class="fas fa-sliders-h me-2"></i> Налаштування
-                            </a>
+                            <!-- Розділ "Налаштування" ВИДАЛЕНО -->
                             <a class="nav-link" data-section="data" href="#">
                                 <i class="fas fa-database me-2"></i> Дані
                             </a>
@@ -305,14 +320,10 @@
 
         <!-- ===== КОНТЕНТ ===== -->
         <div class="col-lg-9">
+
             <!-- ============================================================ -->
             <!-- СЕКЦІЯ: ПРОФІЛЬ -->
             <!-- ============================================================ -->
-            <!-- Секція профілю в settings.html -->
-            <!-- templates/settings.html (тільки секція профілю) -->
-            <!-- settings.html – виправлений блок профілю (без прямого звернення до principal.provider) -->
-
-            <!-- Секція профілю -->
             <div class="settings-section active" id="section-profile">
                 <div class="card settings-card animate-fade">
                     <div class="card-header">
@@ -325,21 +336,13 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Ім'я користувача</label>
                                     <input type="text" class="form-control" name="username"
-                                           th:value="${#authentication.name}"
-                                           th:disabled="${isOAuth2User}"
-                                           required>
-                                    <div th:if="${isOAuth2User}" class="form-text text-muted">
-                                        <i class="fas fa-lock me-1"></i> Змінюється через <strong th:text="${providerName}"></strong>
-                                    </div>
+                                           th:value="${#authentication.name}" required>
+                                    <div class="form-text">Використовується для входу в систему</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Email</label>
                                     <input type="email" class="form-control" name="email"
-                                           placeholder="ваш@email.com" th:value="${userEmail}"
-                                           th:disabled="${isOAuth2User}">
-                                    <div th:if="${isOAuth2User}" class="form-text text-muted">
-                                        <i class="fas fa-lock me-1"></i> Змінюється через <strong th:text="${providerName}"></strong>
-                                    </div>
+                                           placeholder="ваш@email.com" th:value="${userEmail}">
                                 </div>
 
                                 <!-- Блок зміни пароля – показуємо тільки для локальних користувачів -->
@@ -364,20 +367,14 @@
                                         <div class="alert alert-info mt-2">
                                             <i class="fas fa-info-circle me-2"></i>
                                             Ви зареєстровані через <strong th:text="${providerName}"></strong>.
-                                            Усі дані профілю керуються вашим обліковим записом <strong th:text="${providerName}"></strong>.
+                                            Зміна пароля доступна лише через ваш обліковий запис <strong th:text="${providerName}"></strong>.
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Кнопка збереження – показуємо тільки для локальних користувачів -->
-                                <div class="col-12" th:unless="${isOAuth2User}">
+                                <div class="col-12">
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fas fa-save me-1"></i> Зберегти зміни
-                                    </button>
-                                </div>
-                                <div class="col-12" th:if="${isOAuth2User}">
-                                    <button type="button" class="btn btn-secondary" disabled>
-                                        <i class="fas fa-lock me-1"></i> Зміни недоступні
                                     </button>
                                 </div>
                             </div>
@@ -385,6 +382,7 @@
                     </div>
                 </div>
             </div>
+
             <!-- ============================================================ -->
             <!-- СЕКЦІЯ: КАТЕГОРІЇ -->
             <!-- ============================================================ -->
@@ -486,79 +484,19 @@
                     </div>
                     <div class="card-body">
                         <p class="text-muted">Оберіть основну валюту для вашого обліку</p>
-                        <form th:action="@{/settings/currency}" method="post">
+                        <form th:action="@{/settings/currency}" method="post" id="currencyForm">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <div class="currency-grid">
-                                <div class="currency-option active" data-currency="UAH">₴</div>
-                                <div class="currency-option" data-currency="USD">$</div>
-                                <div class="currency-option" data-currency="EUR">€</div>
-                                <div class="currency-option" data-currency="GBP">£</div>
-                                <div class="currency-option" data-currency="PLN">zł</div>
-                                <div class="currency-option" data-currency="CZK">Kč</div>
+                            <div class="currency-grid" id="currencyGrid">
+                                <div class="currency-option" th:classappend="${preferredCurrency == 'UAH'} ? 'active'" data-currency="UAH">₴</div>
+                                <div class="currency-option" th:classappend="${preferredCurrency == 'USD'} ? 'active'" data-currency="USD">$</div>
+                                <div class="currency-option" th:classappend="${preferredCurrency == 'EUR'} ? 'active'" data-currency="EUR">€</div>
+                                <div class="currency-option" th:classappend="${preferredCurrency == 'GBP'} ? 'active'" data-currency="GBP">£</div>
+                                <div class="currency-option" th:classappend="${preferredCurrency == 'PLN'} ? 'active'" data-currency="PLN">zł</div>
+                                <div class="currency-option" th:classappend="${preferredCurrency == 'CZK'} ? 'active'" data-currency="CZK">Kč</div>
                             </div>
-                            <input type="hidden" name="currency" id="selectedCurrency" value="UAH">
+                            <input type="hidden" name="currency" id="selectedCurrency" th:value="${preferredCurrency}" />
                             <button type="submit" class="btn btn-primary mt-3">
                                 <i class="fas fa-save me-1"></i> Зберегти валюту
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ============================================================ -->
-            <!-- СЕКЦІЯ: НАЛАШТУВАННЯ -->
-            <!-- ============================================================ -->
-            <div class="settings-section" id="section-preferences">
-                <div class="card settings-card animate-fade">
-                    <div class="card-header">
-                        <i class="fas fa-sliders-h me-2"></i> Налаштування
-                    </div>
-                    <div class="card-body">
-                        <form th:action="@{/settings/preferences}" method="post">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-                            <div class="toggle-group">
-                                <div>
-                                    <div class="toggle-label">Автозбереження</div>
-                                    <div class="toggle-desc">Автоматично зберігати зміни під час роботи</div>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="autoSave" checked>
-                                </div>
-                            </div>
-
-                            <div class="toggle-group">
-                                <div>
-                                    <div class="toggle-label">Темна тема</div>
-                                    <div class="toggle-desc">Використовувати темну тему за замовчуванням</div>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="darkTheme">
-                                </div>
-                            </div>
-
-                            <div class="toggle-group">
-                                <div>
-                                    <div class="toggle-label">Повідомлення</div>
-                                    <div class="toggle-desc">Отримувати сповіщення про перевищення бюджету</div>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="notifications" checked>
-                                </div>
-                            </div>
-
-                            <div class="toggle-group">
-                                <div>
-                                    <div class="toggle-label">Демо-дані</div>
-                                    <div class="toggle-desc">Показувати демонстраційні дані для прикладів</div>
-                                </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" name="demoData" checked>
-                                </div>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary mt-3">
-                                <i class="fas fa-save me-1"></i> Зберегти налаштування
                             </button>
                         </form>
                     </div>
@@ -569,50 +507,33 @@
             <!-- СЕКЦІЯ: ДАНІ -->
             <!-- ============================================================ -->
             <div class="settings-section" id="section-data">
-                <div class="card settings-card animate-fade">
-                    <div class="card-header">
-                        <i class="fas fa-database me-2"></i> Управління даними
+                <div class="card settings-card animate-fade danger-zone">
+                    <div class="card-header text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Небезпечна зона
                     </div>
                     <div class="card-body">
-                        <div class="row g-3">
+                        <div class="row g-4">
+                            <!-- Кнопка "Видалити всі дані" -->
                             <div class="col-md-6">
                                 <div class="p-3 border rounded text-center h-100">
-                                    <i class="fas fa-file-export fa-2x mb-2 text-success"></i>
-                                    <h5>Експорт даних</h5>
-                                    <p class="text-muted small">Завантажте всі ваші дані у форматі CSV</p>
-                                    <a href="/export/all-data" class="btn btn-success">
-                                        <i class="fas fa-download me-1"></i> Завантажити
-                                    </a>
+                                    <i class="fas fa-trash-alt fa-3x mb-3 text-danger"></i>
+                                    <h5>Видалити всі дані</h5>
+                                    <p class="text-muted small">Це видалить всі ваші транзакції, категорії, нотатки та плани бюджету. <br><strong>Цю дію не можна скасувати!</strong></p>
+                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#clearDataModal">
+                                        <i class="fas fa-eraser me-1"></i> Видалити всі дані
+                                    </button>
                                 </div>
                             </div>
+
+                            <!-- Кнопка "Видалити акаунт" -->
                             <div class="col-md-6">
                                 <div class="p-3 border rounded text-center h-100">
-                                    <i class="fas fa-file-import fa-2x mb-2 text-primary"></i>
-                                    <h5>Імпорт даних</h5>
-                                    <p class="text-muted small">Відновіть дані з раніше збереженого файлу</p>
-                                    <form th:action="@{/settings/import}" method="post" enctype="multipart/form-data">
-                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                        <div class="mb-2">
-                                            <input type="file" class="form-control form-control-sm" name="file" accept=".csv,.json">
-                                        </div>
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-upload me-1"></i> Імпортувати
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <hr>
-                                <div class="p-3 border rounded text-center bg-danger-soft">
-                                    <i class="fas fa-exclamation-triangle fa-2x mb-2 text-danger"></i>
-                                    <h5 class="text-danger">Очистити всі дані</h5>
-                                    <p class="text-muted small">Це видалить всі ваші транзакції, категорії та налаштування. Цю дію не можна скасувати!</p>
-                                    <form th:action="@{/settings/clear-data}" method="post" onsubmit="return confirm('Ви впевнені? Всі дані будуть втрачені!')">
-                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                        <button type="submit" class="btn btn-danger">
-                                            <i class="fas fa-trash me-1"></i> Очистити всі дані
-                                        </button>
-                                    </form>
+                                    <i class="fas fa-user-slash fa-3x mb-3 text-danger"></i>
+                                    <h5>Видалити акаунт</h5>
+                                    <p class="text-muted small">Це назавжди видалить ваш обліковий запис та всі пов'язані дані. <br><strong>Цю дію не можна скасувати!</strong></p>
+                                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                        <i class="fas fa-user-times me-1"></i> Видалити акаунт
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -630,8 +551,7 @@
                     </div>
                     <div class="card-body text-center">
                         <div class="mb-3">
-                            <span class="display-1">💰</span>
-                            <h3 class="mt-2">Lazy Cent</h3>
+                            <img src="/logo.png" alt="Lazy Cent" height="100" style="height: 100px; width: auto;">
                             <p class="text-muted">Ваш особистий фінансовий помічник</p>
                         </div>
                         <div class="row g-3 justify-content-center">
@@ -650,7 +570,7 @@
                             <div class="col-md-4">
                                 <div class="p-2 border rounded">
                                     <strong>Розробник</strong>
-                                    <div class="text-muted">LazyCent Team</div>
+                                    <div class="text-muted">SERHII KUSHNIR</div>
                                 </div>
                             </div>
                         </div>
@@ -669,7 +589,71 @@
     </div>
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ КАТЕГОРІЇ ===== -->
+<!-- ===== МОДАЛЬНЕ ВІКНО: ВИДАЛИТИ ВСІ ДАНІ ===== -->
+<div class="modal fade" id="clearDataModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Підтвердження видалення даних
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Ви впевнені, що хочете <strong>видалити всі ваші дані</strong>?</p>
+                <p class="text-muted small text-center">Цю дію не можна скасувати. Всі транзакції, категорії, нотатки та плани бюджету будуть назавжди втрачені.</p>
+                <hr>
+                <div class="text-center">
+                    <p class="mb-1">Для підтвердження зачекайте <span class="timer-text"><span class="seconds" id="clearDataTimer">60</span> секунд</span></p>
+                    <div class="timer-circle" id="clearDataTimerCircle">60</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <form th:action="@{/settings/clear-data}" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-danger" id="clearDataConfirmBtn" disabled>
+                        <i class="fas fa-trash me-1"></i> Так, видалити всі дані
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== МОДАЛЬНЕ ВІКНО: ВИДАЛИТИ АКАУНТ ===== -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-danger">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Підтвердження видалення акаунта
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Ви впевнені, що хочете <strong>назавжди видалити свій акаунт</strong>?</p>
+                <p class="text-muted small text-center">Всі ваші дані (транзакції, категорії, нотатки, плани) будуть безповоротно втрачені. Цю дію не можна скасувати.</p>
+                <hr>
+                <div class="text-center">
+                    <p class="mb-1">Для підтвердження зачекайте <span class="timer-text"><span class="seconds" id="deleteAccountTimer">60</span> секунд</span></p>
+                    <div class="timer-circle" id="deleteAccountTimerCircle">60</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <form th:action="@{/settings/delete-account}" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-danger" id="deleteAccountConfirmBtn" disabled>
+                        <i class="fas fa-user-times me-1"></i> Так, видалити акаунт
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ КАТЕГОРІЇ (залишаємо) -->
 <div class="modal fade" id="editCategoryModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -703,14 +687,13 @@
     document.addEventListener('DOMContentLoaded', function() {
 
         // ================================================================
-        // НАВІГАЦІЯ ПО РОЗДІЛАХ
+        // 1. НАВІГАЦІЯ ПО РОЗДІЛАХ
         // ================================================================
         const navLinks = document.querySelectorAll('.settings-nav .nav-link');
         const sections = {
             profile: document.getElementById('section-profile'),
             categories: document.getElementById('section-categories'),
             currency: document.getElementById('section-currency'),
-            preferences: document.getElementById('section-preferences'),
             data: document.getElementById('section-data'),
             about: document.getElementById('section-about')
         };
@@ -720,11 +703,9 @@
                 e.preventDefault();
                 const sectionId = this.dataset.section;
 
-                // Оновлюємо активний стан навігації
                 navLinks.forEach(l => l.classList.remove('active'));
                 this.classList.add('active');
 
-                // Показуємо відповідну секцію
                 Object.keys(sections).forEach(key => {
                     sections[key].classList.remove('active');
                 });
@@ -732,12 +713,10 @@
                     sections[sectionId].classList.add('active');
                 }
 
-                // Зберігаємо в localStorage
                 localStorage.setItem('settings-tab', sectionId);
             });
         });
 
-        // Відновлюємо останню активну вкладку
         const savedTab = localStorage.getItem('settings-tab');
         if (savedTab && sections[savedTab]) {
             navLinks.forEach(l => l.classList.remove('active'));
@@ -749,7 +728,7 @@
         }
 
         // ================================================================
-        // РЕДАГУВАННЯ КАТЕГОРІЇ
+        // 2. РЕДАГУВАННЯ КАТЕГОРІЇ
         // ================================================================
         const editModal = document.getElementById('editCategoryModal');
         const editCategoryForm = document.getElementById('editCategoryForm');
@@ -766,10 +745,16 @@
         });
 
         // ================================================================
-        // ВИБІР ВАЛЮТИ
+        // 3. ВИБІР ВАЛЮТИ
         // ================================================================
         const currencyOptions = document.querySelectorAll('.currency-option');
         const selectedCurrencyInput = document.getElementById('selectedCurrency');
+
+        currencyOptions.forEach(opt => {
+            if (opt.classList.contains('active')) {
+                selectedCurrencyInput.value = opt.dataset.currency;
+            }
+        });
 
         currencyOptions.forEach(opt => {
             opt.addEventListener('click', function() {
@@ -780,24 +765,73 @@
         });
 
         // ================================================================
-        // ПІДРАХУНОК СТАТИСТИКИ
+        // 4. ТАЙМЕРИ ДЛЯ МОДАЛЬНИХ ВІКОН (60 сек)
         // ================================================================
-        function updateStats() {
-            const expenseCount = document.querySelectorAll('#section-categories .category-item').length;
-            const allItems = document.querySelectorAll('.category-item').length;
-            document.getElementById('totalCategories').textContent = allItems;
 
-            // Транзакції та дні - можна отримати через AJAX, або просто показати приблизно
-            // Для демонстрації
-            const transactionCount = document.querySelectorAll('.transaction-row')?.length || 0;
-            document.getElementById('totalTransactions').textContent = transactionCount || '—';
+        // ---- Загальна функція таймера ----
+        function startTimer(secondsElementId, circleElementId, confirmBtnId, duration = 60) {
+            let remaining = duration;
+            const secondsEl = document.getElementById(secondsElementId);
+            const circleEl = document.getElementById(circleElementId);
+            const confirmBtn = document.getElementById(confirmBtnId);
 
-            const dayCount = document.querySelectorAll('.day-card')?.length || 0;
-            document.getElementById('totalDays').textContent = dayCount || '—';
+            if (!secondsEl || !circleEl || !confirmBtn) return;
+
+            // Скидаємо стан
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = confirmBtn.textContent.replace(/\(.*\)/, '').trim() + ' (' + remaining + 's)';
+            secondsEl.textContent = remaining;
+            circleEl.textContent = remaining;
+            circleEl.classList.remove('finished');
+            secondsEl.classList.remove('finished');
+
+            const interval = setInterval(function() {
+                remaining--;
+                secondsEl.textContent = remaining;
+                circleEl.textContent = remaining;
+
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    secondsEl.textContent = '0';
+                    circleEl.textContent = '✓';
+                    circleEl.classList.add('finished');
+                    secondsEl.classList.add('finished');
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = confirmBtn.textContent.replace(/\(\d+s\)/, '').trim();
+                } else {
+                    // Оновлюємо текст кнопки, якщо в ньому є (Xs)
+                    const btnText = confirmBtn.textContent;
+                    if (btnText.includes('(')) {
+                        confirmBtn.textContent = btnText.replace(/\(\d+s\)/, '(' + remaining + 's)');
+                    }
+                }
+            }, 1000);
+
+            // Зберігаємо інтервал для очищення при закритті модалки
+            const modal = confirmBtn.closest('.modal');
+            if (modal) {
+                modal.addEventListener('hidden.bs.modal', function() {
+                    clearInterval(interval);
+                    // Скидаємо стан кнопки
+                    confirmBtn.disabled = true;
+                    confirmBtn.textContent = confirmBtn.textContent.replace(/\(\d+s\)/, '').trim() + ' (' + duration + 's)';
+                    secondsEl.textContent = duration;
+                    circleEl.textContent = duration;
+                    circleEl.classList.remove('finished');
+                    secondsEl.classList.remove('finished');
+                }, { once: true });
+            }
         }
 
-        // Викликаємо після завантаження
-        setTimeout(updateStats, 500);
+        // ---- Таймер для "Видалити всі дані" ----
+        document.getElementById('clearDataModal')?.addEventListener('show.bs.modal', function() {
+            startTimer('clearDataTimer', 'clearDataTimerCircle', 'clearDataConfirmBtn', 60);
+        });
+
+        // ---- Таймер для "Видалити акаунт" ----
+        document.getElementById('deleteAccountModal')?.addEventListener('show.bs.modal', function() {
+            startTimer('deleteAccountTimer', 'deleteAccountTimerCircle', 'deleteAccountConfirmBtn', 60);
+        });
 
     });
 </script>

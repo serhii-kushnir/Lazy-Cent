@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface BudgetPlanRepository extends JpaRepository<BudgetPlan, Long> {
     Optional<BudgetPlan> findByOwnerAndBudgetMonthAndBudgetYear(User owner, int budgetMonth, int budgetYear);
+
+    void deleteByOwner(User owner);
 }

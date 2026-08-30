@@ -24,4 +24,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     @Query("SELECT n FROM Note n WHERE n.owner = :owner AND n.archived = :archived AND (LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY n.pinned DESC, n.updatedAt DESC")
     List<Note> searchNotes(@Param("owner") User owner, @Param("archived") boolean archived, @Param("query") String query);
+
+    List<Note> findByOwner(User owner);
 }

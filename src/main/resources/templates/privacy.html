@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Політика конфіденціальності - Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .policy-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .policy-container h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .policy-container .last-updated {
+            color: var(--bs-secondary-color);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .policy-container h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--bs-primary);
+        }
+        .policy-container p {
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+        .policy-container ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .policy-container ul li {
+            margin-bottom: 0.5rem;
+        }
+        .policy-container .highlight-box {
+            background: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin: 1.5rem 0;
+        }
+        [data-bs-theme="dark"] .policy-container .highlight-box {
+            background: var(--bs-tertiary-bg);
+        }
+        .back-link {
+            margin-top: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== ПРОСТИЙ НАВБАР ===== -->
+<nav th:replace="~{fragments :: navbarSimple}"></nav>
+
+<div class="container policy-container">
+    <h1>Політика конфіденціальності</h1>
+    <p class="last-updated">Останнє оновлення: 1 серпня 2026 року</p>
+
+    <p>Компанія Lazy Cent (далі – «Ми») поважає вашу конфіденційність і зобов’язується захищати ваші персональні дані. Ця політика пояснює, які дані ми збираємо, як ми їх використовуємо та захищаємо.</p>
+
+    <h2>1. Які дані ми збираємо</h2>
+    <ul>
+        <li><strong>Облікові дані:</strong> ім’я користувача, електронна пошта (якщо надано), пароль (у зашифрованому вигляді).</li>
+        <li><strong>Фінансові дані:</strong> інформація про доходи, витрати, категорії, бюджети, нотатки, які ви вводите у додатку.</li>
+        <li><strong>Технічні дані:</strong> IP-адреса, тип браузера, версія ОС, дані про сесію (для безпеки).</li>
+        <li><strong>OAuth2-дані:</strong> якщо ви входите через Google, ми отримуємо ваше ім’я та електронну адресу (за вашим дозволом).</li>
+    </ul>
+
+    <h2>2. Як ми використовуємо ваші дані</h2>
+    <ul>
+        <li>Для забезпечення роботи додатку (відображення бюджету, аналітика).</li>
+        <li>Для покращення нашого сервісу та розробки нових функцій.</li>
+        <li>Для надсилання сповіщень (якщо ви підписалися) – ми не надсилаємо спам.</li>
+        <li>Ми НЕ передаємо ваші дані третім особам, крім випадків, передбачених законом.</li>
+    </ul>
+
+    <div class="highlight-box">
+        <i class="fas fa-shield-alt me-2"></i>
+        <strong>Важливо:</strong> Всі фінансові дані зберігаються у зашифрованому вигляді на наших серверах. Доступ до них маєте лише ви.
+    </div>
+
+    <h2>3. Де ми зберігаємо дані</h2>
+    <p>Ваші дані зберігаються на захищених серверах у базі даних H2 (локально) або PostgreSQL (у продакшн-версії). Ми використовуємо сучасні методи шифрування для захисту даних під час передачі (HTTPS) та зберігання.</p>
+
+    <h2>4. Ваші права</h2>
+    <ul>
+        <li>Ви можете в будь-який час переглянути, змінити або видалити свої дані через налаштування акаунта.</li>
+        <li>Ви можете запитати експорт усіх ваших даних у форматі CSV або JSON.</li>
+        <li>Ви можете видалити свій акаунт назавжди (через розділ «Дані» у налаштуваннях).</li>
+    </ul>
+
+    <h2>5. Файли cookie</h2>
+    <p>Ми використовуємо файли cookie для підтримки сесій автентифікації та налаштувань теми. Ви можете вимкнути cookie у налаштуваннях браузера, але це може вплинути на роботу додатку.</p>
+
+    <h2>6. Зміни до політики</h2>
+    <p>Ми можемо періодично оновлювати цю політику. Ми повідомимо вас про суттєві зміни через додаток або електронну пошту.</p>
+
+    <h2>7. Контакти</h2>
+    <p>Якщо у вас є питання щодо цієї політики, будь ласка, звертайтеся до нас за адресою: <a href="mailto:support@lazycent.com">support@lazycent.com</a>.</p>
+
+    <div class="back-link">
+        <a href="/" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i>На головну</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- ===== СКРИПТ ДЛЯ ПРОСТОГО НАВБАРУ ===== -->
+<div th:replace="~{fragments :: navbarSimpleScript}"></div>
+
+</body>
+</html>

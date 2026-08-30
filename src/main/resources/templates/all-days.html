@@ -100,6 +100,17 @@
         .mt-5 { margin-top: 1rem !important; }
         .custom-container { width: 100%; margin: 0 auto; padding-left: 15px; padding-right: 15px; }
 
+        .category-input-group .form-select {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        .category-input-group .btn {
+            border-radius: 0 0.375rem 0.375rem 0;
+            border-left: none;
+        }
+        [data-bs-theme="dark"] .category-input-group .btn {
+            border-color: #3a3f4a;
+        }
+
         /* ===== КНОПКИ ===== */
         .btn:not(.btn-close):not(.navbar-toggler) {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -703,10 +714,10 @@
                             <td class="col-number" th:text="${stat.index + 1}"></td>
                             <td class="col-date" th:text="${budget.date}"></td>
                             <td class="col-day" th:text="${budget.dayName}"></td>
-                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
-                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
+                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-balance" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
-                                th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></td>
+                                th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-count" th:text="${budget.expenses.size() + budget.incomes.size()}"></td>
                             <td class="col-actions no-print">
                                 <a th:href="'/day/' + ${budget.date}" class="btn btn-sm btn-outline-primary" title="Переглянути">
@@ -788,20 +799,20 @@
                             <div class="card-body">
                                 <p><i class="fas fa-flag-checkered text-secondary me-2"></i>
                                     <span class="text-starting">Початковий баланс:</span>
-                                    <strong class="value-amount text-starting" th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                                    <strong class="value-amount text-starting" th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <p><i class="fas fa-arrow-down text-danger me-2"></i>
                                     <span class="text-expense">Витрати:</span>
-                                    <strong class="value-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                                    <strong class="value-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <p><i class="fas fa-arrow-up text-success me-2"></i>
                                     <span class="text-income">Доходи:</span>
-                                    <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                                    <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <p class="balance-row"><i class="fas fa-balance-scale me-2"></i>
                                     <span>Баланс:</span>
                                     <strong class="value-amount" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
-                                            th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ₴'"></strong>
+                                            th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <a th:href="'/day/' + ${budget.date}" class="btn btn-primary w-100 mt-2">
                                     <i class="fas fa-eye me-1"></i>Переглянути
@@ -836,7 +847,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="transactionForm" method="post">
-                <!-- CSRF ТОКЕН -->
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="type" id="transactionType" value="EXPENSE">
@@ -863,12 +873,19 @@
                         <input type="time" class="form-control" id="transactionTime" name="time" step="60">
                     </div>
 
+                    <!-- ПОЛЕ КАТЕГОРІЇ З КНОПКОЮ "+" -->
                     <div class="mb-3">
                         <label for="categorySelect" class="form-label">Категорія</label>
-                        <select class="form-select" id="categorySelect" name="categoryId" required>
-                            <option value="">Завантаження...</option>
-                        </select>
+                        <div class="input-group category-input-group">
+                            <select class="form-select" id="categorySelect" name="categoryId" required>
+                                <option value="">Завантаження...</option>
+                            </select>
+                            <a href="/settings" target="_blank" class="btn btn-outline-secondary" type="button" title="Додати нову категорію">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                        </div>
                         <div class="invalid-feedback">Виберіть категорію</div>
+                        <div class="form-text text-muted">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
                     </div>
 
                     <div class="mb-3">
@@ -1162,6 +1179,9 @@
     </div>
 </div>
 
+<!-- Мітка для передачі символу валюти в JavaScript -->
+<span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
+
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
@@ -1170,6 +1190,9 @@
 <script>
     (function() {
         'use strict';
+
+        // Отримуємо символ валюти з прихованого елемента
+        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent;
 
         // ================================================================
         // 1. TOAST
@@ -1334,7 +1357,7 @@
                     html += '<tr>' +
                         '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
                         '<td class="category-col">' + name + '</td>' +
-                        '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                        '<td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td>' +
                         '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
                         '</tr>';
                 });
@@ -1401,7 +1424,7 @@
                     html += '<tr>' +
                         '<td><span class="color-dot" style="background-color:' + color + '"></span></td>' +
                         '<td class="category-col">' + name + '</td>' +
-                        '<td class="amount-col">' + amount.toFixed(2) + ' ₴</td>' +
+                        '<td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td>' +
                         '<td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td>' +
                         '</tr>';
                 });
@@ -1467,7 +1490,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return value + ' ₴';
+                                    return value + ' ' + currencySymbol;
                                 }
                             }
                         }
@@ -1798,12 +1821,12 @@
 
             document.getElementById('deleteDate').textContent = date;
             document.getElementById('deleteDayName').textContent = dayName;
-            document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ₴';
-            document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ₴';
-            document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ₴';
+            document.getElementById('deleteStartingBalance').textContent = startingBalance.toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteExpenses').textContent = expenses.toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteIncomes').textContent = incomes.toFixed(2) + ' ' + currencySymbol;
 
             const balanceEl = document.getElementById('deleteBalance');
-            balanceEl.textContent = balance.toFixed(2) + ' ₴';
+            balanceEl.textContent = balance.toFixed(2) + ' ' + currencySymbol;
             balanceEl.className = 'value';
             balanceEl.classList.add(balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
 
@@ -2163,7 +2186,7 @@
                 document.getElementById('deleteTime').textContent = time || '—';
                 document.getElementById('deleteDescription').textContent = description || '—';
                 document.getElementById('deleteQuantity').textContent = quantity || '1';
-                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ₴';
+                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ' + currencySymbol;
                 document.getElementById('deleteBuyer').textContent = buyer || '—';
                 document.getElementById('deleteSeller').textContent = seller || '—';
                 document.getElementById('deleteCategory').textContent = category || '—';

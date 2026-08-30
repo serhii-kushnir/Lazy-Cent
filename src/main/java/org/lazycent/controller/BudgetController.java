@@ -12,13 +12,11 @@ import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.CategoryRepository;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.repository.UserRepository;
-import org.lazycent.service.BudgetPlanningService;
-import org.lazycent.service.BudgetService;
-import org.lazycent.service.DemoDataService;
-import org.lazycent.service.UserService;
+import org.lazycent.service.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -42,7 +40,55 @@ public class BudgetController {
     private final DemoDataService demoDataService;
     private final CategoryRepository categoryRepository;
     private final DayBudgetRepository dayBudgetRepository;
+    private final NoteService noteService;   // додати
 
+
+    @PostMapping("/settings/clear-data")
+    public String clearData(Authentication authentication, RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            budgetService.clearAllUserData(currentUser);
+            noteService.deleteAllNotes(currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", "Всі дані успішно видалено!");
+        } catch (Exception e) {
+            log.error("Помилка при очищенні даних: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при очищенні даних: " + e.getMessage());
+        }
+        return "redirect:/settings";
+    }
+
+    @PostMapping("/settings/delete-account")
+    public String deleteAccount(Authentication authentication,
+                                HttpServletRequest request,
+                                RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            userService.deleteAccount(currentUser);
+
+            // 1. Завершуємо сесію
+            request.getSession().invalidate();
+
+            // 2. Очищуємо контекст безпеки
+            SecurityContextHolder.clearContext();
+
+            // 3. Повідомлення та редірект на сторінку входу
+            redirectAttributes.addFlashAttribute("successMessage", "Акаунт успішно видалено!");
+            return "redirect:/login";
+
+        } catch (Exception e) {
+            log.error("Помилка при видаленні акаунта: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні акаунта: " + e.getMessage());
+            return "redirect:/settings";
+        }
+    }
     // ==================== ГОЛОВНА ====================
 
     @GetMapping("/")
@@ -69,6 +115,23 @@ public class BudgetController {
 
         model.addAttribute("showDemoBanner", showDemoBanner);
         return "index";
+    }
+
+
+
+    // controller/BudgetController.java – додати метод для збереження валюти
+
+    @PostMapping("/settings/currency")
+    public String updateCurrency(@RequestParam String currency,
+                                 Authentication authentication,
+                                 RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        userService.updateCurrency(currentUser, currency);
+        redirectAttributes.addFlashAttribute("successMessage", "Валюту змінено на " + currency);
+        return "redirect:/settings";
     }
 
     @PostMapping("/generate-demo")
@@ -105,6 +168,8 @@ public class BudgetController {
 
     // BudgetController.java – оновлений метод settings
 
+    // controller/BudgetController.java – оновити метод settings, щоб передавати поточну валюту
+
     @GetMapping("/settings")
     public String settings(Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
@@ -131,6 +196,7 @@ public class BudgetController {
         model.addAttribute("userEmail", currentUser.getEmail());
         model.addAttribute("isOAuth2User", isOAuth2User);
         model.addAttribute("providerName", providerName);
+        model.addAttribute("preferredCurrency", currentUser.getPreferredCurrency()); // додано
 
         return "settings";
     }

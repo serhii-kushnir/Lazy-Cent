@@ -14,4 +14,6 @@ public interface CategoryBudgetLimitRepository extends JpaRepository<CategoryBud
     List<CategoryBudgetLimit> findByOwnerAndBudgetMonthAndBudgetYear(User owner, int budgetMonth, int budgetYear);
 
     Optional<CategoryBudgetLimit> findByCategoryAndOwnerAndBudgetMonthAndBudgetYear(Category category, User owner, int budgetMonth, int budgetYear);
+
+    void deleteByOwner(User owner);
 }

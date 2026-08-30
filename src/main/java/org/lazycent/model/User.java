@@ -41,6 +41,11 @@ public class User implements UserDetails {
     private String provider;
     private String providerId;
 
+    // model/User.java – додати поле preferredCurrency
+
+    @Column(nullable = false)
+    private String preferredCurrency = "UAH";
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<DayBudget> dayBudgets;
