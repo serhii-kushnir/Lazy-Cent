@@ -2,61 +2,343 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Реєстрація - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
-        .login-container {
-            max-width: 420px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bs-body-bg);
+            padding: 2rem 0;
         }
-        .login-card {
-            border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        .auth-container {
+            width: 100%;
+            max-width: 640px; /* ШИРШЕ — було 560px */
+            padding: 0 1.5rem;
         }
-        .login-card .card-header {
-            background: transparent;
-            border-bottom: 1px solid var(--bs-border-color);
+        .auth-card {
+            border: none;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+            background: var(--bs-card-bg);
+            padding: 2.5rem 2.5rem;
+        }
+        [data-bs-theme="dark"] .auth-card {
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        }
+        .auth-card .auth-header {
             text-align: center;
-            padding: 1.5rem 1rem 0.5rem;
+            margin-bottom: 2rem;
         }
-        .login-card .card-header h4 {
+        .auth-card .auth-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .auth-card .auth-header p {
+            color: var(--bs-secondary-color);
+            font-size: 1rem;
+        }
+        .auth-card .form-control {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 1.5px solid var(--bs-border-color);
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .auth-card .form-control:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
+        }
+        .auth-card .form-control.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+        }
+        .auth-card .form-control.is-valid {
+            border-color: #198754;
+            box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+        }
+        .auth-card .btn-success {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .auth-card .form-check-input {
+            width: 1.2rem;
+            height: 1.2rem;
+            margin-top: 0.15rem;
+        }
+        .auth-card .form-check-input.is-invalid {
+            border-color: #dc3545;
+        }
+        .auth-card .form-check-label a {
+            color: var(--bs-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .auth-card .form-check-label a:hover {
+            text-decoration: underline;
+        }
+        .auth-card .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--bs-secondary-color);
+        }
+        .auth-card .auth-footer a {
+            color: var(--bs-primary);
+            text-decoration: none;
             font-weight: 600;
         }
-        .login-card .card-body {
-            padding: 1.5rem;
+        .auth-card .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .auth-card .invalid-feedback {
+            font-size: 0.85rem;
+        }
+        .auth-card .form-text {
+            font-size: 0.85rem;
+            color: var(--bs-secondary-color);
+            margin-top: 0.25rem;
+        }
+
+        /* Група поля з іконкою ока */
+        .password-toggle-group {
+            position: relative;
+        }
+        .password-toggle-group .form-control {
+            padding-right: 3rem;
+        }
+        .password-toggle-group .password-toggle-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--bs-secondary-color);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            font-size: 1.1rem;
+            transition: color 0.2s ease;
+        }
+        .password-toggle-group .password-toggle-btn:hover {
+            color: var(--bs-primary);
+        }
+
+        .password-strength {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            height: 4px;
+        }
+        .password-strength .bar {
+            flex: 1;
+            height: 100%;
+            border-radius: 2px;
+            background: var(--bs-border-color);
+            transition: background 0.3s ease;
+        }
+        .password-strength .bar.active.weak {
+            background: #dc3545;
+        }
+        .password-strength .bar.active.medium {
+            background: #ffc107;
+        }
+        .password-strength .bar.active.strong {
+            background: #198754;
+        }
+        .password-strength-text {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+        .password-strength-text.weak { color: #dc3545; }
+        .password-strength-text.medium { color: #ffc107; }
+        .password-strength-text.strong { color: #198754; }
+
+        .requirement-list {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 0.25rem;
+            font-size: 0.85rem;
+        }
+        .requirement-list li {
+            padding: 0.1rem 0;
+        }
+        .requirement-list li .fas {
+            width: 1.2rem;
+            text-align: center;
+        }
+        .requirement-list li .text-success { color: #198754; }
+        .requirement-list li .text-danger { color: #dc3545; }
+
+        @media (max-width: 576px) {
+            .auth-container {
+                max-width: 100%;
+                padding: 0 0.75rem;
+            }
+            .auth-card {
+                padding: 1.5rem 1.25rem;
+                border-radius: 1rem;
+            }
+            .auth-card .auth-header h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- ===== ПРОСТИЙ НАВБАР ===== -->
-<nav th:replace="~{fragments :: navbarSimple}"></nav>
+<nav th:replace="~{fragments :: navbar('register')}"></nav>
 
-<div class="container login-container">
-    <div class="card login-card">
-        <div class="card-header">
-            <h4><i class="fas fa-user-plus me-2"></i>Реєстрація</h4>
-            <p class="text-muted small mb-0">Створіть новий обліковий запис</p>
-        </div>
-        <div class="card-body">
-            <form th:action="@{/register}" method="post">
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Приєднуйтесь!</h1>
+                <p>Створіть безкоштовний обліковий запис Lazy Cent</p>
+            </div>
+
+            <form th:action="@{/register}" method="post" id="registerForm" novalidate>
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                <!-- ===== ІМ'Я КОРИСТУВАЧА ===== -->
                 <div class="mb-3">
-                    <label for="username" class="form-label">Ім'я користувача</label>
-                    <input type="text" class="form-control" id="username" name="username" required autofocus>
+                    <label for="username" class="form-label fw-semibold">Ім'я користувача</label>
+                    <input type="text"
+                           class="form-control"
+                           id="username"
+                           name="username"
+                           placeholder="Оберіть унікальне ім'я"
+                           minlength="6"
+                           maxlength="30"
+                           pattern="[a-zA-Z0-9_]{6,30}"
+                           required
+                           autofocus
+                           th:value="${username}"
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('username')} ? 'is-invalid' : ''">
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Від 6 до 30 символів. Дозволено: літери (a-z, A-Z), цифри (0-9), підкреслення (_).
+                    </div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('username')}" class="invalid-feedback" th:text="${fieldErrors.username}"></div>
                 </div>
+
+                <!-- ===== EMAIL ===== -->
                 <div class="mb-3">
-                    <label for="password" class="form-label">Пароль</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
+                    <label for="email" class="form-label fw-semibold">Електронна пошта</label>
+                    <input type="email"
+                           class="form-control"
+                           id="email"
+                           name="email"
+                           placeholder="Введіть вашу електронну пошту"
+                           required
+                           th:value="${email}"
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('email')} ? 'is-invalid' : ''">
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Введіть дійсну електронну адресу (наприклад, user@example.com).
+                    </div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('email')}" class="invalid-feedback" th:text="${fieldErrors.email}"></div>
                 </div>
-                <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
-                <button type="submit" class="btn btn-success w-100">Зареєструватися</button>
+
+                <!-- ===== ПАРОЛЬ ===== -->
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-semibold">Пароль</label>
+                    <div class="password-toggle-group">
+                        <input type="password"
+                               class="form-control"
+                               id="password"
+                               name="password"
+                               placeholder="Створіть надійний пароль"
+                               minlength="6"
+                               maxlength="100"
+                               required
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('password')} ? 'is-invalid' : ''">
+                        <button type="button" class="password-toggle-btn" id="togglePassword" title="Показати/приховати пароль">
+                            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Мінімум 6 символів. Рекомендуємо використовувати великі та малі літери, цифри та спеціальні символи.
+                    </div>
+
+                    <ul class="requirement-list" id="passwordRequirements">
+                        <li id="reqLength"><i class="fas fa-circle text-danger"></i> Мінімум 6 символів</li>
+                        <li id="reqLowercase"><i class="fas fa-circle text-danger"></i> Мала літера (a-z)</li>
+                        <li id="reqUppercase"><i class="fas fa-circle text-danger"></i> Велика літера (A-Z)</li>
+                        <li id="reqDigit"><i class="fas fa-circle text-danger"></i> Цифра (0-9)</li>
+                        <li id="reqSpecial"><i class="fas fa-circle text-danger"></i> Спеціальний символ (@$!%*?&)</li>
+                    </ul>
+
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="bar" id="strengthBar1"></div>
+                        <div class="bar" id="strengthBar2"></div>
+                        <div class="bar" id="strengthBar3"></div>
+                        <div class="bar" id="strengthBar4"></div>
+                    </div>
+                    <div class="password-strength-text" id="strengthText">Введіть пароль</div>
+
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('password')}" class="invalid-feedback" th:text="${fieldErrors.password}"></div>
+                </div>
+
+                <!-- ===== ПІДТВЕРДЖЕННЯ ПАРОЛЯ ===== -->
+                <div class="mb-3">
+                    <label for="passwordConfirm" class="form-label fw-semibold">Підтвердження пароля</label>
+                    <div class="password-toggle-group">
+                        <input type="password"
+                               class="form-control"
+                               id="passwordConfirm"
+                               name="passwordConfirm"
+                               placeholder="Повторіть пароль"
+                               required
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')} ? 'is-invalid' : ''">
+                        <button type="button" class="password-toggle-btn" id="togglePasswordConfirm" title="Показати/приховати пароль">
+                            <i class="fas fa-eye" id="togglePasswordConfirmIcon"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Введіть той самий пароль ще раз для підтвердження.
+                    </div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')}" class="invalid-feedback" th:text="${fieldErrors.passwordConfirm}"></div>
+                </div>
+
+                <!-- ===== ЧЕКБОКСИ ЗГОДИ ===== -->
+                <div class="mb-2 form-check">
+                    <input type="checkbox" class="form-check-input" id="privacyConsent" name="privacyConsent" required
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('privacyConsent')} ? 'is-invalid' : ''">
+                    <label class="form-check-label" for="privacyConsent">
+                        Я погоджуюсь з <a href="/privacy" target="_blank">Політикою конфіденційності</a>
+                    </label>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('privacyConsent')}" class="invalid-feedback" th:text="${fieldErrors.privacyConsent}"></div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="termsConsent" name="termsConsent" required
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('termsConsent')} ? 'is-invalid' : ''">
+                    <label class="form-check-label" for="termsConsent">
+                        Я погоджуюсь з <a href="/terms" target="_blank">Умовами використання</a>
+                    </label>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('termsConsent')}" class="invalid-feedback" th:text="${fieldErrors.termsConsent}"></div>
+                </div>
+
+                <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+                <button type="submit" class="btn btn-success w-100 mt-2">
+                    <i class="fas fa-user-plus me-2"></i>Зареєструватися
+                </button>
             </form>
-            <div class="mt-3 text-center">
-                <a href="/login">Вже маєте акаунт? Увійдіть</a>
+
+            <div class="auth-footer">
+                Вже маєте акаунт? <a href="/login">Увійдіть</a>
             </div>
         </div>
     </div>
@@ -66,7 +348,230 @@
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<div th:replace="~{fragments :: navbarSimpleScript}"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('registerForm');
+
+        // Поля
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const passwordConfirmInput = document.getElementById('passwordConfirm');
+        const privacyCheck = document.getElementById('privacyConsent');
+        const termsCheck = document.getElementById('termsConsent');
+
+        // ===== ПЕРЕМИКАЧІ ПОКАЗУ ПАРОЛЯ =====
+        // Для основного пароля
+        const toggleBtn = document.getElementById('togglePassword');
+        const toggleIcon = document.getElementById('togglePasswordIcon');
+        if (toggleBtn && passwordInput) {
+            toggleBtn.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.className = 'fas fa-eye-slash';
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.className = 'fas fa-eye';
+                }
+            });
+        }
+
+        // Для підтвердження пароля
+        const toggleConfirmBtn = document.getElementById('togglePasswordConfirm');
+        const toggleConfirmIcon = document.getElementById('togglePasswordConfirmIcon');
+        if (toggleConfirmBtn && passwordConfirmInput) {
+            toggleConfirmBtn.addEventListener('click', function() {
+                if (passwordConfirmInput.type === 'password') {
+                    passwordConfirmInput.type = 'text';
+                    toggleConfirmIcon.className = 'fas fa-eye-slash';
+                } else {
+                    passwordConfirmInput.type = 'password';
+                    toggleConfirmIcon.className = 'fas fa-eye';
+                }
+            });
+        }
+
+        // ===== ВАЛІДАЦІЯ =====
+        const reqLength = document.getElementById('reqLength');
+        const reqLowercase = document.getElementById('reqLowercase');
+        const reqUppercase = document.getElementById('reqUppercase');
+        const reqDigit = document.getElementById('reqDigit');
+        const reqSpecial = document.getElementById('reqSpecial');
+
+        const strengthBars = [
+            document.getElementById('strengthBar1'),
+            document.getElementById('strengthBar2'),
+            document.getElementById('strengthBar3'),
+            document.getElementById('strengthBar4')
+        ];
+        const strengthText = document.getElementById('strengthText');
+
+        function validateUsername() {
+            const pattern = /^[a-zA-Z0-9_]{6,30}$/;
+            const valid = pattern.test(usernameInput.value);
+            usernameInput.classList.toggle('is-valid', valid);
+            usernameInput.classList.toggle('is-invalid', !valid && usernameInput.value.length > 0);
+            return valid;
+        }
+
+        function validateEmail() {
+            const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const valid = pattern.test(emailInput.value);
+            emailInput.classList.toggle('is-valid', valid);
+            emailInput.classList.toggle('is-invalid', !valid && emailInput.value.length > 0);
+            return valid;
+        }
+
+        function checkPasswordStrength(password) {
+            let score = 0;
+            const checks = {
+                length: password.length >= 6,
+                lowercase: /[a-z]/.test(password),
+                uppercase: /[A-Z]/.test(password),
+                digit: /\d/.test(password),
+                special: /[@$!%*?&]/.test(password)
+            };
+
+            reqLength.className = checks.length ? 'text-success' : 'text-danger';
+            reqLength.innerHTML = (checks.length ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-circle"></i>') + ' Мінімум 6 символів';
+
+            reqLowercase.className = checks.lowercase ? 'text-success' : 'text-danger';
+            reqLowercase.innerHTML = (checks.lowercase ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-circle"></i>') + ' Мала літера (a-z)';
+
+            reqUppercase.className = checks.uppercase ? 'text-success' : 'text-danger';
+            reqUppercase.innerHTML = (checks.uppercase ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-circle"></i>') + ' Велика літера (A-Z)';
+
+            reqDigit.className = checks.digit ? 'text-success' : 'text-danger';
+            reqDigit.innerHTML = (checks.digit ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-circle"></i>') + ' Цифра (0-9)';
+
+            reqSpecial.className = checks.special ? 'text-success' : 'text-danger';
+            reqSpecial.innerHTML = (checks.special ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-circle"></i>') + ' Спеціальний символ (@$!%*?&)';
+
+            if (checks.length) score++;
+            if (checks.lowercase) score++;
+            if (checks.uppercase) score++;
+            if (checks.digit) score++;
+            if (checks.special) score++;
+
+            let level = 'weak';
+            let levelText = 'Слабкий';
+            let levelClass = 'weak';
+            let barsActive = 0;
+
+            if (password.length === 0) {
+                level = 'none';
+                levelText = 'Введіть пароль';
+                levelClass = '';
+                barsActive = 0;
+            } else if (score <= 2) {
+                level = 'weak';
+                levelText = 'Слабкий';
+                levelClass = 'weak';
+                barsActive = 1;
+            } else if (score <= 3) {
+                level = 'medium';
+                levelText = 'Середній';
+                levelClass = 'medium';
+                barsActive = 2;
+            } else if (score <= 4) {
+                level = 'strong';
+                levelText = 'Сильний';
+                levelClass = 'strong';
+                barsActive = 3;
+            } else {
+                level = 'very-strong';
+                levelText = 'Дуже сильний';
+                levelClass = 'strong';
+                barsActive = 4;
+            }
+
+            strengthBars.forEach((bar, index) => {
+                bar.className = 'bar';
+                if (index < barsActive) {
+                    bar.classList.add('active', levelClass);
+                }
+            });
+
+            strengthText.textContent = levelText;
+            strengthText.className = 'password-strength-text ' + levelClass;
+
+            return checks;
+        }
+
+        function validatePasswordMatch() {
+            const match = passwordInput.value === passwordConfirmInput.value;
+            if (passwordConfirmInput.value.length > 0) {
+                passwordConfirmInput.classList.toggle('is-valid', match);
+                passwordConfirmInput.classList.toggle('is-invalid', !match);
+            } else {
+                passwordConfirmInput.classList.remove('is-valid', 'is-invalid');
+            }
+            return match;
+        }
+
+        usernameInput.addEventListener('input', validateUsername);
+        emailInput.addEventListener('input', validateEmail);
+
+        passwordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+            validatePasswordMatch();
+            if (this.value.length > 0 && this.value.length < 6) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        passwordConfirmInput.addEventListener('input', validatePasswordMatch);
+
+        form.addEventListener('submit', function(e) {
+            let valid = true;
+
+            if (!validateUsername()) valid = false;
+            if (!validateEmail()) valid = false;
+            if (passwordInput.value.length < 6) {
+                passwordInput.classList.add('is-invalid');
+                valid = false;
+            } else {
+                passwordInput.classList.remove('is-invalid');
+            }
+            if (!validatePasswordMatch()) valid = false;
+            if (!privacyCheck.checked) {
+                privacyCheck.classList.add('is-invalid');
+                valid = false;
+            } else {
+                privacyCheck.classList.remove('is-invalid');
+            }
+            if (!termsCheck.checked) {
+                termsCheck.classList.add('is-invalid');
+                valid = false;
+            } else {
+                termsCheck.classList.remove('is-invalid');
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                const firstError = document.querySelector('.is-invalid');
+                if (firstError) {
+                    firstError.focus();
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        privacyCheck.addEventListener('change', function() {
+            if (this.checked) this.classList.remove('is-invalid');
+        });
+        termsCheck.addEventListener('change', function() {
+            if (this.checked) this.classList.remove('is-invalid');
+        });
+
+        if (passwordInput.value) {
+            checkPasswordStrength(passwordInput.value);
+        }
+    });
+</script>
 
 </body>
 </html>
