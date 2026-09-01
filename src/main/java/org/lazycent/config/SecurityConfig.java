@@ -22,7 +22,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/register", "/lib/**", "/css/**", "/js/**", "/webjars/**",
-                                "/favicon.ico", "/logo.png", "/privacy", "/terms", "/error").permitAll()
+                                "/favicon.ico", "/logo.png", "/privacy", "/terms", "/error", "/forgot-password", "/reset-password").permitAll()
 
                         .anyRequest().authenticated()
 

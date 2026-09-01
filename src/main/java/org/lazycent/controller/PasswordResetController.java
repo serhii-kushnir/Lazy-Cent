@@ -1,0 +1,59 @@
+package org.lazycent.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.lazycent.service.PasswordResetService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequiredArgsConstructor
+public class PasswordResetController {
+
+    private final PasswordResetService passwordResetService;
+
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordForm() {
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam String email,
+                                        RedirectAttributes redirectAttributes) {
+        passwordResetService.createPasswordResetToken(email);
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Якщо акаунт з таким email існує, на нього було надіслано лист з інструкціями.");
+        return "redirect:/forgot-password";
+    }
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm(@RequestParam(required = false) String token,
+                                        Model model) {
+        if (token == null || token.isEmpty()) {
+            return "redirect:/forgot-password";
+        }
+        model.addAttribute("token", token);
+        return "reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String processResetPassword(@RequestParam String token,
+                                       @RequestParam String password,
+                                       @RequestParam String passwordConfirm,
+                                       RedirectAttributes redirectAttributes) {
+        if (!password.equals(passwordConfirm)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Паролі не збігаються.");
+            return "redirect:/reset-password?token=" + token;
+        }
+
+        try {
+            passwordResetService.resetPassword(token, password);
+            redirectAttributes.addFlashAttribute("successMessage", "Пароль успішно змінено! Увійдіть.");
+            return "redirect:/login";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/reset-password?token=" + token;
+        }
+    }
+}
