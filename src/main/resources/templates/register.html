@@ -266,24 +266,22 @@
                 <p>Створіть безкоштовний обліковий запис Lazy Cent</p>
             </div>
 
-            <form th:action="@{/register}" method="post" id="registerForm" novalidate>
+            <form th:action="@{/register}" method="post" id="registerForm" novalidate th:object="${registrationForm}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
-                <!-- ===== ІМ'Я КОРИСТУВАЧА (field-1) ===== -->
+                <!-- ІМ'Я КОРИСТУВАЧА -->
                 <div class="mb-3 field-1">
                     <label for="username" class="form-label fw-semibold">Ім'я користувача</label>
                     <input type="text"
                            class="form-control"
                            id="username"
-                           name="username"
+                           th:field="*{username}"
                            placeholder="Оберіть унікальне ім'я"
                            minlength="6"
                            maxlength="30"
                            pattern="[a-zA-Z0-9_]{6,30}"
                            required
-                           autofocus
-                           th:value="${username}"
-                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('username')} ? 'is-invalid' : ''">
+                           autofocus>
                     <div class="form-text">
                         <i class="fas fa-info-circle me-1"></i>
                         Від 6 до 30 символів. Дозволено: літери (a-z, A-Z), цифри (0-9), підкреслення (_).
@@ -291,17 +289,15 @@
                     <div th:if="${fieldErrors != null and fieldErrors.containsKey('username')}" class="invalid-feedback" th:text="${fieldErrors.username}"></div>
                 </div>
 
-                <!-- ===== EMAIL (field-2) ===== -->
+                <!-- EMAIL -->
                 <div class="mb-3 field-2">
                     <label for="email" class="form-label fw-semibold">Електронна пошта</label>
                     <input type="email"
                            class="form-control"
                            id="email"
-                           name="email"
+                           th:field="*{email}"
                            placeholder="Введіть вашу електронну пошту"
-                           required
-                           th:value="${email}"
-                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('email')} ? 'is-invalid' : ''">
+                           required>
                     <div class="form-text">
                         <i class="fas fa-info-circle me-1"></i>
                         Введіть дійсну електронну адресу (наприклад, user@example.com).
@@ -309,19 +305,18 @@
                     <div th:if="${fieldErrors != null and fieldErrors.containsKey('email')}" class="invalid-feedback" th:text="${fieldErrors.email}"></div>
                 </div>
 
-                <!-- ===== ПАРОЛЬ (field-3) ===== -->
+                <!-- ПАРОЛЬ -->
                 <div class="mb-3 field-3">
                     <label for="password" class="form-label fw-semibold">Пароль</label>
                     <div class="password-toggle-group">
                         <input type="password"
                                class="form-control"
                                id="password"
-                               name="password"
+                               th:field="*{password}"
                                placeholder="Створіть надійний пароль"
                                minlength="6"
                                maxlength="100"
-                               required
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('password')} ? 'is-invalid' : ''">
+                               required>
                         <button type="button" class="password-toggle-btn" id="togglePassword" title="Показати/приховати пароль">
                             <i class="fas fa-eye" id="togglePasswordIcon"></i>
                         </button>
@@ -350,17 +345,16 @@
                     <div th:if="${fieldErrors != null and fieldErrors.containsKey('password')}" class="invalid-feedback" th:text="${fieldErrors.password}"></div>
                 </div>
 
-                <!-- ===== ПІДТВЕРДЖЕННЯ ПАРОЛЯ (field-4) ===== -->
+                <!-- ПІДТВЕРДЖЕННЯ ПАРОЛЯ -->
                 <div class="mb-3 field-4">
                     <label for="passwordConfirm" class="form-label fw-semibold">Підтвердження пароля</label>
                     <div class="password-toggle-group">
                         <input type="password"
                                class="form-control"
                                id="passwordConfirm"
-                               name="passwordConfirm"
+                               th:field="*{passwordConfirm}"
                                placeholder="Повторіть пароль"
-                               required
-                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')} ? 'is-invalid' : ''">
+                               required>
                         <button type="button" class="password-toggle-btn" id="togglePasswordConfirm" title="Показати/приховати пароль">
                             <i class="fas fa-eye" id="togglePasswordConfirmIcon"></i>
                         </button>
@@ -372,10 +366,9 @@
                     <div th:if="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')}" class="invalid-feedback" th:text="${fieldErrors.passwordConfirm}"></div>
                 </div>
 
-                <!-- ===== ЧЕКБОКСИ ЗГОДИ (field-5, field-6) ===== -->
+                <!-- ЧЕКБОКСИ ЗГОДИ -->
                 <div class="mb-2 form-check field-5">
-                    <input type="checkbox" class="form-check-input" id="privacyConsent" name="privacyConsent" required
-                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('privacyConsent')} ? 'is-invalid' : ''">
+                    <input type="checkbox" class="form-check-input" id="privacyConsent" th:field="*{privacyConsent}" required>
                     <label class="form-check-label" for="privacyConsent">
                         Я погоджуюсь з <a href="/privacy" target="_blank">Політикою конфіденційності</a>
                     </label>
@@ -383,8 +376,7 @@
                 </div>
 
                 <div class="mb-3 form-check field-6">
-                    <input type="checkbox" class="form-check-input" id="termsConsent" name="termsConsent" required
-                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('termsConsent')} ? 'is-invalid' : ''">
+                    <input type="checkbox" class="form-check-input" id="termsConsent" th:field="*{termsConsent}" required>
                     <label class="form-check-label" for="termsConsent">
                         Я погоджуюсь з <a href="/terms" target="_blank">Умовами використання</a>
                     </label>
@@ -397,7 +389,6 @@
                     <i class="fas fa-user-plus me-2"></i>Зареєструватися
                 </button>
             </form>
-
             <div class="auth-footer">
                 Вже маєте акаунт? <a href="/login">Увійдіть</a>
             </div>

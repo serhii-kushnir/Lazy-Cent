@@ -1,6 +1,5 @@
 package org.lazycent.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.lazycent.model.dto.RegistrationForm;
 import org.lazycent.service.UserService;
 import org.springframework.stereotype.Controller;
@@ -10,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,9 +42,7 @@ public class AuthController {
                            Model model,
                            RedirectAttributes redirect) {
 
-        Map<String, String> fieldErrors = new HashMap<>();
-
-        // Додаткова перевірка унікальності
+        // Додаткові перевірки унікальності
         if (userService.findByUsername(form.getUsername()) != null) {
             bindingResult.rejectValue("username", "error.user", "Користувач з таким ім'ям вже існує");
         }
@@ -58,12 +56,12 @@ public class AuthController {
         }
 
         if (bindingResult.hasErrors()) {
+            Map<String, String> fieldErrors = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
                 fieldErrors.put(error.getField(), error.getDefaultMessage());
             }
             model.addAttribute("fieldErrors", fieldErrors);
-            model.addAttribute("username", form.getUsername());
-            model.addAttribute("email", form.getEmail());
+            model.addAttribute("registrationForm", form); // передаємо заповнену форму
             return "register";
         }
 
