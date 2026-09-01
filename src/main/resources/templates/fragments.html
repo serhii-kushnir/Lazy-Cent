@@ -28,7 +28,55 @@
             --wm-navbar-border: #2a2e37;
             --wm-footer-border: #2a2e37;
         }
-        /* ===== КНОПКА ПЕРЕМИКАЧА ТЕМИ (ПРАВИЛЬНИЙ КОНТРАСТ + АНІМАЦІЯ) ===== */
+
+        /* ===== НАВБАР ===== */
+        .wm-navbar {
+            background-color: var(--wm-navbar-bg) !important;
+            color: var(--wm-navbar-color) !important;
+            border-bottom: 1px solid var(--wm-navbar-border);
+            animation: navSlideDown 0.5s ease-out forwards;
+        }
+        @keyframes navSlideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .wm-navbar .navbar-brand,
+        .wm-navbar .nav-link {
+            color: var(--wm-navbar-color) !important;
+        }
+
+        /* Анімація посилань у навбарі */
+        .wm-navbar .nav-link {
+            position: relative;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .wm-navbar .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 0;
+            height: 2px;
+            background: var(--bs-primary);
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        .wm-navbar .nav-link:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+            transform: translateY(-2px);
+        }
+        .wm-navbar .nav-link:hover::after {
+            width: 100%;
+            left: 0;
+        }
+        .wm-navbar .nav-link.active::after {
+            width: 100%;
+            left: 0;
+        }
+
+        /* Кнопка теми з анімацією (видно на login та register) */
         .wm-navbar .theme-toggle-btn {
             color: var(--wm-navbar-color) !important;
             border: 1px solid var(--wm-navbar-color) !important;
@@ -44,35 +92,17 @@
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        /* Ефект натискання */
         .wm-navbar .theme-toggle-btn:active {
             transform: translateY(0) scale(0.95);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        /* Обертання іконки при наведенні */
         .wm-navbar .theme-toggle-btn i {
             transition: transform 0.3s ease;
         }
         .wm-navbar .theme-toggle-btn:hover i {
             transform: rotate(180deg);
         }
-        /* ===== НАВБАР ===== */
-        .wm-navbar {
-            background-color: var(--wm-navbar-bg) !important;
-            color: var(--wm-navbar-color) !important;
-            border-bottom: 1px solid var(--wm-navbar-border);
-        }
-        .wm-navbar .navbar-brand,
-        .wm-navbar .nav-link {
-            color: var(--wm-navbar-color) !important;
-        }
-        .wm-navbar .nav-link:hover {
-            color: #0a58ca !important;
-        }
-        .wm-navbar .nav-link.active {
-            color: #0a58ca !important;
-            font-weight: 600;
-        }
+
         .wm-navbar .user-avatar {
             cursor: pointer;
             display: flex;
@@ -216,6 +246,7 @@
         }
         .drawer-menu .menu-item:hover {
             background: rgba(var(--bs-primary-rgb), 0.06);
+            transform: translateY(-1px);
         }
         .drawer-menu .menu-item.active {
             background: var(--bs-primary);
@@ -226,14 +257,21 @@
             background: var(--bs-primary);
             color: #fff;
         }
+
+        /* ===== КНОПКА "ВИХІД" (ОКРЕМО ЧЕРВОНА) ===== */
         .drawer-menu .menu-item.logout-item {
-            color: var(--bs-danger);
-            border-color: transparent;
-            background: transparent;
+            color: var(--bs-danger) !important;
+            border: 1px solid transparent;
+            border-radius: 0.5rem;
         }
         .drawer-menu .menu-item.logout-item:hover {
-            background: rgba(220,53,69,0.08);
-            border-color: var(--bs-danger);
+            background: rgba(220,53,69,0.08) !important;
+            border-color: var(--bs-danger) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.2);
+        }
+        .drawer-menu .menu-item.logout-item:active {
+            transform: translateY(0) scale(0.95);
         }
 
         /* Контент */
@@ -249,74 +287,6 @@
         .drawer-content .section.active {
             display: block;
         }
-
-        /* ===== АНІМАЦІЯ НАВБАРУ ТА ЙОГО ЕЛЕМЕНТІВ ===== */
-        @keyframes navSlideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .wm-navbar {
-            animation: navSlideDown 0.5s ease-out forwards;
-        }
-
-        /* ===== АНІМАЦІЯ ДЛЯ ПОСИЛАНЬ (Увійти, Реєстрація, Головна...) ===== */
-        .wm-navbar .nav-link {
-            position: relative;
-            padding-left: 1rem;
-            padding-right: 1rem;
-            border-radius: 0.5rem;
-            transition: all 0.3s ease;
-        }
-        .wm-navbar .nav-link::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            bottom: 0;
-            width: 0;
-            height: 2px;
-            background: var(--bs-primary);
-            transition: width 0.3s ease, left 0.3s ease;
-        }
-        .wm-navbar .nav-link:hover {
-            background-color: rgba(var(--bs-primary-rgb), 0.1);
-            transform: translateY(-2px);
-        }
-        .wm-navbar .nav-link:hover::after {
-            width: 100%;
-            left: 0;
-        }
-        .wm-navbar .nav-link.active::after {
-            width: 100%;
-            left: 0;
-        }
-
-        /* ===== АНІМАЦІЯ КНОПКИ ТЕМИ (якщо використовується клас .theme-toggle-btn) ===== */
-        .wm-navbar .theme-toggle-btn {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .wm-navbar .theme-toggle-btn:hover {
-            transform: translateY(-2px) scale(1.1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        .wm-navbar .theme-toggle-btn:active {
-            transform: translateY(0) scale(0.95);
-        }
-        .wm-navbar .theme-toggle-btn i {
-            transition: transform 0.3s ease;
-        }
-        .wm-navbar .theme-toggle-btn:hover i {
-            transform: rotate(180deg);
-        }
-
-        /* ===== АНІМАЦІЯ ДЛЯ КНОПОК-ПОСИЛАНЬ (якщо є .btn в навбарі) ===== */
-        .wm-navbar .btn {
-            transition: all 0.3s ease;
-        }
-        .wm-navbar .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(6px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -338,10 +308,40 @@
             border-color: var(--bs-primary);
             box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
         }
+
+        /* ===== АНІМАЦІЇ КНОПОК У ПАНЕЛІ НАЛАШТУВАНЬ ===== */
         .drawer-content .section .btn {
             border-radius: 0.75rem;
             padding: 0.5rem 1.2rem;
             font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .drawer-content .section .btn:not(.btn-danger):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            filter: brightness(1.05);
+        }
+        .drawer-content .section .btn:not(.btn-danger):active {
+            transform: translateY(0) scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Червоні кнопки (Видалити, Очистити) */
+        .drawer-content .section .btn-danger {
+            background-color: var(--bs-danger);
+            border-color: var(--bs-danger);
+            color: #fff;
+            transition: all 0.2s ease;
+        }
+        .drawer-content .section .btn-danger:hover {
+            background-color: #bb2d3b;
+            border-color: #bb2d3b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        .drawer-content .section .btn-danger:active {
+            transform: translateY(0) scale(0.95);
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
         }
 
         /* Категорії */
@@ -588,7 +588,7 @@
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <button class="user-avatar" id="openSettingsBtn" type="button" title="Налаштування">
                         <span class="avatar-placeholder" sec:authentication="name"></span>
-                        <span class="d-none d-md-inline" sec:authentication="name"></span>
+                        <span class="ms-1" sec:authentication="name"></span>
                     </button>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
@@ -729,7 +729,7 @@
                     </div>
 
                     <!-- Кнопка збереження -->
-                    <button type="submit" class="btn btn-primary" th:disabled="${isOAuth2User}">
+                    <button type="submit" class="btn btn-primary w-100" th:disabled="${isOAuth2User}">
                         <i class="fas fa-save me-1"></i> Зберегти
                     </button>
                     <span th:if="${isOAuth2User}" class="text-muted ms-2 small">
@@ -740,24 +740,21 @@
             <!-- ========== КАТЕГОРІЇ ========== -->
             <div class="section" id="d-section-categories">
                 <h5><i class="fas fa-tags me-2"></i>Категорії</h5>
-                <form th:action="@{/categories/add}" method="post" class="row g-2 mb-3">
+                <form th:action="@{/categories/add}" method="post" class="mb-3">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <div class="col-md-5">
+                    <div class="mb-3">
                         <input type="text" name="name" class="form-control" placeholder="Назва" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="mb-3">
                         <select name="type" class="form-select" required>
                             <option value="EXPENSE">Витрата</option>
                             <option value="INCOME">Дохід</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-plus"></i> Додати
-                        </button>
-                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus"></i> Додати
+                    </button>
                 </form>
-
                 <h6 class="text-danger"><i class="fas fa-arrow-down me-1"></i> Витрати</h6>
                 <div class="category-list">
                     <div th:each="cat : ${expenseCategories}" class="category-item" th:if="${expenseCategories != null}">
@@ -812,7 +809,7 @@
                         <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'CZK'} ? 'active'" data-currency="CZK">Kč</div>
                     </div>
                     <input type="hidden" name="currency" id="drawerSelectedCurrency" th:value="${preferredCurrency != null ? preferredCurrency : 'UAH'}" />
-                    <button type="submit" class="btn btn-primary mt-2">
+                    <button type="submit" class="btn btn-primary w-100 mt-2">
                         <i class="fas fa-save me-1"></i> Зберегти
                     </button>
                 </form>
@@ -847,30 +844,26 @@
             </div>
 
             <!-- ========== ДАНІ ========== -->
-            <div class="section" id="d-section-data">
+            <div class="section active" id="d-section-data">
                 <h5><i class="fas fa-database me-2"></i>Дані</h5>
                 <div class="danger-zone">
                     <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Небезпечна зона</h6>
-                    <div class="row g-2 mt-2">
-                        <div class="col-md-6">
-                            <div class="p-2 border rounded text-center h-100">
-                                <i class="fas fa-eraser fa-2x mb-1 text-danger"></i>
-                                <h6>Видалити всі дані</h6>
-                                <p class="text-muted small">Видаляє транзакції, категорії, нотатки та плани.</p>
-                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearDataModal">
-                                    <i class="fas fa-trash me-1"></i> Очистити
-                                </button>
-                            </div>
+                    <div class="d-grid gap-3 mt-2">
+                        <div class="p-2 border rounded text-center">
+                            <i class="fas fa-eraser fa-2x mb-1 text-danger"></i>
+                            <h6>Видалити всі дані</h6>
+                            <p class="text-muted small">Видаляє транзакції, категорії, нотатки та плани.</p>
+                            <button class="btn btn-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#clearDataModal">
+                                <i class="fas fa-trash me-1"></i> Очистити
+                            </button>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-2 border rounded text-center h-100">
-                                <i class="fas fa-user-slash fa-2x mb-1 text-danger"></i>
-                                <h6>Видалити акаунт</h6>
-                                <p class="text-muted small">Назавжди видаляє ваш обліковий запис.</p>
-                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                                    <i class="fas fa-user-times me-1"></i> Видалити
-                                </button>
-                            </div>
+                        <div class="p-2 border rounded text-center">
+                            <i class="fas fa-user-slash fa-2x mb-1 text-danger"></i>
+                            <h6>Видалити акаунт</h6>
+                            <p class="text-muted small">Назавжди видаляє ваш обліковий запис.</p>
+                            <button class="btn btn-danger btn-sm w-100" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                <i class="fas fa-user-times me-1"></i> Видалити
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -880,8 +873,7 @@
             <div class="section" id="d-section-about">
                 <h5><i class="fas fa-info-circle me-2"></i>Про сервіс</h5>
                 <div class="text-center">
-                    <span class="display-1">💰</span>
-                    <h3 class="mt-2">Lazy Cent</h3>
+                    <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 100px; width: auto;">
                     <p class="text-muted">Ваш особистий фінансовий помічник</p>
                     <div class="row g-2 justify-content-center mt-2">
                         <div class="col-4">
@@ -891,7 +883,7 @@
                             <div class="p-1 border rounded"><strong>Ліцензія</strong><div class="text-muted small">MIT</div></div>
                         </div>
                         <div class="col-4">
-                            <div class="p-1 border rounded"><strong>Розробник</strong><div class="text-muted small">LazyCent Team</div></div>
+                            <div class="p-1 border rounded"><strong>Розробник</strong><div class="text-muted small">SERHII KUSHNIR</div></div>
                         </div>
                     </div>
                     <hr>
