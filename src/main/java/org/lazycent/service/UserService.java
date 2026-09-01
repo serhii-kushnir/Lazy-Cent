@@ -39,6 +39,7 @@ public class UserService {
 
     @Transactional
     public User registerUser(String username, String rawPassword, String email) {
+        // Додаткова перевірка (вже є в контролері, але не завадить)
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Користувач з таким іменем вже існує");
         }
@@ -60,21 +61,13 @@ public class UserService {
         return savedUser;
     }
 
-    @Deprecated
-    @Transactional
-    public User registerUser(String username, String rawPassword) {
-        return registerUser(username, rawPassword, null);
-    }
-
-    // ==================== OAuth2 – ЗБЕРІГАЄМО АБО ОНОВЛЮЄМО ====================
+    // ==================== OAuth2 ====================
 
     @Transactional
     public User saveOrUpdateOAuth2User(String provider, String providerId, String email, String name) {
-        // Шукаємо за email
         if (email != null) {
             User existingUser = userRepository.findByEmail(email).orElse(null);
             if (existingUser != null) {
-                // Оновлюємо дані при кожному вході
                 log.info("Оновлюємо OAuth2-користувача: {} (email: {})", existingUser.getUsername(), email);
                 if (name != null && !name.isEmpty()) {
                     existingUser.setUsername(name);
@@ -87,7 +80,6 @@ public class UserService {
             }
         }
 
-        // Шукаємо за providerId (на випадок, якщо email змінився)
         User existingByProvider = userRepository.findByProviderId(providerId).orElse(null);
         if (existingByProvider != null) {
             log.info("Оновлюємо OAuth2-користувача за providerId: {}", existingByProvider.getUsername());
@@ -100,16 +92,8 @@ public class UserService {
             return userRepository.save(existingByProvider);
         }
 
-        // Якщо користувача немає – створюємо нового
         log.info("Створюємо нового OAuth2-користувача: {} через {}", name, provider);
         return createNewOAuth2User(provider, providerId, email, name);
-    }
-
-    // ==================== СТАРИЙ МЕТОД (для сумісності) ====================
-
-    @Transactional
-    public User saveOAuth2User(String provider, String providerId, String email, String name) {
-        return saveOrUpdateOAuth2User(provider, providerId, email, name);
     }
 
     private User createNewOAuth2User(String provider, String providerId, String emailOrUsername, String name) {
@@ -137,13 +121,11 @@ public class UserService {
         User managedUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
-        // Якщо OAuth2 – ЗАБОРОНЯЄМО будь-які зміни
         if (managedUser.getProvider() != null && !managedUser.getProvider().isEmpty()) {
             log.warn("Спроба зміни профілю OAuth2-користувача: {} (заборонено)", managedUser.getUsername());
             throw new RuntimeException("Для OAuth2-користувачів зміна даних недоступна. Всі зміни виконуються через ваш обліковий запис " + managedUser.getProvider());
         }
 
-        // Для локальних користувачів – повне оновлення
         if (!managedUser.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Користувач з таким ім'ям вже існує");
         }
@@ -170,19 +152,15 @@ public class UserService {
         userRepository.save(managedUser);
         log.info("Оновлено профіль користувача: {}", managedUser.getUsername());
     }
-    // ==================== ВАЛЮТА ====================
 
     @Transactional
     public void updateCurrency(User user, String currency) {
-        // Отримуємо керовану сутність
         User managedUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
         managedUser.setPreferredCurrency(currency);
         userRepository.save(managedUser);
         log.info("Оновлено валюту користувача {} на {}", managedUser.getUsername(), currency);
     }
-
-    // ==================== ВИДАЛЕННЯ АКАУНТА ====================
 
     @Transactional
     public void deleteAccount(User user) {
@@ -193,7 +171,6 @@ public class UserService {
         noteService.deleteAllNotes(managedUser);
 
         userRepository.delete(managedUser);
-
         log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), managedUser.getId());
     }
 }

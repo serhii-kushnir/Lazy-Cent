@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,9 +23,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // 0. Обробка запитів на неіснуючі статичні ресурси (наприклад, .map файли,
-    //    які браузер підвантажує сам для дебагу minified JS) — тихий 404,
-    //    без ERROR-логу і без редіректів/flash-повідомлень.
+    // 0. Обробка запитів на неіснуючі статичні ресурси
     @ExceptionHandler(NoResourceFoundException.class)
     public ModelAndView handleNoResourceFound(NoResourceFoundException ex) {
         log.debug("Сторінка не знайдена: {}", ex.getResourcePath());
@@ -35,7 +32,7 @@ public class GlobalExceptionHandler {
         return mav;
     }
 
-    // 1. Обробка бізнес-винятків (повертаємо на попередню сторінку)
+    // 1. Обробка бізнес-винятків
     @ExceptionHandler(BusinessException.class)
     public String handleBusinessException(BusinessException ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         log.warn("Business error: {}", ex.getMessage());
@@ -43,7 +40,7 @@ public class GlobalExceptionHandler {
         return redirectToReferer(request);
     }
 
-    // 2. Обробка помилок валідації DTO (показуємо помилки біля полів)
+    // 2. Обробка помилок валідації DTO
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public String handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         log.warn("Validation error: {}", ex.getMessage());
@@ -58,7 +55,7 @@ public class GlobalExceptionHandler {
         return redirectToReferer(request);
     }
 
-    // 3. Обробка помилок цілісності даних (наприклад, видалення категорії, що використовується)
+    // 3. Обробка помилок цілісності даних
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         log.warn("Data integrity error: {}", ex.getMessage());
@@ -66,21 +63,20 @@ public class GlobalExceptionHandler {
         return redirectToReferer(request);
     }
 
-    // 4. Загальний обробник для будь-яких непередбачуваних помилок
+    // 4. Загальний обробник
     @ExceptionHandler(Exception.class)
     public String handleGenericException(Exception ex, HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        log.error("Unexpected error: ", ex); // повний стек-трейс у лог
+        log.error("Unexpected error: ", ex);
         redirectAttributes.addFlashAttribute("errorMessage", "Сталася технічна помилка. Спробуйте пізніше.");
         return redirectToReferer(request);
     }
 
-    // Допоміжний метод для безпечного редиректу на попередню сторінку
+    // Допоміжний метод
     private String redirectToReferer(HttpServletRequest request) {
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.isEmpty() && referer.startsWith("/")) {
             return "redirect:" + referer;
         }
-        // Якщо реферер відсутній або зовнішній – перенаправляємо на головну
         return "redirect:/";
     }
 }
