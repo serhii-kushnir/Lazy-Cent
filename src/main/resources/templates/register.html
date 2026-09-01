@@ -574,13 +574,19 @@
         usernameInput.addEventListener('input', validateUsername);
         emailInput.addEventListener('input', validateEmail);
 
+        // Оновлюємо валідацію поля пароля при введенні
         passwordInput.addEventListener('input', function() {
-            checkPasswordStrength(this.value);
+            const checks = checkPasswordStrength(this.value);
             validatePasswordMatch();
-            if (this.value.length > 0 && this.value.length < 6) {
-                this.classList.add('is-invalid');
-            } else {
+
+            if (this.value.length === 0) {
+                this.classList.remove('is-valid', 'is-invalid');
+            } else if (Object.values(checks).every(Boolean)) {
                 this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
             }
         });
 
@@ -591,12 +597,17 @@
 
             if (!validateUsername()) valid = false;
             if (!validateEmail()) valid = false;
-            if (passwordInput.value.length < 6) {
+
+            // Перевіряємо всі правила пароля через checkPasswordStrength
+            const passwordChecks = checkPasswordStrength(passwordInput.value);
+            const isPasswordValid = Object.values(passwordChecks).every(Boolean);
+            if (!isPasswordValid) {
                 passwordInput.classList.add('is-invalid');
                 valid = false;
             } else {
                 passwordInput.classList.remove('is-invalid');
             }
+
             if (!validatePasswordMatch()) valid = false;
             if (!privacyCheck.checked) {
                 privacyCheck.classList.add('is-invalid');
@@ -633,6 +644,5 @@
         }
     });
 </script>
-
 </body>
 </html>
