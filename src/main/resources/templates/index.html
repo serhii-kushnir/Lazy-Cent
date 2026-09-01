@@ -142,7 +142,11 @@
 </head>
 <body>
 
+<!-- ===== НАВБАР ===== -->
 <nav th:replace="~{fragments :: navbar('home')}"></nav>
+
+<!-- ===== ПАНЕЛЬ НАЛАШТУВАНЬ (ДОДАЄМО ЯВНО) ===== -->
+<div th:replace="~{fragments :: settingsPanel}"></div>
 
 <!-- ===== TOAST ===== -->
 <div th:replace="~{fragments :: toastContainer}"></div>
@@ -388,6 +392,9 @@
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
+
+<!-- ===== СКРИПТ ПАНЕЛІ ===== -->
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 
 <script>
     (function() {

@@ -688,6 +688,7 @@
 </head>
 <body>
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
+<div th:replace="~{fragments :: settingsPanel}"></div>
 
 <div th:replace="~{fragments :: toastContainer}"></div>
 
@@ -2583,5 +2584,6 @@
 
     })();
 </script>
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 </body>
 </html>

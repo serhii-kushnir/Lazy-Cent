@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
+
         .auth-page {
             min-height: 100vh;
             display: flex;
@@ -66,14 +67,17 @@
             border-radius: 0.75rem;
             font-weight: 600;
             font-size: 1rem;
-            border: 1.5px solid var(--bs-border-color);
-            background: transparent;
-            color: var(--bs-body-color);
+            border: 1.5px solid #DB4437; /* Фірмовий червоний Google */
+            background-color: #DB4437;
+            color: #ffffff;
             transition: all 0.2s ease;
         }
         .auth-card .btn-google:hover {
-            background: rgba(var(--bs-primary-rgb), 0.05);
-            border-color: var(--bs-primary);
+            background-color: #C53030; /* Темніший відтінок при наведенні */
+            border-color: #C53030;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(219, 68, 55, 0.3);
         }
         .auth-card .divider {
             display: flex;
@@ -81,6 +85,9 @@
             margin: 1.5rem 0;
             color: var(--bs-secondary-color);
             font-size: 0.85rem;
+        }
+        .auth-card .btn-google:focus {
+            box-shadow: 0 0 0 3px rgba(219, 68, 55, 0.25);
         }
         .auth-card .divider::before,
         .auth-card .divider::after {
@@ -127,6 +134,42 @@
         }
         .password-toggle-group .password-toggle-btn:hover {
             color: var(--bs-primary);
+        }
+
+        /* ===== АНІМАЦІЇ ПРИ ЗАВАНТАЖЕННІ ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .auth-page {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .auth-card {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Каскадна поява елементів */
+        .auth-card .mb-3 { opacity: 0; animation: fadeInUp 0.5s ease forwards; }
+        .auth-card .divider { opacity: 0; animation: fadeInUp 0.5s ease forwards 0.4s; }
+        .auth-card .btn-primary { opacity: 0; animation: fadeInUp 0.5s ease forwards 0.5s; }
+        .auth-card .btn-google { opacity: 0; animation: fadeInUp 0.5s ease forwards 0.6s; }
+        .auth-card .auth-footer { opacity: 0; animation: fadeInUp 0.5s ease forwards 0.7s; }
+
+        .auth-card .mb-3:nth-of-type(1) { animation-delay: 0.1s; }
+        .auth-card .mb-3:nth-of-type(2) { animation-delay: 0.2s; }
+        .auth-card .alert { opacity: 0; animation: fadeIn 0.4s ease forwards 0.3s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .auth-page, .auth-card, .auth-card .mb-3, .auth-card .divider,
+            .auth-card .btn-primary, .auth-card .btn-google, .auth-card .auth-footer, .auth-card .alert {
+                animation: none;
+                opacity: 1;
+            }
         }
 
         @media (max-width: 576px) {

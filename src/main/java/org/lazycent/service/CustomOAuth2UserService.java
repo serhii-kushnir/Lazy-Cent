@@ -1,4 +1,3 @@
-// service/CustomOAuth2UserService.java (повний код, що використовує CustomOAuth2User)
 package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
@@ -9,6 +8,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
@@ -19,6 +19,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final UserService userService;
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
@@ -33,9 +34,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             email = provider + "_" + providerId;
         }
 
-        User user = userService.saveOAuth2User(provider, providerId, email, name);
+        // Зберігаємо або ОНОВЛЮЄМО користувача
+        User user = userService.saveOrUpdateOAuth2User(provider, providerId, email, name);
 
-        // Повертаємо CustomOAuth2User, який об'єднує OAuth2User та нашого User
         return new CustomOAuth2User(oAuth2User, user);
     }
 }

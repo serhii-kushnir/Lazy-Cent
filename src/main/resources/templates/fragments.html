@@ -1,5 +1,5 @@
 <!-- templates/fragments.html -->
-<!-- Спільні фрагменти: навбар, футер, тости, стилі/скрипт перемикача теми -->
+<!-- Спільні фрагменти: навбар, футер, тости, стилі/скрипт перемикача теми, ПАНЕЛЬ НАЛАШТУВАНЬ -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <body>
@@ -11,20 +11,60 @@
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <script src="/lib/chart.js/chart.umd.min.js"></script>
     <style>
-        /* ===== ОСНОВНІ ПЕРЕХОДИ ===== */
-        :root { --wm-transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
-        body { transition: var(--wm-transition); }
-        .card, .navbar, .table, .modal-content { transition: var(--wm-transition); }
-
-        /* ===== НАВБАР ТА ФУТЕР ===== */
+        /* ===== ЗМІННІ ДЛЯ ТЕМ ===== */
+        :root {
+            --wm-navbar-bg: #f8f9fa;
+            --wm-navbar-color: #1B2430;
+            --wm-footer-bg: #f8f9fa;
+            --wm-footer-color: #1B2430;
+            --wm-navbar-border: #e9ecef;
+            --wm-footer-border: #e9ecef;
+        }
+        [data-bs-theme="dark"] {
+            --wm-navbar-bg: #1d2027;
+            --wm-navbar-color: #e6e6e6;
+            --wm-footer-bg: #1d2027;
+            --wm-footer-color: #e6e6e6;
+            --wm-navbar-border: #2a2e37;
+            --wm-footer-border: #2a2e37;
+        }
+        /* ===== КНОПКА ПЕРЕМИКАЧА ТЕМИ (ПРАВИЛЬНИЙ КОНТРАСТ + АНІМАЦІЯ) ===== */
+        .wm-navbar .theme-toggle-btn {
+            color: var(--wm-navbar-color) !important;
+            border: 1px solid var(--wm-navbar-color) !important;
+            background: transparent;
+            border-radius: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .wm-navbar .theme-toggle-btn:hover {
+            background: rgba(var(--bs-primary-rgb), 0.12);
+            color: var(--bs-primary) !important;
+            border-color: var(--bs-primary) !important;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        /* Ефект натискання */
+        .wm-navbar .theme-toggle-btn:active {
+            transform: translateY(0) scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        /* Обертання іконки при наведенні */
+        .wm-navbar .theme-toggle-btn i {
+            transition: transform 0.3s ease;
+        }
+        .wm-navbar .theme-toggle-btn:hover i {
+            transform: rotate(180deg);
+        }
+        /* ===== НАВБАР ===== */
         .wm-navbar {
-            background-color: #f8f9fa !important;
-            color: #1B2430 !important;
-            border-bottom: 1px solid #e9ecef;
+            background-color: var(--wm-navbar-bg) !important;
+            color: var(--wm-navbar-color) !important;
+            border-bottom: 1px solid var(--wm-navbar-border);
         }
         .wm-navbar .navbar-brand,
         .wm-navbar .nav-link {
-            color: #1B2430 !important;
+            color: var(--wm-navbar-color) !important;
         }
         .wm-navbar .nav-link:hover {
             color: #0a58ca !important;
@@ -33,22 +73,398 @@
             color: #0a58ca !important;
             font-weight: 600;
         }
-        .wm-navbar .btn-outline-light {
-            color: #1B2430;
-            border-color: #6c757d;
+        .wm-navbar .user-avatar {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 2rem;
+            transition: background 0.2s;
+            border: none;
+            background: transparent;
+            color: var(--wm-navbar-color);
         }
-        .wm-navbar .btn-outline-light:hover {
-            background-color: #1B2430;
+        .wm-navbar .user-avatar:hover {
+            background: rgba(var(--bs-primary-rgb), 0.06);
+        }
+        .wm-navbar .user-avatar .avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bs-primary);
             color: #fff;
-        }
-        .wm-footer {
-            width: 100%;
-            background-color: #f8f9fa !important;
-            color: #1B2430 !important;
-            border-top: 1px solid #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
         }
 
-        /* ===== ТОСТИ ===== */
+        /* ===== ФУТЕР ===== */
+        .wm-footer {
+            width: 100%;
+            background-color: var(--wm-footer-bg) !important;
+            color: var(--wm-footer-color) !important;
+            border-top: 1px solid var(--wm-footer-border);
+        }
+
+        /* ============================================================== */
+        /* ===== ПАНЕЛЬ НАЛАШТУВАНЬ (drawer) ===== */
+        /* ============================================================== */
+        .settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .settings-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .settings-drawer {
+            position: fixed;
+            top: 0;
+            right: -480px;
+            width: 460px;
+            max-width: 95vw;
+            height: 100%;
+            background: var(--bs-body-bg);
+            box-shadow: -4px 0 30px rgba(0,0,0,0.15);
+            z-index: 9999;
+            transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .settings-drawer.open {
+            right: 0;
+        }
+        [data-bs-theme="dark"] .settings-drawer {
+            background: #1d2027;
+            box-shadow: -4px 0 30px rgba(0,0,0,0.5);
+        }
+
+        .settings-drawer .drawer-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--bs-border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            background: var(--bs-card-bg);
+        }
+        .settings-drawer .drawer-header h4 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .settings-drawer .drawer-header .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--bs-secondary-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 0.5rem;
+            transition: color 0.2s;
+        }
+        .settings-drawer .drawer-header .close-btn:hover {
+            color: var(--bs-danger);
+        }
+
+        .settings-drawer .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Меню (горизонтальне) */
+        .drawer-menu {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 0.25rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--bs-border-color);
+            flex-shrink: 0;
+            background: var(--bs-secondary-bg);
+        }
+        [data-bs-theme="dark"] .drawer-menu {
+            background: var(--bs-tertiary-bg);
+        }
+        .drawer-menu .menu-item {
+            white-space: nowrap;
+            padding: 0.4rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--bs-body-color);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            background: transparent;
+            text-decoration: none;
+        }
+        .drawer-menu .menu-item:hover {
+            background: rgba(var(--bs-primary-rgb), 0.06);
+        }
+        .drawer-menu .menu-item.active {
+            background: var(--bs-primary);
+            color: #fff;
+            border-color: var(--bs-primary);
+        }
+        [data-bs-theme="dark"] .drawer-menu .menu-item.active {
+            background: var(--bs-primary);
+            color: #fff;
+        }
+        .drawer-menu .menu-item.logout-item {
+            color: var(--bs-danger);
+            border-color: transparent;
+            background: transparent;
+        }
+        .drawer-menu .menu-item.logout-item:hover {
+            background: rgba(220,53,69,0.08);
+            border-color: var(--bs-danger);
+        }
+
+        /* Контент */
+        .drawer-content {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .drawer-content .section {
+            display: none;
+            animation: fadeIn 0.25s ease forwards;
+        }
+        .drawer-content .section.active {
+            display: block;
+        }
+
+        /* ===== АНІМАЦІЯ НАВБАРУ ТА ЙОГО ЕЛЕМЕНТІВ ===== */
+        @keyframes navSlideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .wm-navbar {
+            animation: navSlideDown 0.5s ease-out forwards;
+        }
+
+        /* ===== АНІМАЦІЯ ДЛЯ ПОСИЛАНЬ (Увійти, Реєстрація, Головна...) ===== */
+        .wm-navbar .nav-link {
+            position: relative;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .wm-navbar .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 0;
+            height: 2px;
+            background: var(--bs-primary);
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        .wm-navbar .nav-link:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.1);
+            transform: translateY(-2px);
+        }
+        .wm-navbar .nav-link:hover::after {
+            width: 100%;
+            left: 0;
+        }
+        .wm-navbar .nav-link.active::after {
+            width: 100%;
+            left: 0;
+        }
+
+        /* ===== АНІМАЦІЯ КНОПКИ ТЕМИ (якщо використовується клас .theme-toggle-btn) ===== */
+        .wm-navbar .theme-toggle-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .wm-navbar .theme-toggle-btn:hover {
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .wm-navbar .theme-toggle-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+        .wm-navbar .theme-toggle-btn i {
+            transition: transform 0.3s ease;
+        }
+        .wm-navbar .theme-toggle-btn:hover i {
+            transform: rotate(180deg);
+        }
+
+        /* ===== АНІМАЦІЯ ДЛЯ КНОПОК-ПОСИЛАНЬ (якщо є .btn в навбарі) ===== */
+        .wm-navbar .btn {
+            transition: all 0.3s ease;
+        }
+        .wm-navbar .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .drawer-content .section h5 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--bs-primary);
+        }
+        .drawer-content .section .form-control,
+        .drawer-content .section .form-select {
+            border-radius: 0.75rem;
+            border: 1.5px solid var(--bs-border-color);
+            padding: 0.6rem 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .drawer-content .section .form-control:focus,
+        .drawer-content .section .form-select:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
+        }
+        .drawer-content .section .btn {
+            border-radius: 0.75rem;
+            padding: 0.5rem 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Категорії */
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.8rem;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .category-item:last-child { border-bottom: none; }
+        .category-item .category-actions .btn {
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem;
+        }
+
+        /* Валюта */
+        .currency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.4rem;
+            margin: 0.5rem 0;
+        }
+        .currency-grid .currency-option {
+            padding: 0.4rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            border: 2px solid var(--bs-border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .currency-grid .currency-option:hover {
+            border-color: var(--bs-primary);
+            background: rgba(var(--bs-primary-rgb), 0.05);
+        }
+        .currency-grid .currency-option.active {
+            border-color: var(--bs-primary);
+            background: rgba(var(--bs-primary-rgb), 0.1);
+            color: var(--bs-primary);
+        }
+
+        /* Тема */
+        .theme-options {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0;
+        }
+        .theme-options .theme-btn {
+            padding: 0.4rem 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--bs-border-color);
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .theme-options .theme-btn:hover {
+            border-color: var(--bs-primary);
+        }
+        .theme-options .theme-btn.active {
+            border-color: var(--bs-primary);
+            background: rgba(var(--bs-primary-rgb), 0.1);
+            color: var(--bs-primary);
+        }
+
+        /* Danger zone */
+        .danger-zone {
+            border: 2px solid #dc3545;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            background: rgba(220,53,69,0.02);
+        }
+        .danger-zone .btn-danger {
+            border-radius: 0.75rem;
+        }
+
+        /* Мова */
+        .language-btn {
+            border-radius: 0.75rem;
+            border: 1.5px solid var(--bs-border-color);
+            padding: 0.4rem 1rem;
+            background: transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .language-btn.active {
+            border-color: var(--bs-primary);
+            background: rgba(var(--bs-primary-rgb), 0.1);
+            color: var(--bs-primary);
+        }
+
+        /* Адаптивність */
+        @media (max-width: 576px) {
+            .settings-drawer {
+                width: 100%;
+                max-width: 100%;
+                right: -100%;
+            }
+            .drawer-menu {
+                flex-wrap: wrap;
+                gap: 0.2rem;
+            }
+            .drawer-menu .menu-item {
+                font-size: 0.75rem;
+                padding: 0.3rem 0.6rem;
+            }
+            .drawer-content {
+                padding: 1rem;
+            }
+            .currency-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            }
+        }
+
+        /* Тости */
         .toast-container {
             position: fixed;
             top: 70px;
@@ -73,21 +489,13 @@
         .toast.success {
             border-left-color: #198754 !important;
         }
-        .toast.success .toast-header {
-            color: #198754;
-        }
-        .toast.success .toast-header i {
-            color: #198754;
-        }
+        .toast.success .toast-header { color: #198754; }
+        .toast.success .toast-header i { color: #198754; }
         .toast.error {
             border-left-color: #dc3545 !important;
         }
-        .toast.error .toast-header {
-            color: #dc3545;
-        }
-        .toast.error .toast-header i {
-            color: #dc3545;
-        }
+        .toast.error .toast-header { color: #dc3545; }
+        .toast.error .toast-header i { color: #dc3545; }
         .toast .toast-header {
             background: transparent;
             border-bottom: none;
@@ -102,214 +510,47 @@
             color: #e6e6e6;
             border-color: #2a2e37;
         }
-        [data-bs-theme="dark"] .toast .toast-header {
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .toast .btn-close {
-            filter: invert(1);
-        }
-        [data-bs-theme="dark"] .toast.success .toast-header {
-            color: #6ee7b7;
-        }
-        [data-bs-theme="dark"] .toast.error .toast-header {
-            color: #f87171;
-        }
+        [data-bs-theme="dark"] .toast .toast-header { color: #e6e6e6; }
+        [data-bs-theme="dark"] .toast .btn-close { filter: invert(1); }
+        [data-bs-theme="dark"] .toast.success .toast-header { color: #6ee7b7; }
+        [data-bs-theme="dark"] .toast.error .toast-header { color: #f87171; }
 
-        /* ===== МОДАЛЬНІ ВІКНА ===== */
-        .modal {
-            z-index: 1060 !important;
-        }
-        .modal-backdrop {
-            z-index: 1050 !important;
-        }
-
-        /* ===== М'ЯКША БІЛА ТЕМА ===== */
-        [data-bs-theme="light"] body {
-            background-color: #f0f2f5 !important;
-        }
-        [data-bs-theme="light"] .card {
-            background-color: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        }
-        [data-bs-theme="light"] .card-header {
-            background-color: rgba(0, 0, 0, 0.02);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        [data-bs-theme="light"] .navbar.wm-navbar {
-            background-color: #ffffff !important;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        [data-bs-theme="light"] .wm-footer {
-            background-color: #ffffff !important;
-            border-top: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        [data-bs-theme="light"] .bg-body {
-            background-color: #f8f9fa !important;
-        }
-        [data-bs-theme="light"] .settings-card {
-            background-color: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        [data-bs-theme="light"] .stat-card {
-            background-color: #ffffff;
-        }
-        [data-bs-theme="light"] .modal-content {
-            background-color: #ffffff;
-        }
-        [data-bs-theme="light"] .form-control,
-        [data-bs-theme="light"] .form-select {
-            background-color: #ffffff;
-            border-color: #d1d5db;
-        }
-        [data-bs-theme="light"] .table {
-            background-color: #ffffff;
-        }
-        [data-bs-theme="light"] .table th {
-            background-color: #f8f9fa;
-        }
-        [data-bs-theme="light"] .settings-card {
-            background-color: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        [data-bs-theme="light"] .note-card {
-            background-color: #ffffff;
-            border: 1px solid rgba(0, 0, 0, 0.06);
-        }
-        /* Адаптація для темної теми (залишається стандартною) */
-        [data-bs-theme="dark"] body {
-            background-color: #14161a;
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .card {
-            background-color: #1d2027;
-            border-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .card-header {
-            background-color: rgba(255, 255, 255, 0.02);
-            border-bottom-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .wm-navbar {
-            background-color: #1d2027 !important;
-            color: #e6e6e6 !important;
-            border-bottom-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .wm-navbar .navbar-brand,
-        [data-bs-theme="dark"] .wm-navbar .nav-link {
-            color: #e6e6e6 !important;
-        }
-        [data-bs-theme="dark"] .wm-navbar .nav-link:hover {
-            color: #ffc107 !important;
-        }
-        [data-bs-theme="dark"] .wm-navbar .nav-link.active {
-            color: #ffc107 !important;
-        }
-        [data-bs-theme="dark"] .wm-navbar .btn-outline-light {
-            color: #e6e6e6;
-            border-color: #6c757d;
-        }
-        [data-bs-theme="dark"] .wm-navbar .btn-outline-light:hover {
-            background-color: #e6e6e6;
-            color: #1d2027;
-        }
-        [data-bs-theme="dark"] .wm-footer {
-            background-color: #1d2027 !important;
-            color: #e6e6e6 !important;
-            border-top-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .form-control,
-        [data-bs-theme="dark"] .form-select {
-            background-color: #23262e;
-            color: #e6e6e6;
-            border-color: #3a3f4a;
-        }
-        [data-bs-theme="dark"] .table {
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .table th {
-            background-color: #1d2027;
-        }
-        [data-bs-theme="dark"] .settings-card {
-            background-color: #1d2027;
-            border-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .note-card {
-            background-color: #1d2027;
-            border-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .stat-card {
-            background-color: #1d2027;
-        }
-        [data-bs-theme="dark"] .modal-content {
-            background-color: #1d2027;
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .modal-header,
-        [data-bs-theme="dark"] .modal-footer {
-            border-color: #2a2e37;
-        }
-        [data-bs-theme="dark"] .btn-close {
-            filter: invert(1);
-        }
-        [data-bs-theme="dark"] .alert-info {
-            background-color: #1d3a4f;
-            border-color: #2a5a7a;
-            color: #b8d4f0;
-        }
-        /* Загальні стилі */
-        .btn-danger-soft {
+        /* Модальні вікна */
+        .modal { z-index: 1060 !important; }
+        .modal-backdrop { z-index: 1050 !important; }
+        .timer-circle {
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            line-height: 48px;
+            border-radius: 50%;
+            background: rgba(220,53,69,0.1);
             color: #dc3545;
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid transparent;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 0 0.5rem;
+            text-align: center;
         }
-        .btn-danger-soft:hover {
-            background: #dc3545;
-            color: #fff;
-        }
-        [data-bs-theme="dark"] .btn-danger-soft {
-            color: #f87171;
-            background: rgba(220, 53, 69, 0.15);
-        }
-        [data-bs-theme="dark"] .btn-danger-soft:hover {
-            background: #dc3545;
-            color: #fff;
-        }
-        .btn-success-soft {
+        .timer-circle.finished {
+            background: rgba(25,135,84,0.1);
             color: #198754;
-            background: rgba(25, 135, 84, 0.1);
-            border: 1px solid transparent;
-        }
-        .btn-success-soft:hover {
-            background: #198754;
-            color: #fff;
-        }
-        [data-bs-theme="dark"] .btn-success-soft {
-            color: #6ee7b7;
-            background: rgba(25, 135, 84, 0.15);
-        }
-        [data-bs-theme="dark"] .btn-success-soft:hover {
-            background: #198754;
-            color: #fff;
-        }
-        .bg-info-soft {
-            background-color: rgba(13, 202, 240, 0.08);
-        }
-        [data-bs-theme="dark"] .bg-info-soft {
-            background-color: rgba(13, 202, 240, 0.15);
         }
     </style>
     <script>
         (function () {
             const saved = localStorage.getItem('lazycent-theme');
-            if (saved) document.documentElement.setAttribute('data-bs-theme', saved);
+            if (saved) {
+                document.documentElement.setAttribute('data-bs-theme', saved);
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+                localStorage.setItem('lazycent-theme', 'dark');
+            }
         })();
     </script>
 </th:block>
 
-<!-- ===================== НАВБАР ===================== -->
-<!-- ===================== НАВБАР (з усіма посиланнями) ===================== -->
-<nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar py-0">
-    <!-- py-0 прибирає padding-top і padding-bottom -->
+<!-- ===================== НАВБАР (без кнопки теми) ===================== -->
+<nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
@@ -344,23 +585,11 @@
                         <i class="fas fa-sticky-note me-1"></i>Нотатки
                     </a>
                 </li>
-                <!-- Блок авторизації -->
-                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user"></i> <span sec:authentication="name"></span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="/settings"><i class="fas fa-cog me-2"></i>Налаштування</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <form th:action="@{/logout}" method="post" style="display: inline;">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                <button type="submit" class="dropdown-item" style="border: none; background: none; width: 100%; text-align: left;">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Вийти
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <button class="user-avatar" id="openSettingsBtn" type="button" title="Налаштування">
+                        <span class="avatar-placeholder" sec:authentication="name"></span>
+                        <span class="d-none d-md-inline" sec:authentication="name"></span>
+                    </button>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
                     <a class="nav-link" href="/login">Увійти</a>
@@ -368,34 +597,21 @@
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
                     <a class="nav-link" href="/register">Реєстрація</a>
                 </li>
-                <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
-                    <button id="themeToggle" class="btn btn-outline-secondary btn-sm" type="button" title="Перемкнути тему">
+
+                <!-- ===== КНОПКА ПЕРЕМИКАННЯ ТЕМИ ===== -->
+                <li class="nav-item ms-lg-2 mt-2 mt-lg-0" th:if="${active == 'login' or active == 'register'}">
+                    <button id="themeToggle" class="btn theme-toggle-btn btn-sm" type="button" title="Перемкнути тему">
                         <i class="fas fa-moon"></i>
                     </button>
                 </li>
             </ul>
         </div>
     </div>
-</nav>
-<!-- ===================== ПРОСТИЙ НАВБАР (лише логотип + тема) ===================== -->
-<nav th:fragment="navbarSimple" class="navbar navbar-expand wm-navbar py-0">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/">
-            <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
-        </a>
-        <div class="d-flex align-items-center gap-2">
-            <button id="themeToggleSimple" class="btn btn-outline-light btn-sm" type="button" title="Перемкнути тему">
-                <i class="fas fa-moon"></i>
-            </button>
-        </div>
-    </div>
-</nav>
 
-<!-- ===== СКРИПТ ДЛЯ ПРОСТОГО НАВБАРУ ===== -->
-<th:block th:fragment="navbarSimpleScript">
+    <!-- ===== СКРИПТ ПЕРЕМИКАННЯ ТЕМИ ===== -->
     <script>
         (function() {
-            const btn = document.getElementById('themeToggleSimple');
+            const btn = document.getElementById('themeToggle');
             if (!btn) return;
             const icon = btn.querySelector('i');
             const root = document.documentElement;
@@ -416,7 +632,363 @@
             });
         })();
     </script>
-</th:block>
+</nav>
+<!-- ===================== ПАНЕЛЬ НАЛАШТУВАНЬ ===================== -->
+<div th:fragment="settingsPanel">
+    <!-- Оверлей -->
+    <div class="settings-overlay" id="settingsOverlay"></div>
+
+    <!-- Сама панель -->
+    <div class="settings-drawer" id="settingsDrawer">
+        <div class="drawer-header">
+            <h4><i class="fas fa-cog me-2"></i>Налаштування</h4>
+            <button class="close-btn" id="closeSettingsBtn" title="Закрити">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="drawer-menu" id="drawerMenu">
+            <button class="menu-item active" data-section="profile"><i class="fas fa-user-circle me-1"></i>Профіль</button>
+            <button class="menu-item" data-section="categories"><i class="fas fa-tags me-1"></i>Категорії</button>
+            <button class="menu-item" data-section="currency"><i class="fas fa-money-bill-wave me-1"></i>Валюта</button>
+            <button class="menu-item" data-section="language"><i class="fas fa-language me-1"></i>Мова</button>
+            <button class="menu-item" data-section="theme"><i class="fas fa-palette me-1"></i>Тема</button>
+            <button class="menu-item" data-section="data"><i class="fas fa-database me-1"></i>Дані</button>
+            <button class="menu-item" data-section="about"><i class="fas fa-info-circle me-1"></i>Про сервіс</button>
+            <form th:action="@{/logout}" method="post" style="display: contents;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="menu-item logout-item" style="border: none; background: none; cursor: pointer;">
+                    <i class="fas fa-sign-out-alt me-1"></i>Вихід
+                </button>
+            </form>
+        </div>
+
+        <div class="drawer-content" id="drawerContent">
+            <!-- ========== ПРОФІЛЬ ========== -->
+            <div class="section active" id="d-section-profile">
+                <h5><i class="fas fa-user-circle me-2"></i>Профіль</h5>
+                <form th:action="@{/settings/profile}" method="post" id="profileForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                    <!-- Ім'я користувача -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Ім'я користувача</label>
+                        <input type="text" class="form-control" name="username"
+                               th:value="${#authentication.name}"
+                               th:disabled="${isOAuth2User}"
+                               th:readonly="${isOAuth2User}"
+                               required>
+                        <div th:if="${isOAuth2User}" class="form-text text-muted">
+                            <i class="fas fa-lock me-1"></i> Ім'я керується через <strong th:text="${providerName}"></strong>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" class="form-control" name="email"
+                               th:value="${userEmail}"
+                               th:disabled="${isOAuth2User}"
+                               th:readonly="${isOAuth2User}">
+                        <div th:if="${isOAuth2User}" class="form-text text-muted">
+                            <i class="fas fa-lock me-1"></i> Email керується через <strong th:text="${providerName}"></strong>
+                        </div>
+                    </div>
+
+                    <!-- Блок зміни пароля – для локальних користувачів -->
+                    <div th:if="${!isOAuth2User}">
+                        <hr>
+                        <h6 class="mt-2">Зміна пароля</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Поточний пароль</label>
+                            <input type="password" class="form-control" name="currentPassword" placeholder="••••••••">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Новий пароль</label>
+                            <input type="password" class="form-control" name="newPassword" placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <!-- Для OAuth2 показуємо інформаційне повідомлення -->
+                    <div th:if="${isOAuth2User}">
+                        <hr>
+                        <h6 class="mt-2">Зміна пароля</h6>
+                        <div class="alert alert-info mt-2">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Ви зареєстровані через <strong th:text="${providerName}"></strong>.
+                            Зміна пароля доступна лише через ваш обліковий запис <strong th:text="${providerName}"></strong>.
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Поточний пароль</label>
+                            <input type="password" class="form-control" placeholder="••••••••" disabled readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Новий пароль</label>
+                            <input type="password" class="form-control" placeholder="••••••••" disabled readonly>
+                        </div>
+                    </div>
+
+                    <!-- Кнопка збереження -->
+                    <button type="submit" class="btn btn-primary" th:disabled="${isOAuth2User}">
+                        <i class="fas fa-save me-1"></i> Зберегти
+                    </button>
+                    <span th:if="${isOAuth2User}" class="text-muted ms-2 small">
+            <i class="fas fa-lock me-1"></i> Збереження недоступне для OAuth2
+        </span>
+                </form>
+            </div>
+            <!-- ========== КАТЕГОРІЇ ========== -->
+            <div class="section" id="d-section-categories">
+                <h5><i class="fas fa-tags me-2"></i>Категорії</h5>
+                <form th:action="@{/categories/add}" method="post" class="row g-2 mb-3">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="col-md-5">
+                        <input type="text" name="name" class="form-control" placeholder="Назва" required>
+                    </div>
+                    <div class="col-md-4">
+                        <select name="type" class="form-select" required>
+                            <option value="EXPENSE">Витрата</option>
+                            <option value="INCOME">Дохід</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i> Додати
+                        </button>
+                    </div>
+                </form>
+
+                <h6 class="text-danger"><i class="fas fa-arrow-down me-1"></i> Витрати</h6>
+                <div class="category-list">
+                    <div th:each="cat : ${expenseCategories}" class="category-item" th:if="${expenseCategories != null}">
+                        <span class="category-name" th:text="${cat.name}"></span>
+                        <div class="category-actions d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form th:action="@{'/categories/delete/' + ${cat.id}}" method="post" style="display:inline;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn-sm btn-danger-soft" onclick="return confirm('Видалити категорію?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div th:if="${expenseCategories == null or expenseCategories.empty}" class="text-muted text-center py-2">Немає категорій витрат</div>
+                </div>
+
+                <h6 class="text-success mt-3"><i class="fas fa-arrow-up me-1"></i> Доходи</h6>
+                <div class="category-list">
+                    <div th:each="cat : ${incomeCategories}" class="category-item" th:if="${incomeCategories != null}">
+                        <span class="category-name" th:text="${cat.name}"></span>
+                        <div class="category-actions d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form th:action="@{'/categories/delete/' + ${cat.id}}" method="post" style="display:inline;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn-sm btn-danger-soft" onclick="return confirm('Видалити категорію?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div th:if="${incomeCategories == null or incomeCategories.empty}" class="text-muted text-center py-2">Немає категорій доходів</div>
+                </div>
+            </div>
+
+            <!-- ========== ВАЛЮТА ========== -->
+            <div class="section" id="d-section-currency">
+                <h5><i class="fas fa-money-bill-wave me-2"></i>Валюта</h5>
+                <p class="text-muted small">Оберіть основну валюту</p>
+                <form th:action="@{/settings/currency}" method="post" id="drawerCurrencyForm">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="currency-grid" id="drawerCurrencyGrid">
+                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'UAH'} ? 'active'" data-currency="UAH">₴</div>
+                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'USD'} ? 'active'" data-currency="USD">$</div>
+                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'EUR'} ? 'active'" data-currency="EUR">€</div>
+                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'GBP'} ? 'active'" data-currency="GBP">£</div>
+                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'PLN'} ? 'active'" data-currency="PLN">zł</div>
+                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'CZK'} ? 'active'" data-currency="CZK">Kč</div>
+                    </div>
+                    <input type="hidden" name="currency" id="drawerSelectedCurrency" th:value="${preferredCurrency != null ? preferredCurrency : 'UAH'}" />
+                    <button type="submit" class="btn btn-primary mt-2">
+                        <i class="fas fa-save me-1"></i> Зберегти
+                    </button>
+                </form>
+            </div>
+
+            <!-- ========== МОВА ========== -->
+            <div class="section" id="d-section-language">
+                <h5><i class="fas fa-language me-2"></i>Мова</h5>
+                <p class="text-muted small">Оберіть мову інтерфейсу</p>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="language-btn active" data-lang="uk">Українська</button>
+                    <button class="language-btn" data-lang="en">English</button>
+                    <button class="language-btn" data-lang="ru">Русский</button>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i> Зміна мови поки що в розробці. Вибрана мова: <span id="drawerCurrentLang">Українська</span>
+                </div>
+            </div>
+
+            <!-- ========== ТЕМА ========== -->
+            <div class="section" id="d-section-theme">
+                <h5><i class="fas fa-palette me-2"></i>Тема</h5>
+                <p class="text-muted small">Оберіть тему оформлення</p>
+                <div class="theme-options">
+                    <button class="theme-btn" data-theme="light"><i class="fas fa-sun"></i> Світла</button>
+                    <button class="theme-btn" data-theme="dark"><i class="fas fa-moon"></i> Темна</button>
+                    <button class="theme-btn" data-theme="system"><i class="fas fa-desktop"></i> Системна</button>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i> Поточна тема: <span id="drawerCurrentTheme">Світла</span>
+                </div>
+            </div>
+
+            <!-- ========== ДАНІ ========== -->
+            <div class="section" id="d-section-data">
+                <h5><i class="fas fa-database me-2"></i>Дані</h5>
+                <div class="danger-zone">
+                    <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Небезпечна зона</h6>
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded text-center h-100">
+                                <i class="fas fa-eraser fa-2x mb-1 text-danger"></i>
+                                <h6>Видалити всі дані</h6>
+                                <p class="text-muted small">Видаляє транзакції, категорії, нотатки та плани.</p>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#clearDataModal">
+                                    <i class="fas fa-trash me-1"></i> Очистити
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-2 border rounded text-center h-100">
+                                <i class="fas fa-user-slash fa-2x mb-1 text-danger"></i>
+                                <h6>Видалити акаунт</h6>
+                                <p class="text-muted small">Назавжди видаляє ваш обліковий запис.</p>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                    <i class="fas fa-user-times me-1"></i> Видалити
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== ПРО СЕРВІС ========== -->
+            <div class="section" id="d-section-about">
+                <h5><i class="fas fa-info-circle me-2"></i>Про сервіс</h5>
+                <div class="text-center">
+                    <span class="display-1">💰</span>
+                    <h3 class="mt-2">Lazy Cent</h3>
+                    <p class="text-muted">Ваш особистий фінансовий помічник</p>
+                    <div class="row g-2 justify-content-center mt-2">
+                        <div class="col-4">
+                            <div class="p-1 border rounded"><strong>Версія</strong><div class="text-muted small">1.0.0</div></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-1 border rounded"><strong>Ліцензія</strong><div class="text-muted small">MIT</div></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-1 border rounded"><strong>Розробник</strong><div class="text-muted small">LazyCent Team</div></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="#" class="text-decoration-none text-muted"><i class="fab fa-github fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none text-muted"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-decoration-none text-muted"><i class="fas fa-envelope fa-lg"></i></a>
+                    </div>
+                    <p class="text-muted small mt-3">© 2026 Lazy Cent. Всі права захищені.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
+    <div class="modal fade" id="clearDataModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-danger">
+                    <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Підтвердження</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ви впевнені, що хочете <strong>видалити всі свої дані</strong>?</p>
+                    <p class="text-muted small">Цю дію не можна скасувати. Всі транзакції, категорії, нотатки та плани будуть назавжди втрачені.</p>
+                    <hr>
+                    <div class="text-center">
+                        <p>Для підтвердження зачекайте <span id="clearDataTimer">60</span> секунд</p>
+                        <div class="timer-circle" id="clearDataTimerCircle">60</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <form th:action="@{/settings/clear-data}" method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger" id="clearDataConfirmBtn" disabled>
+                            <i class="fas fa-trash me-1"></i> Так, видалити
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-danger">
+                    <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Підтвердження видалення акаунта</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ви впевнені, що хочете <strong>назавжди видалити свій акаунт</strong>?</p>
+                    <p class="text-muted small">Всі ваші дані будуть безповоротно втрачені. Цю дію не можна скасувати.</p>
+                    <hr>
+                    <div class="text-center">
+                        <p>Для підтвердження зачекайте <span id="deleteAccountTimer">60</span> секунд</p>
+                        <div class="timer-circle" id="deleteAccountTimerCircle">60</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <form th:action="@{/settings/delete-account}" method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger" id="deleteAccountConfirmBtn" disabled>
+                            <i class="fas fa-user-times me-1"></i> Так, видалити
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Редагувати категорію</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editCategoryForm" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Назва категорії</label>
+                            <input type="text" name="name" class="form-control" id="editCategoryName" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                        <button type="submit" class="btn btn-primary">Зберегти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
@@ -428,7 +1000,8 @@
         </p>
     </div>
 </footer>
-<!-- ===================== ТОСТ (контейнер) ===================== -->
+
+<!-- ===================== ТОСТ ===================== -->
 <div th:fragment="toastContainer">
     <div class="toast-container">
         <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -437,14 +1010,12 @@
                 <strong class="me-auto" id="toastTitle">Повідомлення</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
             </div>
-            <div class="toast-body" id="toastMessage">
-                Текст повідомлення
-            </div>
+            <div class="toast-body" id="toastMessage">Текст повідомлення</div>
         </div>
     </div>
 </div>
 
-<!-- ===================== СКРИПТ ДЛЯ ТОСТІВ ===================== -->
+<!-- ===================== СКРИПТИ ===================== -->
 <th:block th:fragment="toastScript">
     <script th:inline="javascript">
         /*<![CDATA[*/
@@ -484,31 +1055,284 @@
     </script>
 </th:block>
 
-<!-- ===================== СКРИПТ ПЕРЕМИКАЧА ТЕМИ ===================== -->
 <th:block th:fragment="themeScript">
     <script>
-        (function () {
-            const btn = document.getElementById('themeToggle');
-            if (!btn) return;
-            const icon = btn.querySelector('i');
-            const root = document.documentElement;
-            function updateIcon() {
-                const theme = root.getAttribute('data-bs-theme') || 'light';
-                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
-            updateIcon();
-            btn.addEventListener('click', function () {
-                const current = root.getAttribute('data-bs-theme') || 'light';
-                const next = current === 'dark' ? 'light' : 'dark';
-                root.setAttribute('data-bs-theme', next);
-                localStorage.setItem('lazycent-theme', next);
-                updateIcon();
-            });
-        })();
+        // Тема вже встановлена в themeAssets
+        console.log('Theme already set in themeAssets');
     </script>
 </th:block>
 
-<!-- ===================== BOOTSTRAP JS ===================== -->
+<!-- ===================== СКРИПТ ПАНЕЛІ ===================== -->
+<th:block th:fragment="settingsPanelScript">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 Settings panel: DOM ready');
+
+            const openBtn = document.getElementById('openSettingsBtn');
+            const overlay = document.getElementById('settingsOverlay');
+            const drawer = document.getElementById('settingsDrawer');
+            const closeBtn = document.getElementById('closeSettingsBtn');
+
+            if (!openBtn || !overlay || !drawer || !closeBtn) {
+                console.warn('❌ Settings panel elements not found. Check HTML IDs.');
+                console.log('openBtn:', openBtn);
+                console.log('overlay:', overlay);
+                console.log('drawer:', drawer);
+                console.log('closeBtn:', closeBtn);
+                return;
+            }
+
+            console.log('✅ All settings elements found.');
+
+            function openPanel() {
+                console.log('🔓 Opening settings panel');
+                drawer.classList.add('open');
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closePanel() {
+                console.log('🔒 Closing settings panel');
+                drawer.classList.remove('open');
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            openBtn.addEventListener('click', openPanel);
+            console.log('✅ Click listener added to openBtn');
+
+            closeBtn.addEventListener('click', closePanel);
+            overlay.addEventListener('click', closePanel);
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && drawer.classList.contains('open')) {
+                    closePanel();
+                }
+            });
+
+            // ===== ПЕРЕМИКАННЯ РОЗДІЛІВ =====
+            const menuItems = document.querySelectorAll('#drawerMenu .menu-item[data-section]');
+            const sections = {
+                profile: document.getElementById('d-section-profile'),
+                categories: document.getElementById('d-section-categories'),
+                currency: document.getElementById('d-section-currency'),
+                language: document.getElementById('d-section-language'),
+                theme: document.getElementById('d-section-theme'),
+                data: document.getElementById('d-section-data'),
+                about: document.getElementById('d-section-about')
+            };
+
+            function switchSection(sectionId) {
+                console.log('🔄 Switching to section:', sectionId);
+                menuItems.forEach(m => m.classList.remove('active'));
+                const targetMenuItem = document.querySelector(`#drawerMenu .menu-item[data-section="${sectionId}"]`);
+                if (targetMenuItem) targetMenuItem.classList.add('active');
+
+                Object.keys(sections).forEach(key => {
+                    const el = sections[key];
+                    if (el) el.classList.remove('active');
+                });
+                const targetSection = sections[sectionId];
+                if (targetSection) targetSection.classList.add('active');
+
+                localStorage.setItem('settings-drawer-tab', sectionId);
+            }
+
+            const savedDrawerTab = localStorage.getItem('settings-drawer-tab') || 'profile';
+            setTimeout(function() {
+                switchSection(savedDrawerTab);
+            }, 100);
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    if (this.classList.contains('logout-item')) return;
+                    const sectionId = this.dataset.section;
+                    switchSection(sectionId);
+                });
+            });
+
+            // ===== ВАЛЮТА =====
+            const currencyOptions = document.querySelectorAll('#drawerCurrencyGrid .currency-option');
+            const selectedCurrencyInput = document.getElementById('drawerSelectedCurrency');
+
+            if (currencyOptions.length && selectedCurrencyInput) {
+                currencyOptions.forEach(opt => {
+                    if (opt.classList.contains('active')) {
+                        selectedCurrencyInput.value = opt.dataset.currency;
+                    }
+                    opt.addEventListener('click', function() {
+                        currencyOptions.forEach(o => o.classList.remove('active'));
+                        this.classList.add('active');
+                        selectedCurrencyInput.value = this.dataset.currency;
+                    });
+                });
+            }
+
+            // ===== ТЕМА (у drawer) =====
+            const themeBtns = document.querySelectorAll('#d-section-theme .theme-btn');
+            const currentThemeLabel = document.getElementById('drawerCurrentTheme');
+            const root = document.documentElement;
+
+            function setDrawerTheme(theme) {
+                console.log('🎨 Setting theme:', theme);
+                if (theme === 'system') {
+                    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    root.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light');
+                    if (currentThemeLabel) {
+                        currentThemeLabel.textContent = systemDark ? 'Темна (системна)' : 'Світла (системна)';
+                    }
+                } else {
+                    root.setAttribute('data-bs-theme', theme);
+                    if (currentThemeLabel) {
+                        currentThemeLabel.textContent = theme === 'dark' ? 'Темна' : 'Світла';
+                    }
+                }
+                localStorage.setItem('lazycent-theme', theme);
+                updateThemeButtonsDrawer(theme);
+            }
+
+            function updateThemeButtonsDrawer(activeTheme) {
+                themeBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.theme === activeTheme) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            const savedTheme = localStorage.getItem('lazycent-theme') || 'system';
+            setDrawerTheme(savedTheme);
+
+            themeBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setDrawerTheme(this.dataset.theme);
+                });
+            });
+
+            // ===== МОВА =====
+            const langBtns = document.querySelectorAll('#d-section-language .language-btn');
+            const currentLangLabel = document.getElementById('drawerCurrentLang');
+            const langMap = { uk: 'Українська', en: 'English', ru: 'Русский' };
+
+            if (langBtns.length && currentLangLabel) {
+                langBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        langBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const lang = this.dataset.lang;
+                        currentLangLabel.textContent = langMap[lang] || lang;
+                        localStorage.setItem('lazycent-lang', lang);
+                    });
+                });
+
+                const savedLang = localStorage.getItem('lazycent-lang') || 'uk';
+                const savedLangBtn = document.querySelector(`#d-section-language .language-btn[data-lang="${savedLang}"]`);
+                if (savedLangBtn) savedLangBtn.click();
+            }
+
+            // ===== РЕДАГУВАННЯ КАТЕГОРІЇ =====
+            const editModal = document.getElementById('editCategoryModal');
+            const editCategoryForm = document.getElementById('editCategoryForm');
+            const editCategoryName = document.getElementById('editCategoryName');
+
+            if (editModal && editCategoryForm && editCategoryName) {
+                document.querySelectorAll('.edit-category').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const name = this.dataset.name;
+                        editCategoryName.value = name;
+                        editCategoryForm.action = '/categories/update/' + id;
+                        new bootstrap.Modal(editModal).show();
+                    });
+                });
+            }
+
+            // ===== ТАЙМЕРИ =====
+            function startTimer(secondsId, circleId, btnId, duration = 60) {
+                const secondsEl = document.getElementById(secondsId);
+                const circleEl = document.getElementById(circleId);
+                const confirmBtn = document.getElementById(btnId);
+
+                if (!secondsEl || !circleEl || !confirmBtn) return;
+
+                let remaining = duration;
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = confirmBtn.textContent.replace(/\(\d+s\)/, '').trim() + ' (' + remaining + 's)';
+                secondsEl.textContent = remaining;
+                circleEl.textContent = remaining;
+
+                const interval = setInterval(function() {
+                    remaining--;
+                    secondsEl.textContent = remaining;
+                    circleEl.textContent = remaining;
+
+                    if (remaining <= 0) {
+                        clearInterval(interval);
+                        secondsEl.textContent = '0';
+                        circleEl.textContent = '✓';
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = confirmBtn.textContent.replace(/\(\d+s\)/, '').trim();
+                    } else {
+                        const btnText = confirmBtn.textContent;
+                        if (btnText.includes('(')) {
+                            confirmBtn.textContent = btnText.replace(/\(\d+s\)/, '(' + remaining + 's)');
+                        }
+                    }
+                }, 1000);
+
+                const modal = confirmBtn.closest('.modal');
+                if (modal) {
+                    modal.addEventListener('hidden.bs.modal', function() {
+                        clearInterval(interval);
+                        confirmBtn.disabled = true;
+                        confirmBtn.textContent = confirmBtn.textContent.replace(/\(\d+s\)/, '').trim() + ' (' + duration + 's)';
+                        secondsEl.textContent = duration;
+                        circleEl.textContent = duration;
+                    }, { once: true });
+                }
+            }
+
+            const clearDataModal = document.getElementById('clearDataModal');
+            const deleteAccountModal = document.getElementById('deleteAccountModal');
+
+            if (clearDataModal) {
+                clearDataModal.addEventListener('show.bs.modal', function() {
+                    startTimer('clearDataTimer', 'clearDataTimerCircle', 'clearDataConfirmBtn', 60);
+                });
+            }
+
+            if (deleteAccountModal) {
+                deleteAccountModal.addEventListener('show.bs.modal', function() {
+                    startTimer('deleteAccountTimer', 'deleteAccountTimerCircle', 'deleteAccountConfirmBtn', 60);
+                });
+            }
+
+            // ===== ІНІЦІАЛИ ДЛЯ АВАТАРА =====
+            const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
+            if (avatarPlaceholder) {
+                const name = avatarPlaceholder.textContent.trim();
+                if (name) {
+                    const initials = name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
+                    avatarPlaceholder.textContent = initials || 'U';
+                }
+            }
+
+            // ===== ПІДТВЕРДЖЕННЯ ВИХОДУ =====
+            const logoutItem = document.querySelector('#drawerMenu .logout-item');
+            if (logoutItem) {
+                logoutItem.addEventListener('click', function(e) {
+                    if (!confirm('Ви впевнені, що хочете вийти?')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            console.log('✅ Settings panel fully initialized.');
+        });
+    </script>
+</th:block>
+
+<!-- ===================== BOOTSTRAP ===================== -->
 <th:block th:fragment="bootstrapScript">
     <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 </th:block>

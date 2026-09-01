@@ -25,44 +25,23 @@ public class UserService {
     @Value("${app.demo.random-days:14}")
     private int demoDays;
 
-    // ==================== ПОШУК КОРИСТУВАЧІВ ====================
+    // ==================== ПОШУК ====================
 
-    /**
-     * Знаходить користувача за іменем користувача.
-     * @param username ім'я користувача
-     * @return User або null, якщо не знайдено
-     */
     public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
 
-    /**
-     * Знаходить користувача за електронною поштою.
-     * @param email електронна пошта
-     * @return User або null, якщо не знайдено
-     */
     public User findByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
 
     // ==================== РЕЄСТРАЦІЯ ====================
 
-    /**
-     * Реєстрація нового користувача з email.
-     * @param username ім'я користувача
-     * @param rawPassword пароль у відкритому вигляді
-     * @param email електронна пошта
-     * @return збережений користувач
-     * @throws RuntimeException якщо ім'я або email вже зайняті
-     */
     @Transactional
     public User registerUser(String username, String rawPassword, String email) {
-        // Перевірка унікальності імені
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Користувач з таким іменем вже існує");
         }
-
-        // Перевірка унікальності email (якщо вказано)
         if (email != null && !email.isEmpty() && userRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
         }
@@ -72,119 +51,67 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole("USER");
         user.setEmail(email);
-        user.setPreferredCurrency("UAH"); // Встановлюємо валюту за замовчуванням
+        user.setPreferredCurrency("UAH");
 
         User savedUser = userRepository.save(user);
-
-        // Створюємо категорії за замовчуванням для нового користувача
         demoDataService.createDefaultCategories(savedUser);
 
         log.info("Зареєстровано нового користувача: {} (id={})", username, savedUser.getId());
         return savedUser;
     }
 
-    // ==================== ОНОВЛЕННЯ ПРОФІЛЮ ====================
-
-    /**
-     * Оновлює профіль користувача (ім'я, email, пароль).
-     * @param user поточний користувач
-     * @param username нове ім'я
-     * @param email новий email
-     * @param currentPassword поточний пароль (для перевірки)
-     * @param newPassword новий пароль
-     * @throws RuntimeException якщо ім'я або email зайняті, або пароль неправильний
-     */
+    @Deprecated
     @Transactional
-    public void updateProfile(User user, String username, String email,
-                              String currentPassword, String newPassword) {
-        // Перевірка унікальності нового імені
-        if (!user.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("Користувач з таким ім'ям вже існує");
-        }
+    public User registerUser(String username, String rawPassword) {
+        return registerUser(username, rawPassword, null);
+    }
 
-        // Перевірка унікальності нового email (якщо змінюється)
-        if (email != null && !email.isEmpty() &&
-                !email.equals(user.getEmail()) &&
-                userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
-        }
+    // ==================== OAuth2 – ЗБЕРІГАЄМО АБО ОНОВЛЮЄМО ====================
 
-        user.setUsername(username);
-        if (email != null && !email.isEmpty()) {
-            user.setEmail(email);
-        }
-
-        // Якщо користувач через OAuth2 – зміна пароля недоступна
-        if (user.getProvider() != null && !user.getProvider().isEmpty()) {
-            // Просто ігноруємо зміну пароля
-            userRepository.save(user);
-            log.info("Оновлено профіль OAuth2-користувача: {}", user.getUsername());
-            return;
-        }
-
-        // Зміна пароля тільки для локальних користувачів
-        if (currentPassword != null && !currentPassword.isEmpty() &&
-                newPassword != null && !newPassword.isEmpty()) {
-            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-                throw new RuntimeException("Поточний пароль введено неправильно");
+    @Transactional
+    public User saveOrUpdateOAuth2User(String provider, String providerId, String email, String name) {
+        // Шукаємо за email
+        if (email != null) {
+            User existingUser = userRepository.findByEmail(email).orElse(null);
+            if (existingUser != null) {
+                // Оновлюємо дані при кожному вході
+                log.info("Оновлюємо OAuth2-користувача: {} (email: {})", existingUser.getUsername(), email);
+                if (name != null && !name.isEmpty()) {
+                    existingUser.setUsername(name);
+                }
+                if (existingUser.getProvider() == null) {
+                    existingUser.setProvider(provider);
+                    existingUser.setProviderId(providerId);
+                }
+                return userRepository.save(existingUser);
             }
-            user.setPassword(passwordEncoder.encode(newPassword));
         }
 
-        userRepository.save(user);
-        log.info("Оновлено профіль користувача: {}", user.getUsername());
+        // Шукаємо за providerId (на випадок, якщо email змінився)
+        User existingByProvider = userRepository.findByProviderId(providerId).orElse(null);
+        if (existingByProvider != null) {
+            log.info("Оновлюємо OAuth2-користувача за providerId: {}", existingByProvider.getUsername());
+            if (name != null && !name.isEmpty()) {
+                existingByProvider.setUsername(name);
+            }
+            if (email != null && !email.isEmpty()) {
+                existingByProvider.setEmail(email);
+            }
+            return userRepository.save(existingByProvider);
+        }
+
+        // Якщо користувача немає – створюємо нового
+        log.info("Створюємо нового OAuth2-користувача: {} через {}", name, provider);
+        return createNewOAuth2User(provider, providerId, email, name);
     }
 
-    // ==================== ВАЛЮТА ====================
+    // ==================== СТАРИЙ МЕТОД (для сумісності) ====================
 
-    /**
-     * Оновлює валюту користувача.
-     * @param user поточний користувач
-     * @param currency код валюти (UAH, USD, EUR тощо)
-     */
-    @Transactional
-    public void updateCurrency(User user, String currency) {
-        user.setPreferredCurrency(currency);
-        userRepository.save(user);
-        log.info("Оновлено валюту користувача {} на {}", user.getUsername(), currency);
-    }
-
-    // ==================== OAuth2 ====================
-
-    /**
-     * Зберігає або оновлює користувача, що ввійшов через OAuth2.
-     * @param provider назва провайдера (google, github тощо)
-     * @param providerId унікальний ідентифікатор від провайдера
-     * @param email електронна пошта від провайдера
-     * @param name ім'я від провайдера
-     * @return збережений користувач
-     */
     @Transactional
     public User saveOAuth2User(String provider, String providerId, String email, String name) {
-        if (email != null) {
-            return userRepository.findByEmail(email)
-                    .map(existingUser -> {
-                        // Якщо користувач вже існує, оновлюємо providerId (якщо ще не встановлено)
-                        if (existingUser.getProviderId() == null) {
-                            existingUser.setProvider(provider);
-                            existingUser.setProviderId(providerId);
-                            existingUser = userRepository.save(existingUser);
-                            log.info("Пов'язано OAuth2 акаунт {} з існуючим користувачем {}", provider, existingUser.getUsername());
-                        }
-                        return existingUser;
-                    })
-                    .orElseGet(() -> createNewOAuth2User(provider, providerId, email, name));
-        } else {
-            // Якщо email відсутній, використовуємо providerId як username
-            String username = provider + "_" + providerId;
-            return userRepository.findByUsername(username)
-                    .orElseGet(() -> createNewOAuth2User(provider, providerId, username, name));
-        }
+        return saveOrUpdateOAuth2User(provider, providerId, email, name);
     }
 
-    /**
-     * Створює нового користувача з даних OAuth2.
-     */
     private User createNewOAuth2User(String provider, String providerId, String emailOrUsername, String name) {
         User newUser = new User();
         newUser.setUsername(name != null ? name : emailOrUsername);
@@ -196,42 +123,77 @@ public class UserService {
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         User savedUser = userRepository.save(newUser);
-
-        // Створюємо категорії за замовчуванням
         demoDataService.createDefaultCategories(savedUser);
 
         log.info("Створено нового OAuth2-користувача: {} через {}", savedUser.getUsername(), provider);
         return savedUser;
     }
 
-    // ==================== ВИДАЛЕННЯ АКАУНТА ====================
+    // ==================== ОНОВЛЕННЯ ПРОФІЛЮ ====================
 
-    /**
-     * Повністю видаляє акаунт користувача разом з усіма даними.
-     * @param user користувач, який видаляється
-     */
     @Transactional
-    public void deleteAccount(User user) {
-        // Очищаємо всі дані (транзакції, категорії, плани, ліміти)
-        budgetService.clearAllUserData(user);
+    public void updateProfile(User user, String username, String email,
+                              String currentPassword, String newPassword) {
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
-        // Видаляємо всі нотатки
-        noteService.deleteAllNotes(user);
+        // Якщо OAuth2 – ЗАБОРОНЯЄМО будь-які зміни
+        if (managedUser.getProvider() != null && !managedUser.getProvider().isEmpty()) {
+            log.warn("Спроба зміни профілю OAuth2-користувача: {} (заборонено)", managedUser.getUsername());
+            throw new RuntimeException("Для OAuth2-користувачів зміна даних недоступна. Всі зміни виконуються через ваш обліковий запис " + managedUser.getProvider());
+        }
 
-        // Видаляємо самого користувача
-        userRepository.delete(user);
+        // Для локальних користувачів – повне оновлення
+        if (!managedUser.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
+            throw new RuntimeException("Користувач з таким ім'ям вже існує");
+        }
 
-        log.info("Акаунт користувача {} (id={}) видалено", user.getUsername(), user.getId());
+        if (email != null && !email.isEmpty() &&
+                !email.equals(managedUser.getEmail()) &&
+                userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
+        }
+
+        managedUser.setUsername(username);
+        if (email != null && !email.isEmpty()) {
+            managedUser.setEmail(email);
+        }
+
+        if (currentPassword != null && !currentPassword.isEmpty() &&
+                newPassword != null && !newPassword.isEmpty()) {
+            if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
+                throw new RuntimeException("Поточний пароль введено неправильно");
+            }
+            managedUser.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        userRepository.save(managedUser);
+        log.info("Оновлено профіль користувача: {}", managedUser.getUsername());
+    }
+    // ==================== ВАЛЮТА ====================
+
+    @Transactional
+    public void updateCurrency(User user, String currency) {
+        // Отримуємо керовану сутність
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        managedUser.setPreferredCurrency(currency);
+        userRepository.save(managedUser);
+        log.info("Оновлено валюту користувача {} на {}", managedUser.getUsername(), currency);
     }
 
-    // ==================== СТАРІ МЕТОДИ (ЗБЕРЕЖЕНО ДЛЯ СУМІСНОСТІ) ====================
+    // ==================== ВИДАЛЕННЯ АКАУНТА ====================
 
-    /**
-     * @deprecated Використовуйте {@link #registerUser(String, String, String)} з email.
-     */
-    @Deprecated
     @Transactional
-    public User registerUser(String username, String rawPassword) {
-        return registerUser(username, rawPassword, null);
+    public void deleteAccount(User user) {
+        User managedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+
+        budgetService.clearAllUserData(managedUser);
+        noteService.deleteAllNotes(managedUser);
+
+        userRepository.delete(managedUser);
+
+        log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), managedUser.getId());
     }
 }

@@ -1,4 +1,3 @@
-// config/GlobalControllerAdvice.java
 package org.lazycent.config;
 
 import org.lazycent.model.CustomOAuth2User;
@@ -27,7 +26,7 @@ public class GlobalControllerAdvice {
     @ModelAttribute("preferredCurrency")
     public String getPreferredCurrency() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
             return "UAH";
         }
         Object principal = auth.getPrincipal();
@@ -41,5 +40,68 @@ public class GlobalControllerAdvice {
             return user.getPreferredCurrency();
         }
         return "UAH";
+    }
+
+    @ModelAttribute("isOAuth2User")
+    public boolean isOAuth2User() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return false;
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomOAuth2User) {
+            return true;
+        }
+        if (principal instanceof User) {
+            User user = (User) principal;
+            return user.getProvider() != null && !user.getProvider().isEmpty();
+        }
+        return false;
+    }
+
+    @ModelAttribute("providerName")
+    public String getProviderName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return "";
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomOAuth2User) {
+            User user = ((CustomOAuth2User) principal).getUser();
+            return getProviderDisplayName(user.getProvider());
+        }
+        if (principal instanceof User) {
+            User user = (User) principal;
+            return getProviderDisplayName(user.getProvider());
+        }
+        return "";
+    }
+
+    // НОВИЙ МЕТОД – передаємо EMAIL у всі шаблони
+    @ModelAttribute("userEmail")
+    public String getUserEmail() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return "";
+        }
+        Object principal = auth.getPrincipal();
+        if (principal instanceof CustomOAuth2User) {
+            User user = ((CustomOAuth2User) principal).getUser();
+            return user.getEmail() != null ? user.getEmail() : "";
+        }
+        if (principal instanceof User) {
+            User user = (User) principal;
+            return user.getEmail() != null ? user.getEmail() : "";
+        }
+        return "";
+    }
+
+    private String getProviderDisplayName(String provider) {
+        if (provider == null) return "";
+        return switch (provider.toLowerCase()) {
+            case "google" -> "Google";
+            case "github" -> "GitHub";
+            default -> provider;
+        };
     }
 }

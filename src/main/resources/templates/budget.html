@@ -165,6 +165,7 @@
 <body>
 
 <nav th:replace="~{fragments :: navbar('budget')}"></nav>
+<div th:replace="~{fragments :: settingsPanel}"></div>
 <div th:replace="~{fragments :: toastContainer}"></div>
 
 <div class="container-fluid mt-4">
@@ -473,6 +474,6 @@
         };
     });
 </script>
-
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 </body>
 </html>

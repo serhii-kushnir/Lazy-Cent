@@ -838,7 +838,7 @@
 <body>
 
 <nav th:replace="~{fragments :: navbar('totals')}"></nav>
-
+<div th:replace="~{fragments :: settingsPanel}"></div>
 <!-- TOAST -->
 <div th:replace="~{fragments :: toastContainer}"></div>
 
@@ -2515,6 +2515,6 @@
 
     })();
 </script>
-
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 </body>
 </html>

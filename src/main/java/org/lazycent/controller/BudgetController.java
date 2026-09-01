@@ -1,5 +1,3 @@
-// BudgetController.java – видалено всі методи експорту
-
 package org.lazycent.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,11 +10,14 @@ import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.CategoryRepository;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.repository.UserRepository;
-import org.lazycent.service.*;
+import org.lazycent.service.BudgetPlanningService;
+import org.lazycent.service.BudgetService;
+import org.lazycent.service.DemoDataService;
+import org.lazycent.service.UserService;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,7 +26,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Controller
@@ -40,55 +40,7 @@ public class BudgetController {
     private final DemoDataService demoDataService;
     private final CategoryRepository categoryRepository;
     private final DayBudgetRepository dayBudgetRepository;
-    private final NoteService noteService;   // додати
 
-
-    @PostMapping("/settings/clear-data")
-    public String clearData(Authentication authentication, RedirectAttributes redirectAttributes) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            budgetService.clearAllUserData(currentUser);
-            noteService.deleteAllNotes(currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Всі дані успішно видалено!");
-        } catch (Exception e) {
-            log.error("Помилка при очищенні даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при очищенні даних: " + e.getMessage());
-        }
-        return "redirect:/settings";
-    }
-
-    @PostMapping("/settings/delete-account")
-    public String deleteAccount(Authentication authentication,
-                                HttpServletRequest request,
-                                RedirectAttributes redirectAttributes) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            userService.deleteAccount(currentUser);
-
-            // 1. Завершуємо сесію
-            request.getSession().invalidate();
-
-            // 2. Очищуємо контекст безпеки
-            SecurityContextHolder.clearContext();
-
-            // 3. Повідомлення та редірект на сторінку входу
-            redirectAttributes.addFlashAttribute("successMessage", "Акаунт успішно видалено!");
-            return "redirect:/login";
-
-        } catch (Exception e) {
-            log.error("Помилка при видаленні акаунта: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні акаунта: " + e.getMessage());
-            return "redirect:/settings";
-        }
-    }
     // ==================== ГОЛОВНА ====================
 
     @GetMapping("/")
@@ -117,89 +69,52 @@ public class BudgetController {
         return "index";
     }
 
-
-
-    // controller/BudgetController.java – додати метод для збереження валюти
+    // ==================== ВАЛЮТА (ВИПРАВЛЕНО) ====================
 
     @PostMapping("/settings/currency")
     public String updateCurrency(@RequestParam String currency,
                                  Authentication authentication,
-                                 RedirectAttributes redirectAttributes) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-        userService.updateCurrency(currentUser, currency);
-        redirectAttributes.addFlashAttribute("successMessage", "Валюту змінено на " + currency);
-        return "redirect:/settings";
-    }
-
-    @PostMapping("/generate-demo")
-    public String generateDemo(Authentication authentication, RedirectAttributes redirectAttributes) {
+                                 RedirectAttributes redirectAttributes,
+                                 HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
         }
 
         try {
-            log.info("=== ГЕНЕРАЦІЯ ДЕМО-ДАННИХ ДЛЯ КОРИСТУВАЧА: {} (id={}) ===", currentUser.getUsername(), currentUser.getId());
-            long beforeCount = dayBudgetRepository.countByOwner(currentUser);
-            log.info("Кількість днів до генерації: {}", beforeCount);
+            // 1. Зберігаємо валюту в БД
+            userService.updateCurrency(currentUser, currency);
 
-            demoDataService.createDefaultCategories(currentUser);
-            demoDataService.createRandomTransactions(currentUser, 14);
+            // 2. ОНОВЛЮЄМО АВТЕНТИФІКАЦІЮ - завантажуємо свіжого користувача з БД
+            User updatedUser = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
-            long afterCount = dayBudgetRepository.countByOwner(currentUser);
-            log.info("Кількість днів після генерації: {}", afterCount);
+            // 3. Оновлюємо SecurityContext з новими даними
+            Authentication newAuth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    updatedUser,
+                    authentication.getCredentials(),
+                    authentication.getAuthorities()
+            );
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
 
-            if (afterCount > beforeCount) {
-                redirectAttributes.addFlashAttribute("successMessage", "Демо-дані успішно додано! 🎉");
-            } else {
-                redirectAttributes.addFlashAttribute("errorMessage", "Демо-дані не були додані. Перевірте логи.");
-            }
+            log.info("Валюта оновлена на {} для користувача {}", currency, updatedUser.getUsername());
+
+            redirectAttributes.addFlashAttribute("successMessage", "Валюту змінено на " + currency);
+
         } catch (Exception e) {
-            log.error("Помилка генерації демо-даних: ", e);
+            log.error("Помилка зміни валюти: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+        }
+
+        // Повертаємося на попередню сторінку
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
         }
         return "redirect:/";
     }
 
-    // ==================== НАЛАШТУВАННЯ ====================
-
-    // BudgetController.java – оновлений метод settings
-
-    // controller/BudgetController.java – оновити метод settings, щоб передавати поточну валюту
-
-    @GetMapping("/settings")
-    public String settings(Authentication authentication, Model model) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-
-        boolean isOAuth2User = currentUser.getProvider() != null && !currentUser.getProvider().isEmpty();
-        String providerName = "";
-        if (isOAuth2User) {
-            String provider = currentUser.getProvider();
-            if ("google".equalsIgnoreCase(provider)) {
-                providerName = "Google";
-            } else if ("github".equalsIgnoreCase(provider)) {
-                providerName = "GitHub";
-            } else {
-                providerName = provider;
-            }
-        }
-
-        model.addAttribute("categories", budgetService.getAllCategories(currentUser));
-        model.addAttribute("expenseCategories", budgetService.getExpenseCategories(currentUser));
-        model.addAttribute("incomeCategories", budgetService.getIncomeCategories(currentUser));
-        model.addAttribute("userEmail", currentUser.getEmail());
-        model.addAttribute("isOAuth2User", isOAuth2User);
-        model.addAttribute("providerName", providerName);
-        model.addAttribute("preferredCurrency", currentUser.getPreferredCurrency()); // додано
-
-        return "settings";
-    }
+    // ==================== ДЕМО-ДАНІ ====================
 
     @PostMapping("/settings/profile")
     public String updateProfile(@RequestParam String username,
@@ -207,6 +122,64 @@ public class BudgetController {
                                 @RequestParam(required = false) String currentPassword,
                                 @RequestParam(required = false) String newPassword,
                                 Authentication authentication,
+                                RedirectAttributes redirectAttributes,
+                                HttpServletRequest request) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            userService.updateProfile(currentUser, username, email, currentPassword, newPassword);
+
+            // Оновлюємо SecurityContext після зміни профілю
+            User updatedUser = userRepository.findById(currentUser.getId())
+                    .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+
+            Authentication newAuth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                    updatedUser,
+                    authentication.getCredentials(),
+                    authentication.getAuthorities()
+            );
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
+    }
+
+    @PostMapping("/settings/clear-data")
+    public String clearData(Authentication authentication, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            budgetService.clearAllUserData(currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", "Всі дані успішно видалено!");
+        } catch (Exception e) {
+            log.error("Помилка при очищенні даних: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при очищенні даних: " + e.getMessage());
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
+    }
+
+    @PostMapping("/settings/delete-account")
+    public String deleteAccount(Authentication authentication,
+                                HttpServletRequest request,
                                 RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
@@ -214,20 +187,41 @@ public class BudgetController {
         }
 
         try {
-            // Якщо OAuth2 і передані паролі – ігноруємо їх
-            if (currentUser.getProvider() != null && !currentUser.getProvider().isEmpty()) {
-                // Оновлюємо тільки ім'я та email
-                userService.updateProfile(currentUser, username, email, null, null);
-                redirectAttributes.addFlashAttribute("successMessage", "Профіль оновлено (пароль не змінюється для OAuth2-користувачів).");
-            } else {
-                userService.updateProfile(currentUser, username, email, currentPassword, newPassword);
-                redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
-            }
+            userService.deleteAccount(currentUser);
+            request.getSession().invalidate();
+            SecurityContextHolder.clearContext();
+            redirectAttributes.addFlashAttribute("successMessage", "Акаунт успішно видалено!");
+            return "redirect:/login";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            log.error("Помилка при видаленні акаунта: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні акаунта: " + e.getMessage());
+            return "redirect:/";
         }
-        return "redirect:/settings";
     }
+
+    @PostMapping("/generate-demo")
+    public String generateDemo(Authentication authentication, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            demoDataService.createDefaultCategories(currentUser);
+            demoDataService.createRandomTransactions(currentUser, 14);
+            redirectAttributes.addFlashAttribute("successMessage", "Демо-дані успішно додано! 🎉");
+        } catch (Exception e) {
+            log.error("Помилка генерації демо-даних: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
+    }
+
     // ==================== БЮДЖЕТ ====================
 
     @GetMapping("/budget")
@@ -465,7 +459,8 @@ public class BudgetController {
     public String addCategory(@RequestParam String name,
                               @RequestParam String type,
                               Authentication authentication,
-                              RedirectAttributes redirectAttributes) {
+                              RedirectAttributes redirectAttributes,
+                              HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
@@ -476,13 +471,18 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/settings";
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
     }
 
     @PostMapping("/categories/delete/{id}")
     public String deleteCategory(@PathVariable Long id,
                                  Authentication authentication,
-                                 RedirectAttributes redirectAttributes) {
+                                 RedirectAttributes redirectAttributes,
+                                 HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
@@ -493,14 +493,19 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/settings";
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
     }
 
     @PostMapping("/categories/update/{id}")
     public String updateCategory(@PathVariable Long id,
                                  @RequestParam String name,
                                  Authentication authentication,
-                                 RedirectAttributes redirectAttributes) {
+                                 RedirectAttributes redirectAttributes,
+                                 HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
@@ -511,7 +516,11 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/settings";
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
     }
 
     // ==================== ВИДАЛЕННЯ ДНЯ ====================
