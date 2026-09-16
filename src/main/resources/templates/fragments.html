@@ -623,45 +623,45 @@
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item">
                     <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" href="/">
-                        <i class="fas fa-home me-1"></i>Головна
+                        <i class="fas fa-home me-1"></i><span th:text="#{nav.home}">Головна</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" href="/budget">
-                        <i class="fas fa-chart-line me-1"></i>Бюджет
+                        <i class="fas fa-chart-line me-1"></i><span th:text="#{nav.budget}">Бюджет</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" href="/totals">
-                        <i class="fas fa-chart-pie me-1"></i>Підсумки
+                        <i class="fas fa-chart-pie me-1"></i><span th:text="#{nav.totals}">Підсумки</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" href="/all-days">
-                        <i class="fas fa-calendar-alt me-1"></i>Всі дні
+                        <i class="fas fa-calendar-alt me-1"></i><span th:text="#{nav.allDays}">Всі дні</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" href="/notes">
-                        <i class="fas fa-sticky-note me-1"></i>Нотатки
+                        <i class="fas fa-sticky-note me-1"></i><span th:text="#{nav.notes}">Нотатки</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <button class="user-avatar" id="openSettingsBtn" type="button" title="Налаштування">
+                    <button class="user-avatar" id="openSettingsBtn" type="button" th:title="#{settings.title}">
                         <span class="avatar-placeholder" sec:authentication="name"></span>
                         <span class="ms-1" sec:authentication="name"></span>
                     </button>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="nav-link" href="/login">Увійти</a>
+                    <a class="nav-link" href="/login" th:text="#{nav.login}">Увійти</a>
                 </li>
                 <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="nav-link" href="/register">Реєстрація</a>
+                    <a class="nav-link" href="/register" th:text="#{nav.register}">Реєстрація</a>
                 </li>
 
                 <!-- ===== КНОПКА ПЕРЕМИКАННЯ ТЕМИ ===== -->
                 <li class="nav-item ms-lg-2 mt-2 mt-lg-0" th:if="${active == 'login' or active == 'register'}">
-                    <button id="themeToggle" class="btn theme-toggle-btn btn-sm" type="button" title="Перемкнути тему">
+                    <button id="themeToggle" class="btn theme-toggle-btn btn-sm" type="button" th:title="#{settings.theme}">
                         <i class="fas fa-moon"></i>
                     </button>
                 </li>
@@ -703,22 +703,36 @@
     <!-- Сама панель -->
     <div class="settings-drawer" id="settingsDrawer">
         <div class="drawer-header">
-            <h4><i class="fas fa-cog me-2"></i>Налаштування</h4>
+            <h4><i class="fas fa-cog me-2"></i><span th:text="#{settings.title}">Налаштування</span></h4>
             <button class="close-btn" id="closeSettingsBtn" title="Закрити">
                 <i class="fas fa-times"></i>
             </button>
         </div>
 
         <div class="drawer-menu" id="drawerMenu">
-            <button class="menu-item active" data-section="profile"><i class="fas fa-user-circle me-1"></i>Профіль</button>
-            <button class="menu-item" data-section="categories"><i class="fas fa-tags me-1"></i>Категорії</button>
-            <button class="menu-item" data-section="currency"><i class="fas fa-money-bill-wave me-1"></i>Валюта</button>
-            <button class="menu-item" data-section="language"><i class="fas fa-language me-1"></i>Мова</button>
-            <button class="menu-item" data-section="theme"><i class="fas fa-palette me-1"></i>Тема</button>
-            <button class="menu-item" data-section="data"><i class="fas fa-database me-1"></i>Дані</button>
-            <button class="menu-item" data-section="about"><i class="fas fa-info-circle me-1"></i>Про сервіс</button>
-            <button type="button" class="menu-item logout-item" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal" style="border: none; background: none; cursor: pointer;">
-                <i class="fas fa-sign-out-alt me-1"></i>Вихід
+            <button class="menu-item active" data-section="profile">
+                <i class="fas fa-user-circle me-1"></i><span th:text="#{settings.profile}">Профіль</span>
+            </button>
+            <button class="menu-item" data-section="categories">
+                <i class="fas fa-tags me-1"></i><span th:text="#{settings.categories}">Категорії</span>
+            </button>
+            <button class="menu-item" data-section="currency">
+                <i class="fas fa-money-bill-wave me-1"></i><span th:text="#{settings.currency}">Валюта</span>
+            </button>
+            <button class="menu-item" data-section="language">
+                <i class="fas fa-language me-1"></i><span th:text="#{settings.language}">Мова</span>
+            </button>
+            <button class="menu-item" data-section="theme">
+                <i class="fas fa-palette me-1"></i><span th:text="#{settings.theme}">Тема</span>
+            </button>
+            <button class="menu-item" data-section="data">
+                <i class="fas fa-database me-1"></i><span th:text="#{settings.data}">Дані</span>
+            </button>
+            <button class="menu-item" data-section="about">
+                <i class="fas fa-info-circle me-1"></i><span th:text="#{settings.about}">Про сервіс</span>
+            </button>
+            <button type="button" class="menu-item logout-item" ...>
+                <i class="fas fa-sign-out-alt me-1"></i><span th:text="#{settings.logout}">Вихід</span>
             </button>
         </div>
 
@@ -890,19 +904,28 @@
             </div>
 
             <!-- ========== МОВА ========== -->
+            <!-- ========== МОВА ========== -->
             <div class="section" id="d-section-language">
-                <h5><i class="fas fa-language me-2"></i>Мова</h5>
-                <p class="text-muted small">Оберіть мову інтерфейсу</p>
+                <h5><i class="fas fa-language me-2"></i><span th:text="#{settings.language}">Мова</span></h5>
+                <p class="text-muted small" th:text="#{settings.language.choose}">Оберіть мову інтерфейсу</p>
+
                 <div class="d-flex gap-2 flex-wrap">
-                    <button class="language-btn active" data-lang="uk">Українська</button>
-                    <button class="language-btn" data-lang="en">English</button>
-                    <button class="language-btn" data-lang="ru">Русский</button>
-                </div>
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle me-2"></i> Зміна мови поки що в розробці. Вибрана мова: <span id="drawerCurrentLang">Українська</span>
+                    <form th:action="@{/settings/language}" method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="lang" value="uk" />
+                        <button type="submit" class="language-btn"
+                                th:classappend="${#locale.language == 'uk'} ? ' active'"
+                                th:text="#{lang.uk}">Українська</button>
+                    </form>
+                    <form th:action="@{/settings/language}" method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="lang" value="en" />
+                        <button type="submit" class="language-btn"
+                                th:classappend="${#locale.language == 'en'} ? ' active'"
+                                th:text="#{lang.en}">English</button>
+                    </form>
                 </div>
             </div>
-
             <!-- ========== ТЕМА ========== -->
             <div class="section" id="d-section-theme">
                 <h5><i class="fas fa-palette me-2"></i>Тема</h5>
@@ -1082,7 +1105,7 @@
 <!-- ===================== ФУТЕР ===================== -->
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
-        <p class="mb-0">© 2026 Lazy Cent - Ваш фінансовий помічник</p>
+        <p class="mb-0">© 2026 Lazy Cent - <span th:text="#{app.tagline}">Ваш фінансовий помічник</span></p>
         <p class="small mt-1">
             <a href="/privacy" class="text-muted text-decoration-none me-3">Політика конфіденціальності</a>
             <a href="/terms" class="text-muted text-decoration-none">Умови використання</a>
@@ -1122,7 +1145,9 @@
                 if (type === 'success') {
                     toastElement.classList.add('success');
                     toastIcon.className = 'fas fa-check-circle me-2';
-                    toastTitle.textContent = 'Успішно!';
+                    const MSG_SUCCESS = /*[[#{toast.success}]]*/ 'Успішно!';
+                    const MSG_ERROR   = /*[[#{toast.error}]]*/   'Помилка!';
+                    const MSG_INFO    = /*[[#{toast.info}]]*/    'Інформація!';
                 } else if (type === 'error') {
                     toastElement.classList.add('error');
                     toastIcon.className = 'fas fa-exclamation-circle me-2';
@@ -1298,26 +1323,7 @@
                 });
             });
 
-            // ===== МОВА =====
-            const langBtns = document.querySelectorAll('#d-section-language .language-btn');
-            const currentLangLabel = document.getElementById('drawerCurrentLang');
-            const langMap = { uk: 'Українська', en: 'English', ru: 'Русский' };
 
-            if (langBtns.length && currentLangLabel) {
-                langBtns.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        langBtns.forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        const lang = this.dataset.lang;
-                        currentLangLabel.textContent = langMap[lang] || lang;
-                        localStorage.setItem('lazycent-lang', lang);
-                    });
-                });
-
-                const savedLang = localStorage.getItem('lazycent-lang') || 'uk';
-                const savedLangBtn = document.querySelector(`#d-section-language .language-btn[data-lang="${savedLang}"]`);
-                if (savedLangBtn) savedLangBtn.click();
-            }
 
             // ===== РЕДАГУВАННЯ КАТЕГОРІЇ =====
             const editModal = document.getElementById('editCategoryModal');

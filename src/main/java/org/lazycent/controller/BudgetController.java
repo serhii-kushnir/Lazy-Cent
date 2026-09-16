@@ -1,6 +1,7 @@
 package org.lazycent.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,14 +16,16 @@ import org.lazycent.service.BudgetService;
 import org.lazycent.service.DemoDataService;
 import org.lazycent.service.UserService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -69,7 +72,7 @@ public class BudgetController {
         return "index";
     }
 
-    // ==================== ВАЛЮТА (ВИПРАВЛЕНО) ====================
+    // ==================== НАЛАШТУВАННЯ ====================
 
     @PostMapping("/settings/currency")
     public String updateCurrency(@RequestParam String currency,
@@ -82,15 +85,14 @@ public class BudgetController {
         }
 
         try {
-            // 1. Зберігаємо валюту в БД
+            // 1. Зберігаємо валюту в БД (точковий UPDATE, не торкається колекцій)
             userService.updateCurrency(currentUser, currency);
 
-            // 2. ОНОВЛЮЄМО АВТЕНТИФІКАЦІЮ - завантажуємо свіжого користувача з БД
+            // 2. Оновлюємо SecurityContext — завантажуємо свіжого користувача з БД
             User updatedUser = userRepository.findById(currentUser.getId())
                     .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
-            // 3. Оновлюємо SecurityContext з новими даними
-            Authentication newAuth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(
                     updatedUser,
                     authentication.getCredentials(),
                     authentication.getAuthorities()
@@ -98,7 +100,6 @@ public class BudgetController {
             SecurityContextHolder.getContext().setAuthentication(newAuth);
 
             log.info("Валюта оновлена на {} для користувача {}", currency, updatedUser.getUsername());
-
             redirectAttributes.addFlashAttribute("successMessage", "Валюту змінено на " + currency);
 
         } catch (Exception e) {
@@ -106,15 +107,40 @@ public class BudgetController {
             redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
         }
 
-        // Повертаємося на попередню сторінку
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
-    // ==================== ДЕМО-ДАНІ ====================
+    @PostMapping("/settings/language")
+    public String updateLanguage(@RequestParam String lang,
+                                 Authentication authentication,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response,
+                                 RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            // 1. Зберігаємо мову в БД (точковий UPDATE)
+            userService.updateLanguage(currentUser, lang);
+
+            // 2. Оновлюємо локаль у сесії
+            LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
+            if (localeResolver != null) {
+                localeResolver.setLocale(request, response, Locale.forLanguageTag(lang));
+            }
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "uk".equals(lang) ? "Мову змінено на українську" : "Language changed to English");
+
+        } catch (Exception e) {
+            log.error("Помилка зміни мови: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+        }
+
+        return redirectToReferer(request, "/");
+    }
 
     @PostMapping("/settings/profile")
     public String updateProfile(@RequestParam String username,
@@ -136,7 +162,7 @@ public class BudgetController {
             User updatedUser = userRepository.findById(currentUser.getId())
                     .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
-            Authentication newAuth = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(
                     updatedUser,
                     authentication.getCredentials(),
                     authentication.getAuthorities()
@@ -148,15 +174,13 @@ public class BudgetController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
     @PostMapping("/settings/clear-data")
-    public String clearData(Authentication authentication, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public String clearData(Authentication authentication,
+                            RedirectAttributes redirectAttributes,
+                            HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
@@ -170,11 +194,7 @@ public class BudgetController {
             redirectAttributes.addFlashAttribute("errorMessage", "Помилка при очищенні даних: " + e.getMessage());
         }
 
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
     @PostMapping("/settings/delete-account")
@@ -199,8 +219,12 @@ public class BudgetController {
         }
     }
 
+    // ==================== ДЕМО-ДАНІ ====================
+
     @PostMapping("/generate-demo")
-    public String generateDemo(Authentication authentication, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    public String generateDemo(Authentication authentication,
+                               RedirectAttributes redirectAttributes,
+                               HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
@@ -215,11 +239,7 @@ public class BudgetController {
             redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
         }
 
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
     // ==================== БЮДЖЕТ ====================
@@ -254,6 +274,7 @@ public class BudgetController {
         model.addAttribute("month", month);
         model.addAttribute("year", year);
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories(user));
+        model.addAttribute("incomeCategories", budgetService.getIncomeCategories(user));
         model.addAttribute("categoryExpenses", categoryExpenses);
 
         return "budget";
@@ -372,13 +393,11 @@ public class BudgetController {
                     .findFirst()
                     .orElse("Невірні дані");
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-            String referer = httpServletRequest.getHeader("Referer");
-            return "redirect:" + (referer != null && !referer.isEmpty() ? referer : "/");
+            return redirectToReferer(httpServletRequest, "/");
         }
         budgetService.addTransaction(request, TransactionType.EXPENSE, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
-        String referer = httpServletRequest.getHeader("Referer");
-        return "redirect:" + (referer != null && !referer.isEmpty() ? referer : "/");
+        return redirectToReferer(httpServletRequest, "/");
     }
 
     @PostMapping("/quick-income")
@@ -397,13 +416,11 @@ public class BudgetController {
                     .findFirst()
                     .orElse("Невірні дані");
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
-            String referer = httpServletRequest.getHeader("Referer");
-            return "redirect:" + (referer != null && !referer.isEmpty() ? referer : "/");
+            return redirectToReferer(httpServletRequest, "/");
         }
         budgetService.addTransaction(request, TransactionType.INCOME, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
-        String referer = httpServletRequest.getHeader("Referer");
-        return "redirect:" + (referer != null && !referer.isEmpty() ? referer : "/");
+        return redirectToReferer(httpServletRequest, "/");
     }
 
     // ==================== ВСІ ДНІ ====================
@@ -471,11 +488,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
     @PostMapping("/categories/delete/{id}")
@@ -493,11 +506,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
     @PostMapping("/categories/update/{id}")
@@ -516,11 +525,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectToReferer(request, "/");
     }
 
     // ==================== ВИДАЛЕННЯ ДНЯ ====================
@@ -680,5 +685,31 @@ public class BudgetController {
             return (User) principal;
         }
         return null;
+    }
+
+    /**
+     * Повертає redirect на Referer, якщо він є і виглядає безпечно.
+     * Інакше — на fallbackUrl.
+     */
+    private String redirectToReferer(HttpServletRequest request, String fallbackUrl) {
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty()) {
+            // Захист від open-redirect: дозволяємо тільки відносні шляхи або свій origin
+            try {
+                java.net.URI uri = java.net.URI.create(referer);
+                String path = uri.getPath();
+                if (path != null && !path.isEmpty() && uri.getHost() == null) {
+                    // відносний шлях
+                    return "redirect:" + referer;
+                }
+                if (path != null && !path.isEmpty()) {
+                    // повний URL — ігноруємо хост, редіректимо на свій
+                    return "redirect:" + path;
+                }
+            } catch (IllegalArgumentException e) {
+                // некоректний URL — ігноруємо
+            }
+        }
+        return "redirect:" + fallbackUrl;
     }
 }

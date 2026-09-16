@@ -2,6 +2,8 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.exception.EntityNotFoundException;
+import org.lazycent.exception.ValidationException;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,12 +11,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserService {
+
+    private static final Set<String> SUPPORTED_LANGUAGES = Set.of("uk", "en");
+    private static final Set<String> SUPPORTED_CURRENCIES = Set.of("UAH", "USD", "EUR", "GBP", "PLN", "CZK");
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -39,12 +45,11 @@ public class UserService {
 
     @Transactional
     public User registerUser(String username, String rawPassword, String email) {
-        // Додаткова перевірка (вже є в контролері, але не завадить)
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("Користувач з таким іменем вже існує");
+            throw new ValidationException("Користувач з таким іменем вже існує");
         }
         if (email != null && !email.isEmpty() && userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
+            throw new ValidationException("Користувач з такою електронною поштою вже зареєстрований");
         }
 
         User user = new User();
@@ -53,6 +58,7 @@ public class UserService {
         user.setRole("USER");
         user.setEmail(email);
         user.setPreferredCurrency("UAH");
+        user.setPreferredLanguage("uk");
 
         User savedUser = userRepository.save(user);
         demoDataService.createDefaultCategories(savedUser);
@@ -99,11 +105,12 @@ public class UserService {
     private User createNewOAuth2User(String provider, String providerId, String emailOrUsername, String name) {
         User newUser = new User();
         newUser.setUsername(name != null ? name : emailOrUsername);
-        newUser.setEmail(emailOrUsername.contains("@") ? emailOrUsername : null);
+        newUser.setEmail(emailOrUsername != null && emailOrUsername.contains("@") ? emailOrUsername : null);
         newUser.setProvider(provider);
         newUser.setProviderId(providerId);
         newUser.setRole("USER");
         newUser.setPreferredCurrency("UAH");
+        newUser.setPreferredLanguage("uk");
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         User savedUser = userRepository.save(newUser);
@@ -116,56 +123,61 @@ public class UserService {
     // ==================== ОНОВЛЕННЯ ПРОФІЛЮ ====================
 
     @Transactional
-    public void updateProfile(User user, String username, String email,
+    public void updateProfile(User currentUser, String username, String email,
                               String currentPassword, String newPassword) {
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        // Завантажуємо свіжу керовану сутність з БД
+        User user = userRepository.findById(currentUser.getId())
+                .orElseThrow(() -> new EntityNotFoundException("User", currentUser.getId()));
 
-        if (managedUser.getProvider() != null && !managedUser.getProvider().isEmpty()) {
-            log.warn("Спроба зміни профілю OAuth2-користувача: {} (заборонено)", managedUser.getUsername());
-            throw new RuntimeException("Для OAuth2-користувачів зміна даних недоступна. Всі зміни виконуються через ваш обліковий запис " + managedUser.getProvider());
-        }
-
-        if (!managedUser.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("Користувач з таким ім'ям вже існує");
-        }
-
-        if (email != null && !email.isEmpty() &&
-                !email.equals(managedUser.getEmail()) &&
-                userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
-        }
-
-        managedUser.setUsername(username);
-        if (email != null && !email.isEmpty()) {
-            managedUser.setEmail(email);
-        }
-
-        if (currentPassword != null && !currentPassword.isEmpty() &&
-                newPassword != null && !newPassword.isEmpty()) {
-            if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
-                throw new RuntimeException("Поточний пароль введено неправильно");
+        if (username != null && !username.equals(user.getUsername())) {
+            if (userRepository.findByUsername(username).isPresent()) {
+                throw new ValidationException("Користувач з таким ім'ям вже існує");
             }
-            managedUser.setPassword(passwordEncoder.encode(newPassword));
+            user.setUsername(username);
         }
-
-        userRepository.save(managedUser);
-        log.info("Оновлено профіль користувача: {}", managedUser.getUsername());
+        if (email != null && !email.equals(user.getEmail())) {
+            if (userRepository.findByEmail(email).isPresent()) {
+                throw new ValidationException("Користувач з такою поштою вже існує");
+            }
+            user.setEmail(email);
+        }
+        if (newPassword != null && !newPassword.isEmpty()) {
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                throw new ValidationException("Невірний поточний пароль");
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
+        // merge не потрібен — сутність керована, Hibernate зробить dirty checking
     }
+
+    // ==================== ВАЛЮТА ====================
 
     @Transactional
     public void updateCurrency(User user, String currency) {
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
-        managedUser.setPreferredCurrency(currency);
-        userRepository.save(managedUser);
-        log.info("Оновлено валюту користувача {} на {}", managedUser.getUsername(), currency);
+        if (currency == null || !SUPPORTED_CURRENCIES.contains(currency)) {
+            throw new ValidationException("Непідтримувана валюта: " + currency);
+        }
+        userRepository.updatePreferredCurrency(user.getId(), currency);
+        log.info("Валюту користувача {} змінено на {}", user.getUsername(), currency);
     }
+
+    // ==================== МОВА ====================
+
+    @Transactional
+    public void updateLanguage(User user, String language) {
+        if (language == null || !SUPPORTED_LANGUAGES.contains(language)) {
+            throw new ValidationException("Непідтримувана мова: " + language);
+        }
+        userRepository.updatePreferredLanguage(user.getId(), language);
+        log.info("Мову користувача {} змінено на {}", user.getUsername(), language);
+    }
+
+    // ==================== ВИДАЛЕННЯ АКАУНТА ====================
 
     @Transactional
     public void deleteAccount(User user) {
         User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+                .orElseThrow(() -> new EntityNotFoundException("User", user.getId()));
 
         budgetService.clearAllUserData(managedUser);
         noteService.deleteAllNotes(managedUser);

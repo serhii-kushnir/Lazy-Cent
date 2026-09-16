@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lazy Cent - Бюджет</title>
+    <title th:text="#{app.title} + ' - ' + #{nav.home}">Lazy Cent - Головна</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <style>
@@ -122,7 +122,6 @@
             font-size: 1.8rem;
             opacity: 0.5;
         }
-        /* Додатковий стиль для групи полів категорії */
         .category-input-group .form-select {
             border-radius: 0.375rem 0 0 0.375rem;
         }
@@ -141,7 +140,7 @@
 <!-- ===== НАВБАР ===== -->
 <nav th:replace="~{fragments :: navbar('home')}"></nav>
 
-<!-- ===== ПАНЕЛЬ НАЛАШТУВАНЬ (ДОДАЄМО ЯВНО) ===== -->
+<!-- ===== ПАНЕЛЬ НАЛАШТУВАНЬ ===== -->
 <div th:replace="~{fragments :: settingsPanel}"></div>
 
 <!-- ===== TOAST ===== -->
@@ -154,13 +153,13 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div>
                 <i class="fas fa-info-circle me-2"></i>
-                <strong>Ласкаво просимо до Lazy Cent!</strong>
-                <span class="d-none d-sm-inline">Додайте демонстраційні дані, щоб побачити, як працює додаток.</span>
+                <strong th:text="#{index.demo.title}">Ласкаво просимо до Lazy Cent!</strong>
+                <span class="d-none d-sm-inline" th:text="#{index.demo.text}">Додайте демонстраційні дані, щоб побачити, як працює додаток.</span>
             </div>
             <form th:action="@{/generate-demo}" method="post" style="display: inline;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <button type="submit" class="btn btn-success btn-sm">
-                    <i class="fas fa-magic me-1"></i> Додати демо-дані
+                    <i class="fas fa-magic me-1"></i> <span th:text="#{index.demo.addBtn}">Додати демо-дані</span>
                 </button>
             </form>
         </div>
@@ -169,8 +168,10 @@
     <!-- ===== ЗАГОЛОВОК ===== -->
     <div class="row mb-4">
         <div class="col text-center animate-fade-down">
-            <h1 class="display-4"><i class="fas fa-coins text-warning"></i> Lazy Cent</h1>
-            <p class="lead">Ваш особистий фінансовий помічник</p>
+            <h1 class="display-4">
+                <i class="fas fa-coins text-warning"></i> <span th:text="#{app.title}">Lazy Cent</span>
+            </h1>
+            <p class="lead" th:text="#{app.tagline}">Ваш особистий фінансовий помічник</p>
             <hr>
         </div>
     </div>
@@ -178,9 +179,12 @@
     <!-- ===== КНОПКА ДОДАВАННЯ ===== -->
     <div class="row mb-5">
         <div class="col-12 text-center animate-scale delay-1">
-            <h3 class="mb-4"><i class="fas fa-plus-circle text-success"></i> Швидке додавання</h3>
+            <h3 class="mb-4">
+                <i class="fas fa-plus-circle text-success"></i>
+                <span th:text="#{index.quickAdd.title}">Швидке додавання</span>
+            </h3>
             <button class="btn btn-primary btn-add-transaction" data-bs-toggle="modal" data-bs-target="#transactionModal">
-                <i class="fas fa-plus me-2"></i> Додати транзакцію
+                <i class="fas fa-plus me-2"></i> <span th:text="#{index.quickAdd.button}">Додати транзакцію</span>
             </button>
         </div>
     </div>
@@ -188,7 +192,10 @@
     <!-- ===== ШВИДКИЙ ДОСТУП ===== -->
     <div class="row mb-5">
         <div class="col-12">
-            <h3 class="text-center mb-4 animate-fade-down delay-1"><i class="fas fa-bolt text-primary"></i> Швидкий доступ</h3>
+            <h3 class="text-center mb-4 animate-fade-down delay-1">
+                <i class="fas fa-bolt text-primary"></i>
+                <span th:text="#{index.quickAccess.title}">Швидкий доступ</span>
+            </h3>
         </div>
 
         <div class="col-md-3 mb-3 animate-fade-up delay-1">
@@ -196,8 +203,8 @@
                 <div class="card feature-card text-center bg-primary text-white h-100">
                     <div class="card-body d-flex flex-column">
                         <i class="fas fa-chart-line fa-3x mb-3"></i>
-                        <h4>Бюджет</h4>
-                        <p class="flex-fill">Перегляд загального бюджету та витрат за період</p>
+                        <h4 th:text="#{index.quickAccess.budget}">Бюджет</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.budgetDesc}">Перегляд загального бюджету та витрат за період</p>
                     </div>
                 </div>
             </a>
@@ -208,8 +215,8 @@
                 <div class="card feature-card text-center bg-success text-white h-100">
                     <div class="card-body d-flex flex-column">
                         <i class="fas fa-chart-pie fa-3x mb-3"></i>
-                        <h4>Підсумки</h4>
-                        <p class="flex-fill">Аналітика та статистика за категоріями</p>
+                        <h4 th:text="#{index.quickAccess.totals}">Підсумки</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.totalsDesc}">Аналітика та статистика за категоріями</p>
                     </div>
                 </div>
             </a>
@@ -220,8 +227,8 @@
                 <div class="card feature-card text-center bg-info text-white h-100">
                     <div class="card-body d-flex flex-column">
                         <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                        <h4>Всі дні</h4>
-                        <p class="flex-fill">Детальний перегляд за кожен день</p>
+                        <h4 th:text="#{index.quickAccess.allDays}">Всі дні</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.allDaysDesc}">Детальний перегляд за кожен день</p>
                     </div>
                 </div>
             </a>
@@ -232,52 +239,94 @@
                 <div class="card feature-card text-center bg-warning text-dark h-100">
                     <div class="card-body d-flex flex-column">
                         <i class="fas fa-sticky-note fa-3x mb-3"></i>
-                        <h4>Нотатки</h4>
-                        <p class="flex-fill">Швидкі нотатки та ідеї, як у Google Keep</p>
+                        <h4 th:text="#{index.quickAccess.notes}">Нотатки</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.notesDesc}">Швидкі нотатки та ідеї, як у Google Keep</p>
                     </div>
                 </div>
             </a>
         </div>
     </div>
 
-    <!-- ===== СТАТИСТИКА (ПЕРЕНЕСЕНО В САМИЙ НИЗ) ===== -->
+    <!-- ===== СТАТИСТИКА ===== -->
     <div class="row animate-fade-up delay-2">
         <div class="col-12">
-            <h3 class="text-center mb-3"><i class="fas fa-chart-simple text-primary"></i> Ваша фінансова статистика</h3>
+            <h3 class="text-center mb-3">
+                <i class="fas fa-chart-simple text-primary"></i>
+                <span th:text="#{index.stats.title}">Ваша фінансова статистика</span>
+            </h3>
         </div>
         <div class="col-md-4 mb-3 animate-fade-up delay-1">
             <div class="card stat-card h-100 text-center">
                 <div class="card-header bg-primary text-white">
-                    <i class="fas fa-sun me-2"></i> Сьогодні
+                    <i class="fas fa-sun me-2"></i> <span th:text="#{index.today}">Сьогодні</span>
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-up text-success me-1"></i>
+                        <span th:text="#{index.income}">Доходи</span>:
+                        <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-down text-danger me-1"></i>
+                        <span th:text="#{index.expense}">Витрати</span>:
+                        <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span th:text="#{index.balance}">Баланс</span>:
+                        <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3 animate-fade-up delay-2">
             <div class="card stat-card h-100 text-center">
                 <div class="card-header bg-success text-white">
-                    <i class="fas fa-calendar-week me-2"></i> Цей тиждень
+                    <i class="fas fa-calendar-week me-2"></i> <span th:text="#{index.week}">Цей тиждень</span>
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-up text-success me-1"></i>
+                        <span th:text="#{index.income}">Доходи</span>:
+                        <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-down text-danger me-1"></i>
+                        <span th:text="#{index.expense}">Витрати</span>:
+                        <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span th:text="#{index.balance}">Баланс</span>:
+                        <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3 animate-fade-up delay-3">
             <div class="card stat-card h-100 text-center">
                 <div class="card-header bg-info text-white">
-                    <i class="fas fa-calendar-alt me-2"></i> Цей місяць
+                    <i class="fas fa-calendar-alt me-2"></i> <span th:text="#{index.month}">Цей місяць</span>
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><i class="fas fa-arrow-up text-success me-1"></i> Доходи: <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
-                    <p class="mb-1"><i class="fas fa-arrow-down text-danger me-1"></i> Витрати: <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
-                    <p class="mb-0"><i class="fas fa-balance-scale me-1"></i> Баланс: <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong></p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-up text-success me-1"></i>
+                        <span th:text="#{index.income}">Доходи</span>:
+                        <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-down text-danger me-1"></i>
+                        <span th:text="#{index.expense}">Витрати</span>:
+                        <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span th:text="#{index.balance}">Баланс</span>:
+                        <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
                 </div>
             </div>
         </div>
@@ -291,65 +340,66 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="transactionModalLabel">
-                    <i class="fas fa-plus-circle me-2"></i>Додати нову транзакцію
+                    <i class="fas fa-plus-circle me-2"></i><span th:text="#{modal.addTransaction}">Додати нову транзакцію</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="transactionForm" th:action="@{/quick-expense}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <input type="hidden" name="type" id="transactionType" value="EXPENSE">
 
                     <div class="mb-3">
-                        <label for="transactionName" class="form-label">Назва</label>
+                        <label for="transactionName" class="form-label" th:text="#{modal.name}">Назва</label>
                         <input type="text" class="form-control" id="transactionName" name="description"
-                               placeholder="наприклад, Продукти, обід, канцелярія" required>
-                        <div class="invalid-feedback">Будь ласка, заповніть це поле</div>
+                               th:placeholder="#{modal.name.placeholder}" required>
+                        <div class="invalid-feedback" th:text="#{modal.fillField}">Будь ласка, заповніть це поле</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Тип</label>
+                        <label class="form-label" th:text="#{modal.type}">Тип</label>
                         <div class="transaction-type-toggle">
                             <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> Витрата
+                                <i class="fas fa-arrow-down me-1"></i> <span th:text="#{modal.type.expense}">Витрата</span>
                             </button>
                             <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> Дохід
+                                <i class="fas fa-arrow-up me-1"></i> <span th:text="#{modal.type.income}">Дохід</span>
                             </button>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="categorySelect" class="form-label">Категорія</label>
+                        <label for="categorySelect" class="form-label" th:text="#{modal.category}">Категорія</label>
                         <div class="input-group category-input-group">
                             <select class="form-select" id="categorySelect" name="categoryId" required>
-                                <option value="">Завантаження...</option>
+                                <option value="" th:text="#{common.loading}">Завантаження...</option>
                             </select>
-                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" title="Додати нову категорію">
+                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" th:title="#{modal.category.addTitle}">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                        <div class="invalid-feedback">Виберіть категорію</div>
-                        <div class="form-text text-muted">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
+                        <div class="invalid-feedback" th:text="#{modal.enterCategory}">Виберіть категорію</div>
+                        <div class="form-text text-muted" th:utext="#{modal.category.hint}">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
                     </div>
                     <div class="mb-3">
-                        <label for="transactionDate" class="form-label">Дата</label>
+                        <label for="transactionDate" class="form-label" th:text="#{modal.date}">Дата</label>
                         <input type="date" class="form-control" id="transactionDate" name="date"
                                th:value="${#temporals.format(today, 'yyyy-MM-dd')}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="transactionTime" class="form-label">Час (необов'язково)</label>
+                        <label for="transactionTime" class="form-label" th:text="#{modal.time}">Час (необов'язково)</label>
                         <input type="time" class="form-control" id="transactionTime" name="time" step="60">
                     </div>
                     <div class="mb-3">
-                        <label for="transactionAmount" class="form-label">Сума</label>
+                        <label for="transactionAmount" class="form-label" th:text="#{modal.amount}">Сума</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
                             <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   placeholder="0.0" value="0.00" required>
+                                   th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
-                        <div class="invalid-feedback">Введіть суму</div>
+                        <div class="invalid-feedback" th:text="#{modal.enterAmount}">Введіть суму</div>
                     </div>
                     <div class="mb-3">
-                        <label for="transactionQuantity" class="form-label">Кількість (необов'язково)</label>
+                        <label for="transactionQuantity" class="form-label" th:text="#{modal.quantity}">Кількість (необов'язково)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
                             <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
@@ -358,26 +408,28 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="transactionBuyer" class="form-label">Покупець (необов'язково)</label>
-                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" placeholder="Покупець">
+                        <label for="transactionBuyer" class="form-label" th:text="#{modal.buyer}">Покупець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" th:placeholder="#{common.buyer}">
                     </div>
                     <div class="mb-3">
-                        <label for="transactionSeller" class="form-label">Продавець (необов'язково)</label>
-                        <input type="text" class="form-control" id="transactionSeller" name="seller" placeholder="Продавець">
+                        <label for="transactionSeller" class="form-label" th:text="#{modal.seller}">Продавець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" th:placeholder="#{common.seller}">
                     </div>
                     <div class="mb-3">
-                        <label for="transactionDetails" class="form-label">Додаткові деталі (необов'язково)</label>
+                        <label for="transactionDetails" class="form-label" th:text="#{modal.details}">Додаткові деталі (необов'язково)</label>
                         <textarea class="form-control" id="transactionDetails" name="details" rows="3"
-                                  placeholder="наприклад, Командний обід, покупки для проєкту" maxlength="250"></textarea>
+                                  th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
                         <div class="char-counter">
                             <span id="charCount">0</span> / 250
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати</span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" id="saveTransactionBtn">Зберегти транзакцію</button>
+                    <span class="keyboard-hint" th:utext="#{modal.keyboardHint}">
+                        <kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати
+                    </span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                    <button type="submit" class="btn btn-primary" id="saveTransactionBtn" th:text="#{modal.save}">Зберегти транзакцію</button>
                 </div>
             </form>
         </div>
@@ -392,7 +444,7 @@
 <!-- ===== СКРИПТ ПАНЕЛІ ===== -->
 <div th:replace="~{fragments :: settingsPanelScript}"></div>
 
-<script>
+<script th:inline="javascript">
     (function() {
         'use strict';
 
@@ -407,8 +459,11 @@
         const detailsTextarea = document.getElementById('transactionDetails');
         const charCount = document.getElementById('charCount');
 
+        /*<![CDATA[*/
         let expenseCategories = /*[[${expenseCategories}]]*/ [];
         let incomeCategories = /*[[${incomeCategories}]]*/ [];
+        const MSG_NO_CATEGORIES = /*[[#{common.noData}]]*/ 'Немає категорій';
+        /*]]>*/
 
         function populateCategories(categories) {
             if (!categorySelect) return;
@@ -416,7 +471,7 @@
             if (!categories || categories.length === 0) {
                 const opt = document.createElement('option');
                 opt.value = '';
-                opt.textContent = 'Немає категорій';
+                opt.textContent = MSG_NO_CATEGORIES;
                 opt.disabled = true;
                 categorySelect.appendChild(opt);
                 return;
@@ -576,40 +631,29 @@
         }
 
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+
         // Відкриття панелі налаштувань → розділ "Категорії"
         window.openCategorySettings = function() {
-            // 1. Закриваємо модалку транзакції
             const modalEl = document.getElementById('transactionModal');
             if (modalEl) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
+                const m = bootstrap.Modal.getInstance(modalEl);
+                if (m) m.hide();
             }
-
-            // 2. Відкриваємо drawer налаштувань і перемикаємо на розділ "Категорії"
             setTimeout(function() {
                 const drawer = document.getElementById('settingsDrawer');
                 const overlay = document.getElementById('settingsOverlay');
-
                 if (drawer && overlay) {
                     drawer.classList.add('open');
                     overlay.classList.add('open');
                     document.body.style.overflow = 'hidden';
-
-                    // Клікаємо по пункту меню "Категорії"
                     const categoriesTab = document.querySelector('#drawerMenu .menu-item[data-section="categories"]');
-                    if (categoriesTab) {
-                        categoriesTab.click();
-                    }
+                    if (categoriesTab) categoriesTab.click();
                 }
-            }, 350); // чекаємо, поки Bootstrap закриє модалку
+            }, 350);
         };
 
-        if (expenseCategories && expenseCategories.length > 0) {
-            document.getElementById('expenseCount').textContent = expenseCategories.length;
-        }
-        if (incomeCategories && incomeCategories.length > 0) {
-            document.getElementById('incomeCount').textContent = incomeCategories.length;
-        }
+        // Видалено небезпечні виклики getElementById('expenseCount') / 'incomeCount',
+        // бо цих елементів немає в HTML (спричиняло TypeError).
     })();
 </script>
 </body>
