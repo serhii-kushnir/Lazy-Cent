@@ -65,11 +65,11 @@ public class DemoDataService {
         createCategory("Дорога", "EXPENSE", user);
         createCategory("Ліки", "EXPENSE", user);
         createCategory("Одяг", "EXPENSE", user);
-        createCategory("Різне", "EXPENSE", user);
+        createCategory("Інше", "EXPENSE", user);
         createCategory("Чаєві", "INCOME", user);
-        createCategory("Зарплата (М)", "INCOME", user);
-        createCategory("Зарплата (С)", "INCOME", user);
-        createCategory("Різне (дохід)", "INCOME", user);
+        createCategory("Зарплата", "INCOME", user);
+        createCategory("Премія", "INCOME", user);
+        createCategory("Різне", "INCOME", user);
         log.info("Категорії створено для користувача {}.", user.getUsername());
     }
 
@@ -111,11 +111,11 @@ public class DemoDataService {
         Category transport = getCategory(user, "Дорога", "EXPENSE");
         Category medicine = getCategory(user, "Ліки", "EXPENSE");
         Category clothes = getCategory(user, "Одяг", "EXPENSE");
-        Category miscExpense = getCategory(user, "Різне", "EXPENSE");
+        Category miscExpense = getCategory(user, "Інше", "EXPENSE");
         Category tips = getCategory(user, "Чаєві", "INCOME");
-        Category salaryM = getCategory(user, "Зарплата (М)", "INCOME");
-        Category salaryS = getCategory(user, "Зарплата (С)", "INCOME");
-        Category miscIncome = getCategory(user, "Різне (дохід)", "INCOME");
+        Category salaryM = getCategory(user, "Зарплата", "INCOME");
+        Category salaryS = getCategory(user, "Премія", "INCOME");
+        Category miscIncome = getCategory(user, "Різне", "INCOME");
 
         record ExpenseCategoryOption(Category category, List<String> descriptions, double minAmount, double maxAmount) {}
         List<ExpenseCategoryOption> expenseOptions = new java.util.ArrayList<>();

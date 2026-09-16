@@ -1,14 +1,25 @@
 package org.lazycent.config;
 
+import lombok.RequiredArgsConstructor;
+import org.lazycent.model.Category;
 import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
+import org.lazycent.service.BudgetService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import java.util.Collections;
+import java.util.List;
+
 @ControllerAdvice
+@RequiredArgsConstructor
 public class GlobalControllerAdvice {
+
+    private final BudgetService budgetService;
+
+    // ==================== ВАЛЮТА ====================
 
     @ModelAttribute("currencySymbol")
     public String getCurrencySymbol() {
@@ -25,17 +36,7 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("preferredCurrency")
     public String getPreferredCurrency() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
-            return "UAH";
-        }
-        Object principal = auth.getPrincipal();
-        User user = null;
-        if (principal instanceof CustomOAuth2User) {
-            user = ((CustomOAuth2User) principal).getUser();
-        } else if (principal instanceof User) {
-            user = (User) principal;
-        }
+        User user = getCurrentUser();
         if (user != null && user.getPreferredCurrency() != null) {
             return user.getPreferredCurrency();
         }
@@ -61,39 +62,62 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("providerName")
     public String getProviderName() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return "";
-        }
-        Object principal = auth.getPrincipal();
-        if (principal instanceof CustomOAuth2User) {
-            User user = ((CustomOAuth2User) principal).getUser();
-            return getProviderDisplayName(user.getProvider());
-        }
-        if (principal instanceof User) {
-            User user = (User) principal;
-            return getProviderDisplayName(user.getProvider());
-        }
-        return "";
+        User user = getCurrentUser();
+        if (user == null) return "";
+        return getProviderDisplayName(user.getProvider());
     }
 
-    // НОВИЙ МЕТОД – передаємо EMAIL у всі шаблони
     @ModelAttribute("userEmail")
     public String getUserEmail() {
+        User user = getCurrentUser();
+        if (user == null) return "";
+        return user.getEmail() != null ? user.getEmail() : "";
+    }
+
+    // ==================== КАТЕГОРІЇ (ГЛОБАЛЬНО) ====================
+
+    /**
+     * Глобально додає категорії витрат у модель для ВСІХ сторінок.
+     * Це вирішує проблему, коли settingsPanel (який вимагає expenseCategories)
+     * рендериться на сторінках, де контролер не додає їх у модель.
+     * Якщо контролер додає своє значення — воно перекриє це (Spring дозволяє).
+     */
+    @ModelAttribute("expenseCategories")
+    public List<Category> populateExpenseCategories() {
+        User user = getCurrentUser();
+        if (user == null) return Collections.emptyList();
+        try {
+            return budgetService.getExpenseCategories(user);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    @ModelAttribute("incomeCategories")
+    public List<Category> populateIncomeCategories() {
+        User user = getCurrentUser();
+        if (user == null) return Collections.emptyList();
+        try {
+            return budgetService.getIncomeCategories(user);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    // ==================== ДОПОМІЖНІ ====================
+
+    private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return "";
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
+            return null;
         }
         Object principal = auth.getPrincipal();
         if (principal instanceof CustomOAuth2User) {
-            User user = ((CustomOAuth2User) principal).getUser();
-            return user.getEmail() != null ? user.getEmail() : "";
+            return ((CustomOAuth2User) principal).getUser();
+        } else if (principal instanceof User) {
+            return (User) principal;
         }
-        if (principal instanceof User) {
-            User user = (User) principal;
-            return user.getEmail() != null ? user.getEmail() : "";
-        }
-        return "";
+        return null;
     }
 
     private String getProviderDisplayName(String provider) {

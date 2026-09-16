@@ -234,7 +234,7 @@
             <div class="card budget-card h-100">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Загальний бюджет</h6>
-                    <h3 th:text="${#numbers.formatDecimal(dashboard.totalBudget, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                    <h3 th:text="${#numbers.formatDecimal(dashboard.totalBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
                 </div>
             </div>
         </div>
@@ -242,7 +242,7 @@
             <div class="card budget-card h-100">
                 <div class="card-body text-center">
                     <h6 class="text-muted">Витрачено</h6>
-                    <h3 class="text-danger" th:text="${#numbers.formatDecimal(dashboard.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                    <h3 class="text-danger" th:text="${#numbers.formatDecimal(dashboard.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
                 </div>
             </div>
         </div>
@@ -251,7 +251,7 @@
                 <div class="card-body text-center">
                     <h6 class="text-muted">Залишок</h6>
                     <h3 th:class="${dashboard.remainingBudget >= 0} ? 'text-success' : 'text-danger'"
-                        th:text="${#numbers.formatDecimal(dashboard.remainingBudget, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                        th:text="${#numbers.formatDecimal(dashboard.remainingBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
                 </div>
             </div>
         </div>
@@ -260,8 +260,8 @@
                 <div class="card-body text-center">
                     <h6 class="text-muted">Прогноз на кінець місяця</h6>
                     <h4 th:class="${dashboard.projectedBalance >= 0} ? 'text-success' : 'text-danger'"
-                        th:text="${#numbers.formatDecimal(dashboard.projectedBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h4>
-                    <small class="text-muted">Середні витрати на день: <span th:text="${#numbers.formatDecimal(dashboard.dailyAverageExpense, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></span></small>
+                        th:text="${#numbers.formatDecimal(dashboard.projectedBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h4>
+                    <small class="text-muted">Середні витрати на день: <span th:text="${#numbers.formatDecimal(dashboard.dailyAverageExpense, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span></small>
                 </div>
             </div>
         </div>
@@ -271,7 +271,7 @@
     <div class="mb-3 animate-fade-up delay-5">
         <div class="d-flex justify-content-between">
             <span>Використано бюджету</span>
-            <span th:text="${#numbers.formatDecimal(dashboard.totalExpenses / (dashboard.totalBudget > 0 ? dashboard.totalBudget : 1) * 100, 1, 'COMMA', 0, 'POINT')} + '%'"></span>
+            <span th:text="${#numbers.formatDecimal(dashboard.totalExpenses / (dashboard.totalBudget > 0 ? dashboard.totalBudget : 1) * 100, 1, 'COMMA', 2, 'POINT')} + '%'"></span>
         </div>
         <div class="progress progress-bar-custom">
             <div class="progress-bar" role="progressbar"
@@ -308,9 +308,9 @@
                             <tbody>
                             <tr th:each="catDto : ${dashboard.categories}" class="category-row">
                                 <td th:text="${catDto.category.name}"></td>
-                                <td th:text="${#numbers.formatDecimal(catDto.spent, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                                <td th:text="${#numbers.formatDecimal(catDto.spent, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                                 <!-- ФІКС ТУТ: використовуємо th:with для обчислення значення перед виводом -->
-                                <td th:with="formattedLimit=${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 0, 'POINT') + ' ' + currencySymbol : '—'}"
+                                <td th:with="formattedLimit=${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '—'}"
                                     th:text="${formattedLimit}"></td>
                                 <td style="width: 150px;">
                                     <div class="progress progress-bar-custom" th:if="${catDto.limit > 0}">

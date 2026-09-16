@@ -898,15 +898,15 @@
     <div class="balance-row balance-animated">
         <div class="balance-cell">
             <div class="label">Чистий баланс</div>
-            <div class="amount" th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
+            <div class="amount" th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
         </div>
         <div class="balance-cell">
             <div class="label">Доходи</div>
-            <div class="amount income" th:text="${#numbers.formatDecimal(totalBudget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
+            <div class="amount income" th:text="${#numbers.formatDecimal(totalBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
         </div>
         <div class="balance-cell">
             <div class="label">Витрати</div>
-            <div class="amount expense" th:text="${#numbers.formatDecimal(totalBudget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
+            <div class="amount expense" th:text="${#numbers.formatDecimal(totalBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
         </div>
     </div>
 
@@ -1063,7 +1063,7 @@
                             <td class="col-number" th:text="${stat.index + 1}"></td>
                             <td class="col-category" th:text="${entry.key.name}"></td>
                             <td class="col-type"><span class="badge bg-danger" style="font-size:0.7rem;">Витрата</span></td>
-                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-percent" id="percent-${stat.index}" th:text="'0%'"></td>
                         </tr>
                         <!-- Доходи -->
@@ -1075,7 +1075,7 @@
                             <td class="col-number" th:text="${stat.index + 1 + totalBudget.expensesByCategory.size()}"></td>
                             <td class="col-category" th:text="${entry.key.name}"></td>
                             <td class="col-type"><span class="badge bg-success" style="font-size:0.7rem;">Дохід</span></td>
-                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-percent" id="percent-income-${stat.index}" th:text="'0%'"></td>
                         </tr>
                         <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory)}" id="emptyRow">
@@ -1102,7 +1102,7 @@
                                 </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-coins me-1"></i>Сума</span>
-                                    <span class="value text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></span>
+                                    <span class="value text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
                                 </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-percent me-1"></i>Частка</span>
@@ -1124,7 +1124,7 @@
                                 </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-coins me-1"></i>Сума</span>
-                                    <span class="value text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></span>
+                                    <span class="value text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
                                 </div>
                                 <div class="card-text">
                                     <span class="label"><i class="fas fa-percent me-1"></i>Частка</span>
@@ -1192,9 +1192,9 @@
                             <select class="form-select" id="categorySelect" name="categoryId" required>
                                 <option value="">Завантаження...</option>
                             </select>
-                            <a href="/settings" target="_blank" class="btn btn-outline-secondary" type="button" title="Додати нову категорію">
+                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" title="Додати нову категорію">
                                 <i class="fas fa-plus"></i>
-                            </a>
+                            </button>
                         </div>
                         <div class="invalid-feedback">Виберіть категорію</div>
                         <div class="form-text text-muted">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
@@ -2500,6 +2500,33 @@
 
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(function(el) { return new bootstrap.Tooltip(el); });
 
+        // Відкриття панелі налаштувань → розділ "Категорії"
+        window.openCategorySettings = function() {
+            // 1. Закриваємо модалку транзакції
+            const modalEl = document.getElementById('transactionModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+
+            // 2. Відкриваємо drawer налаштувань і перемикаємо на розділ "Категорії"
+            setTimeout(function() {
+                const drawer = document.getElementById('settingsDrawer');
+                const overlay = document.getElementById('settingsOverlay');
+
+                if (drawer && overlay) {
+                    drawer.classList.add('open');
+                    overlay.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+
+                    // Клікаємо по пункту меню "Категорії"
+                    const categoriesTab = document.querySelector('#drawerMenu .menu-item[data-section="categories"]');
+                    if (categoriesTab) {
+                        categoriesTab.click();
+                    }
+                }
+            }, 350); // чекаємо, поки Bootstrap закриє модалку
+        };
         // ================================================================
         // 11. ВИКЛИК ДІАГРАМ
         // ================================================================
