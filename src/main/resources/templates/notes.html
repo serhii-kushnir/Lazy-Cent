@@ -111,18 +111,49 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* ===== HOVER-ЕФЕКТ ДЛЯ КНОПОК У КАРТЦІ НОТАТКИ ===== */
         .note-card .card-footer .btn-icon {
             color: #5f6368;
-            padding: 0.2rem 0.4rem;
-            font-size: 0.85rem;
-            border-radius: 20px;
-            transition: background 0.2s;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.9rem;
+            border-radius: 50%;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             background: transparent;
             border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            min-height: 32px;
         }
         .note-card .card-footer .btn-icon:hover {
-            background: rgba(0,0,0,0.08);
+            background: rgba(26, 115, 232, 0.12);
+            color: #1a73e8;
+            transform: scale(1.15);
+            box-shadow: 0 3px 10px rgba(26, 115, 232, 0.25);
         }
+        .note-card .card-footer .btn-icon:active {
+            transform: scale(0.92);
+            box-shadow: 0 1px 4px rgba(26, 115, 232, 0.2);
+        }
+        .note-card .card-footer .btn-icon:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.3);
+        }
+        /* Червона кнопка (Видалити) */
+        .note-card .card-footer .btn-icon.text-danger:hover {
+            background: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.35);
+        }
+        /* Іконка закріплення (активна — жовта) */
+        .note-card .card-footer .btn-icon .pin-icon {
+            color: #fbbc04;
+            filter: drop-shadow(0 1px 2px rgba(251, 188, 4, 0.5));
+        }
+
         .note-card.pinned {
             border-left: 4px solid #fbbc04;
         }
@@ -214,7 +245,14 @@
             color: #bdc1c6;
         }
         [data-bs-theme="dark"] .note-card .card-footer .btn-icon:hover {
-            background: rgba(255,255,255,0.08);
+            background: rgba(110, 168, 254, 0.2);
+            color: #6ea8fe;
+            box-shadow: 0 3px 10px rgba(110, 168, 254, 0.3);
+        }
+        [data-bs-theme="dark"] .note-card .card-footer .btn-icon.text-danger:hover {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            box-shadow: 0 3px 10px rgba(248, 113, 113, 0.35);
         }
         [data-bs-theme="dark"] .note-toolbar .filter-group .btn.active {
             background: #1a73e8;
@@ -223,6 +261,7 @@
         [data-bs-theme="dark"] .note-toolbar .filter-group .btn {
             color: #bdc1c6;
         }
+
         /* Палітра кольорів тексту */
         .text-color-picker .color-option[data-color="#ffffff"] {
             border: 2px solid #ccc;
@@ -230,6 +269,22 @@
         .text-color-picker .color-option[data-color="#ffffff"]:hover,
         .text-color-picker .color-option[data-color="#ffffff"].selected {
             border-color: #1a73e8;
+        }
+
+        /* ===== ДЕТАЛІ ВИДАЛЕННЯ (модалка) ===== */
+        .delete-details {
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        [data-bs-theme="dark"] .delete-details { background: #2a2e37; }
+        .delete-details .row { margin-bottom: 0.3rem; }
+        .delete-details .label { font-weight: 600; color: #555; }
+        [data-bs-theme="dark"] .delete-details .label { color: #9aa3b2; }
+        .delete-details .value {
+            color: var(--bs-body-color);
+            word-break: break-word;
         }
     </style>
 </head>
@@ -431,6 +486,52 @@
     </div>
 </div>
 
+<!-- ===== ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ НОТАТКИ ===== -->
+<div class="modal fade no-print" id="deleteNoteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Підтвердження видалення
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center">Ви впевнені, що хочете видалити цю нотатку?</p>
+                <p class="text-muted small text-center">Цю дію не можна скасувати.</p>
+                <hr>
+                <div class="delete-details">
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Заголовок:</div>
+                        <div class="col-8 value" id="deleteNoteTitle"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Текст:</div>
+                        <div class="col-8 value" id="deleteNoteContent"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">Закріплена:</div>
+                        <div class="col-8 value" id="deleteNotePinned"></div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 label fw-bold">В архіві:</div>
+                        <div class="col-8 value" id="deleteNoteArchived"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <form id="deleteNoteForm" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> Видалити
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
@@ -519,21 +620,27 @@
         };
 
         // --- Видалити (з підтвердженням) ---
+        // --- Видалити (з підтвердженням через модалку) ---
         window.deleteNote = function(id) {
-            if (confirm('Ви впевнені, що хочете видалити цю нотатку?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/notes/delete/' + id;
-                const csrf = document.querySelector('input[name="_csrf"]');
-                if (csrf) {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = csrf.name;
-                    input.value = csrf.value;
-                    form.appendChild(input);
-                }
-                document.body.appendChild(form);
-                form.submit();
+            const card = document.querySelector('.note-card[data-id="' + id + '"]');
+            if (!card) return;
+
+            const title = card.querySelector('.card-title')?.textContent?.trim() || '—';
+            const content = card.querySelector('.card-text')?.textContent?.trim() || '—';
+            const isPinned = card.classList.contains('pinned');
+            const isArchived = card.classList.contains('archived');
+
+            document.getElementById('deleteNoteTitle').textContent = title;
+            document.getElementById('deleteNoteContent').textContent = content;
+            document.getElementById('deleteNotePinned').textContent = isPinned ? 'Так' : 'Ні';
+            document.getElementById('deleteNoteArchived').textContent = isArchived ? 'Так' : 'Ні';
+
+            const form = document.getElementById('deleteNoteForm');
+            form.action = '/notes/delete/' + id;
+
+            const modalEl = document.getElementById('deleteNoteConfirmModal');
+            if (modalEl) {
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
             }
         };
 
