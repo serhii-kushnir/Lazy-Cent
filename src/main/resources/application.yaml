@@ -53,7 +53,7 @@ logging:
 app:
   demo:
     enabled: true
-    default-user: admin
-    default-password: admin
+    default-user: demo
+    default-password: demo
     random-days: 14
     new-user-days: 7

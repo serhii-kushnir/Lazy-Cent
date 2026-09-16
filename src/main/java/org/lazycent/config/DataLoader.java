@@ -22,10 +22,10 @@ public class DataLoader implements CommandLineRunner {
     private final DemoDataService demoDataService;
     private final DayBudgetRepository dayBudgetRepository;
 
-    @Value("${app.demo.default-user:admin}")
+    @Value("${app.demo.default-user:demo}")
     private String defaultUsername;
 
-    @Value("${app.demo.default-password:admin}")
+    @Value("${app.demo.default-password:demo}")
     private String defaultPassword;
 
     @Value("${app.demo.enabled:true}")
