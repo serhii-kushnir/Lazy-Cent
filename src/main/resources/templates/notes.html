@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Нотатки - Lazy Cent</title>
+    <title th:text="#{notes.title} + ' - Lazy Cent'">Нотатки - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
@@ -26,25 +26,11 @@
             to   { opacity: 1; transform: scale(1); }
         }
 
-        /* Класи для анімацій */
-        .animate-fade-up {
-            animation: fadeInUp 0.5s ease forwards;
-            opacity: 0;
-        }
-        .animate-fade-down {
-            animation: fadeInDown 0.4s ease forwards;
-            opacity: 0;
-        }
-        .animate-fade {
-            animation: fadeIn 0.6s ease forwards;
-            opacity: 0;
-        }
-        .animate-scale {
-            animation: scaleIn 0.5s ease forwards;
-            opacity: 0;
-        }
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+        .animate-fade { animation: fadeIn 0.6s ease forwards; opacity: 0; }
+        .animate-scale { animation: scaleIn 0.5s ease forwards; opacity: 0; }
 
-        /* Затримки для карток (stagger) */
         .note-card:nth-child(1)  { animation-delay: 0.05s; }
         .note-card:nth-child(2)  { animation-delay: 0.10s; }
         .note-card:nth-child(3)  { animation-delay: 0.15s; }
@@ -61,13 +47,8 @@
         .note-card:nth-child(14) { animation-delay: 0.70s; }
         .note-card:nth-child(15) { animation-delay: 0.75s; }
 
-        /* Анімація для пустого стану */
-        .empty-notes {
-            animation: fadeIn 0.8s ease forwards;
-            opacity: 0;
-        }
+        .empty-notes { animation: fadeIn 0.8s ease forwards; opacity: 0; }
 
-        /* Стилі для нотаток (без змін) */
         .note-card {
             border: 1px solid #e0e0e0;
             border-radius: 8px;
@@ -78,214 +59,114 @@
             flex-direction: column;
             background-color: #fff;
         }
-        .note-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-        .note-card .card-body {
-            flex: 1;
-            padding: 0.75rem 0.75rem 0.5rem;
-        }
+        .note-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+        .note-card .card-body { flex: 1; padding: 0.75rem 0.75rem 0.5rem; }
         .note-card .card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .note-card .card-text {
-            font-size: 0.9rem;
-            max-height: 80px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            word-wrap: break-word;
+            font-size: 0.9rem; max-height: 80px; overflow: hidden;
+            display: -webkit-box; -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical; word-wrap: break-word;
         }
         .note-card .card-footer {
-            background: transparent;
-            border-top: none;
+            background: transparent; border-top: none;
             padding: 0.25rem 0.75rem 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* ===== HOVER-ЕФЕКТ ДЛЯ КНОПОК У КАРТЦІ НОТАТКИ ===== */
         .note-card .card-footer .btn-icon {
-            color: #5f6368;
-            padding: 0.3rem 0.5rem;
-            font-size: 0.9rem;
+            color: #5f6368; padding: 0.3rem 0.5rem; font-size: 0.9rem;
             border-radius: 50%;
             transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 32px;
-            min-height: 32px;
+            background: transparent; border: none; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 32px; min-height: 32px;
         }
         .note-card .card-footer .btn-icon:hover {
             background: rgba(26, 115, 232, 0.12);
-            color: #1a73e8;
-            transform: scale(1.15);
+            color: #1a73e8; transform: scale(1.15);
             box-shadow: 0 3px 10px rgba(26, 115, 232, 0.25);
         }
         .note-card .card-footer .btn-icon:active {
-            transform: scale(0.92);
-            box-shadow: 0 1px 4px rgba(26, 115, 232, 0.2);
+            transform: scale(0.92); box-shadow: 0 1px 4px rgba(26, 115, 232, 0.2);
         }
         .note-card .card-footer .btn-icon:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.3);
+            outline: none; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.3);
         }
-        /* Червона кнопка (Видалити) */
         .note-card .card-footer .btn-icon.text-danger:hover {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
+            background: rgba(220, 53, 69, 0.15); color: #dc3545;
             box-shadow: 0 3px 10px rgba(220, 53, 69, 0.35);
         }
-        /* Іконка закріплення (активна — жовта) */
         .note-card .card-footer .btn-icon .pin-icon {
-            color: #fbbc04;
-            filter: drop-shadow(0 1px 2px rgba(251, 188, 4, 0.5));
+            color: #fbbc04; filter: drop-shadow(0 1px 2px rgba(251, 188, 4, 0.5));
         }
 
-        .note-card.pinned {
-            border-left: 4px solid #fbbc04;
-        }
-        .note-card .pin-icon {
-            color: #fbbc04;
-        }
-        .note-card.archived {
-            opacity: 0.7;
-        }
+        .note-card.pinned { border-left: 4px solid #fbbc04; }
+        .note-card .pin-icon { color: #fbbc04; }
+        .note-card.archived { opacity: 0.7; }
         .note-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px; margin-top: 20px;
         }
         .note-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 20px;
+            display: flex; flex-wrap: wrap; gap: 12px;
+            align-items: center; margin-bottom: 20px;
         }
-        .note-toolbar .search-box {
-            flex: 1;
-            min-width: 200px;
-        }
+        .note-toolbar .search-box { flex: 1; min-width: 200px; }
         .note-toolbar .search-box .input-group-text {
-            background: transparent;
-            border-right: none;
+            background: transparent; border-right: none;
         }
-        .note-toolbar .search-box .form-control {
-            border-left: none;
-        }
+        .note-toolbar .search-box .form-control { border-left: none; }
         .note-toolbar .filter-group .btn {
-            border-radius: 20px;
-            font-size: 0.85rem;
+            border-radius: 20px; font-size: 0.85rem;
         }
-        .note-toolbar .filter-group .btn.active {
-            background: #1a73e8;
-            color: white;
-        }
-        .color-picker {
-            display: flex;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
+        .note-toolbar .filter-group .btn.active { background: #1a73e8; color: white; }
+        .color-picker { display: flex; gap: 4px; flex-wrap: wrap; }
         .color-picker .color-option {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: border 0.2s;
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 2px solid transparent; cursor: pointer; transition: border 0.2s;
         }
-        .color-picker .color-option:hover {
-            border-color: #5f6368;
-        }
-        .color-picker .color-option.selected {
-            border-color: #1a73e8;
-        }
-        .note-modal .modal-dialog {
-            max-width: 500px;
-        }
-        .note-modal .modal-body textarea {
-            resize: vertical;
-        }
-        .empty-notes {
-            text-align: center;
-            padding: 40px 20px;
-            color: #5f6368;
-        }
-        .empty-notes i {
-            font-size: 4rem;
-            opacity: 0.3;
-        }
-        .note-count {
-            font-size: 0.85rem;
-            color: #5f6368;
-        }
-        /* Для відображення кольору тексту в темній темі */
-        [data-bs-theme="dark"] .note-card {
-            background: #202124;
-            border-color: #3c4043;
-        }
-        [data-bs-theme="dark"] .note-card .card-text {
-            color: #bdc1c6; /* буде перевизначено через th:style */
-        }
-        [data-bs-theme="dark"] .note-card .card-footer .btn-icon {
-            color: #bdc1c6;
-        }
+        .color-picker .color-option:hover { border-color: #5f6368; }
+        .color-picker .color-option.selected { border-color: #1a73e8; }
+        .note-modal .modal-dialog { max-width: 500px; }
+        .note-modal .modal-body textarea { resize: vertical; }
+        .empty-notes { text-align: center; padding: 40px 20px; color: #5f6368; }
+        .empty-notes i { font-size: 4rem; opacity: 0.3; }
+        .note-count { font-size: 0.85rem; color: #5f6368; }
+
+        [data-bs-theme="dark"] .note-card { background: #202124; border-color: #3c4043; }
+        [data-bs-theme="dark"] .note-card .card-text { color: #bdc1c6; }
+        [data-bs-theme="dark"] .note-card .card-footer .btn-icon { color: #bdc1c6; }
         [data-bs-theme="dark"] .note-card .card-footer .btn-icon:hover {
-            background: rgba(110, 168, 254, 0.2);
-            color: #6ea8fe;
+            background: rgba(110, 168, 254, 0.2); color: #6ea8fe;
             box-shadow: 0 3px 10px rgba(110, 168, 254, 0.3);
         }
         [data-bs-theme="dark"] .note-card .card-footer .btn-icon.text-danger:hover {
-            background: rgba(248, 113, 113, 0.2);
-            color: #f87171;
+            background: rgba(248, 113, 113, 0.2); color: #f87171;
             box-shadow: 0 3px 10px rgba(248, 113, 113, 0.35);
         }
         [data-bs-theme="dark"] .note-toolbar .filter-group .btn.active {
-            background: #1a73e8;
-            color: white;
+            background: #1a73e8; color: white;
         }
-        [data-bs-theme="dark"] .note-toolbar .filter-group .btn {
-            color: #bdc1c6;
-        }
+        [data-bs-theme="dark"] .note-toolbar .filter-group .btn { color: #bdc1c6; }
 
-        /* Палітра кольорів тексту */
-        .text-color-picker .color-option[data-color="#ffffff"] {
-            border: 2px solid #ccc;
-        }
+        .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
         .text-color-picker .color-option[data-color="#ffffff"]:hover,
         .text-color-picker .color-option[data-color="#ffffff"].selected {
             border-color: #1a73e8;
         }
 
-        /* ===== ДЕТАЛІ ВИДАЛЕННЯ (модалка) ===== */
         .delete-details {
-            background: #f8f9fa;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin: 0.5rem 0;
+            background: #f8f9fa; border-radius: 0.5rem;
+            padding: 1rem; margin: 0.5rem 0;
         }
         [data-bs-theme="dark"] .delete-details { background: #2a2e37; }
         .delete-details .row { margin-bottom: 0.3rem; }
         .delete-details .label { font-weight: 600; color: #555; }
         [data-bs-theme="dark"] .delete-details .label { color: #9aa3b2; }
-        .delete-details .value {
-            color: var(--bs-body-color);
-            word-break: break-word;
-        }
+        .delete-details .value { color: var(--bs-body-color); word-break: break-word; }
     </style>
 </head>
 <body>
@@ -296,67 +177,77 @@
 
 <div class="container-fluid mt-4">
 
-    <!-- Заголовок з анімацією -->
+    <!-- Заголовок -->
     <div class="d-flex justify-content-between align-items-center mb-3 animate-fade-down">
-        <h2><i class="fas fa-sticky-note me-2"></i>Нотатки</h2>
+        <h2><i class="fas fa-sticky-note me-2"></i><span th:text="#{notes.title}">Нотатки</span></h2>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNoteModal">
-            <i class="fas fa-plus me-1"></i> Створити
+            <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create}">Створити</span>
         </button>
     </div>
 
-    <!-- Панель інструментів з анімацією -->
+    <!-- Панель інструментів -->
     <div class="note-toolbar animate-fade-down" style="animation-delay: 0.1s;">
         <div class="search-box">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" id="searchInput" class="form-control" placeholder="Пошук нотаток...">
+                <input type="text" id="searchInput" class="form-control" th:placeholder="#{notes.search}">
             </div>
         </div>
         <div class="filter-group">
-            <button class="btn btn-outline-secondary btn-sm active" data-filter="all">Усі</button>
-            <button class="btn btn-outline-secondary btn-sm" data-filter="active">Активні</button>
-            <button class="btn btn-outline-secondary btn-sm" data-filter="archived">Архів</button>
+            <button class="btn btn-outline-secondary btn-sm active" data-filter="all" th:text="#{notes.filter.all}">Усі</button>
+            <button class="btn btn-outline-secondary btn-sm" data-filter="active" th:text="#{notes.filter.active}">Активні</button>
+            <button class="btn btn-outline-secondary btn-sm" data-filter="archived" th:text="#{notes.filter.archived}">Архів</button>
         </div>
-        <div class="note-count" id="noteCount">0 нотаток</div>
+        <div class="note-count" id="noteCount">—</div>
     </div>
 
     <!-- Сітка нотаток -->
     <div class="note-grid" id="noteGrid">
-        <!-- Активні нотатки -->
         <th:block th:each="note : ${notes}">
-            <div class="note-card animate-fade-up" th:classappend="${note.pinned} ? 'pinned' : ''" th:data-id="${note.id}" th:data-archived="false" th:data-color="${note.color}" th:data-textcolor="${note.textColor}" th:style="'background-color:' + ${note.color}">
+            <div class="note-card animate-fade-up" th:classappend="${note.pinned} ? 'pinned' : ''"
+                 th:data-id="${note.id}" th:data-archived="false"
+                 th:data-color="${note.color}" th:data-textcolor="${note.textColor}"
+                 th:style="'background-color:' + ${note.color}">
                 <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
                     <h5 class="card-title" th:text="${note.title}" th:style="'color:' + ${note.textColor}">Заголовок</h5>
                     <p class="card-text" th:text="${note.content}" th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
                 </div>
                 <div class="card-footer">
                     <div>
-                        <button class="btn-icon" th:title="${note.pinned} ? 'Відкріпити' : 'Закріпити'" th:onclick="'togglePin(' + ${note.id} + ')'">
+                        <button class="btn-icon"
+                                th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                                th:onclick="'togglePin(' + ${note.id} + ')'">
                             <i class="fas fa-thumbtack" th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
                         </button>
-                        <button class="btn-icon" title="Архівувати" th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                        <button class="btn-icon" th:title="#{notes.action.archive}"
+                                th:onclick="'toggleArchive(' + ${note.id} + ')'">
                             <i class="fas fa-archive"></i>
                         </button>
                     </div>
-                    <button class="btn-icon text-danger" title="Видалити" th:onclick="'deleteNote(' + ${note.id} + ')'">
+                    <button class="btn-icon text-danger" th:title="#{notes.action.delete}"
+                            th:onclick="'deleteNote(' + ${note.id} + ')'">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
         </th:block>
 
-        <!-- Архівні нотатки -->
         <th:block th:each="note : ${archivedNotes}">
-            <div class="note-card archived animate-fade-up" th:data-id="${note.id}" th:data-archived="true" th:data-color="${note.color}" th:data-textcolor="${note.textColor}" th:style="'background-color:' + ${note.color}">
+            <div class="note-card archived animate-fade-up"
+                 th:data-id="${note.id}" th:data-archived="true"
+                 th:data-color="${note.color}" th:data-textcolor="${note.textColor}"
+                 th:style="'background-color:' + ${note.color}">
                 <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
                     <h5 class="card-title" th:text="${note.title}" th:style="'color:' + ${note.textColor}">Заголовок</h5>
                     <p class="card-text" th:text="${note.content}" th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
                 </div>
                 <div class="card-footer">
-                    <button class="btn-icon" title="Відновити" th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                    <button class="btn-icon" th:title="#{notes.action.unarchive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ')'">
                         <i class="fas fa-undo"></i>
                     </button>
-                    <button class="btn-icon text-danger" title="Видалити" th:onclick="'deleteNote(' + ${note.id} + ')'">
+                    <button class="btn-icon text-danger" th:title="#{notes.action.delete}"
+                            th:onclick="'deleteNote(' + ${note.id} + ')'">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -365,8 +256,8 @@
 
         <div th:if="${notes.empty and archivedNotes.empty}" class="empty-notes col-12">
             <i class="fas fa-sticky-note"></i>
-            <h4>Немає нотаток</h4>
-            <p>Створіть першу нотатку, натиснувши кнопку «Створити».</p>
+            <h4 th:text="#{notes.empty.title}">Немає нотаток</h4>
+            <p th:text="#{notes.empty.text}">Створіть першу нотатку, натиснувши кнопку «Створити».</p>
         </div>
     </div>
 </div>
@@ -376,20 +267,22 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Нова нотатка</h5>
+                <h5 class="modal-title" th:text="#{notes.modal.create}">Нова нотатка</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form th:action="@{/notes/create}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body">
                     <div class="mb-3">
-                        <input type="text" class="form-control" name="title" placeholder="Заголовок" required>
+                        <input type="text" class="form-control" name="title"
+                               th:placeholder="#{notes.field.title}" required>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control" name="content" rows="4" placeholder="Текст нотатки..."></textarea>
+                        <textarea class="form-control" name="content" rows="4"
+                                  th:placeholder="#{notes.field.content}"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Колір фону</label>
+                        <label class="form-label" th:text="#{notes.field.bg}">Колір фону</label>
                         <div class="color-picker">
                             <span class="color-option selected" style="background:#ffffff" data-color="#ffffff"></span>
                             <span class="color-option" style="background:#f28b82" data-color="#f28b82"></span>
@@ -405,7 +298,7 @@
                         <input type="hidden" name="color" id="selectedColor" value="#ffffff">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Колір тексту</label>
+                        <label class="form-label" th:text="#{notes.field.text}">Колір тексту</label>
                         <div class="color-picker text-color-picker">
                             <span class="color-option selected" style="background:#212529" data-color="#212529"></span>
                             <span class="color-option" style="background:#dc3545" data-color="#dc3545"></span>
@@ -420,8 +313,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                    <button type="submit" class="btn btn-primary" th:text="#{btn.save}">Зберегти</button>
                 </div>
             </form>
         </div>
@@ -433,7 +326,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Редагувати нотатку</h5>
+                <h5 class="modal-title" th:text="#{notes.modal.edit}">Редагувати нотатку</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editNoteForm" th:action="@{/notes/update/}" method="post">
@@ -441,13 +334,15 @@
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editNoteId">
                     <div class="mb-3">
-                        <input type="text" class="form-control" name="title" id="editNoteTitle" placeholder="Заголовок" required>
+                        <input type="text" class="form-control" name="title" id="editNoteTitle"
+                               th:placeholder="#{notes.field.title}" required>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control" name="content" id="editNoteContent" rows="4" placeholder="Текст нотатки..."></textarea>
+                        <textarea class="form-control" name="content" id="editNoteContent" rows="4"
+                                  th:placeholder="#{notes.field.content}"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Колір фону</label>
+                        <label class="form-label" th:text="#{notes.field.bg}">Колір фону</label>
                         <div class="color-picker" id="editColorPicker">
                             <span class="color-option" style="background:#ffffff" data-color="#ffffff"></span>
                             <span class="color-option" style="background:#f28b82" data-color="#f28b82"></span>
@@ -463,7 +358,7 @@
                         <input type="hidden" name="color" id="editSelectedColor" value="#ffffff">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Колір тексту</label>
+                        <label class="form-label" th:text="#{notes.field.text}">Колір тексту</label>
                         <div class="color-picker text-color-picker" id="editTextColorPicker">
                             <span class="color-option" style="background:#212529" data-color="#212529"></span>
                             <span class="color-option" style="background:#dc3545" data-color="#dc3545"></span>
@@ -478,8 +373,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
-                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                    <button type="submit" class="btn btn-primary" th:text="#{btn.save}">Зберегти</button>
                 </div>
             </form>
         </div>
@@ -492,39 +387,40 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>Підтвердження видалення
+                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                    <span th:text="#{notes.delete.confirm}">Підтвердження видалення</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-center">Ви впевнені, що хочете видалити цю нотатку?</p>
-                <p class="text-muted small text-center">Цю дію не можна скасувати.</p>
+                <p class="text-center" th:text="#{notes.delete.question}">Ви впевнені, що хочете видалити цю нотатку?</p>
+                <p class="text-muted small text-center" th:text="#{notes.delete.note}">Цю дію не можна скасувати.</p>
                 <hr>
                 <div class="delete-details">
                     <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Заголовок:</div>
+                        <div class="col-4 label fw-bold" th:text="#{notes.delete.title}">Заголовок:</div>
                         <div class="col-8 value" id="deleteNoteTitle"></div>
                     </div>
                     <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Текст:</div>
+                        <div class="col-4 label fw-bold" th:text="#{notes.delete.content}">Текст:</div>
                         <div class="col-8 value" id="deleteNoteContent"></div>
                     </div>
                     <div class="row mb-2">
-                        <div class="col-4 label fw-bold">Закріплена:</div>
+                        <div class="col-4 label fw-bold" th:text="#{notes.delete.pinned}">Закріплена:</div>
                         <div class="col-8 value" id="deleteNotePinned"></div>
                     </div>
                     <div class="row mb-2">
-                        <div class="col-4 label fw-bold">В архіві:</div>
+                        <div class="col-4 label fw-bold" th:text="#{notes.delete.archived}">В архіві:</div>
                         <div class="col-8 value" id="deleteNoteArchived"></div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
                 <form id="deleteNoteForm" method="post" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i> Видалити
+                        <i class="fas fa-trash me-1"></i> <span th:text="#{btn.delete}">Видалити</span>
                     </button>
                 </form>
             </div>
@@ -537,183 +433,186 @@
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
+<script th:inline="javascript">
+    (function() {
+        'use strict';
 
-        // --- Вибір кольору (фон) ---
-        document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(picker => {
-            picker.querySelectorAll('.color-option').forEach(el => {
-                el.addEventListener('click', function() {
-                    picker.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    const color = this.dataset.color;
-                    const hiddenInput = picker.closest('.modal-body').querySelector('input[name="color"]');
-                    if (hiddenInput) hiddenInput.value = color;
-                });
-            });
-        });
-
-        // --- Вибір кольору тексту ---
-        document.querySelectorAll('.text-color-picker').forEach(picker => {
-            picker.querySelectorAll('.color-option').forEach(el => {
-                el.addEventListener('click', function() {
-                    picker.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    const color = this.dataset.color;
-                    const hiddenInput = picker.closest('.modal-body').querySelector('input[name="textColor"]');
-                    if (hiddenInput) hiddenInput.value = color;
-                });
-            });
-        });
-
-        // --- Редагування нотатки ---
-        window.editNote = function(id) {
-            const card = document.querySelector(`.note-card[data-id="${id}"]`);
-            if (!card) return;
-            const title = card.querySelector('.card-title')?.textContent || '';
-            const content = card.querySelector('.card-text')?.textContent || '';
-            const color = card.dataset.color || '#ffffff';
-            const textColor = card.dataset.textcolor || '#212529';
-
-            document.getElementById('editNoteId').value = id;
-            document.getElementById('editNoteTitle').value = title;
-            document.getElementById('editNoteContent').value = content;
-
-            // Встановлюємо колір фону
-            const bgPicker = document.getElementById('editColorPicker');
-            bgPicker.querySelectorAll('.color-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.color === color);
-            });
-            document.getElementById('editSelectedColor').value = color;
-
-            // Встановлюємо колір тексту
-            const textPicker = document.getElementById('editTextColorPicker');
-            textPicker.querySelectorAll('.color-option').forEach(el => {
-                el.classList.toggle('selected', el.dataset.color === textColor);
-            });
-            document.getElementById('editSelectedTextColor').value = textColor;
-
-            const form = document.getElementById('editNoteForm');
-            form.action = '/notes/update/' + id;
-
-            new bootstrap.Modal(document.getElementById('editNoteModal')).show();
+        // ===== i18n для JS =====
+        var i18n = {
+            countTemplate: /*[[#{notes.count}]]*/ '{0} нотаток',
+            yes:           /*[[#{notes.delete.yes}]]*/ 'Так',
+            no:            /*[[#{notes.delete.no}]]*/  'Ні'
         };
 
-        // --- Закріпити/відкріпити (AJAX) ---
-        window.togglePin = function(id) {
-            const csrf = document.querySelector('input[name="_csrf"]');
-            fetch('/notes/toggle-pin/' + id, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-            })
-                .then(() => location.reload());
-        };
-
-        // --- Архівувати/відновити (AJAX) ---
-        window.toggleArchive = function(id) {
-            const csrf = document.querySelector('input[name="_csrf"]');
-            fetch('/notes/toggle-archive/' + id, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-            })
-                .then(() => location.reload());
-        };
-
-        // --- Видалити (з підтвердженням) ---
-        // --- Видалити (з підтвердженням через модалку) ---
-        window.deleteNote = function(id) {
-            const card = document.querySelector('.note-card[data-id="' + id + '"]');
-            if (!card) return;
-
-            const title = card.querySelector('.card-title')?.textContent?.trim() || '—';
-            const content = card.querySelector('.card-text')?.textContent?.trim() || '—';
-            const isPinned = card.classList.contains('pinned');
-            const isArchived = card.classList.contains('archived');
-
-            document.getElementById('deleteNoteTitle').textContent = title;
-            document.getElementById('deleteNoteContent').textContent = content;
-            document.getElementById('deleteNotePinned').textContent = isPinned ? 'Так' : 'Ні';
-            document.getElementById('deleteNoteArchived').textContent = isArchived ? 'Так' : 'Ні';
-
-            const form = document.getElementById('deleteNoteForm');
-            form.action = '/notes/delete/' + id;
-
-            const modalEl = document.getElementById('deleteNoteConfirmModal');
-            if (modalEl) {
-                bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            }
-        };
-
-        // --- Пошук нотаток ---
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            const cards = document.querySelectorAll('.note-card');
-            if (query === '') {
-                cards.forEach(c => c.style.display = '');
-                return;
-            }
-            const lowerQuery = query.toLowerCase();
-            cards.forEach(c => {
-                const title = c.querySelector('.card-title')?.textContent?.toLowerCase() || '';
-                const content = c.querySelector('.card-text')?.textContent?.toLowerCase() || '';
-                c.style.display = (title.includes(lowerQuery) || content.includes(lowerQuery)) ? '' : 'none';
-            });
-        });
-
-        // --- Фільтри ---
-        document.querySelectorAll('.filter-group .btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const filter = this.dataset.filter;
-                const cards = document.querySelectorAll('.note-card');
-                if (filter === 'all') {
-                    cards.forEach(c => c.style.display = '');
-                } else if (filter === 'active') {
-                    cards.forEach(c => {
-                        const archived = c.dataset.archived === 'true';
-                        c.style.display = archived ? 'none' : '';
-                    });
-                } else if (filter === 'archived') {
-                    cards.forEach(c => {
-                        const archived = c.dataset.archived === 'true';
-                        c.style.display = archived ? '' : 'none';
-                    });
-                }
-            });
-        });
-
-        // --- Оновлення лічильника ---
-        function updateNoteCount() {
-            const cards = document.querySelectorAll('.note-card');
-            let visible = 0;
-            cards.forEach(c => {
-                const display = c.style.display;
-                if (display !== 'none') visible++;
-            });
-            document.getElementById('noteCount').textContent = visible + ' нотаток';
+        function fmt(template, n) {
+            return template.replace('{0}', n);
         }
 
-        // Спостерігаємо за змінами видимості карток
-        const observer = new MutationObserver(updateNoteCount);
-        document.querySelectorAll('.note-card').forEach(c => {
-            observer.observe(c, { attributes: true, attributeFilter: ['style'] });
-        });
-        updateNoteCount();
+        document.addEventListener('DOMContentLoaded', function() {
 
-        // Перераховуємо після пошуку/фільтрації
-        searchInput.addEventListener('input', updateNoteCount);
-        document.querySelectorAll('.filter-group .btn').forEach(btn => {
-            btn.addEventListener('click', updateNoteCount);
-        });
+            // --- Вибір кольору (фон) ---
+            document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(picker => {
+                picker.querySelectorAll('.color-option').forEach(el => {
+                    el.addEventListener('click', function() {
+                        picker.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                        const color = this.dataset.color;
+                        const hiddenInput = picker.closest('.modal-body').querySelector('input[name="color"]');
+                        if (hiddenInput) hiddenInput.value = color;
+                    });
+                });
+            });
 
-        // --- Додаємо клас для анімації після завантаження ---
-        // (Всі елементи вже мають класи анімацій, вони спрацюють автоматично)
-        // Для тих, хто з'являється динамічно (наприклад, після фільтрації),
-        // можна додати клас при додаванні нових карток, але в поточному вигляді
-        // всі картки вже завантажені на сторінці.
-    });
+            // --- Вибір кольору тексту ---
+            document.querySelectorAll('.text-color-picker').forEach(picker => {
+                picker.querySelectorAll('.color-option').forEach(el => {
+                    el.addEventListener('click', function() {
+                        picker.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                        const color = this.dataset.color;
+                        const hiddenInput = picker.closest('.modal-body').querySelector('input[name="textColor"]');
+                        if (hiddenInput) hiddenInput.value = color;
+                    });
+                });
+            });
+
+            // --- Редагування нотатки ---
+            window.editNote = function(id) {
+                const card = document.querySelector(`.note-card[data-id="${id}"]`);
+                if (!card) return;
+                const title = card.querySelector('.card-title')?.textContent || '';
+                const content = card.querySelector('.card-text')?.textContent || '';
+                const color = card.dataset.color || '#ffffff';
+                const textColor = card.dataset.textcolor || '#212529';
+
+                document.getElementById('editNoteId').value = id;
+                document.getElementById('editNoteTitle').value = title;
+                document.getElementById('editNoteContent').value = content;
+
+                const bgPicker = document.getElementById('editColorPicker');
+                bgPicker.querySelectorAll('.color-option').forEach(el => {
+                    el.classList.toggle('selected', el.dataset.color === color);
+                });
+                document.getElementById('editSelectedColor').value = color;
+
+                const textPicker = document.getElementById('editTextColorPicker');
+                textPicker.querySelectorAll('.color-option').forEach(el => {
+                    el.classList.toggle('selected', el.dataset.color === textColor);
+                });
+                document.getElementById('editSelectedTextColor').value = textColor;
+
+                const form = document.getElementById('editNoteForm');
+                form.action = '/notes/update/' + id;
+
+                new bootstrap.Modal(document.getElementById('editNoteModal')).show();
+            };
+
+            // --- Закріпити/відкріпити (AJAX) ---
+            window.togglePin = function(id) {
+                const csrf = document.querySelector('input[name="_csrf"]');
+                fetch('/notes/toggle-pin/' + id, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
+                })
+                    .then(() => location.reload());
+            };
+
+            // --- Архівувати/відновити (AJAX) ---
+            window.toggleArchive = function(id) {
+                const csrf = document.querySelector('input[name="_csrf"]');
+                fetch('/notes/toggle-archive/' + id, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
+                })
+                    .then(() => location.reload());
+            };
+
+            // --- Видалити (з підтвердженням через модалку) ---
+            window.deleteNote = function(id) {
+                const card = document.querySelector('.note-card[data-id="' + id + '"]');
+                if (!card) return;
+
+                const title = card.querySelector('.card-title')?.textContent?.trim() || '—';
+                const content = card.querySelector('.card-text')?.textContent?.trim() || '—';
+                const isPinned = card.classList.contains('pinned');
+                const isArchived = card.classList.contains('archived');
+
+                document.getElementById('deleteNoteTitle').textContent = title;
+                document.getElementById('deleteNoteContent').textContent = content;
+                document.getElementById('deleteNotePinned').textContent = isPinned ? i18n.yes : i18n.no;
+                document.getElementById('deleteNoteArchived').textContent = isArchived ? i18n.yes : i18n.no;
+
+                const form = document.getElementById('deleteNoteForm');
+                form.action = '/notes/delete/' + id;
+
+                const modalEl = document.getElementById('deleteNoteConfirmModal');
+                if (modalEl) {
+                    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                }
+            };
+
+            // --- Пошук нотаток ---
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                const cards = document.querySelectorAll('.note-card');
+                if (query === '') {
+                    cards.forEach(c => c.style.display = '');
+                    return;
+                }
+                const lowerQuery = query.toLowerCase();
+                cards.forEach(c => {
+                    const title = c.querySelector('.card-title')?.textContent?.toLowerCase() || '';
+                    const content = c.querySelector('.card-text')?.textContent?.toLowerCase() || '';
+                    c.style.display = (title.includes(lowerQuery) || content.includes(lowerQuery)) ? '' : 'none';
+                });
+            });
+
+            // --- Фільтри ---
+            document.querySelectorAll('.filter-group .btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-group .btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.dataset.filter;
+                    const cards = document.querySelectorAll('.note-card');
+                    if (filter === 'all') {
+                        cards.forEach(c => c.style.display = '');
+                    } else if (filter === 'active') {
+                        cards.forEach(c => {
+                            const archived = c.dataset.archived === 'true';
+                            c.style.display = archived ? 'none' : '';
+                        });
+                    } else if (filter === 'archived') {
+                        cards.forEach(c => {
+                            const archived = c.dataset.archived === 'true';
+                            c.style.display = archived ? '' : 'none';
+                        });
+                    }
+                });
+            });
+
+            // --- Оновлення лічильника ---
+            function updateNoteCount() {
+                const cards = document.querySelectorAll('.note-card');
+                let visible = 0;
+                cards.forEach(c => {
+                    if (c.style.display !== 'none') visible++;
+                });
+                document.getElementById('noteCount').textContent = fmt(i18n.countTemplate, visible);
+            }
+
+            const observer = new MutationObserver(updateNoteCount);
+            document.querySelectorAll('.note-card').forEach(c => {
+                observer.observe(c, { attributes: true, attributeFilter: ['style'] });
+            });
+            updateNoteCount();
+
+            searchInput.addEventListener('input', updateNoteCount);
+            document.querySelectorAll('.filter-group .btn').forEach(btn => {
+                btn.addEventListener('click', updateNoteCount);
+            });
+        });
+    })();
 </script>
 <div th:replace="~{fragments :: settingsPanelScript}"></div>
 </body>

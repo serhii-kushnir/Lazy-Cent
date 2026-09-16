@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Вхід - Lazy Cent</title>
+    <title th:text="#{auth.login.title} + ' - Lazy Cent'">Вхід - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
@@ -19,7 +19,7 @@
         }
         .auth-container {
             width: 100%;
-            max-width: 640px; /* ШИРШЕ — було 560px */
+            max-width: 640px;
             padding: 0 1.5rem;
         }
         .auth-card {
@@ -67,13 +67,13 @@
             border-radius: 0.75rem;
             font-weight: 600;
             font-size: 1rem;
-            border: 1.5px solid #DB4437; /* Фірмовий червоний Google */
+            border: 1.5px solid #DB4437;
             background-color: #DB4437;
             color: #ffffff;
             transition: all 0.2s ease;
         }
         .auth-card .btn-google:hover {
-            background-color: #C53030; /* Темніший відтінок при наведенні */
+            background-color: #C53030;
             border-color: #C53030;
             color: #ffffff;
             transform: translateY(-2px);
@@ -112,7 +112,6 @@
             text-decoration: underline;
         }
 
-        /* Група поля з іконкою ока */
         .password-toggle-group {
             position: relative;
         }
@@ -136,7 +135,6 @@
             color: var(--bs-primary);
         }
 
-        /* ===== АНІМАЦІЇ ПРИ ЗАВАНТАЖЕННІ ===== */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -153,7 +151,6 @@
             animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
 
-        /* Каскадна поява елементів */
         .auth-card .mb-3 { opacity: 0; animation: fadeInUp 0.5s ease forwards; }
         .auth-card .divider { opacity: 0; animation: fadeInUp 0.5s ease forwards 0.4s; }
         .auth-card .btn-primary { opacity: 0; animation: fadeInUp 0.5s ease forwards 0.5s; }
@@ -195,55 +192,60 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <h1>Ласкаво просимо!</h1>
-                <p>Увійдіть у свій обліковий запис Lazy Cent</p>
+                <h1 th:text="#{auth.login.title}">Ласкаво просимо!</h1>
+                <p th:text="#{auth.login.subtitle}">Увійдіть у свій обліковий запис Lazy Cent</p>
             </div>
 
             <form th:action="@{/login}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
                 <div class="mb-3">
-                    <label for="username" class="form-label fw-semibold">Ім'я користувача</label>
-                    <input type="text" class="form-control" id="username" name="username" placeholder="Введіть ваше ім'я" required autofocus>
+                    <label for="username" class="form-label fw-semibold" th:text="#{auth.login.username}">Ім'я користувача</label>
+                    <input type="text" class="form-control" id="username" name="username"
+                           th:placeholder="#{auth.login.usernamePlaceholder}" required autofocus>
                 </div>
 
                 <div class="mb-3">
-                    <label for="password" class="form-label fw-semibold">Пароль</label>
+                    <label for="password" class="form-label fw-semibold" th:text="#{auth.login.password}">Пароль</label>
                     <div class="password-toggle-group">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Введіть ваш пароль" required>
-                        <button type="button" class="password-toggle-btn" id="togglePassword" title="Показати/приховати пароль">
+                        <input type="password" class="form-control" id="password" name="password"
+                               th:placeholder="#{auth.login.passwordPlaceholder}" required>
+                        <button type="button" class="password-toggle-btn" id="togglePassword" th:title="#{auth.login.togglePassword}">
                             <i class="fas fa-eye" id="togglePasswordIcon"></i>
                         </button>
                     </div>
                 </div>
 
                 <div th:if="${param.error}" class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i> Невірне ім'я користувача або пароль
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span th:text="#{auth.login.error}">Невірне ім'я користувача або пароль</span>
                 </div>
                 <div th:if="${param.logout}" class="alert alert-success" role="alert">
-                    <i class="fas fa-check-circle me-2"></i> Ви вийшли з системи
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="#{auth.login.logout}">Ви вийшли з системи</span>
                 </div>
                 <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
 
                 <button type="submit" class="btn btn-primary w-100 mt-2">
-                    <i class="fas fa-sign-in-alt me-2"></i>Увійти
+                    <i class="fas fa-sign-in-alt me-2"></i><span th:text="#{auth.login.submit}">Увійти</span>
                 </button>
             </form>
 
             <div class="divider">
-                <span>або</span>
+                <span th:text="#{auth.login.or}">або</span>
             </div>
 
             <a th:href="@{/oauth2/authorization/google}" class="btn btn-google w-100">
-                <i class="fab fa-google me-2"></i> Увійти через Google
+                <i class="fab fa-google me-2"></i> <span th:text="#{auth.login.google}">Увійти через Google</span>
             </a>
 
             <div class="text-center mt-3">
-                <a href="/forgot-password" class="text-muted">Забули пароль?</a>
+                <a href="/forgot-password" class="text-muted" th:text="#{auth.login.forgot}">Забули пароль?</a>
             </div>
 
             <div class="auth-footer">
-                Ще не зареєстровані? <a href="/register">Створіть акаунт</a>
+                <span th:text="#{auth.login.noAccount}">Ще не зареєстровані?</span>
+                <a href="/register" th:text="#{auth.login.register}">Створіть акаунт</a>
             </div>
         </div>
     </div>
@@ -256,7 +258,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Перемикання пароля в формі входу
         const toggleBtn = document.getElementById('togglePassword');
         const passwordInput = document.getElementById('password');
         const icon = document.getElementById('togglePasswordIcon');

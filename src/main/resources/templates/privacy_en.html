@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{privacy.title} + ' - Lazy Cent'">Privacy Policy - Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .policy-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .policy-container h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .policy-container .last-updated { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 2rem; }
+        .policy-container h2 { font-size: 1.4rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
+        .policy-container h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .policy-container p { line-height: 1.7; margin-bottom: 1rem; }
+        .policy-container ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .policy-container ul li { margin-bottom: 0.5rem; }
+        .policy-container .highlight-box {
+            background: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-primary);
+            padding: 1rem 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0;
+        }
+        [data-bs-theme="dark"] .policy-container .highlight-box { background: var(--bs-tertiary-bg); }
+        .back-link { margin-top: 2.5rem; }
+        .table-of-contents { background: var(--bs-secondary-bg); padding: 1.5rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .table-of-contents ul { list-style: none; padding-left: 0; }
+        .table-of-contents ul li { margin-bottom: 0.5rem; }
+        .table-of-contents ul li a { text-decoration: none; color: var(--bs-primary); }
+        .table-of-contents ul li a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<nav th:replace="~{fragments :: navbar('privacy')}"></nav>
+
+<div class="container policy-container">
+    <h1 th:text="#{privacy.title}">Privacy Policy</h1>
+    <p class="last-updated" th:text="#{privacy.lastUpdated}">Last updated: August 30, 2026</p>
+
+    <p>This Privacy Policy explains how Lazy Cent collects, uses, and protects your personal information when you use our website.</p>
+
+    <p><strong>Lazy Cent</strong> is a budgeting web application that helps individuals, couples, and families track expenses, manage categories, create budgets, and work together in a shared space.</p>
+
+    <p>If you have any questions about this Privacy Policy, please contact us at: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
+
+    <!-- ===== TABLE OF CONTENTS ===== -->
+    <div class="table-of-contents">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#info-collect">1. What information do we collect?</a></li>
+            <li><a href="#info-use">2. How do we use your information?</a></li>
+            <li><a href="#info-share">3. Do we share your information with third parties?</a></li>
+            <li><a href="#data-security">4. How do we protect your data?</a></li>
+            <li><a href="#data-retention">5. How long do we keep your data?</a></li>
+            <li><a href="#cookies">6. Cookies and similar technologies</a></li>
+            <li><a href="#user-rights">7. Your rights</a></li>
+            <li><a href="#contact">8. Contact</a></li>
+        </ul>
+    </div>
+
+    <!-- ===== 1. WHAT INFORMATION DO WE COLLECT? ===== -->
+    <h2 id="info-collect">1. What information do we collect?</h2>
+
+    <h3>Personal information you provide to us</h3>
+    <p>We collect personal information you voluntarily provide when registering, using the application, or contacting us. This information may include:</p>
+    <ul>
+        <li><strong>Username</strong> — to identify your account.</li>
+        <li><strong>Email</strong> — for communication, password recovery, and notifications.</li>
+        <li><strong>Password</strong> — stored in encrypted form.</li>
+        <li><strong>Financial data</strong> — information about income, expenses, categories, budgets, and notes that you enter in the application.</li>
+    </ul>
+
+    <h3>Automatically collected data</h3>
+    <p>When you use our Services, we may automatically collect certain technical information, such as:</p>
+    <ul>
+        <li>IP address</li>
+        <li>Browser type and version</li>
+        <li>Operating system</li>
+        <li>Session data (for security)</li>
+    </ul>
+
+    <h3>Data from social networks (OAuth2)</h3>
+    <p>If you log in through Google or other OAuth2 services, we receive your name and email address (with your permission).</p>
+
+    <!-- ===== 2. HOW DO WE USE YOUR INFORMATION? ===== -->
+    <h2 id="info-use">2. How do we use your information?</h2>
+    <p>We use the collected information to:</p>
+    <ul>
+        <li><strong>Provide and improve the Services</strong> — ensure the application works, display budgets, provide analytics, and develop new features.</li>
+        <li><strong>Communicate with you</strong> — send notifications (if you subscribed), respond to your inquiries.</li>
+        <li><strong>Security and fraud prevention</strong> — protect your account and data.</li>
+        <li><strong>Comply with the law</strong> — fulfill legal obligations.</li>
+    </ul>
+
+    <div class="highlight-box">
+        <i class="fas fa-shield-alt me-2"></i>
+        <strong>Important:</strong> We NEVER share your financial data with third parties without your explicit consent, except as required by law.
+    </div>
+
+    <!-- ===== 3. DO WE SHARE YOUR INFORMATION WITH THIRD PARTIES? ===== -->
+    <h2 id="info-share">3. Do we share your information with third parties?</h2>
+    <p>We do not sell, trade, or transfer your personal information to third parties, except in the following cases:</p>
+    <ul>
+        <li><strong>Service providers</strong> — we may use third-party services for hosting, data processing, or analytics (e.g., cloud providers). All such providers are required to maintain confidentiality.</li>
+        <li><strong>Legal requirements</strong> — if required by law or to protect our rights.</li>
+    </ul>
+
+    <!-- ===== 4. HOW DO WE PROTECT YOUR DATA? ===== -->
+    <h2 id="data-security">4. How do we protect your data?</h2>
+    <p>We implement modern security measures to protect your data:</p>
+    <ul>
+        <li><strong>Encryption</strong> — all data is transmitted over secure HTTPS connections, and passwords are stored in encrypted form.</li>
+        <li><strong>Restricted access</strong> — only authorized personnel have access to the data.</li>
+        <li><strong>Regular audits</strong> — we conduct security audits to identify and fix vulnerabilities.</li>
+    </ul>
+    <p>However, no method of data transmission over the Internet or electronic storage is 100% secure. We do our best but cannot guarantee absolute security.</p>
+
+    <!-- ===== 5. HOW LONG DO WE KEEP YOUR DATA? ===== -->
+    <h2 id="data-retention">5. How long do we keep your data?</h2>
+    <p>We keep your personal data only as long as necessary for the purposes described in this Privacy Policy or as required by law.</p>
+    <ul>
+        <li><strong>Account data</strong> — kept until you delete your account.</li>
+        <li><strong>Financial data</strong> — kept until you delete it or until you delete your account.</li>
+        <li><strong>Technical data</strong> — may be kept for up to 12 months for analytics and security.</li>
+    </ul>
+    <p>You can delete your data at any time through your account settings.</p>
+
+    <!-- ===== 6. COOKIES ===== -->
+    <h2 id="cookies">6. Cookies and similar technologies</h2>
+    <p>We use cookies to:</p>
+    <ul>
+        <li><strong>Maintain sessions</strong> — to keep you logged in.</li>
+        <li><strong>Store preferences</strong> — to save your settings (e.g., theme).</li>
+        <li><strong>Analytics</strong> — to improve the Services.</li>
+    </ul>
+    <p>You can manage cookies in your browser settings. Disabling cookies may affect some features of the application.</p>
+
+    <!-- ===== 7. YOUR RIGHTS ===== -->
+    <h2 id="user-rights">7. Your rights</h2>
+    <p>Depending on your location, you may have the following rights regarding your personal data:</p>
+    <ul>
+        <li><strong>Access</strong> — you can view your data at any time.</li>
+        <li><strong>Correction</strong> — you can change or update your data.</li>
+        <li><strong>Deletion</strong> — you can permanently delete your account and all related data.</li>
+    </ul>
+    <p>To exercise your rights, contact us at: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
+
+    <!-- ===== 8. CONTACT ===== -->
+    <h2 id="contact">8. Contact</h2>
+    <p>If you have any questions or suggestions regarding this Privacy Policy, please contact us:</p>
+    <ul>
+        <li><strong>Email:</strong> <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a></li>
+    </ul>
+
+    <div class="back-link">
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Back</span>
+        </a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

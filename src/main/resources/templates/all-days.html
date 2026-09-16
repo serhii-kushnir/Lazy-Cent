@@ -494,7 +494,7 @@
                             th:data-id="${budget.id}">
                             <td class="col-number" th:text="${stat.index + 1}"></td>
                             <td class="col-date" th:text="${budget.date}"></td>
-                            <td class="col-day" th:text="${budget.dayName}"></td>
+                            <td class="col-day" th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></td>
                             <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-balance" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
@@ -549,7 +549,7 @@
                                  style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2px;">
                                 <h5 class="mb-0" style="font-size: 0.95rem;">
                                     <i class="fas fa-calendar-day me-1"></i>
-                                    <span th:text="${budget.dayName}"></span>,
+                                    <span th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></span>,
                                     <span th:text="${budget.date}"></span>
                                 </h5>
                                 <div style="display: flex; gap: 2px; flex-wrap: wrap; align-items: center;">

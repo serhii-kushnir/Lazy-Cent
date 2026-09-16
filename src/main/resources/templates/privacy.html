@@ -3,87 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Політика конфіденційності - Lazy Cent</title>
+    <title th:text="#{privacy.title} + ' - Lazy Cent'">Політика конфіденційності - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
-        .policy-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-        }
-        .policy-container h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        .policy-container .last-updated {
-            color: var(--bs-secondary-color);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-        .policy-container h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--bs-primary);
-        }
-        .policy-container p {
-            line-height: 1.7;
-            margin-bottom: 1rem;
-        }
-        .policy-container ul {
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .policy-container ul li {
-            margin-bottom: 0.5rem;
-        }
+        .policy-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .policy-container h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .policy-container .last-updated { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 2rem; }
+        .policy-container h2 { font-size: 1.4rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
+        .policy-container h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .policy-container p { line-height: 1.7; margin-bottom: 1rem; }
+        .policy-container ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .policy-container ul li { margin-bottom: 0.5rem; }
         .policy-container .highlight-box {
             background: var(--bs-secondary-bg);
             border-left: 4px solid var(--bs-primary);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1.5rem 0;
+            padding: 1rem 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0;
         }
-        [data-bs-theme="dark"] .policy-container .highlight-box {
-            background: var(--bs-tertiary-bg);
-        }
-        .back-link {
-            margin-top: 2.5rem;
-        }
-        .table-of-contents {
-            background: var(--bs-secondary-bg);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 2rem 0;
-        }
-        .table-of-contents ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        .table-of-contents ul li {
-            margin-bottom: 0.5rem;
-        }
-        .table-of-contents ul li a {
-            text-decoration: none;
-            color: var(--bs-primary);
-        }
-        .table-of-contents ul li a:hover {
-            text-decoration: underline;
-        }
+        [data-bs-theme="dark"] .policy-container .highlight-box { background: var(--bs-tertiary-bg); }
+        .back-link { margin-top: 2.5rem; }
+        .table-of-contents { background: var(--bs-secondary-bg); padding: 1.5rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .table-of-contents ul { list-style: none; padding-left: 0; }
+        .table-of-contents ul li { margin-bottom: 0.5rem; }
+        .table-of-contents ul li a { text-decoration: none; color: var(--bs-primary); }
+        .table-of-contents ul li a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<!-- ===== ПОВНОЦІННИЙ НАВБАР ===== -->
 <nav th:replace="~{fragments :: navbar('privacy')}"></nav>
 
 <div class="container policy-container">
-    <h1>Політика конфіденційності</h1>
-    <p class="last-updated">Останнє оновлення: 30 серпня 2026 року</p>
+    <h1 th:text="#{privacy.title}">Політика конфіденційності</h1>
+    <p class="last-updated" th:text="#{privacy.lastUpdated}">Останнє оновлення: 30 серпня 2026 року</p>
 
     <p>Ця Політика конфіденційності пояснює, як Lazy Cent збирає, використовує та захищає вашу особисту інформацію, коли ви користуєтеся нашим веб-сайтом.</p>
 
@@ -190,7 +143,7 @@
         <li><strong>Доступ</strong> — ви можете переглянути свої дані в будь-який час.</li>
         <li><strong>Виправлення</strong> — ви можете змінити або оновити свої дані.</li>
         <li><strong>Видалення</strong> — ви можете назавжди видалити свій акаунт та всі пов'язані дані.</li>
-        </ul>
+    </ul>
     <p>Для реалізації своїх прав зв'яжіться з нами за адресою: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
 
     <!-- ===== 8. КОНТАКТИ ===== -->
@@ -201,7 +154,9 @@
     </ul>
 
     <div class="back-link">
-        <a href="/" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i>На головну</a>
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Назад</span>
+        </a>
     </div>
 </div>
 
