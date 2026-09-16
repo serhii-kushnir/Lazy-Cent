@@ -714,10 +714,10 @@
                             <td class="col-number" th:text="${stat.index + 1}"></td>
                             <td class="col-date" th:text="${budget.date}"></td>
                             <td class="col-day" th:text="${budget.dayName}"></td>
-                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-balance" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
-                                th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                                th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-count" th:text="${budget.expenses.size() + budget.incomes.size()}"></td>
                             <td class="col-actions no-print">
                                 <a th:href="'/day/' + ${budget.date}" class="btn btn-sm btn-outline-primary" title="Переглянути">
@@ -799,20 +799,20 @@
                             <div class="card-body">
                                 <p><i class="fas fa-flag-checkered text-secondary me-2"></i>
                                     <span class="text-starting">Початковий баланс:</span>
-                                    <strong class="value-amount text-starting" th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
+                                    <strong class="value-amount text-starting" th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <p><i class="fas fa-arrow-down text-danger me-2"></i>
                                     <span class="text-expense">Витрати:</span>
-                                    <strong class="value-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
+                                    <strong class="value-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <p><i class="fas fa-arrow-up text-success me-2"></i>
                                     <span class="text-income">Доходи:</span>
-                                    <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
+                                    <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <p class="balance-row"><i class="fas fa-balance-scale me-2"></i>
                                     <span>Баланс:</span>
                                     <strong class="value-amount" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
-                                            th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 0, 'POINT')} + ' ' + ${currencySymbol}"></strong>
+                                            th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <a th:href="'/day/' + ${budget.date}" class="btn btn-primary w-100 mt-2">
                                     <i class="fas fa-eye me-1"></i>Переглянути
