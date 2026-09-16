@@ -322,9 +322,9 @@
                             <select class="form-select" id="categorySelect" name="categoryId" required>
                                 <option value="">Завантаження...</option>
                             </select>
-                            <a href="/settings" target="_blank" class="btn btn-outline-secondary" type="button" title="Додати нову категорію">
+                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" title="Додати нову категорію">
                                 <i class="fas fa-plus"></i>
-                            </a>
+                            </button>
                         </div>
                         <div class="invalid-feedback">Виберіть категорію</div>
                         <div class="form-text text-muted">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
@@ -576,6 +576,33 @@
         }
 
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+        // Відкриття панелі налаштувань → розділ "Категорії"
+        window.openCategorySettings = function() {
+            // 1. Закриваємо модалку транзакції
+            const modalEl = document.getElementById('transactionModal');
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            }
+
+            // 2. Відкриваємо drawer налаштувань і перемикаємо на розділ "Категорії"
+            setTimeout(function() {
+                const drawer = document.getElementById('settingsDrawer');
+                const overlay = document.getElementById('settingsOverlay');
+
+                if (drawer && overlay) {
+                    drawer.classList.add('open');
+                    overlay.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+
+                    // Клікаємо по пункту меню "Категорії"
+                    const categoriesTab = document.querySelector('#drawerMenu .menu-item[data-section="categories"]');
+                    if (categoriesTab) {
+                        categoriesTab.click();
+                    }
+                }
+            }, 350); // чекаємо, поки Bootstrap закриє модалку
+        };
 
         if (expenseCategories && expenseCategories.length > 0) {
             document.getElementById('expenseCount').textContent = expenseCategories.length;
