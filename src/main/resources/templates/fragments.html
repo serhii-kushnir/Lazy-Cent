@@ -34,14 +34,12 @@
             border-bottom: 1px solid var(--wm-navbar-border);
             animation: navSlideDown 0.5s ease-out forwards;
             overflow: visible !important;
-            /* ВИПРАВЛЕНО: піднімаємо навбар над .auth-page (login/register) */
             position: relative !important;
             z-index: 1040 !important;
         }
         .wm-navbar .container-fluid,
         .wm-navbar .navbar-collapse,
         .wm-navbar .navbar-nav {
-            /* ВИПРАВЛЕНО: dropdown не обрізається */
             overflow: visible !important;
         }
         @keyframes navSlideDown {
@@ -74,7 +72,6 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Перемикач мови (dropdown) */
         .wm-navbar .theme-toggle-btn.dropdown-toggle::after {
             margin-left: 0.35rem;
             vertical-align: 0.15em;
@@ -85,7 +82,7 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
             border: 1px solid var(--bs-border-color);
             min-width: 160px;
-            z-index: 1060; /* ВИПРАВЛЕНО: поверх усього навбара */
+            z-index: 1060;
         }
         [data-bs-theme="dark"] .wm-navbar .dropdown-menu {
             background: #1d2027;
@@ -101,9 +98,7 @@
             font-weight: 500;
             padding: 0.5rem 1rem;
         }
-        .wm-navbar .dropdown-item span:first-child {
-            font-size: 1.1rem;
-        }
+        .wm-navbar .dropdown-item span:first-child { font-size: 1.1rem; }
         .wm-navbar .theme-toggle-btn:hover {
             background: rgba(var(--bs-primary-rgb), 0.12);
             color: var(--bs-primary) !important;
@@ -381,6 +376,19 @@
             background: rgba(25,135,84,0.1); color: #198754;
         }
 
+        /* ===== ДЕТАЛІ ВИДАЛЕННЯ ===== */
+        .delete-details {
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        [data-bs-theme="dark"] .delete-details { background: #2a2e37; }
+        .delete-details .row { margin-bottom: 0.3rem; }
+        .delete-details .label { font-weight: 600; color: #555; }
+        [data-bs-theme="dark"] .delete-details .label { color: #9aa3b2; }
+        .delete-details .value { color: var(--bs-body-color); word-break: break-word; }
+
         html, body { overflow-x: auto !important; }
         .table-responsive { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
         .table-days, .table-transactions, .table-categories {
@@ -447,7 +455,7 @@
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <button class="user-avatar" id="openSettingsBtn" type="button" th:title="#{settings.title}">
                         <span class="avatar-placeholder" sec:authentication="name"></span>
-                        <span class="ms-1" sec:authentication="name"></span>
+                        <span class="ms-1 d-none d-sm-inline" sec:authentication="name"></span>
                     </button>
                 </li>
 
@@ -487,7 +495,6 @@
                     </ul>
                 </li>
 
-                <!-- ВИПРАВЛЕНО: кнопка теми для ВСІХ анонімних (включно з terms/privacy/forgot-password/reset-password) -->
                 <li class="nav-item ms-lg-2 mt-2 mt-lg-0" sec:authorize="isAnonymous()">
                     <button id="themeToggle" class="btn theme-toggle-btn btn-sm" type="button" th:title="#{settings.theme}">
                         <i class="fas fa-moon"></i>
@@ -522,8 +529,6 @@
 
         // ===== ПЕРЕМИКАЧ МОВИ: для авторизованих — POST у БД; для анонімних — ?lang=xx =====
         (function() {
-            // ВИПРАВЛЕНО: визначаємо авторизацію за наявністю кнопки налаштувань
-            // (вона рендериться тільки для авторизованих)
             var isAuthenticated = !!document.getElementById('openSettingsBtn');
 
             function submitLanguage(lang) {
@@ -552,8 +557,6 @@
                 link.addEventListener('click', function(e) {
                     var lang = this.dataset.lang;
                     if (!lang) return;
-                    // ВИПРАВЛЕНО: POST тільки для авторизованих.
-                    // Для анонімних — звичайний перехід ?lang=xx (LocaleChangeInterceptor).
                     if (isAuthenticated && submitLanguage(lang)) {
                         e.preventDefault();
                     }
@@ -711,14 +714,15 @@
                             <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <form th:action="@{'/categories/delete/' + ${cat.id}}" method="post" style="display:inline;">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger-soft js-confirm-submit"
-                                        th:data-confirm="#{settings.categories.deleteConfirm}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <!-- ВИПРАВЛЕНО: кнопка тепер відкриває модал підтвердження -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger js-delete-category"
+                                    th:data-id="${cat.id}"
+                                    th:data-name="${cat.name}"
+                                    th:data-type="#{type.EXPENSE}"
+                                    th:title="#{settings.categories.deleteConfirm}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                     <div th:if="${expenseCategories == null or expenseCategories.empty}" class="text-muted text-center py-2"
@@ -733,14 +737,15 @@
                             <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <form th:action="@{'/categories/delete/' + ${cat.id}}" method="post" style="display:inline;">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger-soft js-confirm-submit"
-                                        th:data-confirm="#{settings.categories.deleteConfirm}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <!-- ВИПРАВЛЕНО: кнопка тепер відкриває модал підтвердження -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger js-delete-category"
+                                    th:data-id="${cat.id}"
+                                    th:data-name="${cat.name}"
+                                    th:data-type="#{type.INCOME}"
+                                    th:title="#{settings.categories.deleteConfirm}">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
                     <div th:if="${incomeCategories == null or incomeCategories.empty}" class="text-muted text-center py-2"
@@ -881,6 +886,47 @@
     </div>
 
     <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
+
+    <!-- ===== ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ КАТЕГОРІЇ ===== -->
+    <div class="modal fade no-print" id="deleteCategoryConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        <span th:text="#{settings.categories.deleteConfirm}">Підтвердження видалення</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center" th:text="#{settings.categories.deleteQuestion}">Ви впевнені, що хочете видалити цю категорію?</p>
+                    <p class="text-muted small text-center" th:text="#{settings.categories.deleteNote}">Цю дію не можна скасувати.</p>
+                    <hr>
+                    <div class="delete-details">
+                        <div class="row mb-2">
+                            <div class="col-4 label fw-bold" th:text="#{settings.categories.name}">Назва:</div>
+                            <div class="col-8 value" id="deleteCategoryName"></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4 label fw-bold" th:text="#{settings.categories.typeLabel}">Тип:</div>
+                            <div class="col-8 value" id="deleteCategoryType"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                    <form id="deleteCategoryForm" method="post" style="display:inline;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i> <span th:text="#{btn.delete}">Видалити</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Підтвердження очищення даних -->
     <div class="modal fade" id="clearDataModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -922,6 +968,7 @@
         </div>
     </div>
 
+    <!-- Підтвердження видалення акаунта -->
     <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -963,6 +1010,7 @@
         </div>
     </div>
 
+    <!-- Редагування категорії -->
     <div class="modal fade" id="editCategoryModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -990,7 +1038,7 @@
         </div>
     </div>
 
-    <!-- ===== МОДАЛЬНЕ ВІКНО ПІДТВЕРДЖЕННЯ ВИХОДУ ===== -->
+    <!-- Підтвердження виходу -->
     <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1234,15 +1282,25 @@
                 });
             });
 
-            // ===== ПІДТВЕРДЖЕННЯ ДЛЯ КНОПОК З data-confirm =====
-            document.addEventListener('click', function(e) {
-                const btn = e.target.closest('.js-confirm-submit');
-                if (!btn) return;
-                const message = btn.dataset.confirm || '';
-                if (!confirm(message)) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
+            // ===== ВИДАЛЕННЯ КАТЕГОРІЇ (через модал) =====
+            const deleteCategoryModal = document.getElementById('deleteCategoryConfirmModal');
+            const deleteCategoryForm = document.getElementById('deleteCategoryForm');
+            const deleteCategoryName = document.getElementById('deleteCategoryName');
+            const deleteCategoryType = document.getElementById('deleteCategoryType');
+
+            document.querySelectorAll('.js-delete-category').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const name = this.dataset.name || '—';
+                    const type = this.dataset.type || '—';
+
+                    if (deleteCategoryName) deleteCategoryName.textContent = name;
+                    if (deleteCategoryType) deleteCategoryType.textContent = type;
+                    if (deleteCategoryForm) deleteCategoryForm.action = '/categories/delete/' + id;
+                    if (deleteCategoryModal) {
+                        bootstrap.Modal.getOrCreateInstance(deleteCategoryModal).show();
+                    }
+                });
             });
 
             // ===== РЕДАГУВАННЯ КАТЕГОРІЇ =====
