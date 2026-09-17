@@ -340,12 +340,11 @@
             top: auto;
             z-index: 9999 !important;
             max-width: 350px;
-            pointer-events: none; /* контейнер не блокує кліки */
+            pointer-events: none;
         }
         .toast-container > * {
-            pointer-events: auto; /* але сам тост — клікабельний */
+            pointer-events: auto;
         }
-
 
         .toast {
             background: #fff;
@@ -488,8 +487,8 @@
                     <a class="nav-link" href="/register" th:text="#{nav.register}">Реєстрація</a>
                 </li>
 
-                <!-- ===== ПЕРЕМИКАЧ МОВИ (видно всім) ===== -->
-                <li class="nav-item dropdown ms-lg-2 mt-2 mt-lg-0">
+                <!-- ===== ПЕРЕМИКАТЧ МОВИ (тільки для анонімних) ===== -->
+                <li class="nav-item dropdown ms-lg-2 mt-2 mt-lg-0" sec:authorize="!isAuthenticated()">
                     <button class="btn theme-toggle-btn btn-sm dropdown-toggle"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false"
                             th:title="#{settings.language}">
@@ -497,18 +496,16 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 js-lang-switch"
+                            <a class="dropdown-item d-flex align-items-center gap-2"
                                th:href="@{''(lang='uk')}"
-                               data-lang="uk"
                                th:classappend="${#locale.language == 'uk'} ? 'active'">
                                 <span>🇺🇦</span>
                                 <span th:text="#{lang.uk}">Українська</span>
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 js-lang-switch"
+                            <a class="dropdown-item d-flex align-items-center gap-2"
                                th:href="@{''(lang='en')}"
-                               data-lang="en"
                                th:classappend="${#locale.language == 'en'} ? 'active'">
                                 <span>🇬🇧</span>
                                 <span th:text="#{lang.en}">English</span>
@@ -525,65 +522,43 @@
             </ul>
         </div>
     </div>
-
     <script>
         (function() {
+            // ===== ПЕРЕМИКАЧ ТЕМИ =====
             const btn = document.getElementById('themeToggle');
-            if (!btn) return;
-            const icon = btn.querySelector('i');
-            const root = document.documentElement;
+            if (btn) {
+                const icon = btn.querySelector('i');
+                const root = document.documentElement;
 
-            function updateIcon() {
-                const theme = root.getAttribute('data-bs-theme') || 'light';
-                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
+                function updateIcon() {
+                    const theme = root.getAttribute('data-bs-theme') || 'light';
+                    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
 
-            updateIcon();
-
-            btn.addEventListener('click', function() {
-                const current = root.getAttribute('data-bs-theme') || 'light';
-                const next = current === 'dark' ? 'light' : 'dark';
-                root.setAttribute('data-bs-theme', next);
-                localStorage.setItem('lazycent-theme', next);
                 updateIcon();
-            });
-        })();
 
-        // ===== ПЕРЕМИКАЧ МОВИ: для авторизованих — POST у БД; для анонімних — ?lang=xx =====
-        (function() {
-            var isAuthenticated = !!document.getElementById('openSettingsBtn');
-
-            function submitLanguage(lang) {
-                var csrfInput = document.querySelector('input[name="_csrf"]');
-                if (!csrfInput) return false;
-
-                var form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/settings/language';
-                form.style.display = 'none';
-
-                var l = document.createElement('input');
-                l.type = 'hidden'; l.name = 'lang'; l.value = lang;
-                form.appendChild(l);
-
-                var c = document.createElement('input');
-                c.type = 'hidden'; c.name = csrfInput.name; c.value = csrfInput.value;
-                form.appendChild(c);
-
-                document.body.appendChild(form);
-                form.submit();
-                return true;
+                btn.addEventListener('click', function() {
+                    const current = root.getAttribute('data-bs-theme') || 'light';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    root.setAttribute('data-bs-theme', next);
+                    localStorage.setItem('lazycent-theme', next);
+                    updateIcon();
+                });
             }
 
-            document.querySelectorAll('.js-lang-switch').forEach(function(link) {
-                link.addEventListener('click', function(e) {
-                    var lang = this.dataset.lang;
-                    if (!lang) return;
-                    if (isAuthenticated && submitLanguage(lang)) {
-                        e.preventDefault();
-                    }
-                });
-            });
+            // ===== ІНІЦІАЛИ АВАТАРА (працює на всіх сторінках) =====
+            const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
+            if (avatarPlaceholder) {
+                const name = avatarPlaceholder.textContent.trim();
+                if (name) {
+                    const initials = name.split(' ')
+                        .filter(w => w.length > 0)
+                        .map(w => w.charAt(0).toUpperCase())
+                        .slice(0, 2)   // максимум 2 літери
+                        .join('');
+                    avatarPlaceholder.textContent = initials || 'U';
+                }
+            }
         })();
     </script>
 </nav>
@@ -736,7 +711,6 @@
                             <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <!-- ВИПРАВЛЕНО: кнопка тепер відкриває модал підтвердження -->
                             <button type="button"
                                     class="btn btn-sm btn-outline-danger js-delete-category"
                                     th:data-id="${cat.id}"
@@ -759,7 +733,6 @@
                             <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <!-- ВИПРАВЛЕНО: кнопка тепер відкриває модал підтвердження -->
                             <button type="button"
                                     class="btn btn-sm btn-outline-danger js-delete-category"
                                     th:data-id="${cat.id}"
@@ -1519,15 +1492,6 @@
                 });
             }
 
-            // ===== ІНІЦІАЛИ ДЛЯ АВАТАРА =====
-            const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
-            if (avatarPlaceholder) {
-                const name = avatarPlaceholder.textContent.trim();
-                if (name) {
-                    const initials = name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
-                    avatarPlaceholder.textContent = initials || 'U';
-                }
-            }
         });
     </script>
 </th:block>
