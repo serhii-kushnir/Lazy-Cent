@@ -7,6 +7,8 @@ import org.lazycent.exception.ValidationException;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ public class UserService {
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
     private final NoteService noteService;
+    private final MessageSource messageSource;
 
     @Value("${app.demo.random-days:14}")
     private int demoDays;
@@ -46,10 +49,10 @@ public class UserService {
     @Transactional
     public User registerUser(String username, String rawPassword, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new ValidationException("Користувач з таким іменем вже існує");
+            throw new ValidationException(msg("error.username.exists"));
         }
         if (email != null && !email.isEmpty() && userRepository.findByEmail(email).isPresent()) {
-            throw new ValidationException("Користувач з такою електронною поштою вже зареєстрований");
+            throw new ValidationException(msg("error.email.exists"));
         }
 
         User user = new User();
@@ -125,29 +128,27 @@ public class UserService {
     @Transactional
     public void updateProfile(User currentUser, String username, String email,
                               String currentPassword, String newPassword) {
-        // Завантажуємо свіжу керовану сутність з БД
         User user = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User", currentUser.getId()));
 
         if (username != null && !username.equals(user.getUsername())) {
             if (userRepository.findByUsername(username).isPresent()) {
-                throw new ValidationException("Користувач з таким ім'ям вже існує");
+                throw new ValidationException(msg("error.username.exists"));
             }
             user.setUsername(username);
         }
         if (email != null && !email.equals(user.getEmail())) {
             if (userRepository.findByEmail(email).isPresent()) {
-                throw new ValidationException("Користувач з такою поштою вже існує");
+                throw new ValidationException(msg("error.email.exists"));
             }
             user.setEmail(email);
         }
         if (newPassword != null && !newPassword.isEmpty()) {
             if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-                throw new ValidationException("Невірний поточний пароль");
+                throw new ValidationException(msg("error.password.current.wrong"));
             }
             user.setPassword(passwordEncoder.encode(newPassword));
         }
-        // merge не потрібен — сутність керована, Hibernate зробить dirty checking
     }
 
     // ==================== ВАЛЮТА ====================
@@ -155,7 +156,7 @@ public class UserService {
     @Transactional
     public void updateCurrency(User user, String currency) {
         if (currency == null || !SUPPORTED_CURRENCIES.contains(currency)) {
-            throw new ValidationException("Непідтримувана валюта: " + currency);
+            throw new ValidationException(msg("error.currency.unsupported", currency));
         }
         userRepository.updatePreferredCurrency(user.getId(), currency);
         log.info("Валюту користувача {} змінено на {}", user.getUsername(), currency);
@@ -166,7 +167,7 @@ public class UserService {
     @Transactional
     public void updateLanguage(User user, String language) {
         if (language == null || !SUPPORTED_LANGUAGES.contains(language)) {
-            throw new ValidationException("Непідтримувана мова: " + language);
+            throw new ValidationException(msg("error.language.unsupported", language));
         }
         userRepository.updatePreferredLanguage(user.getId(), language);
         log.info("Мову користувача {} змінено на {}", user.getUsername(), language);
@@ -184,5 +185,15 @@ public class UserService {
 
         userRepository.delete(managedUser);
         log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), managedUser.getId());
+    }
+
+    // ==================== ДОПОМІЖНІ ====================
+
+    private String msg(String key, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            return key;
+        }
     }
 }

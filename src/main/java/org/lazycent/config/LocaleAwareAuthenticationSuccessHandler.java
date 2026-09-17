@@ -20,7 +20,7 @@ import java.util.Locale;
 @Slf4j
 public class LocaleAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final LocaleResolver localeResolver;   // ← інжектимо напряму (SessionLocaleResolver)
+    private final LocaleResolver localeResolver;   // інжектимо SessionLocaleResolver напряму
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,

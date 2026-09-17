@@ -15,6 +15,8 @@ import org.lazycent.service.BudgetPlanningService;
 import org.lazycent.service.BudgetService;
 import org.lazycent.service.DemoDataService;
 import org.lazycent.service.UserService;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -43,6 +45,7 @@ public class BudgetController {
     private final DemoDataService demoDataService;
     private final CategoryRepository categoryRepository;
     private final DayBudgetRepository dayBudgetRepository;
+    private final MessageSource messageSource;
 
     // ==================== ГОЛОВНА ====================
 
@@ -80,33 +83,24 @@ public class BudgetController {
                                  RedirectAttributes redirectAttributes,
                                  HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
 
         try {
-            // 1. Зберігаємо валюту в БД (точковий UPDATE, не торкається колекцій)
             userService.updateCurrency(currentUser, currency);
 
-            // 2. Оновлюємо SecurityContext — завантажуємо свіжого користувача з БД
             User updatedUser = userRepository.findById(currentUser.getId())
                     .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
             Authentication newAuth = new UsernamePasswordAuthenticationToken(
-                    updatedUser,
-                    authentication.getCredentials(),
-                    authentication.getAuthorities()
-            );
+                    updatedUser, authentication.getCredentials(), authentication.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(newAuth);
 
             log.info("Валюта оновлена на {} для користувача {}", currency, updatedUser.getUsername());
-            redirectAttributes.addFlashAttribute("successMessage", "Валюту змінено на " + currency);
-
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.currency.changed", currency));
         } catch (Exception e) {
             log.error("Помилка зміни валюти: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
-
         return redirectToReferer(request, "/");
     }
 
@@ -117,28 +111,22 @@ public class BudgetController {
                                  HttpServletResponse response,
                                  RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
 
         try {
-            // 1. Зберігаємо мову в БД (точковий UPDATE)
             userService.updateLanguage(currentUser, lang);
 
-            // 2. Оновлюємо локаль у сесії
             LocaleResolver localeResolver = RequestContextUtils.getLocaleResolver(request);
             if (localeResolver != null) {
                 localeResolver.setLocale(request, response, Locale.forLanguageTag(lang));
             }
 
             redirectAttributes.addFlashAttribute("successMessage",
-                    "uk".equals(lang) ? "Мову змінено на українську" : "Language changed to English");
-
+                    msg("uk".equals(lang) ? "toast.language.changed.uk" : "toast.language.changed.en"));
         } catch (Exception e) {
             log.error("Помилка зміни мови: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
-
         return redirectToReferer(request, "/");
     }
 
@@ -151,29 +139,22 @@ public class BudgetController {
                                 RedirectAttributes redirectAttributes,
                                 HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
 
         try {
             userService.updateProfile(currentUser, username, email, currentPassword, newPassword);
 
-            // Оновлюємо SecurityContext після зміни профілю
             User updatedUser = userRepository.findById(currentUser.getId())
                     .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
             Authentication newAuth = new UsernamePasswordAuthenticationToken(
-                    updatedUser,
-                    authentication.getCredentials(),
-                    authentication.getAuthorities()
-            );
+                    updatedUser, authentication.getCredentials(), authentication.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(newAuth);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.profile.updated"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-
         return redirectToReferer(request, "/");
     }
 
@@ -182,18 +163,15 @@ public class BudgetController {
                             RedirectAttributes redirectAttributes,
                             HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
 
         try {
             budgetService.clearAllUserData(currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Всі дані успішно видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.data.cleared"));
         } catch (Exception e) {
             log.error("Помилка при очищенні даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при очищенні даних: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.data.clearError", e.getMessage()));
         }
-
         return redirectToReferer(request, "/");
     }
 
@@ -202,19 +180,17 @@ public class BudgetController {
                                 HttpServletRequest request,
                                 RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
 
         try {
             userService.deleteAccount(currentUser);
             request.getSession().invalidate();
             SecurityContextHolder.clearContext();
-            redirectAttributes.addFlashAttribute("successMessage", "Акаунт успішно видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.account.deleted"));
             return "redirect:/login";
         } catch (Exception e) {
             log.error("Помилка при видаленні акаунта: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні акаунта: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.account.deleteError", e.getMessage()));
             return "redirect:/";
         }
     }
@@ -226,19 +202,16 @@ public class BudgetController {
                                RedirectAttributes redirectAttributes,
                                HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
 
         try {
             demoDataService.createDefaultCategories(currentUser);
             demoDataService.createRandomTransactions(currentUser, 14);
-            redirectAttributes.addFlashAttribute("successMessage", "Демо-дані успішно додано! 🎉");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.demo.added"));
         } catch (Exception e) {
             log.error("Помилка генерації демо-даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
-
         return redirectToReferer(request, "/");
     }
 
@@ -252,9 +225,7 @@ public class BudgetController {
             Model model) {
 
         User user = getCurrentUser(authentication);
-        if (user == null) {
-            return "redirect:/login";
-        }
+        if (user == null) return "redirect:/login";
 
         if (month == null) month = LocalDate.now().getMonthValue();
         if (year == null) year = LocalDate.now().getYear();
@@ -287,11 +258,9 @@ public class BudgetController {
                                  Authentication authentication,
                                  RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         budgetPlanningService.saveOrUpdateBudgetPlan(currentUser, month, year, totalBudget);
-        redirectAttributes.addFlashAttribute("successMessage", "Бюджет збережено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.budget.saved"));
         return "redirect:/budget?month=" + month + "&year=" + year;
     }
 
@@ -304,11 +273,9 @@ public class BudgetController {
                                     Authentication authentication,
                                     RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         budgetPlanningService.saveCategoryLimit(currentUser, categoryId, month, year, limitAmount, note);
-        redirectAttributes.addFlashAttribute("successMessage", "Ліміт для категорії збережено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.categoryLimit.saved"));
         return "redirect:/budget?month=" + month + "&year=" + year;
     }
 
@@ -319,9 +286,7 @@ public class BudgetController {
                           Authentication authentication,
                           Model model) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         DayBudget dayBudget = budgetService.getOrCreateDayBudget(date, currentUser);
         model.addAttribute("dayBudget", dayBudget);
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories(currentUser));
@@ -336,20 +301,16 @@ public class BudgetController {
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("Невірні дані");
+                    .map(e -> e.getDefaultMessage()).findFirst().orElse(msg("error.form.invalid"));
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
             return "redirect:/day/" + date;
         }
         request.setDate(date);
         budgetService.addTransaction(request, TransactionType.EXPENSE, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.added"));
         return "redirect:/day/" + date;
     }
 
@@ -360,20 +321,16 @@ public class BudgetController {
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("Невірні дані");
+                    .map(e -> e.getDefaultMessage()).findFirst().orElse(msg("error.form.invalid"));
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
             return "redirect:/day/" + date;
         }
         request.setDate(date);
         budgetService.addTransaction(request, TransactionType.INCOME, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.added"));
         return "redirect:/day/" + date;
     }
 
@@ -384,19 +341,15 @@ public class BudgetController {
                                   RedirectAttributes redirectAttributes,
                                   HttpServletRequest httpServletRequest) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("Невірні дані");
+                    .map(e -> e.getDefaultMessage()).findFirst().orElse(msg("error.form.invalid"));
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
             return redirectToReferer(httpServletRequest, "/");
         }
         budgetService.addTransaction(request, TransactionType.EXPENSE, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату додано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.added"));
         return redirectToReferer(httpServletRequest, "/");
     }
 
@@ -407,19 +360,15 @@ public class BudgetController {
                                  RedirectAttributes redirectAttributes,
                                  HttpServletRequest httpServletRequest) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getAllErrors().stream()
-                    .map(e -> e.getDefaultMessage())
-                    .findFirst()
-                    .orElse("Невірні дані");
+                    .map(e -> e.getDefaultMessage()).findFirst().orElse(msg("error.form.invalid"));
             redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
             return redirectToReferer(httpServletRequest, "/");
         }
         budgetService.addTransaction(request, TransactionType.INCOME, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід додано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.added"));
         return redirectToReferer(httpServletRequest, "/");
     }
 
@@ -428,9 +377,7 @@ public class BudgetController {
     @GetMapping("/all-days")
     public String viewAllDays(Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         model.addAttribute("allBudgets", budgetService.getAllBudgets(currentUser));
         model.addAttribute("expenseCategories", budgetService.getExpenseCategories(currentUser));
         model.addAttribute("incomeCategories", budgetService.getIncomeCategories(currentUser));
@@ -445,9 +392,7 @@ public class BudgetController {
                              Authentication authentication,
                              Model model) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         if (startDate == null) startDate = LocalDate.now().minusDays(30);
         if (endDate == null) endDate = LocalDate.now();
 
@@ -479,12 +424,10 @@ public class BudgetController {
                               RedirectAttributes redirectAttributes,
                               HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         try {
             budgetService.addCategory(name, type, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Категорію додано!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.category.added"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -497,12 +440,10 @@ public class BudgetController {
                                  RedirectAttributes redirectAttributes,
                                  HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         try {
             budgetService.deleteCategory(id, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Категорію видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.category.deleted"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -516,12 +457,10 @@ public class BudgetController {
                                  RedirectAttributes redirectAttributes,
                                  HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         try {
             budgetService.updateCategory(id, name, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Категорію оновлено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.category.updated"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -535,15 +474,13 @@ public class BudgetController {
                             Authentication authentication,
                             RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         try {
             budgetService.deleteDay(id, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "День успішно видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.day.deleted"));
         } catch (Exception e) {
             log.error("Error deleting day: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні дня: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.day.deleteError", e.getMessage()));
         }
         return "redirect:/all-days";
     }
@@ -555,11 +492,9 @@ public class BudgetController {
                                    Authentication authentication,
                                    RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.duplicateExpense(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату дубльовано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.duplicated"));
         return "redirect:/day/" + date;
     }
 
@@ -568,11 +503,9 @@ public class BudgetController {
                                   Authentication authentication,
                                   RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.duplicateIncome(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід дубльовано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.duplicated"));
         return "redirect:/day/" + date;
     }
 
@@ -583,12 +516,10 @@ public class BudgetController {
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.getDateByExpense(id, currentUser);
         budgetService.deleteExpense(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату видалено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.deleted"));
         return "redirect:/day/" + date;
     }
 
@@ -597,12 +528,10 @@ public class BudgetController {
                                Authentication authentication,
                                RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
         budgetService.deleteIncome(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід видалено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.deleted"));
         return "redirect:/day/" + date;
     }
 
@@ -620,14 +549,12 @@ public class BudgetController {
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         LocalTime time = (timeStr != null && !timeStr.isEmpty()) ? LocalTime.parse(timeStr) : null;
         budgetService.updateExpense(id, description, amount, categoryId, quantity, details,
                 shareWithFamily, time, buyer, seller, currentUser);
         LocalDate date = budgetService.getDateByExpense(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату оновлено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.updated"));
         return "redirect:/day/" + date;
     }
 
@@ -645,14 +572,12 @@ public class BudgetController {
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
         LocalTime time = (timeStr != null && !timeStr.isEmpty()) ? LocalTime.parse(timeStr) : null;
         budgetService.updateIncome(id, description, amount, categoryId, quantity, details,
                 shareWithFamily, time, buyer, seller, currentUser);
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід оновлено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.updated"));
         return "redirect:/day/" + date;
     }
 
@@ -675,41 +600,35 @@ public class BudgetController {
     // ==================== ДОПОМІЖНІ МЕТОДИ ====================
 
     private User getCurrentUser(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
+        if (authentication == null || !authentication.isAuthenticated()) return null;
         Object principal = authentication.getPrincipal();
-        if (principal instanceof CustomOAuth2User) {
-            return ((CustomOAuth2User) principal).getUser();
-        } else if (principal instanceof User) {
-            return (User) principal;
-        }
+        if (principal instanceof CustomOAuth2User) return ((CustomOAuth2User) principal).getUser();
+        if (principal instanceof User) return (User) principal;
         return null;
     }
 
-    /**
-     * Повертає redirect на Referer, якщо він є і виглядає безпечно.
-     * Інакше — на fallbackUrl.
-     */
     private String redirectToReferer(HttpServletRequest request, String fallbackUrl) {
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.isEmpty()) {
-            // Захист від open-redirect: дозволяємо тільки відносні шляхи або свій origin
             try {
                 java.net.URI uri = java.net.URI.create(referer);
                 String path = uri.getPath();
                 if (path != null && !path.isEmpty() && uri.getHost() == null) {
-                    // відносний шлях
                     return "redirect:" + referer;
                 }
                 if (path != null && !path.isEmpty()) {
-                    // повний URL — ігноруємо хост, редіректимо на свій
                     return "redirect:" + path;
                 }
-            } catch (IllegalArgumentException e) {
-                // некоректний URL — ігноруємо
-            }
+            } catch (IllegalArgumentException ignored) {}
         }
         return "redirect:" + fallbackUrl;
+    }
+
+    private String msg(String key, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            return key;
+        }
     }
 }

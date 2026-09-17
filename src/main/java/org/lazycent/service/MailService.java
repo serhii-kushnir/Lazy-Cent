@@ -3,6 +3,8 @@ package org.lazycent.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class MailService {
 
     private final JavaMailSender mailSender;
+    private final MessageSource messageSource;
 
     @Value("${spring.mail.from}")
     private String fromEmail;
@@ -22,7 +25,8 @@ public class MailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
-            message.setSubject("Відновлення пароля – Lazy Cent");
+            message.setSubject(messageSource.getMessage(
+                    "mail.passwordReset.subject", null, LocaleContextHolder.getLocale()));
             message.setText("""
                     Доброго дня!
 

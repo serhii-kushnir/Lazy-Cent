@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final LocaleAwareAuthenticationSuccessHandler successHandler;   // ← один на всіх
+    private final LocaleAwareAuthenticationSuccessHandler successHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -27,13 +27,15 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(successHandler)         // ← ДОДАНО: відновлення мови після логіну
+                        .successHandler(successHandler)   // ← відновлення мови після логіну/паролю
                         .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(successHandler)         // ← той самий хендлер
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(successHandler)   // ← і для OAuth2
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
