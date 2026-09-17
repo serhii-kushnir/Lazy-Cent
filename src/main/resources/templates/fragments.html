@@ -334,16 +334,38 @@
         }
 
         .toast-container {
-            position: fixed; top: 70px; right: 20px;
-            z-index: 9999 !important; max-width: 350px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            top: auto;
+            z-index: 9999 !important;
+            max-width: 350px;
+            pointer-events: none; /* контейнер не блокує кліки */
         }
+        .toast-container > * {
+            pointer-events: auto; /* але сам тост — клікабельний */
+        }
+
+
         .toast {
-            background: #fff; border-left: 4px solid #0d6efd;
+            background: #fff;
+            border-left: 4px solid #0d6efd;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            min-width: 250px; border-radius: 8px; opacity: 0;
-            transform: translateX(100%); transition: all 0.5s ease;
+            min-width: 250px;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateY(120%);
         }
-        .toast.show { opacity: 1; transform: translateX(0); }
+
+        .toast.show {
+            animation: toastSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes toastSlideIn {
+            0%   { opacity: 0; transform: translateY(120%); }
+            60%  { opacity: 1; transform: translateY(-6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
         .toast.success { border-left-color: #198754 !important; }
         .toast.success .toast-header { color: #198754; }
         .toast.success .toast-header i { color: #198754; }
