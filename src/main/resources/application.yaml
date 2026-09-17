@@ -54,6 +54,7 @@ server:
 logging:
   level:
     org.lazycent: DEBUG
+    org.lazycent.config.LocaleAwareAuthenticationSuccessHandler: DEBUG
 app:
   demo:
     enabled: true
