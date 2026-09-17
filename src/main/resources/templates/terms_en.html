@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{terms.title} + ' - Lazy Cent'">Terms of Use - Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .policy-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .policy-container h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .policy-container .last-updated { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 2rem; }
+        .policy-container h2 { font-size: 1.4rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
+        .policy-container p { line-height: 1.7; margin-bottom: 1rem; }
+        .policy-container ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .policy-container ul li { margin-bottom: 0.5rem; }
+        .policy-container .highlight-box {
+            background: var(--bs-secondary-bg);
+            border-left: 4px solid var(--bs-warning);
+            padding: 1rem 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0;
+        }
+        [data-bs-theme="dark"] .policy-container .highlight-box { background: var(--bs-tertiary-bg); }
+        .back-link { margin-top: 2.5rem; }
+        .table-of-contents { background: var(--bs-secondary-bg); padding: 1.5rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .table-of-contents ul { list-style: none; padding-left: 0; }
+        .table-of-contents ul li { margin-bottom: 0.5rem; }
+        .table-of-contents ul li a { text-decoration: none; color: var(--bs-primary); }
+        .table-of-contents ul li a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<nav th:replace="~{fragments :: navbar('terms')}"></nav>
+
+<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: toastContainer}"></div>
+
+<div class="container policy-container">
+
+    <div class="highlight-box">
+        <i class="fas fa-gavel me-2"></i>
+        <strong>Terms of Use Agreement</strong> — by using Lazy Cent, you agree to these Terms. If you do not agree, please do not use our Services.
+    </div>
+
+    <p>These Terms of Use govern your access to and use of the <strong>Lazy Cent</strong> website (hereinafter — the "Services").</p>
+
+    <p><strong>Lazy Cent</strong> is a budgeting web application that helps individuals, couples, and families track expenses, manage categories, create budgets, and work together in a shared space.</p>
+
+    <p>If you have any questions about these Terms, please contact us at: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
+
+    <div class="table-of-contents">
+        <h3>Table of Contents</h3>
+        <ul>
+            <li><a href="#acceptance">1. Acceptance of Terms</a></li>
+            <li><a href="#services">2. Our Services</a></li>
+            <li><a href="#intellectual-property">3. Intellectual Property</a></li>
+            <li><a href="#user-obligations">4. User Obligations</a></li>
+            <li><a href="#prohibited-activities">5. Prohibited Activities</a></li>
+            <li><a href="#termination">6. Termination</a></li>
+            <li><a href="#limitation-liability">7. Limitation of Liability</a></li>
+            <li><a href="#governing-law">8. Governing Law</a></li>
+            <li><a href="#changes">9. Changes to Terms</a></li>
+            <li><a href="#contact">10. Contact</a></li>
+        </ul>
+    </div>
+
+    <h2 id="acceptance">1. Acceptance of Terms</h2>
+    <p>These Terms of Use constitute a legally binding agreement between you (an individual or legal entity) and Lazy Cent. By using the Services, you confirm that you have read, understood, and agreed to these Terms.</p>
+    <p>If you do not agree with any part of these Terms, you are prohibited from using the Services and must immediately stop using them.</p>
+
+    <h2 id="services">2. Our Services</h2>
+    <p>Lazy Cent provides tools for:</p>
+    <ul>
+        <li>Tracking income and expenses</li>
+        <li>Creating and managing categories</li>
+        <li>Budget planning and setting limits</li>
+        <li>Analytics and data visualization</li>
+        <li>Creating notes</li>
+    </ul>
+    <p>The information provided through the Services is for personal use only and is not professional financial advice.</p>
+
+    <div class="highlight-box">
+        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+        <strong>Warning:</strong> Lazy Cent is not responsible for any financial decisions made based on data provided by the application.
+    </div>
+
+    <h2 id="intellectual-property">3. Intellectual Property</h2>
+    <h3>Our Intellectual Property</h3>
+    <p>Lazy Cent owns or is a licensee of all intellectual property rights in the Services, including source code, databases, functionality, design, text, images, graphics, and logos.</p>
+    <p>You may not copy, modify, distribute, or create derivative works based on our Services without prior written consent.</p>
+
+    <h3>Your Contributions</h3>
+    <p>You retain rights to the data you enter into the application (transactions, categories, notes). By providing us with this data, you grant us the right to process it to provide the Services.</p>
+
+    <h2 id="user-obligations">4. User Obligations</h2>
+    <ul>
+        <li>You are fully responsible for maintaining the confidentiality of your account and password.</li>
+        <li>You agree to provide accurate and up-to-date information.</li>
+        <li>You are responsible for all actions performed under your account.</li>
+        <li>You must immediately notify us of any unauthorized use of your account.</li>
+    </ul>
+
+    <h2 id="prohibited-activities">5. Prohibited Activities</h2>
+    <p>You may not:</p>
+    <ul>
+        <li>Use the Services for any illegal purposes.</li>
+        <li>Attempt to gain unauthorized access to the Services, other users' accounts, or computer systems.</li>
+        <li>Distribute malicious software, viruses, or other code that may harm the Services.</li>
+        <li>Collect or track personal information of other users without their consent.</li>
+        <li>Violate any applicable laws or regulations.</li>
+    </ul>
+
+    <h2 id="termination">6. Termination</h2>
+    <p>We reserve the right to suspend or terminate your access to the Services at any time without notice if you violate these Terms.</p>
+    <p>You may stop using the Services at any time by deleting your account through the settings.</p>
+
+    <h2 id="limitation-liability">7. Limitation of Liability</h2>
+    <p>Lazy Cent provides the Services "as is" without any express or implied warranties. We are not liable for:</p>
+    <ul>
+        <li>Any damages arising from the use or inability to use the Services.</li>
+        <li>Financial losses or incorrect decisions made based on data provided by the application.</li>
+        <li>Interruptions, data loss, or other technical issues.</li>
+    </ul>
+    <p>Lazy Cent's maximum liability is limited to the amount you paid for using the Services (if any).</p>
+
+    <h2 id="governing-law">8. Governing Law</h2>
+    <p>These Terms are governed by and construed in accordance with the laws of Ukraine. Any disputes arising from these Terms shall be subject to the jurisdiction of the competent courts of Ukraine.</p>
+
+    <h2 id="changes">9. Changes to Terms</h2>
+    <p>We reserve the right to change these Terms at any time. Changes will be communicated through the application or by email. Your continued use of the Services after the changes take effect constitutes your acceptance of the updated Terms.</p>
+
+    <h2 id="contact">10. Contact</h2>
+    <p>If you have any questions or suggestions regarding these Terms, please contact us:</p>
+    <ul>
+        <li><strong>Email:</strong> <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a></li>
+    </ul>
+
+    <div class="back-link">
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Back</span>
+        </a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
+
+</body>
+</html>

@@ -3,83 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Умови використання - Lazy Cent</title>
+    <title th:text="#{terms.title} + ' - Lazy Cent'">Умови використання - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
-        .policy-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-        }
-        .policy-container h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        .policy-container .last-updated {
-            color: var(--bs-secondary-color);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-        .policy-container h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--bs-primary);
-        }
-        .policy-container p {
-            line-height: 1.7;
-            margin-bottom: 1rem;
-        }
-        .policy-container ul {
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .policy-container ul li {
-            margin-bottom: 0.5rem;
-        }
+        .policy-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .policy-container h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .policy-container .last-updated { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 2rem; }
+        .policy-container h2 { font-size: 1.4rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
+        .policy-container p { line-height: 1.7; margin-bottom: 1rem; }
+        .policy-container ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .policy-container ul li { margin-bottom: 0.5rem; }
         .policy-container .highlight-box {
             background: var(--bs-secondary-bg);
             border-left: 4px solid var(--bs-warning);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1.5rem 0;
+            padding: 1rem 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0;
         }
-        [data-bs-theme="dark"] .policy-container .highlight-box {
-            background: var(--bs-tertiary-bg);
-        }
-        .back-link {
-            margin-top: 2.5rem;
-        }
-        .table-of-contents {
-            background: var(--bs-secondary-bg);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 2rem 0;
-        }
-        .table-of-contents ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        .table-of-contents ul li {
-            margin-bottom: 0.5rem;
-        }
-        .table-of-contents ul li a {
-            text-decoration: none;
-            color: var(--bs-primary);
-        }
-        .table-of-contents ul li a:hover {
-            text-decoration: underline;
-        }
+        [data-bs-theme="dark"] .policy-container .highlight-box { background: var(--bs-tertiary-bg); }
+        .back-link { margin-top: 2.5rem; }
+        .table-of-contents { background: var(--bs-secondary-bg); padding: 1.5rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .table-of-contents ul { list-style: none; padding-left: 0; }
+        .table-of-contents ul li { margin-bottom: 0.5rem; }
+        .table-of-contents ul li a { text-decoration: none; color: var(--bs-primary); }
+        .table-of-contents ul li a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<!-- ===== ПОВНОЦІННИЙ НАВБАР ===== -->
 <nav th:replace="~{fragments :: navbar('terms')}"></nav>
+
+<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: toastContainer}"></div>
 
 <div class="container policy-container">
 
@@ -94,7 +49,6 @@
 
     <p>Якщо у вас виникли запитання щодо цих Умов, будь ласка, зв'яжіться з нами за адресою: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
 
-    <!-- ===== ЗМІСТ ===== -->
     <div class="table-of-contents">
         <h3>Зміст</h3>
         <ul>
@@ -111,12 +65,10 @@
         </ul>
     </div>
 
-    <!-- ===== 1. ПРИЙНЯТТЯ УМОВ ===== -->
     <h2 id="acceptance">1. Прийняття умов</h2>
     <p>Ці Умови використання є юридично обов'язковою угодою між вами (фізичною або юридичною особою) та Lazy Cent. Використовуючи Сервіси, ви підтверджуєте, що прочитали, зрозуміли та погодилися з цими Умовами.</p>
     <p>Якщо ви не згодні з будь-якою частиною цих Умов, вам забороняється використовувати Сервіси, і ви повинні негайно припинити їх використання.</p>
 
-    <!-- ===== 2. НАШІ СЕРВІСИ ===== -->
     <h2 id="services">2. Наші сервіси</h2>
     <p>Lazy Cent надає інструменти для:</p>
     <ul>
@@ -133,7 +85,6 @@
         <strong>Увага:</strong> Lazy Cent не несе відповідальності за будь-які фінансові рішення, прийняті на основі даних, наданих застосунком.
     </div>
 
-    <!-- ===== 3. ІНТЕЛЕКТУАЛЬНА ВЛАСНІСТЬ ===== -->
     <h2 id="intellectual-property">3. Інтелектуальна власність</h2>
     <h3>Наша інтелектуальна власність</h3>
     <p>Lazy Cent є власником або ліцензіатом усіх прав інтелектуальної власності на Сервіси, включаючи вихідний код, бази даних, функціональність, дизайн, текст, фотографії, графіку та логотипи.</p>
@@ -142,7 +93,6 @@
     <h3>Ваші внески</h3>
     <p>Ви зберігаєте права на дані, які вводите у застосунок (транзакції, категорії, нотатки). Надаючи нам ці дані, ви надаєте нам право обробляти їх для надання Сервісів.</p>
 
-    <!-- ===== 4. ОБОВ'ЯЗКИ КОРИСТУВАЧА ===== -->
     <h2 id="user-obligations">4. Обов'язки користувача</h2>
     <ul>
         <li>Ви несете повну відповідальність за збереження конфіденційності вашого облікового запису та пароля.</li>
@@ -151,7 +101,6 @@
         <li>Ви повинні негайно повідомляти нас про будь-яке несанкціоноване використання вашого облікового запису.</li>
     </ul>
 
-    <!-- ===== 5. ЗАБОРОНЕНІ ДІЇ ===== -->
     <h2 id="prohibited-activities">5. Заборонені дії</h2>
     <p>Ви не маєте права:</p>
     <ul>
@@ -162,12 +111,10 @@
         <li>Порушувати будь-які застосовні закони або нормативні акти.</li>
     </ul>
 
-    <!-- ===== 6. ПРИПИНЕННЯ ДІЇ ===== -->
     <h2 id="termination">6. Припинення дії</h2>
     <p>Ми залишаємо за собою право призупинити або припинити ваш доступ до Сервісів у будь-який час без попередження, якщо ви порушуєте ці Умови.</p>
     <p>Ви можете припинити використання Сервісів у будь-який час, видаливши свій обліковий запис через налаштування.</p>
 
-    <!-- ===== 7. ОБМЕЖЕННЯ ВІДПОВІДАЛЬНОСТІ ===== -->
     <h2 id="limitation-liability">7. Обмеження відповідальності</h2>
     <p>Lazy Cent надає Сервіси «як є» без будь-яких прямих чи опосередкованих гарантій. Ми не несемо відповідальності за:</p>
     <ul>
@@ -177,15 +124,12 @@
     </ul>
     <p>Максимальна відповідальність Lazy Cent обмежується сумою, сплаченою вами за використання Сервісів (якщо така була).</p>
 
-    <!-- ===== 8. ЗАКОНОДАВСТВО ===== -->
     <h2 id="governing-law">8. Законодавство</h2>
     <p>Ці Умови регулюються та тлумачаться відповідно до законодавства України. Будь-які спори, що виникають з цих Умов, підлягають розгляду в компетентних судах України.</p>
 
-    <!-- ===== 9. ЗМІНИ ДО УМОВ ===== -->
     <h2 id="changes">9. Зміни до умов</h2>
     <p>Ми залишаємо за собою право вносити зміни до цих Умов у будь-який час. Про зміни буде повідомлено через застосунок або електронну пошту. Ваше подальше використання Сервісів після набуття чинності змін означає вашу згоду з оновленими Умовами.</p>
 
-    <!-- ===== 10. КОНТАКТИ ===== -->
     <h2 id="contact">10. Контакти</h2>
     <p>Якщо у вас є запитання або пропозиції щодо цих Умов, будь ласка, звертайтеся до нас:</p>
     <ul>
@@ -193,7 +137,9 @@
     </ul>
 
     <div class="back-link">
-        <a href="/" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i>На головну</a>
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Назад</span>
+        </a>
     </div>
 </div>
 
@@ -201,6 +147,8 @@
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 
 </body>
 </html>

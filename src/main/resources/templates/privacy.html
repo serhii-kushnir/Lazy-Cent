@@ -3,87 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Політика конфіденційності - Lazy Cent</title>
+    <title th:text="#{privacy.title} + ' - Lazy Cent'">Політика конфіденційності - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments :: themeAssets}"></div>
     <style>
-        .policy-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem 1.5rem;
-        }
-        .policy-container h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        .policy-container .last-updated {
-            color: var(--bs-secondary-color);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-        .policy-container h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--bs-primary);
-        }
-        .policy-container p {
-            line-height: 1.7;
-            margin-bottom: 1rem;
-        }
-        .policy-container ul {
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        .policy-container ul li {
-            margin-bottom: 0.5rem;
-        }
+        .policy-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .policy-container h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .policy-container .last-updated { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 2rem; }
+        .policy-container h2 { font-size: 1.4rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
+        .policy-container h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .policy-container p { line-height: 1.7; margin-bottom: 1rem; }
+        .policy-container ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+        .policy-container ul li { margin-bottom: 0.5rem; }
         .policy-container .highlight-box {
             background: var(--bs-secondary-bg);
             border-left: 4px solid var(--bs-primary);
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            margin: 1.5rem 0;
+            padding: 1rem 1.5rem; border-radius: 0.5rem; margin: 1.5rem 0;
         }
-        [data-bs-theme="dark"] .policy-container .highlight-box {
-            background: var(--bs-tertiary-bg);
-        }
-        .back-link {
-            margin-top: 2.5rem;
-        }
-        .table-of-contents {
-            background: var(--bs-secondary-bg);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            margin: 2rem 0;
-        }
-        .table-of-contents ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        .table-of-contents ul li {
-            margin-bottom: 0.5rem;
-        }
-        .table-of-contents ul li a {
-            text-decoration: none;
-            color: var(--bs-primary);
-        }
-        .table-of-contents ul li a:hover {
-            text-decoration: underline;
-        }
+        [data-bs-theme="dark"] .policy-container .highlight-box { background: var(--bs-tertiary-bg); }
+        .back-link { margin-top: 2.5rem; }
+        .table-of-contents { background: var(--bs-secondary-bg); padding: 1.5rem; border-radius: 0.5rem; margin: 2rem 0; }
+        .table-of-contents ul { list-style: none; padding-left: 0; }
+        .table-of-contents ul li { margin-bottom: 0.5rem; }
+        .table-of-contents ul li a { text-decoration: none; color: var(--bs-primary); }
+        .table-of-contents ul li a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<!-- ===== ПОВНОЦІННИЙ НАВБАР ===== -->
 <nav th:replace="~{fragments :: navbar('privacy')}"></nav>
 
+<!-- ✅ ПАНЕЛЬ НАЛАШТУВАНЬ -->
+<div th:replace="~{fragments :: settingsPanel}"></div>
+
+<!-- ✅ TOAST -->
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container policy-container">
-    <h1>Політика конфіденційності</h1>
-    <p class="last-updated">Останнє оновлення: 30 серпня 2026 року</p>
+    <h1 th:text="#{privacy.title}">Політика конфіденційності</h1>
+    <p class="last-updated" th:text="#{privacy.lastUpdated}">Останнє оновлення: 30 серпня 2026 року</p>
 
     <p>Ця Політика конфіденційності пояснює, як Lazy Cent збирає, використовує та захищає вашу особисту інформацію, коли ви користуєтеся нашим веб-сайтом.</p>
 
@@ -106,9 +65,7 @@
         </ul>
     </div>
 
-    <!-- ===== 1. ЯКУ ІНФОРМАЦІЮ МИ ЗБИРАЄМО? ===== -->
     <h2 id="info-collect">1. Яку інформацію ми збираємо?</h2>
-
     <h3>Особиста інформація, яку ви надаєте нам</h3>
     <p>Ми збираємо особисту інформацію, яку ви добровільно надаєте нам під час реєстрації, використання застосунку або зв'язку з нами. Ця інформація може включати:</p>
     <ul>
@@ -130,7 +87,6 @@
     <h3>Дані з соціальних мереж (OAuth2)</h3>
     <p>Якщо ви входите через Google або інші сервіси OAuth2, ми отримуємо ваше ім'я та електронну адресу (за вашим дозволом).</p>
 
-    <!-- ===== 2. ЯК МИ ВИКОРИСТОВУЄМО ВАШУ ІНФОРМАЦІЮ? ===== -->
     <h2 id="info-use">2. Як ми використовуємо вашу інформацію?</h2>
     <p>Ми використовуємо зібрану інформацію для:</p>
     <ul>
@@ -145,7 +101,6 @@
         <strong>Важливо:</strong> Ми НІКОЛИ не передаємо ваші фінансові дані третім особам без вашої явної згоди, крім випадків, передбачених законом.
     </div>
 
-    <!-- ===== 3. ЧИ ПЕРЕДАЄМО МИ ВАШУ ІНФОРМАЦІЮ ТРЕТІМ ОСОБАМ? ===== -->
     <h2 id="info-share">3. Чи передаємо ми вашу інформацію третім особам?</h2>
     <p>Ми не продаємо, не обмінюємо та не передаємо вашу особисту інформацію третім особам, за винятком наступних випадків:</p>
     <ul>
@@ -153,7 +108,6 @@
         <li><strong>Юридичні вимоги</strong> — якщо це вимагається законом або для захисту наших прав.</li>
     </ul>
 
-    <!-- ===== 4. ЯК МИ ЗАХИЩАЄМО ВАШІ ДАНІ? ===== -->
     <h2 id="data-security">4. Як ми захищаємо ваші дані?</h2>
     <p>Ми впроваджуємо сучасні заходи безпеки для захисту ваших даних:</p>
     <ul>
@@ -163,7 +117,6 @@
     </ul>
     <p>Однак жоден метод передачі даних через Інтернет або електронного зберігання не є на 100% безпечним. Ми робимо все можливе, але не можемо гарантувати абсолютну безпеку.</p>
 
-    <!-- ===== 5. ЯК ДОВГО МИ ЗБЕРІГАЄМО ВАШІ ДАНІ? ===== -->
     <h2 id="data-retention">5. Як довго ми зберігаємо ваші дані?</h2>
     <p>Ми зберігаємо ваші персональні дані лише доти, доки це необхідно для цілей, описаних у цій Політиці конфіденційності, або відповідно до вимог законодавства.</p>
     <ul>
@@ -173,7 +126,6 @@
     </ul>
     <p>Ви можете в будь-який момент видалити свої дані через налаштування акаунта.</p>
 
-    <!-- ===== 6. ФАЙЛИ COOKIE ===== -->
     <h2 id="cookies">6. Файли cookie та подібні технології</h2>
     <p>Ми використовуємо файли cookie для:</p>
     <ul>
@@ -183,17 +135,15 @@
     </ul>
     <p>Ви можете керувати файлами cookie у налаштуваннях вашого браузера. Вимкнення cookie може вплинути на роботу деяких функцій застосунку.</p>
 
-    <!-- ===== 7. ВАШІ ПРАВА ===== -->
     <h2 id="user-rights">7. Ваші права</h2>
     <p>Залежно від вашого місцезнаходження, ви можете мати такі права щодо ваших персональних даних:</p>
     <ul>
         <li><strong>Доступ</strong> — ви можете переглянути свої дані в будь-який час.</li>
         <li><strong>Виправлення</strong> — ви можете змінити або оновити свої дані.</li>
         <li><strong>Видалення</strong> — ви можете назавжди видалити свій акаунт та всі пов'язані дані.</li>
-        </ul>
+    </ul>
     <p>Для реалізації своїх прав зв'яжіться з нами за адресою: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
 
-    <!-- ===== 8. КОНТАКТИ ===== -->
     <h2 id="contact">8. Контакти</h2>
     <p>Якщо у вас є запитання або пропозиції щодо цієї Політики конфіденційності, будь ласка, звертайтеся до нас:</p>
     <ul>
@@ -201,7 +151,9 @@
     </ul>
 
     <div class="back-link">
-        <a href="/" class="btn btn-outline-primary"><i class="fas fa-arrow-left me-1"></i>На головну</a>
+        <a href="/" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Назад</span>
+        </a>
     </div>
 </div>
 
@@ -209,6 +161,9 @@
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- ✅ СКРИПТ ПАНЕЛІ (обов'язково в кінці) -->
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 
 </body>
 </html>

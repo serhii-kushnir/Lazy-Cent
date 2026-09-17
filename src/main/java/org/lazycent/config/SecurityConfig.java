@@ -1,4 +1,3 @@
-// SecurityConfig.java – повертаємо стандартну конфігурацію CSRF (через сесію)
 package org.lazycent.config;
 
 import lombok.RequiredArgsConstructor;
@@ -15,21 +14,20 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final LocaleAwareAuthenticationSuccessHandler successHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/login", "/register", "/lib/**", "/css/**", "/js/**", "/webjars/**",
-                                "/favicon.ico", "/logo.png", "/privacy", "/terms", "/error", "/forgot-password", "/reset-password").permitAll()
-
+                                "/favicon.ico", "/logo.png", "/privacy", "/terms", "/error",
+                                "/forgot-password", "/reset-password").permitAll()
                         .anyRequest().authenticated()
-
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(successHandler)   // ← відновлення мови після логіну/паролю
                         .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -37,7 +35,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
-                        .successHandler(oAuth2LoginSuccessHandler)
+                        .successHandler(successHandler)   // ← і для OAuth2
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")

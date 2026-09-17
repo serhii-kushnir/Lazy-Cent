@@ -1,4 +1,8 @@
 spring:
+  messages:
+      basename: messages
+      encoding: UTF-8
+      fallback-to-system-locale: false
   application:
     name: lazycent
   datasource:
@@ -50,6 +54,7 @@ server:
 logging:
   level:
     org.lazycent: DEBUG
+    org.lazycent.config.LocaleAwareAuthenticationSuccessHandler: DEBUG
 app:
   demo:
     enabled: true

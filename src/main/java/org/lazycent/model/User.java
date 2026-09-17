@@ -25,6 +25,9 @@ public class User implements UserDetails {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @Column(nullable = false, length = 5)
+    private String preferredLanguage = "uk";
+
     @Column(nullable = false, unique = true)
     private String username;
 
