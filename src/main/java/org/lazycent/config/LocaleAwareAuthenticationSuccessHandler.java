@@ -20,7 +20,7 @@ import java.util.Locale;
 @Slf4j
 public class LocaleAwareAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final LocaleResolver localeResolver;   // інжектимо SessionLocaleResolver напряму
+    private final LocaleResolver localeResolver;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -37,7 +37,8 @@ public class LocaleAwareAuthenticationSuccessHandler implements AuthenticationSu
             log.debug("No preferredLanguage for {}, keeping default", authentication.getName());
         }
 
-        response.sendRedirect(request.getContextPath() + "/");
+        // ← Редірект на дашборд
+        response.sendRedirect(request.getContextPath() + "/home");
     }
 
     private User extractUser(Authentication authentication) {

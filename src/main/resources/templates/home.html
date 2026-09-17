@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{app.title} + ' - ' + #{nav.home}">Lazy Cent - Головна</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <style>
+        /* ===== АНІМАЦІЇ ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+        .animate-scale { animation: scaleIn 0.5s ease forwards; opacity: 0; }
+
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.10s; }
+        .delay-3 { animation-delay: 0.15s; }
+        .delay-4 { animation-delay: 0.20s; }
+
+        .feature-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .quick-link { text-decoration: none; color: inherit; }
+
+        .btn-add-transaction {
+            padding: 1.2rem 3.5rem !important;
+            font-size: 1.5rem !important;
+            border-radius: 60px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .btn-add-transaction:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        }
+        .btn-add-transaction i {
+            font-size: 1.8rem;
+        }
+
+        .transaction-type-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .transaction-type-toggle .btn {
+            flex: 1;
+            padding: 0.6rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+        }
+        .transaction-type-toggle .btn.active-expense {
+            background-color: #dc3545;
+            color: #fff;
+            border-color: #dc3545;
+        }
+        .transaction-type-toggle .btn.active-income {
+            background-color: #198754;
+            color: #fff;
+            border-color: #198754;
+        }
+        .input-group-number {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .input-group-number .btn { flex: 0 0 40px; }
+        .input-group-number input { flex: 1; text-align: center; }
+        .char-counter {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        .modal-content { border-radius: 1rem; }
+        [data-bs-theme="dark"] .modal-content {
+            background-color: #1d2027;
+            color: #e6e6e6;
+        }
+        [data-bs-theme="dark"] .modal-header { border-bottom-color: #2a2e37; }
+        [data-bs-theme="dark"] .modal-footer { border-top-color: #2a2e37; }
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select {
+            background-color: #23262e;
+            color: #e6e6e6;
+            border-color: #3a3f4a;
+        }
+        [data-bs-theme="dark"] .form-control:focus,
+        [data-bs-theme="dark"] .form-select:focus {
+            background-color: #2a2e37;
+            color: #fff;
+        }
+        [data-bs-theme="dark"] .btn-close { filter: invert(1); }
+        [data-bs-theme="dark"] .form-check-label { color: #e6e6e6; }
+        [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
+
+        .stat-card {
+            border-radius: 0.75rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card .stat-icon {
+            font-size: 1.8rem;
+            opacity: 0.5;
+        }
+        .category-input-group .form-select {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+        .category-input-group .btn {
+            border-radius: 0 0.375rem 0.375rem 0;
+            border-left: none;
+        }
+        [data-bs-theme="dark"] .category-input-group .btn {
+            border-color: #3a3f4a;
+        }
+    </style>
+    <div th:replace="~{fragments :: themeAssets}"></div>
+</head>
+<body>
+
+<!-- ===== НАВБАР ===== -->
+<nav th:replace="~{fragments :: navbar('home')}"></nav>
+
+<!-- ===== ПАНЕЛЬ НАЛАШТУВАНЬ ===== -->
+<div th:replace="~{fragments :: settingsPanel}"></div>
+
+<!-- ===== TOAST ===== -->
+<div th:replace="~{fragments :: toastContainer}"></div>
+
+<div class="container mt-4">
+
+    <!-- ===== БАНЕР ДЕМО-ДАНИХ ===== -->
+    <div th:if="${showDemoBanner}" class="alert alert-info alert-dismissible fade show animate-fade-up" role="alert">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <i class="fas fa-info-circle me-2"></i>
+                <strong th:text="#{index.demo.title}">Ласкаво просимо до Lazy Cent!</strong>
+                <span class="d-none d-sm-inline" th:text="#{index.demo.text}">Додайте демонстраційні дані, щоб побачити, як працює додаток.</span>
+            </div>
+            <form th:action="@{/generate-demo}" method="post" style="display: inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fas fa-magic me-1"></i> <span th:text="#{index.demo.addBtn}">Додати демо-дані</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== ЗАГОЛОВОК ===== -->
+    <div class="row mb-4">
+        <div class="col text-center animate-fade-down">
+            <h1 class="display-4">
+                <i class="fas fa-coins text-warning"></i> <span th:text="#{app.title}">Lazy Cent</span>
+            </h1>
+            <p class="lead" th:text="#{app.tagline}">Ваш особистий фінансовий помічник</p>
+            <hr>
+        </div>
+    </div>
+
+    <!-- ===== КНОПКА ДОДАВАННЯ ===== -->
+    <div class="row mb-5">
+        <div class="col-12 text-center animate-scale delay-1">
+            <h3 class="mb-4">
+                <i class="fas fa-plus-circle text-success"></i>
+                <span th:text="#{index.quickAdd.title}">Швидке додавання</span>
+            </h3>
+            <button class="btn btn-primary btn-add-transaction" data-bs-toggle="modal" data-bs-target="#transactionModal">
+                <i class="fas fa-plus me-2"></i> <span th:text="#{index.quickAdd.button}">Додати транзакцію</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== ШВИДКИЙ ДОСТУП ===== -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="text-center mb-4 animate-fade-down delay-1">
+                <i class="fas fa-bolt text-primary"></i>
+                <span th:text="#{index.quickAccess.title}">Швидкий доступ</span>
+            </h3>
+        </div>
+
+        <div class="col-md-3 mb-3 animate-fade-up delay-1">
+            <a href="/budget" class="quick-link">
+                <div class="card feature-card text-center bg-primary text-white h-100">
+                    <div class="card-body d-flex flex-column">
+                        <i class="fas fa-chart-line fa-3x mb-3"></i>
+                        <h4 th:text="#{index.quickAccess.budget}">Бюджет</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.budgetDesc}">Перегляд загального бюджету та витрат за період</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 mb-3 animate-fade-up delay-2">
+            <a href="/totals" class="quick-link">
+                <div class="card feature-card text-center bg-success text-white h-100">
+                    <div class="card-body d-flex flex-column">
+                        <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                        <h4 th:text="#{index.quickAccess.totals}">Підсумки</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.totalsDesc}">Аналітика та статистика за категоріями</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 mb-3 animate-fade-up delay-3">
+            <a href="/all-days" class="quick-link">
+                <div class="card feature-card text-center bg-info text-white h-100">
+                    <div class="card-body d-flex flex-column">
+                        <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                        <h4 th:text="#{index.quickAccess.allDays}">Всі дні</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.allDaysDesc}">Детальний перегляд за кожен день</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 mb-3 animate-fade-up delay-4">
+            <a href="/notes" class="quick-link">
+                <div class="card feature-card text-center bg-warning text-dark h-100">
+                    <div class="card-body d-flex flex-column">
+                        <i class="fas fa-sticky-note fa-3x mb-3"></i>
+                        <h4 th:text="#{index.quickAccess.notes}">Нотатки</h4>
+                        <p class="flex-fill" th:text="#{index.quickAccess.notesDesc}">Швидкі нотатки та ідеї, як у Google Keep</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== СТАТИСТИКА ===== -->
+    <div class="row animate-fade-up delay-2">
+        <div class="col-12">
+            <h3 class="text-center mb-3">
+                <i class="fas fa-chart-simple text-primary"></i>
+                <span th:text="#{index.stats.title}">Ваша фінансова статистика</span>
+            </h3>
+        </div>
+        <div class="col-md-4 mb-3 animate-fade-up delay-1">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-sun me-2"></i> <span th:text="#{index.today}">Сьогодні</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-up text-success me-1"></i>
+                        <span th:text="#{index.income}">Доходи</span>:
+                        <strong th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-down text-danger me-1"></i>
+                        <span th:text="#{index.expense}">Витрати</span>:
+                        <strong th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span th:text="#{index.balance}">Баланс</span>:
+                        <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 animate-fade-up delay-2">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-calendar-week me-2"></i> <span th:text="#{index.week}">Цей тиждень</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-up text-success me-1"></i>
+                        <span th:text="#{index.income}">Доходи</span>:
+                        <strong th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-down text-danger me-1"></i>
+                        <span th:text="#{index.expense}">Витрати</span>:
+                        <strong th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span th:text="#{index.balance}">Баланс</span>:
+                        <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3 animate-fade-up delay-3">
+            <div class="card stat-card h-100 text-center">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-calendar-alt me-2"></i> <span th:text="#{index.month}">Цей місяць</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-up text-success me-1"></i>
+                        <span th:text="#{index.income}">Доходи</span>:
+                        <strong th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-1">
+                        <i class="fas fa-arrow-down text-danger me-1"></i>
+                        <span th:text="#{index.expense}">Витрати</span>:
+                        <strong th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-balance-scale me-1"></i>
+                        <span th:text="#{index.balance}">Баланс</span>:
+                        <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== МОДАЛЬНЕ ВІКНО ТРАНЗАКЦІЇ ===== -->
+<div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i><span th:text="#{modal.addTransaction}">Додати нову транзакцію</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="transactionForm" th:action="@{/quick-expense}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div class="modal-body">
+                    <input type="hidden" name="type" id="transactionType" value="EXPENSE">
+
+                    <div class="mb-3">
+                        <label for="transactionName" class="form-label" th:text="#{modal.name}">Назва</label>
+                        <input type="text" class="form-control" id="transactionName" name="description"
+                               th:placeholder="#{modal.name.placeholder}" required>
+                        <div class="invalid-feedback" th:text="#{modal.fillField}">Будь ласка, заповніть це поле</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{modal.type}">Тип</label>
+                        <div class="transaction-type-toggle">
+                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i> <span th:text="#{modal.type.expense}">Витрата</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i> <span th:text="#{modal.type.income}">Дохід</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categorySelect" class="form-label" th:text="#{modal.category}">Категорія</label>
+                        <div class="input-group category-input-group">
+                            <select class="form-select" id="categorySelect" name="categoryId" required>
+                                <option value="" th:text="#{common.loading}">Завантаження...</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" th:title="#{modal.category.addTitle}">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" th:text="#{modal.enterCategory}">Виберіть категорію</div>
+                        <div class="form-text text-muted" th:utext="#{modal.category.hint}">Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionDate" class="form-label" th:text="#{modal.date}">Дата</label>
+                        <input type="date" class="form-control" id="transactionDate" name="date"
+                               th:value="${#temporals.format(today, 'yyyy-MM-dd')}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionTime" class="form-label" th:text="#{modal.time}">Час (необов'язково)</label>
+                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionAmount" class="form-label" th:text="#{modal.amount}">Сума</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
+                                   th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
+                            <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
+                        </div>
+                        <div class="invalid-feedback" th:text="#{modal.enterAmount}">Введіть суму</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionQuantity" class="form-label" th:text="#{modal.quantity}">Кількість (необов'язково)</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
+                                   placeholder="1" value="1" min="1">
+                            <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionBuyer" class="form-label" th:text="#{modal.buyer}">Покупець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" th:placeholder="#{common.buyer}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionSeller" class="form-label" th:text="#{modal.seller}">Продавець (необов'язково)</label>
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" th:placeholder="#{common.seller}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionDetails" class="form-label" th:text="#{modal.details}">Додаткові деталі (необов'язково)</label>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
+                                  th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span> / 250
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="keyboard-hint" th:utext="#{modal.keyboardHint}">
+                        <kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати
+                    </span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                    <button type="submit" class="btn btn-primary" id="saveTransactionBtn" th:text="#{modal.save}">Зберегти транзакцію</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+
+<!-- ===== СКРИПТ ПАНЕЛІ ===== -->
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
+
+<script th:inline="javascript">
+    (function() {
+        'use strict';
+
+        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
+        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
+        const transactionType = document.getElementById('transactionType');
+        const transactionForm = document.getElementById('transactionForm');
+        const categorySelect = document.getElementById('categorySelect');
+        const modal = document.getElementById('transactionModal');
+        const amountInput = document.getElementById('transactionAmount');
+        const quantityInput = document.getElementById('transactionQuantity');
+        const detailsTextarea = document.getElementById('transactionDetails');
+        const charCount = document.getElementById('charCount');
+
+        /*<![CDATA[*/
+        let expenseCategories = /*[[${expenseCategories}]]*/ [];
+        let incomeCategories = /*[[${incomeCategories}]]*/ [];
+        const MSG_NO_CATEGORIES = /*[[#{common.noData}]]*/ 'Немає категорій';
+        /*]]>*/
+
+        function populateCategories(categories) {
+            if (!categorySelect) return;
+            categorySelect.innerHTML = '';
+            if (!categories || categories.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = MSG_NO_CATEGORIES;
+                opt.disabled = true;
+                categorySelect.appendChild(opt);
+                return;
+            }
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                categorySelect.appendChild(opt);
+            });
+            if (categorySelect.options.length > 1) {
+                categorySelect.selectedIndex = 1;
+            }
+        }
+
+        function setTransactionType(type) {
+            if (!transactionType) return;
+            const dateVal = document.getElementById('transactionDate').value;
+            if (!dateVal) return;
+            if (type === 'EXPENSE') {
+                populateCategories(expenseCategories);
+                transactionType.value = 'EXPENSE';
+                typeExpenseBtn.className = 'btn active-expense';
+                typeIncomeBtn.className = 'btn btn-outline-success';
+                transactionForm.action = '/quick-expense';
+            } else {
+                populateCategories(incomeCategories);
+                transactionType.value = 'INCOME';
+                typeIncomeBtn.className = 'btn active-income';
+                typeExpenseBtn.className = 'btn btn-outline-danger';
+                transactionForm.action = '/quick-income';
+            }
+        }
+
+        if (!expenseCategories || expenseCategories.length === 0) {
+            fetch('/categories/expense')
+                .then(r => r.json())
+                .then(data => {
+                    expenseCategories = data;
+                    if (transactionType.value === 'EXPENSE') populateCategories(expenseCategories);
+                })
+                .catch(err => console.warn('Помилка завантаження витрат:', err));
+        }
+        if (!incomeCategories || incomeCategories.length === 0) {
+            fetch('/categories/income')
+                .then(r => r.json())
+                .then(data => {
+                    incomeCategories = data;
+                    if (transactionType.value === 'INCOME') populateCategories(incomeCategories);
+                })
+                .catch(err => console.warn('Помилка завантаження доходів:', err));
+        }
+
+        setTransactionType('EXPENSE');
+
+        typeExpenseBtn.addEventListener('click', function() { setTransactionType('EXPENSE'); });
+        typeIncomeBtn.addEventListener('click', function() { setTransactionType('INCOME'); });
+
+        if (amountInput) {
+            document.getElementById('amountMinus').addEventListener('click', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                if (val > 0) {
+                    val = Math.round((val - 0.01) * 100) / 100;
+                    amountInput.value = val.toFixed(2);
+                }
+            });
+            document.getElementById('amountPlus').addEventListener('click', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                val = Math.round((val + 0.01) * 100) / 100;
+                amountInput.value = val.toFixed(2);
+            });
+            amountInput.addEventListener('blur', function() {
+                let val = parseFloat(amountInput.value) || 0;
+                amountInput.value = val.toFixed(2);
+            });
+        }
+
+        if (quantityInput) {
+            document.getElementById('quantityMinus').addEventListener('click', function() {
+                let val = parseInt(quantityInput.value) || 1;
+                if (val > 1) quantityInput.value = val - 1;
+            });
+            document.getElementById('quantityPlus').addEventListener('click', function() {
+                let val = parseInt(quantityInput.value) || 1;
+                quantityInput.value = val + 1;
+            });
+        }
+
+        if (detailsTextarea && charCount) {
+            detailsTextarea.addEventListener('input', function() {
+                const len = this.value.length;
+                charCount.textContent = len;
+                charCount.style.color = len >= 250 ? '#dc3545' : '';
+            });
+            charCount.textContent = detailsTextarea.value.length;
+        }
+
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function() {
+                const timeInput = document.getElementById('transactionTime');
+                if (timeInput && !timeInput.value) {
+                    const now = new Date();
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    timeInput.value = hours + ':' + minutes;
+                }
+                const currentType = transactionType.value;
+                if (currentType === 'EXPENSE') populateCategories(expenseCategories);
+                else populateCategories(incomeCategories);
+
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
+
+            modal.addEventListener('hidden.bs.modal', function() {
+                document.getElementById('transactionForm').reset();
+                setTransactionType('EXPENSE');
+                if (quantityInput) quantityInput.value = 1;
+                if (charCount) charCount.textContent = 0;
+                if (amountInput) amountInput.value = '0.00';
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            });
+        }
+
+        if (transactionForm) {
+            transactionForm.addEventListener('submit', function(e) {
+                let valid = true;
+                const name = document.getElementById('transactionName');
+                if (!name.value.trim()) {
+                    name.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    name.classList.remove('is-invalid');
+                }
+
+                const amount = document.getElementById('transactionAmount');
+                if (parseFloat(amount.value) <= 0) {
+                    amount.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    amount.classList.remove('is-invalid');
+                }
+
+                const category = document.getElementById('categorySelect');
+                if (!category.value) {
+                    category.classList.add('is-invalid');
+                    valid = false;
+                } else {
+                    category.classList.remove('is-invalid');
+                }
+
+                if (!valid) {
+                    e.preventDefault();
+                    const firstError = document.querySelector('.is-invalid');
+                    if (firstError) firstError.focus();
+                }
+            });
+        }
+
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+
+        // Відкриття панелі налаштувань → розділ "Категорії"
+        window.openCategorySettings = function() {
+            const modalEl = document.getElementById('transactionModal');
+            if (modalEl) {
+                const m = bootstrap.Modal.getInstance(modalEl);
+                if (m) m.hide();
+            }
+            setTimeout(function() {
+                const drawer = document.getElementById('settingsDrawer');
+                const overlay = document.getElementById('settingsOverlay');
+                if (drawer && overlay) {
+                    drawer.classList.add('open');
+                    overlay.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                    const categoriesTab = document.querySelector('#drawerMenu .menu-item[data-section="categories"]');
+                    if (categoriesTab) categoriesTab.click();
+                }
+            }, 350);
+        };
+
+        // Видалено небезпечні виклики getElementById('expenseCount') / 'incomeCount',
+        // бо цих елементів немає в HTML (спричиняло TypeError).
+    })();
+</script>
+</body>
+</html>

@@ -20,14 +20,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/lib/**", "/css/**", "/js/**", "/webjars/**",
-                                "/favicon.ico", "/logo.png", "/privacy", "/terms", "/error",
-                                "/forgot-password", "/reset-password").permitAll()
+                        .requestMatchers(
+                                "/",                    // ← лендінг для всіх
+                                "/login", "/register",
+                                "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
+                                "/favicon.ico", "/logo.png",
+                                "/privacy", "/terms", "/error",
+                                "/forgot-password", "/reset-password"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .successHandler(successHandler)   // ← відновлення мови після логіну/паролю
+                        .successHandler(successHandler)
                         .permitAll()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -35,7 +40,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
-                        .successHandler(successHandler)   // ← і для OAuth2
+                        .successHandler(successHandler)
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
