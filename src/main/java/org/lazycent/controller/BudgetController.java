@@ -49,30 +49,53 @@ public class BudgetController {
 
     // ==================== ГОЛОВНА ====================
 
+// ==================== ГОЛОВНА (ЛЕНДІНГ / РЕДІРЕКТ) ====================
+
     @GetMapping("/")
     public String index(Authentication authentication, Model model) {
+        // Авторизованого користувача одразу відправляємо на /home
+        if (isAuthenticated(authentication)) {
+            return "redirect:/home";
+        }
+        // Інакше — показуємо лендінг
+        return "index";
+    }
+
+// ==================== ДАШБОРД АВТОРИЗОВАНОГО ====================
+
+    @GetMapping("/home")
+    public String home(Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
-        boolean showDemoBanner = false;
-
-        if (currentUser != null) {
-            long dayBudgetCount = dayBudgetRepository.countByOwner(currentUser);
-            showDemoBanner = (dayBudgetCount == 0);
-
-            model.addAttribute("today", LocalDate.now());
-            model.addAttribute("expenseCategories", budgetService.getExpenseCategories(currentUser));
-            model.addAttribute("incomeCategories", budgetService.getIncomeCategories(currentUser));
-
-            TotalBudget todaySummary = budgetService.getTodaySummary(currentUser);
-            TotalBudget weekSummary = budgetService.getWeekSummary(currentUser);
-            TotalBudget monthSummary = budgetService.getMonthSummary(currentUser);
-
-            model.addAttribute("todaySummary", todaySummary != null ? todaySummary : new TotalBudget());
-            model.addAttribute("weekSummary", weekSummary != null ? weekSummary : new TotalBudget());
-            model.addAttribute("monthSummary", monthSummary != null ? monthSummary : new TotalBudget());
+        if (currentUser == null) {
+            return "redirect:/";
         }
 
+        boolean showDemoBanner = false;
+        long dayBudgetCount = dayBudgetRepository.countByOwner(currentUser);
+        showDemoBanner = (dayBudgetCount == 0);
+
+        model.addAttribute("today", LocalDate.now());
+        model.addAttribute("expenseCategories", budgetService.getExpenseCategories(currentUser));
+        model.addAttribute("incomeCategories", budgetService.getIncomeCategories(currentUser));
+
+        TotalBudget todaySummary = budgetService.getTodaySummary(currentUser);
+        TotalBudget weekSummary = budgetService.getWeekSummary(currentUser);
+        TotalBudget monthSummary = budgetService.getMonthSummary(currentUser);
+
+        model.addAttribute("todaySummary", todaySummary != null ? todaySummary : new TotalBudget());
+        model.addAttribute("weekSummary", weekSummary != null ? weekSummary : new TotalBudget());
+        model.addAttribute("monthSummary", monthSummary != null ? monthSummary : new TotalBudget());
         model.addAttribute("showDemoBanner", showDemoBanner);
-        return "index";
+
+        return "home";
+    }
+
+// ==================== ДОПОМІЖНІ ====================
+
+    private boolean isAuthenticated(Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof org.springframework.security.authentication.AnonymousAuthenticationToken);
     }
 
     // ==================== НАЛАШТУВАННЯ ====================
@@ -101,7 +124,7 @@ public class BudgetController {
             log.error("Помилка зміни валюти: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     @PostMapping("/settings/language")
@@ -127,7 +150,7 @@ public class BudgetController {
             log.error("Помилка зміни мови: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     @PostMapping("/settings/profile")
@@ -155,7 +178,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     @PostMapping("/settings/clear-data")
@@ -172,7 +195,7 @@ public class BudgetController {
             log.error("Помилка при очищенні даних: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", msg("toast.data.clearError", e.getMessage()));
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     @PostMapping("/settings/delete-account")
@@ -212,7 +235,7 @@ public class BudgetController {
             log.error("Помилка генерації демо-даних: ", e);
             redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     // ==================== БЮДЖЕТ ====================
@@ -431,7 +454,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     @PostMapping("/categories/delete/{id}")
@@ -447,7 +470,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     @PostMapping("/categories/update/{id}")
@@ -464,7 +487,7 @@ public class BudgetController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request, "/");
+        return redirectToReferer(request, "/home");
     }
 
     // ==================== ВИДАЛЕННЯ ДНЯ ====================
