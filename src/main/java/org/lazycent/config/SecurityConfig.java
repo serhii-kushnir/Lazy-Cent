@@ -23,7 +23,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/",                    // ← лендінг для всіх
                                 "/login", "/register",
-                                "/lib/**", "/css/**", "/js/**", "/webjars/**",
+                                "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
                                 "/favicon.ico", "/logo.png",
                                 "/privacy", "/terms", "/error",
                                 "/forgot-password", "/reset-password"

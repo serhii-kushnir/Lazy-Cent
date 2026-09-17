@@ -141,7 +141,6 @@
             box-shadow: 3px 3px 0 var(--brutal-black);
         }
 
-        /* PRIMARY — жовта */
         .btn-brutal.primary {
             background: var(--brutal-yellow);
             color: var(--brutal-black) !important;
@@ -154,7 +153,6 @@
             box-shadow: 3px 3px 0 var(--brutal-white);
         }
 
-        /* SECONDARY — прозора з білою рамкою в темній темі */
         .btn-brutal.secondary {
             background: var(--brutal-white);
             color: var(--brutal-black) !important;
@@ -215,17 +213,11 @@
 
         /* ===== АНІМАЦІЯ ПОЯВИ ===== */
         @keyframes brutalFadeUp {
-            0% {
-                opacity: 0;
-                transform: translateY(40px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            0%   { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== BASE CARD (одне оголошення, без дублювання) ===== */
+        /* ===== BASE CARD ===== */
         .brutal-card {
             padding: 2.25rem 2rem;
             border: 3px solid var(--brutal-black);
@@ -240,13 +232,9 @@
             min-height: 240px;
             position: relative;
             overflow: hidden;
-
-            /* анімація */
             opacity: 0;
             animation: brutalFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-
-        /* Stagger-затримки */
         .brutal-card:nth-child(1) { animation-delay: 0.05s; }
         .brutal-card:nth-child(2) { animation-delay: 0.15s; }
         .brutal-card:nth-child(3) { animation-delay: 0.25s; }
@@ -254,7 +242,6 @@
         .brutal-card:nth-child(5) { animation-delay: 0.45s; }
         .brutal-card:nth-child(6) { animation-delay: 0.55s; }
 
-        /* ===== КОЛЬОРОВІ ВАРІАНТИ (6 шт.) ===== */
         .brutal-card.c-yellow { background: var(--brutal-yellow); color: var(--brutal-black); }
         .brutal-card.c-pink   { background: var(--brutal-pink);   color: var(--brutal-black); }
         .brutal-card.c-blue   { background: var(--brutal-blue);   color: var(--brutal-white); }
@@ -262,7 +249,6 @@
         .brutal-card.c-purple { background: var(--brutal-purple); color: var(--brutal-black); }
         .brutal-card.c-orange { background: var(--brutal-orange); color: var(--brutal-black); }
 
-        /* ===== HOVER ===== */
         .brutal-card:hover {
             transform: translate(3px, 3px);
             box-shadow: 5px 5px 0 var(--brutal-black);
@@ -271,13 +257,8 @@
             transform: scale(1.15) rotate(-8deg);
         }
 
-        /* ===== ТЕМНА ТЕМА — тіні білі ===== */
-        [data-bs-theme="dark"] .brutal-card {
-            box-shadow: 8px 8px 0 var(--brutal-white);
-        }
-        [data-bs-theme="dark"] .brutal-card:hover {
-            box-shadow: 5px 5px 0 var(--brutal-white);
-        }
+        [data-bs-theme="dark"] .brutal-card { box-shadow: 8px 8px 0 var(--brutal-white); }
+        [data-bs-theme="dark"] .brutal-card:hover { box-shadow: 5px 5px 0 var(--brutal-white); }
         [data-bs-theme="dark"] .brutal-card.c-yellow { box-shadow: 8px 8px 0 var(--brutal-white); }
         [data-bs-theme="dark"] .brutal-card.c-pink   { box-shadow: 8px 8px 0 var(--brutal-white); }
         [data-bs-theme="dark"] .brutal-card.c-blue   { box-shadow: 8px 8px 0 var(--brutal-white); }
@@ -285,7 +266,6 @@
         [data-bs-theme="dark"] .brutal-card.c-purple { box-shadow: 8px 8px 0 var(--brutal-white); }
         [data-bs-theme="dark"] .brutal-card.c-orange { box-shadow: 8px 8px 0 var(--brutal-white); }
 
-        /* ===== ВНУТРІШНІ ЕЛЕМЕНТИ ===== */
         .brutal-card .num {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
@@ -318,15 +298,116 @@
             color: inherit;
         }
 
-        /* ===== REDUCED MOTION ===== */
         @media (prefers-reduced-motion: reduce) {
-            .brutal-card {
-                animation: none;
-                opacity: 1;
-            }
-            .brutal-card:hover .icon {
-                transform: none;
-            }
+            .brutal-card { animation: none; opacity: 1; }
+            .brutal-card:hover .icon { transform: none; }
+        }
+
+        /* ===== SCREENSHOTS ===== */
+        .screenshots-section {
+            background: var(--brutal-bg-alt);
+            color: var(--brutal-black);
+            border-top: 4px solid var(--brutal-black);
+            border-bottom: 4px solid var(--brutal-black);
+        }
+        [data-bs-theme="dark"] .screenshots-section {
+            background: #141414;
+            color: var(--brutal-white);
+            border-top-color: var(--brutal-yellow);
+            border-bottom-color: var(--brutal-yellow);
+        }
+
+        .screenshots-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .screenshot-card {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+            opacity: 0;
+            animation: brutalFadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .screenshot-card:nth-child(1) { animation-delay: 0.05s; }
+        .screenshot-card:nth-child(2) { animation-delay: 0.15s; }
+        .screenshot-card:nth-child(3) { animation-delay: 0.25s; }
+        .screenshot-card:nth-child(4) { animation-delay: 0.35s; }
+        .screenshot-card:nth-child(5) { animation-delay: 0.45s; }
+        .screenshot-card:nth-child(6) { animation-delay: 0.55s; }
+
+        .screenshot-frame {
+            border: 3px solid var(--brutal-black);
+            background: var(--brutal-white);
+            box-shadow: 8px 8px 0 var(--brutal-black);
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            position: relative;
+            aspect-ratio: 16 / 10;
+        }
+
+        .screenshot-frame::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 26px;
+            background: var(--brutal-black);
+            z-index: 2;
+        }
+        .screenshot-frame::after {
+            content: '● ● ●';
+            position: absolute;
+            top: 5px; left: 10px;
+            color: var(--brutal-yellow);
+            font-size: 0.6rem;
+            letter-spacing: 0.25rem;
+            z-index: 3;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .screenshot-frame img {
+            width: 100%;
+            height: calc(100% - 26px);
+            object-fit: cover;
+            object-position: top center;
+            display: block;
+            margin-top: 26px;
+        }
+
+        .screenshot-card:hover .screenshot-frame {
+            transform: translate(3px, 3px);
+            box-shadow: 5px 5px 0 var(--brutal-black);
+        }
+
+        [data-bs-theme="dark"] .screenshot-frame {
+            background: var(--brutal-white);
+            border-color: var(--brutal-white);
+            box-shadow: 8px 8px 0 var(--brutal-white);
+        }
+        [data-bs-theme="dark"] .screenshot-frame::before {
+            background: var(--brutal-white);
+        }
+        [data-bs-theme="dark"] .screenshot-frame::after {
+            color: var(--brutal-yellow);
+        }
+        [data-bs-theme="dark"] .screenshot-card:hover .screenshot-frame {
+            box-shadow: 5px 5px 0 var(--brutal-white);
+        }
+
+        .screenshot-caption {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+            color: inherit;
+            padding: 0 0.5rem;
+            line-height: 1.5;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         /* ===== TESTIMONIALS ===== */
@@ -623,6 +704,13 @@
             color: rgba(254, 254, 254, 0.5);
         }
 
+        /* ===== АДАПТИВ ===== */
+        @media (max-width: 992px) {
+            .screenshots-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.75rem;
+            }
+        }
         @media (max-width: 576px) {
             .brutal-section { padding: 0.75rem; }
             .brutal-cta { padding: 0.75rem; }
@@ -633,6 +721,14 @@
             .brutal-actions { gap: 0.85rem; }
             .btn-brutal { min-width: 0; width: 100%; max-width: 320px; padding: 0.85rem 1.5rem; font-size: 0.8rem; }
             .faq-accordion .accordion-button { font-size: 0.85rem; padding: 1rem; }
+
+            .screenshots-grid {
+                grid-template-columns: 1fr;
+                gap: 1.75rem;
+            }
+            .screenshot-frame { box-shadow: 5px 5px 0 var(--brutal-black); }
+            [data-bs-theme="dark"] .screenshot-frame { box-shadow: 5px 5px 0 var(--brutal-white); }
+            .screenshot-caption { font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -712,6 +808,88 @@
                 <h3>Безпека та приватність</h3>
                 <p>Шифрування паролів, вхід через Google, повний контроль над даними. Жодної реклами.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===================== SCREENSHOTS ===================== -->
+<section class="brutal-section screenshots-section" id="screenshots">
+    <div class="container">
+        <h2 class="brutal-section-title" th:text="#{landing.screenshots.title}">Як це виглядає</h2>
+        <p class="brutal-section-sub" th:text="#{landing.screenshots.subtitle}">Погляньте на LazyCent зсередини</p>
+
+        <div class="screenshots-grid">
+            <!-- 1. Головна -->
+            <figure class="screenshot-card">
+                <div class="screenshot-frame">
+                    <img src="/img/screenshots/home.png"
+                         th:alt="#{landing.screenshots.home.caption}"
+                         loading="lazy">
+                </div>
+                <figcaption class="screenshot-caption" th:text="#{landing.screenshots.home.caption}">
+                    Дашборд із швидким додаванням транзакцій
+                </figcaption>
+            </figure>
+
+            <!-- 2. Бюджет -->
+            <figure class="screenshot-card">
+                <div class="screenshot-frame">
+                    <img src="/img/screenshots/budget.png"
+                         th:alt="#{landing.screenshots.budget.caption}"
+                         loading="lazy">
+                </div>
+                <figcaption class="screenshot-caption" th:text="#{landing.screenshots.budget.caption}">
+                    Місячний бюджет із лімітами за категоріями
+                </figcaption>
+            </figure>
+
+            <!-- 3. Всі дні -->
+            <figure class="screenshot-card">
+                <div class="screenshot-frame">
+                    <img src="/img/screenshots/all-day.png"
+                         th:alt="#{landing.screenshots.allDays.caption}"
+                         loading="lazy">
+                </div>
+                <figcaption class="screenshot-caption" th:text="#{landing.screenshots.allDays.caption}">
+                    Список усіх днів із фільтрами
+                </figcaption>
+            </figure>
+
+            <!-- 4. Підсумки -->
+            <figure class="screenshot-card">
+                <div class="screenshot-frame">
+                    <img src="/img/screenshots/totals.png"
+                         th:alt="#{landing.screenshots.totals.caption}"
+                         loading="lazy">
+                </div>
+                <figcaption class="screenshot-caption" th:text="#{landing.screenshots.totals.caption}">
+                    Аналітика за категоріями та періодами
+                </figcaption>
+            </figure>
+
+            <!-- 5. Нотатки -->
+            <figure class="screenshot-card">
+                <div class="screenshot-frame">
+                    <img src="/img/screenshots/notes.png"
+                         th:alt="#{landing.screenshots.notes.caption}"
+                         loading="lazy">
+                </div>
+                <figcaption class="screenshot-caption" th:text="#{landing.screenshots.notes.caption}">
+                    Нотатки з кольорами та закріпленням
+                </figcaption>
+            </figure>
+
+            <!-- 6. День -->
+            <figure class="screenshot-card">
+                <div class="screenshot-frame">
+                    <img src="/img/screenshots/day.png"
+                         th:alt="#{landing.screenshots.day.caption}"
+                         loading="lazy">
+                </div>
+                <figcaption class="screenshot-caption" th:text="#{landing.screenshots.day.caption}">
+                    Детальний перегляд транзакцій за день
+                </figcaption>
+            </figure>
         </div>
     </div>
 </section>
@@ -879,6 +1057,7 @@
                 <h4 th:text="#{landing.footer.product}">Продукт</h4>
                 <ul>
                     <li><a href="#features" th:text="#{landing.footer.features}">Функції</a></li>
+                    <li><a href="#screenshots" th:text="#{landing.footer.screenshots}">Скріншоти</a></li>
                     <li><a href="#faq" th:text="#{landing.footer.faq}">FAQ</a></li>
                     <li><a href="/register" th:text="#{landing.footer.signup}">Реєстрація</a></li>
                 </ul>
