@@ -34,6 +34,9 @@
 
 <nav th:replace="~{fragments :: navbar('privacy')}"></nav>
 
+<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container policy-container">
     <h1 th:text="#{privacy.title}">Privacy Policy</h1>
     <p class="last-updated" th:text="#{privacy.lastUpdated}">Last updated: August 30, 2026</p>
@@ -44,7 +47,6 @@
 
     <p>If you have any questions about this Privacy Policy, please contact us at: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
 
-    <!-- ===== TABLE OF CONTENTS ===== -->
     <div class="table-of-contents">
         <h3>Table of Contents</h3>
         <ul>
@@ -59,9 +61,7 @@
         </ul>
     </div>
 
-    <!-- ===== 1. WHAT INFORMATION DO WE COLLECT? ===== -->
     <h2 id="info-collect">1. What information do we collect?</h2>
-
     <h3>Personal information you provide to us</h3>
     <p>We collect personal information you voluntarily provide when registering, using the application, or contacting us. This information may include:</p>
     <ul>
@@ -83,7 +83,6 @@
     <h3>Data from social networks (OAuth2)</h3>
     <p>If you log in through Google or other OAuth2 services, we receive your name and email address (with your permission).</p>
 
-    <!-- ===== 2. HOW DO WE USE YOUR INFORMATION? ===== -->
     <h2 id="info-use">2. How do we use your information?</h2>
     <p>We use the collected information to:</p>
     <ul>
@@ -98,7 +97,6 @@
         <strong>Important:</strong> We NEVER share your financial data with third parties without your explicit consent, except as required by law.
     </div>
 
-    <!-- ===== 3. DO WE SHARE YOUR INFORMATION WITH THIRD PARTIES? ===== -->
     <h2 id="info-share">3. Do we share your information with third parties?</h2>
     <p>We do not sell, trade, or transfer your personal information to third parties, except in the following cases:</p>
     <ul>
@@ -106,7 +104,6 @@
         <li><strong>Legal requirements</strong> — if required by law or to protect our rights.</li>
     </ul>
 
-    <!-- ===== 4. HOW DO WE PROTECT YOUR DATA? ===== -->
     <h2 id="data-security">4. How do we protect your data?</h2>
     <p>We implement modern security measures to protect your data:</p>
     <ul>
@@ -116,7 +113,6 @@
     </ul>
     <p>However, no method of data transmission over the Internet or electronic storage is 100% secure. We do our best but cannot guarantee absolute security.</p>
 
-    <!-- ===== 5. HOW LONG DO WE KEEP YOUR DATA? ===== -->
     <h2 id="data-retention">5. How long do we keep your data?</h2>
     <p>We keep your personal data only as long as necessary for the purposes described in this Privacy Policy or as required by law.</p>
     <ul>
@@ -126,7 +122,6 @@
     </ul>
     <p>You can delete your data at any time through your account settings.</p>
 
-    <!-- ===== 6. COOKIES ===== -->
     <h2 id="cookies">6. Cookies and similar technologies</h2>
     <p>We use cookies to:</p>
     <ul>
@@ -136,7 +131,6 @@
     </ul>
     <p>You can manage cookies in your browser settings. Disabling cookies may affect some features of the application.</p>
 
-    <!-- ===== 7. YOUR RIGHTS ===== -->
     <h2 id="user-rights">7. Your rights</h2>
     <p>Depending on your location, you may have the following rights regarding your personal data:</p>
     <ul>
@@ -146,7 +140,6 @@
     </ul>
     <p>To exercise your rights, contact us at: <a href="mailto:lazycent.com@gmail.com">lazycent.com@gmail.com</a>.</p>
 
-    <!-- ===== 8. CONTACT ===== -->
     <h2 id="contact">8. Contact</h2>
     <p>If you have any questions or suggestions regarding this Privacy Policy, please contact us:</p>
     <ul>
@@ -164,6 +157,8 @@
 <div th:replace="~{fragments :: themeScript}"></div>
 <div th:replace="~{fragments :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
 
 </body>
 </html>

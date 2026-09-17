@@ -12,6 +12,9 @@
 
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
 
+<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container mt-5">
     <div class="alert alert-danger">
         <h4>
@@ -29,5 +32,10 @@
 
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
+
 </body>
 </html>

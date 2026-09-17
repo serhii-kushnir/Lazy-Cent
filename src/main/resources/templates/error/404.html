@@ -50,23 +50,26 @@
 <body>
 <nav th:replace="~{fragments :: navbar('none')}"></nav>
 
+<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: toastContainer}"></div>
+
 <div class="container">
     <div class="error-card">
         <span class="emoji-large">😵</span>
         <div class="error-code">404</div>
-        <h1 class="error-title">Сторінку не знайдено</h1>
-        <p class="error-description">
+        <h1 class="error-title" th:text="#{error.404.title}">Сторінку не знайдено</h1>
+        <p class="error-description" th:text="#{error.404.description}">
             Будь ласка, перевірте адресу сторінки. Можливо, вона була переміщена або видалена.
         </p>
         <div class="error-actions">
             <a href="/" class="btn btn-primary">
-                <i class="fas fa-home"></i> На головну
+                <i class="fas fa-home"></i> <span th:text="#{error.404.home}">На головну</span>
             </a>
             <button class="btn btn-outline-secondary" onclick="history.back()">
-                <i class="fas fa-arrow-left"></i> Назад
+                <i class="fas fa-arrow-left"></i> <span th:text="#{error.404.back}">Назад</span>
             </button>
             <button class="btn btn-outline-secondary" onclick="location.reload()">
-                <i class="fas fa-sync"></i> Спробувати знову
+                <i class="fas fa-sync"></i> <span th:text="#{error.404.retry}">Спробувати знову</span>
             </button>
         </div>
     </div>
@@ -74,5 +77,10 @@
 
 <footer th:replace="~{fragments :: footer}"></footer>
 <div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
+
 </body>
 </html>

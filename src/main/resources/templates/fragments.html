@@ -522,9 +522,10 @@
             </ul>
         </div>
     </div>
+
     <script>
         (function() {
-            // ===== ПЕРЕМИКАЧ ТЕМИ =====
+            // ===== ПЕРЕМИКАЧ ТЕМИ (тільки для анонімних) =====
             const btn = document.getElementById('themeToggle');
             if (btn) {
                 const icon = btn.querySelector('i');
@@ -547,17 +548,24 @@
             }
 
             // ===== ІНІЦІАЛИ АВАТАРА (працює на всіх сторінках) =====
-            const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
-            if (avatarPlaceholder) {
+            function setAvatarInitials() {
+                const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
+                if (!avatarPlaceholder) return;
                 const name = avatarPlaceholder.textContent.trim();
-                if (name) {
-                    const initials = name.split(' ')
-                        .filter(w => w.length > 0)
-                        .map(w => w.charAt(0).toUpperCase())
-                        .slice(0, 2)   // максимум 2 літери
-                        .join('');
-                    avatarPlaceholder.textContent = initials || 'U';
-                }
+                if (!name) return;
+                const initials = name.split(' ')
+                    .filter(w => w.length > 0)
+                    .map(w => w.charAt(0).toUpperCase())
+                    .slice(0, 2)
+                    .join('');
+                avatarPlaceholder.textContent = initials || 'U';
+            }
+
+            // Виконуємо після завантаження DOM (щоб елемент точно існував)
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setAvatarInitials);
+            } else {
+                setAvatarInitials();
             }
         })();
     </script>
@@ -643,7 +651,7 @@
                         </div>
                     </div>
 
-                    <div th:if="${!isOAuth2User}">
+                    <div th:if="${isOAuth2User != true}">
                         <hr>
                         <h6 class="mt-2" th:text="#{settings.profile.changePassword}">Зміна пароля</h6>
                         <div class="mb-3">
@@ -1492,6 +1500,8 @@
                 });
             }
 
+            // ⚠️ Блок "ІНІЦІАЛИ ДЛЯ АВАТАРА" ВИДАЛЕНО ЗВІДСИ —
+            // тепер він у навбарі (працює на всіх сторінках).
         });
     </script>
 </th:block>
