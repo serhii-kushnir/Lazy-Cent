@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Long> {
 
+    @Query("SELECT SUM(i.amount) FROM Income i WHERE i.dayBudget.date BETWEEN :start AND :end AND i.dayBudget.owner = :user")
+    Double sumIncomesByDateBetweenAndUser(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("user") User user);
+
     @Query("SELECT SUM(i.amount) FROM Income i WHERE i.dayBudget.date = :date")
     Double sumIncomesByDate(@Param("date") LocalDate date);
 

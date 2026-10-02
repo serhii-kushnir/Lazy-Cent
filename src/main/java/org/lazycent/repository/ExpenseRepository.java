@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.dayBudget.date BETWEEN :start AND :end AND e.dayBudget.owner = :user")
+    Double sumExpensesByDateBetweenAndUser(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("user") User user);
+
     // Оригінальні методи (без користувача) – можна залишити або видалити
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.dayBudget.date = :date")
     Double sumExpensesByDate(@Param("date") LocalDate date);

@@ -168,34 +168,27 @@ public class BudgetService {
     // ==================== ОТРИМАННЯ ДАНИХ ====================
 
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate, User user) {
-        List<DayBudget> budgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user).stream()
-                .filter(b -> !b.getDate().isBefore(startDate) && !b.getDate().isAfter(endDate))
-                .toList();
+        List<DayBudget> budgets = dayBudgetRepository.findByOwnerAndDateBetween(user, startDate, endDate);
 
-        Double totalExpenses = 0.0;
-        Double totalIncomes = 0.0;
+        double totalExpenses = 0.0;
+        double totalIncomes = 0.0;
         Map<Category, Double> expensesByCategory = new HashMap<>();
         Map<Category, Double> incomesByCategory = new HashMap<>();
         Map<LocalDate, TotalBudget.DayBudgetSummary> dailySummaries = new LinkedHashMap<>();
 
         for (DayBudget budget : budgets) {
-            Double dayExpenses = expenseRepository.sumExpensesByDateAndUser(budget.getDate(), user);
-            Double dayIncomes = incomeRepository.sumIncomesByDateAndUser(budget.getDate(), user);
-            if (dayExpenses == null) dayExpenses = 0.0;
-            if (dayIncomes == null) dayIncomes = 0.0;
+            double dayExpenses = budget.getTotalExpenses();   // вже пораховано в сутності
+            double dayIncomes = budget.getTotalIncomes();
 
             totalExpenses += dayExpenses;
             totalIncomes += dayIncomes;
 
-            for (Object[] row : expenseRepository.sumExpensesByCategoryAndUser(budget.getDate(), budget.getDate(), user)) {
-                Category cat = (Category) row[0];
-                Double amount = (Double) row[1];
-                expensesByCategory.merge(cat, amount, Double::sum);
+            // Групування по категоріях
+            for (Expense e : budget.getExpenses()) {
+                expensesByCategory.merge(e.getCategory(), e.getAmount(), Double::sum);
             }
-            for (Object[] row : incomeRepository.sumIncomesByCategoryAndUser(budget.getDate(), budget.getDate(), user)) {
-                Category cat = (Category) row[0];
-                Double amount = (Double) row[1];
-                incomesByCategory.merge(cat, amount, Double::sum);
+            for (Income i : budget.getIncomes()) {
+                incomesByCategory.merge(i.getCategory(), i.getAmount(), Double::sum);
             }
 
             TotalBudget.DayBudgetSummary summary = new TotalBudget.DayBudgetSummary();

@@ -8,6 +8,8 @@ import org.lazycent.model.dto.CategoryBudgetDto;
 import org.lazycent.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.lazycent.model.dto.CategorySummaryDto;
+import org.lazycent.model.dto.DailySummaryDto;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -75,35 +77,32 @@ public class BudgetPlanningService {
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
         BudgetPlan plan = getBudgetPlan(user, month, year);
-        Double totalBudget = plan != null ? plan.getTotalBudget() : 0.0;
+        double totalBudget = plan != null ? plan.getTotalBudget() : 0.0;
 
-        // Отримуємо всі дні місяця з транзакціями
-        List<DayBudget> dayBudgets = dayBudgetRepository.findByOwnerAndDateBetween(user, start, end);
-        Double totalExpenses = dayBudgets.stream().mapToDouble(DayBudget::getTotalExpenses).sum();
-        Double totalIncomes = dayBudgets.stream().mapToDouble(DayBudget::getTotalIncomes).sum();
+        // 1. Загальні суми за місяць
+        Double totalExpenses = expenseRepository.sumExpensesByDateBetweenAndUser(start, end, user);
+        Double totalIncomes = incomeRepository.sumIncomesByDateBetweenAndUser(start, end, user);
+        if (totalExpenses == null) totalExpenses = 0.0;
+        if (totalIncomes == null) totalIncomes = 0.0;
 
-        Double remainingBudget = totalBudget - totalExpenses;
+        double remainingBudget = totalBudget - totalExpenses;
 
-        // Ліміти категорій
+        // 2. Ліміти категорій
         List<CategoryBudgetLimit> limits = getCategoryLimits(user, month, year);
         Map<Long, Double> limitMap = limits.stream()
                 .collect(Collectors.toMap(l -> l.getCategory().getId(), CategoryBudgetLimit::getLimitAmount));
 
-        // Витрати по категоріях
+        // 3. Витрати по категоріях (агрегаційний запит)
+        List<CategorySummaryDto> expenseSummaries = expenseRepository.getExpenseCategorySummaries(start, end, user);
         Map<Category, Double> categoryExpenses = new HashMap<>();
-        for (DayBudget db : dayBudgets) {
-            for (Expense e : db.getExpenses()) {
-                categoryExpenses.merge(e.getCategory(), e.getAmount(), Double::sum);
-            }
-        }
-
-        // Формуємо DTO для категорій
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
-        for (Map.Entry<Category, Double> entry : categoryExpenses.entrySet()) {
-            Category cat = entry.getKey();
-            Double spent = entry.getValue();
-            Double limit = limitMap.getOrDefault(cat.getId(), 0.0);
-            Double percentUsed = limit > 0 ? (spent / limit * 100) : 0.0;
+        for (CategorySummaryDto dto : expenseSummaries) {
+            Category cat = categoryRepository.findByNameAndOwner(dto.getCategoryName(), user).orElse(null);
+            if (cat == null) continue;
+            double spent = dto.getTotalAmount();
+            categoryExpenses.put(cat, spent);
+            double limit = limitMap.getOrDefault(cat.getId(), 0.0);
+            double percentUsed = limit > 0 ? (spent / limit * 100) : 0.0;
             String status;
             if (limit == 0) status = "OK";
             else if (percentUsed < 80) status = "OK";
@@ -111,28 +110,27 @@ public class BudgetPlanningService {
             else status = "OVER";
             categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, Math.min(percentUsed, 100), status));
         }
-        // Сортуємо за відсотком використання (спочатку ті, що перевищили)
         categoryDtos.sort((a, b) -> Double.compare(b.getPercentUsed(), a.getPercentUsed()));
 
-        // ===== ДЕННІ ВИТРАТИ – ЗАПОВНЮЄМО ВСІ ДНІ МІСЯЦЯ =====
+        // 4. Денні витрати для графіка
+        List<DailySummaryDto> dailyExpenseSummaries = expenseRepository.getDailyExpenseSummaries(start, end, user);
         Map<LocalDate, Double> dailyExpenses = new TreeMap<>();
         LocalDate current = start;
         while (!current.isAfter(end)) {
             dailyExpenses.put(current, 0.0);
             current = current.plusDays(1);
         }
-        // Заповнюємо реальними значеннями
-        for (DayBudget db : dayBudgets) {
-            dailyExpenses.put(db.getDate(), db.getTotalExpenses());
+        for (DailySummaryDto dto : dailyExpenseSummaries) {
+            dailyExpenses.put(dto.getDate(), dto.getTotalExpenses());
         }
 
-        // Прогноз
+        // 5. Прогноз
         LocalDate today = LocalDate.now();
         int daysPassed = today.getDayOfMonth();
         int daysInMonth = start.lengthOfMonth();
-        Double dailyAverage = daysPassed > 0 ? totalExpenses / daysPassed : 0.0;
-        Double projectedTotalExpenses = dailyAverage * daysInMonth;
-        Double projectedBalance = totalBudget - projectedTotalExpenses;
+        double dailyAverage = daysPassed > 0 ? totalExpenses / daysPassed : 0.0;
+        double projectedTotalExpenses = dailyAverage * daysInMonth;
+        double projectedBalance = totalBudget - projectedTotalExpenses;
 
         BudgetDashboardDto dto = new BudgetDashboardDto();
         dto.setTotalBudget(totalBudget);
