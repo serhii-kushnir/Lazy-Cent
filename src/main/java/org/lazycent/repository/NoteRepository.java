@@ -1,4 +1,3 @@
-// repository/NoteRepository.java
 package org.lazycent.repository;
 
 import org.lazycent.model.Note;
@@ -9,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface NoteRepository extends JpaRepository<Note, Long> {
@@ -19,11 +19,26 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     List<Note> findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(User owner);
 
-    @Query("SELECT n FROM Note n WHERE n.owner = :owner AND (LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY n.pinned DESC, n.updatedAt DESC")
+    List<Note> findByOwner(User owner);
+
+    /**
+     * Атомарний пошук: нотатка за ID + перевірка власника в одному запиті.
+     * Якщо нотатка існує, але належить іншому користувачу — повертає empty.
+     * Це захищає від IDOR (Insecure Direct Object Reference) на рівні БД.
+     */
+    Optional<Note> findByIdAndOwner(Long id, User owner);
+
+    @Query("SELECT n FROM Note n WHERE n.owner = :owner " +
+            "AND (LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "ORDER BY n.pinned DESC, n.updatedAt DESC")
     List<Note> searchNotes(@Param("owner") User owner, @Param("query") String query);
 
-    @Query("SELECT n FROM Note n WHERE n.owner = :owner AND n.archived = :archived AND (LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY n.pinned DESC, n.updatedAt DESC")
-    List<Note> searchNotes(@Param("owner") User owner, @Param("archived") boolean archived, @Param("query") String query);
-
-    List<Note> findByOwner(User owner);
+    @Query("SELECT n FROM Note n WHERE n.owner = :owner AND n.archived = :archived " +
+            "AND (LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(n.content) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+            "ORDER BY n.pinned DESC, n.updatedAt DESC")
+    List<Note> searchNotes(@Param("owner") User owner,
+                           @Param("archived") boolean archived,
+                           @Param("query") String query);
 }

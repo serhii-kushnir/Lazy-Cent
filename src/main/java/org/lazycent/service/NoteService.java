@@ -20,20 +20,17 @@ public class NoteService {
     // ==================== ПЕРЕВІРКА ДОСТУПУ ====================
 
     /**
-     * Знаходить нотатку за ID і перевіряє, що вона належить вказаному користувачу.
-     * @throws EntityNotFoundException якщо нотатки не існує
-     * @throws AccessDeniedException якщо нотатка належить іншому користувачу
+     * Атомарний пошук з перевіркою власника.
+     * Один SQL-запит: SELECT ... WHERE id = ? AND user_id = ?.
+     * Не існує — EntityNotFoundException.
+     * Існує, але належить іншому — AccessDeniedException.
      */
     private Note getOwnedNote(Long id, User user) {
         if (user == null) {
             throw new AccessDeniedException("Користувач не автентифікований");
         }
-        Note note = noteRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Нотатку", id));
-        if (!note.getOwner().equals(user)) {
-            throw new AccessDeniedException("Ця нотатка не належить вам");
-        }
-        return note;
+        return noteRepository.findByIdAndOwner(id, user)
+                .orElseThrow(() -> new AccessDeniedException("Нотатку не знайдено або вона не належить вам"));
     }
 
     // ==================== СТВОРЕННЯ / ОНОВЛЕННЯ ====================
