@@ -271,12 +271,18 @@
                                 <td th:with="formattedLimit=${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '—'}"
                                     th:text="${formattedLimit}"></td>
                                 <td style="width: 150px;">
-                                    <div class="progress progress-bar-custom" th:if="${catDto.limit > 0}">
-                                        <div class="progress-bar" role="progressbar"
-                                             th:style="'width:' + ${catDto.percentUsed} + '%'"
-                                             th:classappend="${catDto.status == 'OVER'} ? 'bg-danger' : (${catDto.status == 'WARNING'} ? 'bg-warning' : 'bg-success')"
-                                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                    <div th:if="${catDto.limit > 0}">
+                                        <div class="progress progress-bar-custom">
+                                            <div class="progress-bar" role="progressbar"
+                                                 th:style="'width:' + ${catDto.percentUsed > 100 ? 100 : catDto.percentUsed} + '%'"
+                                                 th:classappend="${catDto.status == 'OVER'} ? 'bg-danger' : (${catDto.status == 'WARNING'} ? 'bg-warning' : 'bg-success')"
+                                                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                            </div>
                                         </div>
+                                        <small class="d-block text-center mt-1"
+                                               th:classappend="${catDto.status == 'OVER'} ? 'text-danger' : (${catDto.status == 'WARNING'} ? 'text-warning' : 'text-muted')"
+                                               th:text="${#numbers.formatDecimal(catDto.percentUsed, 1, 'COMMA', 1, 'POINT')} + '%'">
+                                        </small>
                                     </div>
                                     <span th:if="${catDto.limit == 0}" class="text-muted">—</span>
                                 </td>

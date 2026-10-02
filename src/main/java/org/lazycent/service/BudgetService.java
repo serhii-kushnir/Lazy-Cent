@@ -3,12 +3,9 @@ package org.lazycent.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.exception.EntityNotFoundException;
-import org.lazycent.exception.ValidationException;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.*;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +23,9 @@ public class BudgetService {
     private final DayBudgetRepository dayBudgetRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
-    private final CategoryRepository categoryRepository;
     private final BudgetPlanRepository budgetPlanRepository;
     private final CategoryBudgetLimitRepository categoryBudgetLimitRepository;
-    private final MessageSource messageSource;
+    private final CategoryService categoryService;
 
     private static final Map<Integer, String> DAY_NAMES = Map.of(
             1, "Понеділок", 2, "Вівторок", 3, "Середа", 4, "Четвер",
@@ -74,7 +70,7 @@ public class BudgetService {
     public void addTransaction(TransactionRequest request, TransactionType type, User user) {
         LocalDate date = request.getDate();
         DayBudget dayBudget = getOrCreateDayBudget(date, user);
-        Category category = getCategoryById(request.getCategoryId(), user);
+        Category category = categoryService.getCategoryById(request.getCategoryId(), user);
 
         if (type == TransactionType.EXPENSE) {
             Expense expense = new Expense();
@@ -177,13 +173,12 @@ public class BudgetService {
         Map<LocalDate, TotalBudget.DayBudgetSummary> dailySummaries = new LinkedHashMap<>();
 
         for (DayBudget budget : budgets) {
-            double dayExpenses = budget.getTotalExpenses();   // вже пораховано в сутності
+            double dayExpenses = budget.getTotalExpenses();
             double dayIncomes = budget.getTotalIncomes();
 
             totalExpenses += dayExpenses;
             totalIncomes += dayIncomes;
 
-            // Групування по категоріях
             for (Expense e : budget.getExpenses()) {
                 expensesByCategory.merge(e.getCategory(), e.getAmount(), Double::sum);
             }
@@ -227,7 +222,7 @@ public class BudgetService {
         Expense original = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
         if (!original.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Ця витрата не належить вам");
         }
         Expense duplicate = new Expense();
         duplicate.setDayBudget(original.getDayBudget());
@@ -249,7 +244,7 @@ public class BudgetService {
         Income original = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
         if (!original.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Цей дохід не належить вам");
         }
         Income duplicate = new Income();
         duplicate.setDayBudget(original.getDayBudget());
@@ -266,76 +261,6 @@ public class BudgetService {
         return original.getDayBudget().getDate();
     }
 
-    // ==================== КАТЕГОРІЇ ====================
-
-    public List<Category> getExpenseCategories(User user) {
-        return categoryRepository.findByTypeAndOwner("EXPENSE", user);
-    }
-
-    public List<Category> getIncomeCategories(User user) {
-        return categoryRepository.findByTypeAndOwner("INCOME", user);
-    }
-
-    public List<Category> getAllCategories(User user) {
-        return categoryRepository.findAllByOwner(user);
-    }
-
-    @Transactional
-    public Category addCategory(String name, String type, User user) {
-        String normalizedName = name.trim();
-        if (normalizedName.isEmpty()) {
-            throw new ValidationException(msg("error.category.name.empty"));
-        }
-        if (categoryRepository.findByNameIgnoreCaseAndOwner(normalizedName, user).isPresent()) {
-            throw new ValidationException(msg("error.category.name.exists"));
-        }
-        Category category = new Category();
-        category.setName(normalizedName);
-        category.setType(type.toUpperCase());
-        category.setOwner(user);
-        return categoryRepository.save(category);
-    }
-
-    @Transactional
-    public void deleteCategory(Long id, User user) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
-        if (!category.getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
-        }
-        categoryRepository.deleteById(id);
-    }
-
-    @Transactional
-    public Category updateCategory(Long id, String newName, User user) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
-        if (!category.getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
-        }
-        String normalizedName = newName.trim();
-        if (normalizedName.isEmpty()) {
-            throw new ValidationException(msg("error.category.name.empty"));
-        }
-        categoryRepository.findByNameIgnoreCaseAndOwner(normalizedName, user)
-                .ifPresent(existing -> {
-                    if (!existing.getId().equals(id)) {
-                        throw new ValidationException(msg("error.category.name.exists"));
-                    }
-                });
-        category.setName(normalizedName);
-        return categoryRepository.save(category);
-    }
-
-    public Category getCategoryById(Long id, User user) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
-        if (!category.getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
-        }
-        return category;
-    }
-
     // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ТРАНЗАКЦІЙ ====================
 
     @Transactional
@@ -343,7 +268,7 @@ public class BudgetService {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
         if (!expense.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Ця витрата не належить вам");
         }
         DayBudget dayBudget = expense.getDayBudget();
         expenseRepository.delete(expense);
@@ -355,7 +280,7 @@ public class BudgetService {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
         if (!income.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Цей дохід не належить вам");
         }
         DayBudget dayBudget = income.getDayBudget();
         incomeRepository.delete(income);
@@ -369,12 +294,12 @@ public class BudgetService {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
         if (!expense.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Ця витрата не належить вам");
         }
         expense.setDescription(description);
         expense.setAmount(amount);
         if (categoryId != null) {
-            Category category = getCategoryById(categoryId, user);
+            Category category = categoryService.getCategoryById(categoryId, user);
             expense.setCategory(category);
         }
         expense.setQuantity(quantity != null ? quantity : 1);
@@ -395,12 +320,12 @@ public class BudgetService {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
         if (!income.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Цей дохід не належить вам");
         }
         income.setDescription(description);
         income.setAmount(amount);
         if (categoryId != null) {
-            Category category = getCategoryById(categoryId, user);
+            Category category = categoryService.getCategoryById(categoryId, user);
             income.setCategory(category);
         }
         income.setQuantity(quantity != null ? quantity : 1);
@@ -421,7 +346,7 @@ public class BudgetService {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
                 .orElseThrow(() -> new EntityNotFoundException("День", dayBudgetId));
         if (!dayBudget.getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Цей день не належить вам");
         }
         LocalDate deletedDate = dayBudget.getDate();
         dayBudgetRepository.delete(dayBudget);
@@ -469,7 +394,7 @@ public class BudgetService {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
         if (!expense.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Ця витрата не належить вам");
         }
         return expense.getDayBudget().getDate();
     }
@@ -478,12 +403,12 @@ public class BudgetService {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
         if (!income.getDayBudget().getOwner().equals(user)) {
-            throw new AccessDeniedException(msg("error.access.denied"));
+            throw new AccessDeniedException("Цей дохід не належить вам");
         }
         return income.getDayBudget().getDate();
     }
 
-    // ==================== ОЧИЩЕННЯ ВСІХ ДАНИХ ====================
+    // ==================== ОЧИЩЕННЯ ДАНИХ ====================
 
     @Transactional
     public void clearAllUserData(User user) {
@@ -492,24 +417,11 @@ public class BudgetService {
             dayBudgetRepository.deleteAll(dayBudgets);
         }
 
-        List<Category> categories = categoryRepository.findAllByOwner(user);
-        if (!categories.isEmpty()) {
-            categoryRepository.deleteAll(categories);
-        }
+        categoryService.deleteAllCategories(user);
 
         budgetPlanRepository.deleteByOwner(user);
         categoryBudgetLimitRepository.deleteByOwner(user);
 
         log.info("Всі дані для користувача {} (id={}) видалено", user.getUsername(), user.getId());
-    }
-
-    // ==================== ДОПОМІЖНІ ====================
-
-    private String msg(String key, Object... args) {
-        try {
-            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
-        } catch (Exception e) {
-            return key;
-        }
     }
 }

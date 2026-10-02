@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.BudgetDashboardDto;
 import org.lazycent.model.dto.CategoryBudgetDto;
+import org.lazycent.model.dto.CategorySummaryDto;
+import org.lazycent.model.dto.DailySummaryDto;
 import org.lazycent.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.lazycent.model.dto.CategorySummaryDto;
-import org.lazycent.model.dto.DailySummaryDto;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -24,8 +24,8 @@ public class BudgetPlanningService {
     private final CategoryBudgetLimitRepository categoryBudgetLimitRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
-    private final CategoryRepository categoryRepository;
     private final DayBudgetRepository dayBudgetRepository;
+    private final CategoryService categoryService;
 
     // ==================== ЗАГАЛЬНИЙ БЮДЖЕТ ====================
 
@@ -48,9 +48,9 @@ public class BudgetPlanningService {
     // ==================== ЛІМІТИ КАТЕГОРІЙ ====================
 
     @Transactional
-    public CategoryBudgetLimit saveCategoryLimit(User user, Long categoryId, int month, int year, Double limitAmount, String note) {
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Категорія не знайдена"));
+    public CategoryBudgetLimit saveCategoryLimit(User user, Long categoryId, int month, int year,
+                                                 Double limitAmount, String note) {
+        Category category = categoryService.getCategoryById(categoryId, user);
 
         CategoryBudgetLimit limit = categoryBudgetLimitRepository
                 .findByCategoryAndOwnerAndBudgetMonthAndBudgetYear(category, user, month, year)
@@ -92,12 +92,15 @@ public class BudgetPlanningService {
         Map<Long, Double> limitMap = limits.stream()
                 .collect(Collectors.toMap(l -> l.getCategory().getId(), CategoryBudgetLimit::getLimitAmount));
 
-        // 3. Витрати по категоріях (агрегаційний запит)
+        // 3. Витрати по категоріях
         List<CategorySummaryDto> expenseSummaries = expenseRepository.getExpenseCategorySummaries(start, end, user);
         Map<Category, Double> categoryExpenses = new HashMap<>();
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
         for (CategorySummaryDto dto : expenseSummaries) {
-            Category cat = categoryRepository.findByNameAndOwner(dto.getCategoryName(), user).orElse(null);
+            Category cat = categoryService.getAllCategories(user).stream()
+                    .filter(c -> c.getName().equals(dto.getCategoryName()))
+                    .findFirst()
+                    .orElse(null);
             if (cat == null) continue;
             double spent = dto.getTotalAmount();
             categoryExpenses.put(cat, spent);
@@ -108,7 +111,7 @@ public class BudgetPlanningService {
             else if (percentUsed < 80) status = "OK";
             else if (percentUsed < 100) status = "WARNING";
             else status = "OVER";
-            categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, Math.min(percentUsed, 100), status));
+            categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, percentUsed, status));
         }
         categoryDtos.sort((a, b) -> Double.compare(b.getPercentUsed(), a.getPercentUsed()));
 
@@ -157,17 +160,5 @@ public class BudgetPlanningService {
 
     public int getCurrentYear() {
         return LocalDate.now().getYear();
-    }
-
-    public List<Category> getAllCategories(User user) {
-        return categoryRepository.findAllByOwner(user);
-    }
-
-    public List<Category> getExpenseCategories(User user) {
-        return categoryRepository.findByTypeAndOwner("EXPENSE", user);
-    }
-
-    public List<Category> getIncomeCategories(User user) {
-        return categoryRepository.findByTypeAndOwner("INCOME", user);
     }
 }
