@@ -2,6 +2,7 @@ package org.lazycent.config;
 
 import lombok.RequiredArgsConstructor;
 import org.lazycent.model.Category;
+import org.lazycent.model.Currency;
 import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
 import org.lazycent.service.CategoryService;
@@ -28,15 +29,10 @@ public class GlobalControllerAdvice {
 
     @ModelAttribute("currencySymbol")
     public String getCurrencySymbol() {
-        String currency = getPreferredCurrency();
-        return switch (currency) {
-            case "USD" -> "$";
-            case "EUR" -> "€";
-            case "GBP" -> "£";
-            case "PLN" -> "zł";
-            case "CZK" -> "Kč";
-            default -> "₴";
-        };
+        String code = getPreferredCurrency();
+        return Currency.fromCode(code)
+                .map(Currency::getSymbol)
+                .orElse(Currency.defaultCurrency().getSymbol());
     }
 
     @ModelAttribute("preferredCurrency")
@@ -144,5 +140,10 @@ public class GlobalControllerAdvice {
             case "github" -> "GitHub";
             default -> provider;
         };
+    }
+
+    @ModelAttribute("supportedCurrencies")
+    public Currency[] getSupportedCurrencies() {
+        return Currency.values();
     }
 }

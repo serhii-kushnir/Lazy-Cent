@@ -770,12 +770,12 @@
                 <form th:action="@{/settings/currency}" method="post" id="drawerCurrencyForm">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <div class="currency-grid" id="drawerCurrencyGrid">
-                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'UAH'} ? 'active'" data-currency="UAH">₴</div>
-                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'USD'} ? 'active'" data-currency="USD">$</div>
-                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'EUR'} ? 'active'" data-currency="EUR">€</div>
-                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'GBP'} ? 'active'" data-currency="GBP">£</div>
-                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'PLN'} ? 'active'" data-currency="PLN">zł</div>
-                        <div class="currency-option" th:classappend="${preferredCurrency != null and preferredCurrency == 'CZK'} ? 'active'" data-currency="CZK">Kč</div>
+                        <div th:each="c : ${supportedCurrencies}"
+                             class="currency-option"
+                             th:classappend="${preferredCurrency != null and preferredCurrency == c.name()} ? 'active'"
+                             th:data-currency="${c.name()}"
+                             th:text="${c.symbol}"
+                             th:title="${c.displayName}">₴</div>
                     </div>
                     <input type="hidden" name="currency" id="drawerSelectedCurrency" th:value="${preferredCurrency != null ? preferredCurrency : 'UAH'}" />
                     <button type="submit" class="btn btn-primary w-100 mt-2">

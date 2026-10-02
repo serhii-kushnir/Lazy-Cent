@@ -2,6 +2,8 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.exception.ValidationException;
+import org.lazycent.model.Currency;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +53,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(rawPassword));
         user.setRole("USER");
         user.setEmail(email);
-        user.setPreferredCurrency("UAH");
+        user.setPreferredCurrency(Currency.defaultCurrency().name());
 
         User savedUser = userRepository.save(user);
         demoDataService.createDefaultCategories(savedUser);
@@ -162,7 +164,7 @@ public class UserService {
         newUser.setProvider(provider);
         newUser.setProviderId(providerId);
         newUser.setRole("USER");
-        newUser.setPreferredCurrency("UAH");
+        newUser.setPreferredCurrency(Currency.defaultCurrency().name());
         // Випадковий пароль — поле NOT NULL, але OAuth2-користувач ним не користується
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
@@ -220,11 +222,17 @@ public class UserService {
 
     @Transactional
     public void updateCurrency(User user, String currency) {
+        Currency parsed = Currency.fromCode(currency)
+                .orElseThrow(() -> new ValidationException(
+                        "Непідтримувана валюта: " + currency));
+
         User managedUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
-        managedUser.setPreferredCurrency(currency);
+
+        managedUser.setPreferredCurrency(parsed.name());
         userRepository.save(managedUser);
-        log.info("Оновлено валюту користувача {} на {}", managedUser.getUsername(), currency);
+
+        log.info("Оновлено валюту користувача {} на {}", managedUser.getUsername(), parsed.name());
     }
 
     // ==================== ВИДАЛЕННЯ АКАУНТА ====================
