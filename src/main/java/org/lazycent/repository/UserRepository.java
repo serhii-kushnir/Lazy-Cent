@@ -17,6 +17,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
 
+    /**
+     * Композитний пошук — надійніший за findByProviderId, бо враховує і провайдера.
+     * Використовується в OAuth2 для ідентифікації користувача.
+     */
+    Optional<User> findByProviderAndProviderId(String provider, String providerId);
+
+    /**
+     * @deprecated Використовуйте {@link #findByProviderAndProviderId(String, String)}.
+     * Залишено для сумісності.
+     */
+    @Deprecated
     Optional<User> findByProviderId(String providerId);
 
     // ==================== ТОЧКОВІ UPDATE (не чіпають колекції) ====================
