@@ -16,11 +16,29 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     @EntityGraph(attributePaths = {"expenses", "incomes"})
     Optional<DayBudget> findByDateAndOwner(LocalDate date, User owner);
 
+    /**
+     * Всі дні користувача з витратами/доходами (використовується в getAllBudgets).
+     */
     @EntityGraph(attributePaths = {"expenses", "incomes"})
     List<DayBudget> findAllByOwnerOrderByDateAsc(User owner);
 
+    /**
+     * Дні у діапазоні з витратами/доходами (для перерахунку балансів).
+     */
     @EntityGraph(attributePaths = {"expenses", "incomes"})
     List<DayBudget> findByOwnerAndDateBetween(User owner, LocalDate start, LocalDate end);
+
+    /**
+     * Останній за датою день користувача (без завантаження expenses/incomes).
+     * Використовується для визначення кінця діапазону перерахунку.
+     */
+    Optional<DayBudget> findFirstByOwnerOrderByDateDesc(User owner);
+
+    /**
+     * Останній день користувача ДО вказаної дати.
+     * Швидка альтернатива завантаженню всіх днів заради одного балансу.
+     */
+    Optional<DayBudget> findFirstByOwnerAndDateBeforeOrderByDateDesc(User owner, LocalDate date);
 
     long countByOwner(User owner);
 }

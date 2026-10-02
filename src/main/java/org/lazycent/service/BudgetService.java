@@ -50,12 +50,13 @@ public class BudgetService {
                 });
     }
 
+    /**
+     * Баланс останнього дня ДО вказаної дати.
+     * Один запит замість завантаження всієї історії.
+     */
     private Double getLastRemainingBalance(LocalDate currentDate, User user) {
-        List<DayBudget> allBudgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
-        if (allBudgets.isEmpty()) return 0.0;
-        return allBudgets.stream()
-                .filter(d -> d.getDate().isBefore(currentDate))
-                .reduce((first, second) -> second)
+        return dayBudgetRepository
+                .findFirstByOwnerAndDateBeforeOrderByDateDesc(user, currentDate)
                 .map(DayBudget::getRemainingBalance)
                 .orElse(0.0);
     }
@@ -121,44 +122,81 @@ public class BudgetService {
 
     // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
+    /**
+     * Оновлює баланс конкретного дня та всіх наступних.
+     * ОПТИМІЗОВАНО: всі наступні дні завантажуються одним запитом
+     * (з їхніми expenses/incomes через @EntityGraph), баланси перераховуються в пам'яті,
+     * зберігаються одним saveAll.
+     */
     private void updateDayBudgetBalance(DayBudget dayBudget) {
-        Double totalExpenses = expenseRepository.sumExpensesByDateAndUser(dayBudget.getDate(), dayBudget.getOwner());
-        Double totalIncomes = incomeRepository.sumIncomesByDateAndUser(dayBudget.getDate(), dayBudget.getOwner());
-        if (totalExpenses == null) totalExpenses = 0.0;
-        if (totalIncomes == null) totalIncomes = 0.0;
+        // Перераховуємо баланс поточного дня
+        double totalExpenses = dayBudget.getTotalExpenses();
+        double totalIncomes = dayBudget.getTotalIncomes();
+        double previousBalance = dayBudget.getStartingBalance() != null ? dayBudget.getStartingBalance() : 0.0;
 
-        Double previousBalance = dayBudget.getStartingBalance() != null ? dayBudget.getStartingBalance() : 0.0;
-        Double newBalance = previousBalance + totalIncomes - totalExpenses;
-        dayBudget.setRemainingBalance(newBalance);
+        dayBudget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
         dayBudgetRepository.save(dayBudget);
 
+        // Перераховуємо всі наступні дні
         updateNextDaysBalances(dayBudget.getDate(), dayBudget.getOwner());
     }
 
+    /**
+     * Перераховує баланси для всіх днів, що йдуть після fromDate.
+     *
+     * <p>Алгоритм:
+     * <ol>
+     *   <li>Знаходимо останній день користувача (одним запитом, без колекцій)</li>
+     *   <li>Завантажуємо всі дні в діапазоні (fromDate; endDate] одним запитом
+     *       з expenses/incomes через @EntityGraph</li>
+     *   <li>Обчислюємо баланси послідовно в пам'яті</li>
+     *   <li>Зберігаємо всі змінені дні одним saveAll (Hibernate зробить batch update при flush)</li>
+     * </ol>
+     *
+     * <p>Кількість запитів: O(1) замість O(N) у старій версії.
+     */
     private void updateNextDaysBalances(LocalDate fromDate, User user) {
-        List<DayBudget> nextBudgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user).stream()
-                .filter(b -> b.getDate().isAfter(fromDate))
-                .toList();
+        // 1. Кінець діапазону — останній день користувача
+        LocalDate endDate = dayBudgetRepository
+                .findFirstByOwnerOrderByDateDesc(user)
+                .map(DayBudget::getDate)
+                .orElse(null);
 
-        Double previousBalance = null;
-        for (DayBudget budget : nextBudgets) {
-            if (previousBalance == null) {
-                DayBudget previousDay = dayBudgetRepository.findByDateAndOwner(budget.getDate().minusDays(1), user).orElse(null);
-                if (previousDay != null) {
-                    previousBalance = previousDay.getRemainingBalance();
-                }
-            }
-            if (previousBalance != null) {
-                budget.setStartingBalance(previousBalance);
-                Double totalExpenses = expenseRepository.sumExpensesByDateAndUser(budget.getDate(), user);
-                Double totalIncomes = incomeRepository.sumIncomesByDateAndUser(budget.getDate(), user);
-                if (totalExpenses == null) totalExpenses = 0.0;
-                if (totalIncomes == null) totalIncomes = 0.0;
-                budget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
-                dayBudgetRepository.save(budget);
-                previousBalance = budget.getRemainingBalance();
-            }
+        if (endDate == null || !endDate.isAfter(fromDate)) {
+            return; // немає наступних днів
         }
+
+        // 2. Всі наступні дні з витратами/доходами одним запитом
+        List<DayBudget> nextBudgets = dayBudgetRepository
+                .findByOwnerAndDateBetween(user, fromDate.plusDays(1), endDate);
+
+        if (nextBudgets.isEmpty()) {
+            return;
+        }
+
+        // 3. Початковий баланс — баланс дня fromDate
+        Double previousBalance = dayBudgetRepository
+                .findByDateAndOwner(fromDate, user)
+                .map(DayBudget::getRemainingBalance)
+                .orElse(0.0);
+
+        // 4. Перерахування в пам'яті
+        for (DayBudget budget : nextBudgets) {
+            budget.setStartingBalance(previousBalance);
+
+            double dayExpenses = budget.getTotalExpenses();
+            double dayIncomes = budget.getTotalIncomes();
+
+            double newBalance = previousBalance + dayIncomes - dayExpenses;
+            budget.setRemainingBalance(newBalance);
+            previousBalance = newBalance;
+        }
+
+        // 5. Один batch-save (сутності вже managed, Hibernate зробить UPDATE при flush)
+        dayBudgetRepository.saveAll(nextBudgets);
+
+        log.debug("Перераховано баланси для {} наступних днів користувача {}",
+                nextBudgets.size(), user.getUsername());
     }
 
     // ==================== ОТРИМАННЯ ДАНИХ ====================
@@ -272,6 +310,8 @@ public class BudgetService {
         }
         DayBudget dayBudget = expense.getDayBudget();
         expenseRepository.delete(expense);
+        // Видаляємо з колекції, щоб getTotalExpenses() врахував зміну
+        dayBudget.getExpenses().remove(expense);
         updateDayBudgetBalance(dayBudget);
     }
 
@@ -284,6 +324,7 @@ public class BudgetService {
         }
         DayBudget dayBudget = income.getDayBudget();
         incomeRepository.delete(income);
+        dayBudget.getIncomes().remove(income);
         updateDayBudgetBalance(dayBudget);
     }
 
@@ -350,25 +391,11 @@ public class BudgetService {
         }
         LocalDate deletedDate = dayBudget.getDate();
         dayBudgetRepository.delete(dayBudget);
+        dayBudgetRepository.flush(); // гарантуємо, що DELETE виконано до наступного запиту
 
-        List<DayBudget> nextBudgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user).stream()
-                .filter(b -> b.getDate().isAfter(deletedDate))
-                .toList();
-        if (nextBudgets.isEmpty()) return;
-
-        DayBudget previousDay = dayBudgetRepository.findByDateAndOwner(deletedDate.minusDays(1), user).orElse(null);
-        Double previousBalance = previousDay != null ? previousDay.getRemainingBalance() : 0.0;
-
-        for (DayBudget budget : nextBudgets) {
-            budget.setStartingBalance(previousBalance);
-            Double totalExpenses = expenseRepository.sumExpensesByDateAndUser(budget.getDate(), user);
-            Double totalIncomes = incomeRepository.sumIncomesByDateAndUser(budget.getDate(), user);
-            if (totalExpenses == null) totalExpenses = 0.0;
-            if (totalIncomes == null) totalIncomes = 0.0;
-            budget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
-            dayBudgetRepository.save(budget);
-            previousBalance = budget.getRemainingBalance();
-        }
+        // Перераховуємо всі дні, починаючи з наступного після видаленого.
+        // Передаємо deletedDate.minusDays(1) — це день, чий баланс стає "стартовим".
+        updateNextDaysBalances(deletedDate.minusDays(1), user);
     }
 
     // ==================== ПІДСУМКИ ====================
