@@ -15,10 +15,8 @@ import java.util.List;
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
-    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.dayBudget.date BETWEEN :start AND :end AND e.dayBudget.owner = :user")
-    Double sumExpensesByDateBetweenAndUser(@Param("start") LocalDate start, @Param("end") LocalDate end, @Param("user") User user);
+    // ==================== ПІДСУМКИ ====================
 
-    // Оригінальні методи (без користувача) – можна залишити або видалити
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.dayBudget.date = :date")
     Double sumExpensesByDate(@Param("date") LocalDate date);
 
@@ -28,7 +26,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Object[]> sumExpensesByCategory(@Param("startDate") LocalDate startDate,
                                          @Param("endDate") LocalDate endDate);
 
-    // Нові методи з урахуванням користувача
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.dayBudget.date = :date AND e.dayBudget.owner = :user")
     Double sumExpensesByDateAndUser(@Param("date") LocalDate date, @Param("user") User user);
 
@@ -40,7 +37,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                                                 @Param("endDate") LocalDate endDate,
                                                 @Param("user") User user);
 
-    // ОПТИМІЗОВАНІ ЗАПИТИ (з користувачем)
+    @Query("SELECT SUM(e.amount) FROM Expense e " +
+            "WHERE e.dayBudget.date BETWEEN :start AND :end AND e.dayBudget.owner = :user")
+    Double sumExpensesByDateBetweenAndUser(@Param("start") LocalDate start,
+                                           @Param("end") LocalDate end,
+                                           @Param("user") User user);
+
+    // ==================== ПІДСУМКИ ПО ДНЯХ / КАТЕГОРІЯХ ====================
+
     @Query("SELECT new org.lazycent.model.dto.DailySummaryDto(" +
             "e.dayBudget.date, " +
             "e.dayBudget.dayName, " +
@@ -69,4 +73,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<CategorySummaryDto> getExpenseCategorySummaries(@Param("startDate") LocalDate startDate,
                                                          @Param("endDate") LocalDate endDate,
                                                          @Param("user") User user);
+
+    // ==================== ЛІЧИЛЬНИКИ ====================
+
+    /**
+     * Кількість витрат конкретного користувача (для логування в демо-даних).
+     */
+    @Query("SELECT COUNT(e) FROM Expense e WHERE e.dayBudget.owner = :user")
+    long countByOwner(@Param("user") User user);
 }
