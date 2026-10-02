@@ -8,8 +8,8 @@ spring:
   datasource:
     url: jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    username: ${DB_USER}
+    password: ${DB_PASS}
   h2:
     console:
       enabled: true
