@@ -21,7 +21,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",                    // ← лендінг для всіх
+                                "/",
                                 "/login", "/register",
                                 "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
                                 "/favicon.ico", "/logo.png",
@@ -45,9 +45,9 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
-                )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+                );
+//                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+//                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
     }
