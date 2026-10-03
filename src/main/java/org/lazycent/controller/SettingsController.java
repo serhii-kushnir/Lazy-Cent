@@ -1,6 +1,7 @@
 package org.lazycent.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.User;
@@ -13,7 +14,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Locale;
 
 @Controller
 @RequiredArgsConstructor
@@ -133,5 +137,29 @@ public class SettingsController extends BaseController {
             redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
         }
         return redirectToReferer(request);
+    }
+
+    @PostMapping("/settings/language")
+    public String updateLanguage(@RequestParam String lang,
+                                 HttpServletRequest request,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        Locale locale;
+        switch (lang) {
+            case "en" -> locale = Locale.ENGLISH;
+            case "uk" -> locale = new Locale("uk", "UA");
+            default -> locale = Locale.ENGLISH;
+        }
+
+        session.setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
+
+        log.info("Мову змінено на {}", locale);
+
+        // Повертаємось на попередню сторінку
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isEmpty() && referer.contains("/settings")) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/";
     }
 }
