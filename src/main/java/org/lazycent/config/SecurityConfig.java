@@ -29,7 +29,8 @@ public class SecurityConfig {
                                 "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
                                 "/favicon.ico", "/logo.png",
                                 "/privacy", "/terms", "/error", "/error/**",
-                                "/forgot-password", "/reset-password"
+                                "/forgot-password", "/reset-password",
+                                "/actuator/health", "/actuator/health/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

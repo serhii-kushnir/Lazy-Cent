@@ -13,17 +13,16 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASS}
 
-  #  h2:
-  #    console:
-  #      enabled: true
-  #      path: /h2-console
+#    h2:
+#      console:
+#        enabled: true
+#        path: /h2-console
 
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: true
-    open-in-view: false                    # ← ДОДАНО
+    open-in-view: false
     properties:
       hibernate:
         format_sql: false
@@ -63,11 +62,6 @@ spring:
 server:
   port: 8081
 
-logging:
-  level:
-    org.lazycent: DEBUG
-    org.lazycent.config.LocaleAwareAuthenticationSuccessHandler: DEBUG
-
 app:
   demo:
     enabled: true
@@ -75,3 +69,18 @@ app:
     default-password: demo
     random-days: 14
     new-user-days: 7
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: ADMIN
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
