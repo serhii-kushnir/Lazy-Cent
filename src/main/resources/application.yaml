@@ -1,27 +1,39 @@
 spring:
   messages:
-      basename: messages
-      encoding: UTF-8
-      fallback-to-system-locale: false
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
   application:
     name: lazycent
+
   datasource:
     url: jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: ${DB_USER}
     password: ${DB_PASS}
-#  h2:
-#    console:
-#      enabled: true
-#      path: /h2-console
+
+  #  h2:
+  #    console:
+  #      enabled: true
+  #      path: /h2-console
+
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: update
     show-sql: true
+    open-in-view: false                    # ← ДОДАНО
     properties:
       hibernate:
         format_sql: false
+        # ===== BATCH FETCHING =====
+        default_batch_fetch_size: 16
+        # ===== BATCH WRITES =====
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
 
   security:
     oauth2:
@@ -55,6 +67,7 @@ logging:
   level:
     org.lazycent: DEBUG
     org.lazycent.config.LocaleAwareAuthenticationSuccessHandler: DEBUG
+
 app:
   demo:
     enabled: true

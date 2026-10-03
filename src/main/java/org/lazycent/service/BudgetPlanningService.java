@@ -94,10 +94,14 @@ public class BudgetPlanningService {
 
         // 3. Витрати по категоріях
         List<CategorySummaryDto> expenseSummaries = expenseRepository.getExpenseCategorySummaries(start, end, user);
+
+// Отримуємо ВСІ категорії один раз
+        List<Category> allCategories = categoryService.getAllCategories(user);
+
         Map<Category, Double> categoryExpenses = new HashMap<>();
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
         for (CategorySummaryDto dto : expenseSummaries) {
-            Category cat = categoryService.getAllCategories(user).stream()
+            Category cat = allCategories.stream()
                     .filter(c -> c.getName().equals(dto.getCategoryName()))
                     .findFirst()
                     .orElse(null);

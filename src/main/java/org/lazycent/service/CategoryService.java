@@ -7,17 +7,14 @@ import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.repository.CategoryRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Сервіс для роботи з категоріями.
- * Містить всю логіку CRUD категорій, яка раніше була розкидана між BudgetService,
- * BudgetPlanningService та DemoDataService.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,18 +22,26 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-    // ==================== ЧИТАННЯ ====================
+    // ==================== ЧИТАННЯ (з кешем) ====================
 
-    public List<Category> getAllCategories(User user) {
-        return categoryRepository.findAllByOwner(user);
-    }
-
+    /**
+     * Кешується по user.id. Cache name = "expenseCategories".
+     */
+    @Cacheable(value = "expenseCategories", key = "#user.id")
     public List<Category> getExpenseCategories(User user) {
+        log.debug("DB query: getExpenseCategories for user {}", user.getUsername());
         return categoryRepository.findByTypeAndOwner("EXPENSE", user);
     }
 
+    @Cacheable(value = "incomeCategories", key = "#user.id")
     public List<Category> getIncomeCategories(User user) {
+        log.debug("DB query: getIncomeCategories for user {}", user.getUsername());
         return categoryRepository.findByTypeAndOwner("INCOME", user);
+    }
+
+    public List<Category> getAllCategories(User user) {
+        // Не кешуємо — використовується рідко
+        return categoryRepository.findAllByOwner(user);
     }
 
     public long countByOwner(User user) {
@@ -52,9 +57,10 @@ public class CategoryService {
         return category;
     }
 
-    // ==================== СТВОРЕННЯ ====================
+    // ==================== СТВОРЕННЯ (з інвалідацією) ====================
 
     @Transactional
+    @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public Category addCategory(String name, String type, User user) {
         String normalizedName = name.trim();
         if (normalizedName.isEmpty()) {
@@ -70,10 +76,8 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    /**
-     * Створює категорію, якщо її ще немає (для демо-даних).
-     */
     @Transactional
+    @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public Category createIfNotExists(String name, String type, User user) {
         return categoryRepository.findByNameAndOwner(name, user)
                 .orElseGet(() -> {
@@ -85,9 +89,10 @@ public class CategoryService {
                 });
     }
 
-    // ==================== ОНОВЛЕННЯ ====================
+    // ==================== ОНОВЛЕННЯ (з інвалідацією) ====================
 
     @Transactional
+    @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public Category updateCategory(Long id, String newName, User user) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
@@ -108,9 +113,10 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    // ==================== ВИДАЛЕННЯ ====================
+    // ==================== ВИДАЛЕННЯ (з інвалідацією) ====================
 
     @Transactional
+    @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public void deleteCategory(Long id, User user) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
@@ -121,6 +127,7 @@ public class CategoryService {
     }
 
     @Transactional
+    @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public void deleteAllCategories(User user) {
         List<Category> categories = categoryRepository.findAllByOwner(user);
         if (!categories.isEmpty()) {
