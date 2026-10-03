@@ -50,10 +50,6 @@ public class BudgetService {
                 });
     }
 
-    /**
-     * Баланс останнього дня ДО вказаної дати.
-     * Один запит замість завантаження всієї історії.
-     */
     private Double getLastRemainingBalance(LocalDate currentDate, User user) {
         return dayBudgetRepository
                 .findFirstByOwnerAndDateBeforeOrderByDateDesc(user, currentDate)
@@ -100,12 +96,19 @@ public class BudgetService {
         }
     }
 
+    /**
+     * ⚠️ FIX: підтримуємо bidirectional зв'язок — додаємо збережений Expense
+     * у колекцію dayBudget.expenses. Без цього Hibernate не бачить
+     * новий елемент у колекції (getTotalExpenses() = 0) і не каскадно
+     * видаляє його при deleteDay().
+     */
     @Transactional
     public Expense addExpense(Long dayBudgetId, Expense expense) {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
                 .orElseThrow(() -> new EntityNotFoundException("DayBudget", dayBudgetId));
         expense.setDayBudget(dayBudget);
         Expense saved = expenseRepository.save(expense);
+        dayBudget.getExpenses().add(saved);   // <-- КЛЮЧОВИЙ ФІКС
         updateDayBudgetBalance(dayBudget);
         return saved;
     }
@@ -116,20 +119,14 @@ public class BudgetService {
                 .orElseThrow(() -> new EntityNotFoundException("DayBudget", dayBudgetId));
         income.setDayBudget(dayBudget);
         Income saved = incomeRepository.save(income);
+        dayBudget.getIncomes().add(saved);    // <-- КЛЮЧОВИЙ ФІКС
         updateDayBudgetBalance(dayBudget);
         return saved;
     }
 
     // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
-    /**
-     * Оновлює баланс конкретного дня та всіх наступних.
-     * ОПТИМІЗОВАНО: всі наступні дні завантажуються одним запитом
-     * (з їхніми expenses/incomes через @EntityGraph), баланси перераховуються в пам'яті,
-     * зберігаються одним saveAll.
-     */
     private void updateDayBudgetBalance(DayBudget dayBudget) {
-        // Перераховуємо баланс поточного дня
         double totalExpenses = dayBudget.getTotalExpenses();
         double totalIncomes = dayBudget.getTotalIncomes();
         double previousBalance = dayBudget.getStartingBalance() != null ? dayBudget.getStartingBalance() : 0.0;
@@ -137,36 +134,19 @@ public class BudgetService {
         dayBudget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
         dayBudgetRepository.save(dayBudget);
 
-        // Перераховуємо всі наступні дні
         updateNextDaysBalances(dayBudget.getDate(), dayBudget.getOwner());
     }
 
-    /**
-     * Перераховує баланси для всіх днів, що йдуть після fromDate.
-     *
-     * <p>Алгоритм:
-     * <ol>
-     *   <li>Знаходимо останній день користувача (одним запитом, без колекцій)</li>
-     *   <li>Завантажуємо всі дні в діапазоні (fromDate; endDate] одним запитом
-     *       з expenses/incomes через @EntityGraph</li>
-     *   <li>Обчислюємо баланси послідовно в пам'яті</li>
-     *   <li>Зберігаємо всі змінені дні одним saveAll (Hibernate зробить batch update при flush)</li>
-     * </ol>
-     *
-     * <p>Кількість запитів: O(1) замість O(N) у старій версії.
-     */
     private void updateNextDaysBalances(LocalDate fromDate, User user) {
-        // 1. Кінець діапазону — останній день користувача
         LocalDate endDate = dayBudgetRepository
                 .findFirstByOwnerOrderByDateDesc(user)
                 .map(DayBudget::getDate)
                 .orElse(null);
 
         if (endDate == null || !endDate.isAfter(fromDate)) {
-            return; // немає наступних днів
+            return;
         }
 
-        // 2. Всі наступні дні з витратами/доходами одним запитом
         List<DayBudget> nextBudgets = dayBudgetRepository
                 .findByOwnerAndDateBetween(user, fromDate.plusDays(1), endDate);
 
@@ -174,13 +154,11 @@ public class BudgetService {
             return;
         }
 
-        // 3. Початковий баланс — баланс дня fromDate
         Double previousBalance = dayBudgetRepository
                 .findByDateAndOwner(fromDate, user)
                 .map(DayBudget::getRemainingBalance)
                 .orElse(0.0);
 
-        // 4. Перерахування в пам'яті
         for (DayBudget budget : nextBudgets) {
             budget.setStartingBalance(previousBalance);
 
@@ -192,7 +170,6 @@ public class BudgetService {
             previousBalance = newBalance;
         }
 
-        // 5. Один batch-save (сутності вже managed, Hibernate зробить UPDATE при flush)
         dayBudgetRepository.saveAll(nextBudgets);
 
         log.debug("Перераховано баланси для {} наступних днів користувача {}",
@@ -273,6 +250,8 @@ public class BudgetService {
         duplicate.setBuyer(original.getBuyer());
         duplicate.setSeller(original.getSeller());
         expenseRepository.save(duplicate);
+        // FIX: підтримуємо bidirectional
+        original.getDayBudget().getExpenses().add(duplicate);
         updateDayBudgetBalance(original.getDayBudget());
         return original.getDayBudget().getDate();
     }
@@ -295,6 +274,7 @@ public class BudgetService {
         duplicate.setBuyer(original.getBuyer());
         duplicate.setSeller(original.getSeller());
         incomeRepository.save(duplicate);
+        original.getDayBudget().getIncomes().add(duplicate);
         updateDayBudgetBalance(original.getDayBudget());
         return original.getDayBudget().getDate();
     }
@@ -310,7 +290,6 @@ public class BudgetService {
         }
         DayBudget dayBudget = expense.getDayBudget();
         expenseRepository.delete(expense);
-        // Видаляємо з колекції, щоб getTotalExpenses() врахував зміну
         dayBudget.getExpenses().remove(expense);
         updateDayBudgetBalance(dayBudget);
     }
@@ -391,10 +370,8 @@ public class BudgetService {
         }
         LocalDate deletedDate = dayBudget.getDate();
         dayBudgetRepository.delete(dayBudget);
-        dayBudgetRepository.flush(); // гарантуємо, що DELETE виконано до наступного запиту
+        dayBudgetRepository.flush();
 
-        // Перераховуємо всі дні, починаючи з наступного після видаленого.
-        // Передаємо deletedDate.minusDays(1) — це день, чий баланс стає "стартовим".
         updateNextDaysBalances(deletedDate.minusDays(1), user);
     }
 

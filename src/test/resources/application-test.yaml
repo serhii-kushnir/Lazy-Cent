@@ -16,8 +16,6 @@ spring:
       enabled: false
   main:
     allow-bean-definition-overriding: true
-
-  # ===== MAIL: dummy-значення, щоб не падати на ${MAIL_USERNAME} =====
   mail:
     host: localhost
     port: 2525
@@ -30,6 +28,21 @@ spring:
           auth: false
           starttls:
             enable: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  # ВИМКНЕНО: mail health indicator не має сенсу в тестах (немає SMTP)
+  health:
+    mail:
+      enabled: false
 
 app:
   demo:
