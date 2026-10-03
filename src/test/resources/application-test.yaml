@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+  h2:
+    console:
+      enabled: false
+  main:
+    allow-bean-definition-overriding: true
+
+  # ===== MAIL: dummy-значення, щоб не падати на ${MAIL_USERNAME} =====
+  mail:
+    host: localhost
+    port: 2525
+    username: test@example.com
+    password: test
+    from: test@example.com
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+app:
+  demo:
+    enabled: false
+    random-days: 0
+
+logging:
+  level:
+    org.lazycent: WARN
