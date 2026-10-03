@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -26,6 +28,16 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private final MessageSource messageSource;
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public String handleAccessDenied(AccessDeniedException ex,
+                                     HttpServletRequest request,
+                                     RedirectAttributes redirectAttributes) {
+        log.warn("Access denied: {}", ex.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage",
+                ex.getMessage() != null ? ex.getMessage() : "У вас немає доступу до цього ресурсу");
+        return redirectToReferer(request);
+    }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ModelAndView handleNoResourceFound(NoResourceFoundException ex) {
@@ -89,4 +101,16 @@ public class GlobalExceptionHandler {
         }
         return "redirect:/";
     }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public String handleOptimisticLock(ObjectOptimisticLockingFailureException ex,
+                                       HttpServletRequest request,
+                                       RedirectAttributes redirectAttributes) {
+        log.warn("Optimistic lock conflict: {}", ex.getMessage());
+        redirectAttributes.addFlashAttribute("errorMessage",
+                "Дані були змінені в іншій сесії. Оновіть сторінку та спробуйте ще раз.");
+        return redirectToReferer(request);
+    }
+
+
 }

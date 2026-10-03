@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -15,17 +16,19 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final LocaleAwareAuthenticationSuccessHandler successHandler;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
                                 "/login", "/register",
                                 "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
                                 "/favicon.ico", "/logo.png",
-                                "/privacy", "/terms", "/error",
+                                "/privacy", "/terms", "/error", "/error/**",
                                 "/forgot-password", "/reset-password"
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -46,8 +49,6 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 );
-//                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
-//                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
     }

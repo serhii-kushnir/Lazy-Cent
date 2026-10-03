@@ -252,7 +252,10 @@
                     </label>
                     <div th:if="${fieldErrors != null and fieldErrors.containsKey('termsConsent')}" class="invalid-feedback" th:text="${fieldErrors.termsConsent}"></div>
                 </div>
-
+                <div th:if="${param.ratelimited}" class="alert alert-warning" role="alert">
+                    <i class="fas fa-clock me-2"></i>
+                    <span th:text="#{auth.register.rateLimited}">Забагато спроб реєстрації. Спробуйте через хвилину.</span>
+                </div>
                 <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
 
                 <button type="submit" class="btn btn-success w-100 mt-2">
