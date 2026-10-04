@@ -10,6 +10,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,31 +23,22 @@ public class MailService {
     @Value("${spring.mail.from}")
     private String fromEmail;
 
-    /**
-     * Відправка листа відбувається асинхронно (в окремому пулі потоків "mailExecutor"),
-     * щоб не блокувати HTTP-потік користувача на 2-5 секунд поки SMTP-сервер відповідає.
-     */
+    @Value("${app.url:http://localhost:8081}")
+    private String appUrl;
+
     @Async("mailExecutor")
     public void sendPasswordResetEmail(String to, String token) {
         try {
+            Locale locale = LocaleContextHolder.getLocale();
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
-            message.setSubject(messageSource.getMessage(
-                    "mail.passwordReset.subject", null, LocaleContextHolder.getLocale()));
-            message.setText("""
-                    Доброго дня!
-
-                    Ви надіслали запит на відновлення пароля для вашого акаунта Lazy Cent.
-
-                    Перейдіть за цим посиланням, щоб встановити новий пароль:
-                    http://localhost:8081/reset-password?token=%s
-
-                    Якщо ви не робили цього запиту, просто проігноруйте цей лист.
-
-                    З повагою,
-                    Lazy Cent
-                    """.formatted(token));
+            message.setSubject(messageSource.getMessage("mail.passwordReset.subject", null, locale));
+            message.setText(messageSource.getMessage(
+                    "mail.passwordReset.body",
+                    new Object[]{ appUrl, token },
+                    locale));
 
             mailSender.send(message);
             log.info("Лист для відновлення пароля надіслано на {}", to);

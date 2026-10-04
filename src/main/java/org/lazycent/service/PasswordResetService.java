@@ -2,6 +2,7 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.exception.ValidationException;
 import org.lazycent.model.PasswordResetToken;
 import org.lazycent.model.User;
 import org.lazycent.repository.PasswordResetTokenRepository;
@@ -49,11 +50,11 @@ public class PasswordResetService {
     @Transactional
     public User validateToken(String token) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException(msg("error.token.invalid")));
+                .orElseThrow(() -> new ValidationException(msg("error.token.invalid")));
 
         if (resetToken.isExpired()) {
             tokenRepository.delete(resetToken);
-            throw new RuntimeException(msg("error.token.expired"));
+            throw new ValidationException(msg("error.token.expired"));
         }
 
         return resetToken.getUser();
@@ -68,10 +69,11 @@ public class PasswordResetService {
         log.info("Пароль відновлено для користувача {}", user.getUsername());
     }
 
-    private String msg(String key) {
+    private String msg(String key, Object... args) {
         try {
-            return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
         } catch (Exception e) {
+            log.warn("Не знайдено переклад для ключа '{}': {}", key, e.getMessage());
             return key;
         }
     }

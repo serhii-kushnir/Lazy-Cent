@@ -9,6 +9,8 @@ import org.lazycent.model.User;
 import org.lazycent.repository.CategoryRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,12 +23,10 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final MessageSource messageSource;   // ← ДОДАНО
 
     // ==================== ЧИТАННЯ (з кешем) ====================
 
-    /**
-     * Кешується по user.id. Cache name = "expenseCategories".
-     */
     @Cacheable(value = "expenseCategories", key = "#user.id")
     public List<Category> getExpenseCategories(User user) {
         log.debug("DB query: getExpenseCategories for user {}", user.getUsername());
@@ -40,7 +40,6 @@ public class CategoryService {
     }
 
     public List<Category> getAllCategories(User user) {
-        // Не кешуємо — використовується рідко
         return categoryRepository.findAllByOwner(user);
     }
 
@@ -52,22 +51,22 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
         if (!category.getOwner().equals(user)) {
-            throw new AccessDeniedException("Ця категорія не належить вам");
+            throw new AccessDeniedException(msg("error.access.denied"));
         }
         return category;
     }
 
-    // ==================== СТВОРЕННЯ (з інвалідацією) ====================
+    // ==================== СТВОРЕННЯ ====================
 
     @Transactional
     @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public Category addCategory(String name, String type, User user) {
         String normalizedName = name.trim();
         if (normalizedName.isEmpty()) {
-            throw new ValidationException("Назва категорії не може бути порожньою");
+            throw new ValidationException(msg("error.category.name.empty"));
         }
         if (categoryRepository.findByNameIgnoreCaseAndOwner(normalizedName, user).isPresent()) {
-            throw new ValidationException("Категорія з таким ім'ям вже існує у вас");
+            throw new ValidationException(msg("error.category.name.exists"));
         }
         Category category = new Category();
         category.setName(normalizedName);
@@ -89,7 +88,7 @@ public class CategoryService {
                 });
     }
 
-    // ==================== ОНОВЛЕННЯ (з інвалідацією) ====================
+    // ==================== ОНОВЛЕННЯ ====================
 
     @Transactional
     @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
@@ -97,23 +96,23 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
         if (!category.getOwner().equals(user)) {
-            throw new AccessDeniedException("Ця категорія не належить вам");
+            throw new AccessDeniedException(msg("error.access.denied"));
         }
         String normalizedName = newName.trim();
         if (normalizedName.isEmpty()) {
-            throw new ValidationException("Назва категорії не може бути порожньою");
+            throw new ValidationException(msg("error.category.name.empty"));
         }
         categoryRepository.findByNameIgnoreCaseAndOwner(normalizedName, user)
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(id)) {
-                        throw new ValidationException("Категорія з таким ім'ям вже існує у вас");
+                        throw new ValidationException(msg("error.category.name.exists"));
                     }
                 });
         category.setName(normalizedName);
         return categoryRepository.save(category);
     }
 
-    // ==================== ВИДАЛЕННЯ (з інвалідацією) ====================
+    // ==================== ВИДАЛЕННЯ ====================
 
     @Transactional
     @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
@@ -121,7 +120,7 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
         if (!category.getOwner().equals(user)) {
-            throw new AccessDeniedException("Ця категорія не належить вам");
+            throw new AccessDeniedException(msg("error.access.denied"));
         }
         categoryRepository.deleteById(id);
     }
@@ -132,6 +131,17 @@ public class CategoryService {
         List<Category> categories = categoryRepository.findAllByOwner(user);
         if (!categories.isEmpty()) {
             categoryRepository.deleteAll(categories);
+        }
+    }
+
+    // ==================== ДОПОМІЖНІ ====================
+
+    private String msg(String key, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            log.warn("Не знайдено переклад для ключа '{}': {}", key, e.getMessage());
+            return key;
         }
     }
 }
