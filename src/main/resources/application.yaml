@@ -74,13 +74,12 @@ server:
 app:
   url: ${APP_URL:http://localhost:8081}
   demo:
-    enabled: true
+    enabled: false
     default-user: demo
     default-password: demo
     random-days: 14
-    new-user-days: 7
   rate-limit:
-     trust-forwarded-for: true
+    trust-forwarded-for: ${TRUST_FORWARDED_FOR:false}
 
 # ===================== ACTUATOR =====================
 management:

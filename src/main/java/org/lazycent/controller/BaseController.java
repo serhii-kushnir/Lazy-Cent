@@ -2,6 +2,7 @@ package org.lazycent.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.config.RedirectUtils;
 import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
@@ -21,6 +22,9 @@ public abstract class BaseController {
 
     @Autowired
     protected MessageSource messageSource;
+
+    @Autowired
+    protected RedirectUtils redirectUtils;
 
     protected User getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -51,17 +55,9 @@ public abstract class BaseController {
     }
 
     protected String redirectToReferer(HttpServletRequest request) {
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty()) {
-            return "redirect:" + referer;
-        }
-        return "redirect:/";
+        return redirectUtils.redirectToReferer(request);
     }
 
-    /**
-     * Локалізоване повідомлення за ключем. При помилці повертає сам ключ
-     * (щоб застосунок не падав у разі відсутнього перекладу).
-     */
     protected String msg(String key, Object... args) {
         try {
             return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());

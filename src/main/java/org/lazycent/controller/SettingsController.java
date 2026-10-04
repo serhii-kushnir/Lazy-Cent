@@ -154,15 +154,17 @@ public class SettingsController extends BaseController {
         }
 
         session.setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
-
         log.info("Мову змінено на {}", locale);
 
         String message = msg("toast.language.changed." + lang);
         redirectAttributes.addFlashAttribute("successMessage", message);
 
-        String referer = request.getHeader("Referer");
-        if (referer != null && !referer.isEmpty() && referer.contains("/settings")) {
-            return "redirect:" + referer;
+        // Використовуємо той самий безпечний редірект, що й для решти налаштувань.
+        // Якщо Referer вказує на /settings/... — повернемось туди,
+        // інакше — на головну.
+        String redirect = redirectUtils.redirectToReferer(request);
+        if (redirect.startsWith("redirect:/settings")) {
+            return redirect;
         }
         return "redirect:/";
     }
