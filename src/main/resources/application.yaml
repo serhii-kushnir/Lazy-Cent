@@ -72,6 +72,7 @@ server:
 
 # ===================== APP =====================
 app:
+  url: ${APP_URL:http://localhost:8081}
   demo:
     enabled: true
     default-user: demo

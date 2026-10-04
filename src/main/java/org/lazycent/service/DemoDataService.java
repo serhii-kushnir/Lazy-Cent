@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.*;
 import org.lazycent.repository.*;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -21,6 +24,7 @@ public class DemoDataService {
     private final DayBudgetRepository dayBudgetRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
+    private final MessageSource messageSource;   // ← ДОДАНО
 
     private final Random random = new Random();
 
@@ -62,15 +66,18 @@ public class DemoDataService {
             return;
         }
         log.info("Створюємо категорії для користувача {}...", user.getUsername());
-        createCategory("Їжа", "EXPENSE", user);
-        createCategory("Дорога", "EXPENSE", user);
-        createCategory("Ліки", "EXPENSE", user);
-        createCategory("Одяг", "EXPENSE", user);
-        createCategory("Різне", "EXPENSE", user);
-        createCategory("Чаєві", "INCOME", user);
-        createCategory("Премія", "INCOME", user);
-        createCategory("Зарплата", "INCOME", user);
-        createCategory("Інше", "INCOME", user);
+
+        // FIX: локалізовані назви категорій — створюються мовою користувача на момент реєстрації
+        createCategory(msg("demo.category.food"), "EXPENSE", user);
+        createCategory(msg("demo.category.transport"), "EXPENSE", user);
+        createCategory(msg("demo.category.medicine"), "EXPENSE", user);
+        createCategory(msg("demo.category.clothes"), "EXPENSE", user);
+        createCategory(msg("demo.category.misc"), "EXPENSE", user);
+        createCategory(msg("demo.category.tips"), "INCOME", user);
+        createCategory(msg("demo.category.bonus"), "INCOME", user);
+        createCategory(msg("demo.category.salary"), "INCOME", user);
+        createCategory(msg("demo.category.other"), "INCOME", user);
+
         log.info("Категорії створено для користувача {}.", user.getUsername());
     }
 
@@ -91,7 +98,6 @@ public class DemoDataService {
         log.info("=== ПОЧАТОК СТВОРЕННЯ ДЕМО-ДАНИХ для користувача: {} (id={}) ===",
                 user.getUsername(), user.getId());
 
-        // Перевіряємо наявність категорій
         long categoryCount = categoryRepository.countByOwner(user);
         if (categoryCount == 0) {
             log.warn("Категорії не знайдено для користувача {}. Створюємо...", user.getUsername());
@@ -100,7 +106,6 @@ public class DemoDataService {
             log.info("Створено {} категорій.", categoryCount);
         }
 
-        // Перевіряємо, чи вже є транзакції
         long existingDayCount = dayBudgetRepository.countByOwner(user);
         if (existingDayCount > 0) {
             log.info("Дні вже існують для користувача {}. Пропускаємо генерацію.", user.getUsername());
@@ -110,20 +115,20 @@ public class DemoDataService {
         LocalDate today = LocalDate.now();
         Double runningBalance = 0.0;
 
-        // Отримуємо категорії
-        Category food = getCategory(user, "Їжа", "EXPENSE");
-        Category transport = getCategory(user, "Дорога", "EXPENSE");
-        Category medicine = getCategory(user, "Ліки", "EXPENSE");
-        Category clothes = getCategory(user, "Одяг", "EXPENSE");
-        Category miscExpense = getCategory(user, "Різне", "EXPENSE");
-        Category tips = getCategory(user, "Чаєві", "INCOME");
-        Category salaryM = getCategory(user, "Премія", "INCOME");
-        Category salaryS = getCategory(user, "Зарплата", "INCOME");
-        Category miscIncome = getCategory(user, "Інше", "INCOME");
+        // FIX: той самий msg() для пошуку, що й для створення — інакше категорії не знайдуться
+        Category food = getCategory(user, msg("demo.category.food"), "EXPENSE");
+        Category transport = getCategory(user, msg("demo.category.transport"), "EXPENSE");
+        Category medicine = getCategory(user, msg("demo.category.medicine"), "EXPENSE");
+        Category clothes = getCategory(user, msg("demo.category.clothes"), "EXPENSE");
+        Category miscExpense = getCategory(user, msg("demo.category.misc"), "EXPENSE");
+        Category tips = getCategory(user, msg("demo.category.tips"), "INCOME");
+        Category salaryM = getCategory(user, msg("demo.category.bonus"), "INCOME");
+        Category salaryS = getCategory(user, msg("demo.category.salary"), "INCOME");
+        Category miscIncome = getCategory(user, msg("demo.category.other"), "INCOME");
 
         record ExpenseCategoryOption(Category category, List<String> descriptions,
                                      double minAmount, double maxAmount) {}
-        List<ExpenseCategoryOption> expenseOptions = new java.util.ArrayList<>();
+        List<ExpenseCategoryOption> expenseOptions = new ArrayList<>();
         expenseOptions.add(new ExpenseCategoryOption(food, FOOD_DESCRIPTIONS, 40.0, 350.0));
         expenseOptions.add(new ExpenseCategoryOption(transport, TRANSPORT_DESCRIPTIONS, 20.0, 250.0));
         if (medicine != null) expenseOptions.add(new ExpenseCategoryOption(medicine, MEDICINE_DESCRIPTIONS, 50.0, 600.0));
@@ -132,7 +137,7 @@ public class DemoDataService {
 
         record IncomeCategoryOption(Category category, List<String> descriptions,
                                     double minAmount, double maxAmount) {}
-        List<IncomeCategoryOption> incomeOptions = new java.util.ArrayList<>();
+        List<IncomeCategoryOption> incomeOptions = new ArrayList<>();
         incomeOptions.add(new IncomeCategoryOption(tips, TIPS_DESCRIPTIONS, 50.0, 400.0));
         if (miscIncome != null) incomeOptions.add(new IncomeCategoryOption(miscIncome, MISC_INCOME_DESCRIPTIONS, 100.0, 1000.0));
 
@@ -219,7 +224,6 @@ public class DemoDataService {
                     date, dayExpenses, dayIncomes, budget.getRemainingBalance());
         }
 
-        // ===== Підсумкове логування (тільки по поточному користувачу) =====
         long totalDays = dayBudgetRepository.countByOwner(user);
         long userExpenses = expenseRepository.countByOwner(user);
         long userIncomes = incomeRepository.countByOwner(user);
@@ -267,5 +271,17 @@ public class DemoDataService {
             case 7 -> "Неділя";
             default -> "Невідомо";
         };
+    }
+
+    /**
+     * Локалізоване повідомлення за ключем. При помилці повертає сам ключ.
+     */
+    private String msg(String key, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            log.warn("Не знайдено переклад для ключа '{}': {}", key, e.getMessage());
+            return key;
+        }
     }
 }

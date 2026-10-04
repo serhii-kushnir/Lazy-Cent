@@ -11,11 +11,10 @@ import java.util.regex.Pattern;
 
 @Controller
 @RequiredArgsConstructor
-public class PasswordResetController {
+public class PasswordResetController extends BaseController {
 
     private final PasswordResetService passwordResetService;
 
-    // Регулярний вираз для перевірки пароля (той самий, що й у реєстрації)
     private static final Pattern PASSWORD_PATTERN =
             Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{6,}$");
 
@@ -28,8 +27,8 @@ public class PasswordResetController {
     public String processForgotPassword(@RequestParam String email,
                                         RedirectAttributes redirectAttributes) {
         passwordResetService.createPasswordResetToken(email);
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Якщо акаунт з таким email існує, на нього було надіслано лист з інструкціями.");
+        // FIX: локалізоване повідомлення
+        redirectAttributes.addFlashAttribute("successMessage", msg("error.email.sent"));
         return "redirect:/forgot-password";
     }
 
@@ -49,23 +48,20 @@ public class PasswordResetController {
                                        @RequestParam String passwordConfirm,
                                        RedirectAttributes redirectAttributes) {
 
-        // 1. Перевірка збігу паролів
+        // FIX: локалізовані повідомлення
         if (!password.equals(passwordConfirm)) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Паролі не збігаються.");
+            redirectAttributes.addFlashAttribute("errorMessage", msg("error.password.mismatch"));
             return "redirect:/reset-password?token=" + token;
         }
 
-        // 2. Валідація пароля (мінімальні вимоги)
         if (!PASSWORD_PATTERN.matcher(password).matches()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Пароль має містити мінімум 6 символів, одну малу літеру, одну велику літеру, одну цифру та один спецсимвол (@$!%*?&).");
+            redirectAttributes.addFlashAttribute("errorMessage", msg("error.password.weak"));
             return "redirect:/reset-password?token=" + token;
         }
 
-        // 3. Спроба скидання
         try {
             passwordResetService.resetPassword(token, password);
-            redirectAttributes.addFlashAttribute("successMessage", "Пароль успішно змінено! Увійдіть.");
+            redirectAttributes.addFlashAttribute("successMessage", msg("error.password.reset.success"));
             return "redirect:/login";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

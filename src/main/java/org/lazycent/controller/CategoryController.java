@@ -12,13 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * MVC-контролер для CRUD категорій через HTML-форми.
- * <p>
- * AJAX endpoints ({@code /categories/expense}, {@code /categories/income})
- * винесені в {@link CategoryRestController}, щоб мати окрему обробку помилок
- * (JSON замість HTML-редіректу).
- */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +30,7 @@ public class CategoryController extends BaseController {
 
         try {
             categoryService.addCategory(name, type, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Категорію додано!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.category.added"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -54,7 +47,7 @@ public class CategoryController extends BaseController {
 
         try {
             categoryService.deleteCategory(id, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Категорію видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.category.deleted"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -72,7 +65,7 @@ public class CategoryController extends BaseController {
 
         try {
             categoryService.updateCategory(id, name, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Категорію оновлено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.category.updated"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }

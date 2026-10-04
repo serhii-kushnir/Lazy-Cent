@@ -8,13 +8,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Контролер нотаток.
- * <p>
- * Наслідує {@link BaseController} — отримує {@code getCurrentUser()},
- * {@code redirectToReferer()} тощо.
- */
 @Controller
 @RequestMapping("/notes")
 @RequiredArgsConstructor
@@ -25,9 +20,8 @@ public class NoteController extends BaseController {
     @GetMapping
     public String viewNotes(Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
+
         model.addAttribute("notes", noteService.getActiveNotes(currentUser));
         model.addAttribute("archivedNotes", noteService.getArchivedNotes(currentUser));
         return "notes";
@@ -38,11 +32,11 @@ public class NoteController extends BaseController {
                              @RequestParam(required = false) String content,
                              @RequestParam(required = false) String color,
                              @RequestParam(required = false) String textColor,
-                             Authentication authentication) {
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
+
         Note note = new Note();
         note.setTitle(title);
         note.setContent(content != null ? content : "");
@@ -50,6 +44,8 @@ public class NoteController extends BaseController {
         note.setTextColor(textColor != null ? textColor : "#212529");
         note.setOwner(currentUser);
         noteService.createNote(note);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Нотатку створено!");
         return "redirect:/notes";
     }
 
@@ -59,42 +55,55 @@ public class NoteController extends BaseController {
                              @RequestParam(required = false) String content,
                              @RequestParam(required = false) String color,
                              @RequestParam(required = false) String textColor,
-                             Authentication authentication) {
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
+
         noteService.updateNote(id, title, content, color, textColor, currentUser);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Нотатку оновлено!");
         return "redirect:/notes";
     }
 
     @PostMapping("/delete/{id}")
-    public String deleteNote(@PathVariable Long id, Authentication authentication) {
+    public String deleteNote(@PathVariable Long id,
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (currentUser == null) return "redirect:/login";
+
         noteService.deleteNote(id, currentUser);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Нотатку видалено!");
         return "redirect:/notes";
     }
 
     @PostMapping("/toggle-pin/{id}")
-    public String togglePin(@PathVariable Long id, Authentication authentication) {
+    public String togglePin(@PathVariable Long id,
+                            Authentication authentication,
+                            RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-        noteService.togglePinned(id, currentUser);
+        if (currentUser == null) return "redirect:/login";
+
+        Note result = noteService.togglePinned(id, currentUser);
+
+        redirectAttributes.addFlashAttribute("successMessage",
+                result.isPinned() ? "Нотатку закріплено!" : "Нотатку відкріплено!");
         return "redirect:/notes";
     }
 
     @PostMapping("/toggle-archive/{id}")
-    public String toggleArchive(@PathVariable Long id, Authentication authentication) {
+    public String toggleArchive(@PathVariable Long id,
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-        noteService.toggleArchived(id, currentUser);
+        if (currentUser == null) return "redirect:/login";
+
+        Note result = noteService.toggleArchived(id, currentUser);
+
+        redirectAttributes.addFlashAttribute("successMessage",
+                result.isArchived() ? "Нотатку заархівовано!" : "Нотатку відновлено!");
         return "redirect:/notes";
     }
 }

@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="/lib/chart.js/chart.umd.min.js"></script>
 
-    <div th:replace="~{fragments :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
 
     <style>
         :root {
@@ -236,7 +236,6 @@
         [data-bs-theme="dark"] .table-categories th { background-color: #1d2027; color: #e6e6e6; }
         [data-bs-theme="dark"] .empty-note { color: #9aa3b2; }
 
-        .toast-container { position: fixed; top: 70px; right: 20px; z-index: 9999; max-width: 350px; }
         .toast {
             background: #fff; border-left: 4px solid #0d6efd;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 250px;
@@ -387,10 +386,10 @@
 </head>
 <body>
 
-<nav th:replace="~{fragments :: navbar('totals')}"></nav>
-<div th:replace="~{fragments :: settingsPanel}"></div>
-<div th:replace="~{fragments :: cookieBanner}"></div>
-<div th:replace="~{fragments :: toastContainer}"></div>
+<nav th:replace="~{fragments/navbar :: navbar('totals')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
 
 <div class="wrap">
 
@@ -993,9 +992,9 @@
 <span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<footer th:replace="~{fragments :: footer}"></footer>
-<div th:replace="~{fragments :: themeScript}"></div>
-<div th:replace="~{fragments :: toastScript}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/head :: themeScript}"></div>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <!-- ПЕРЕДАЄМО ДАНІ ДЛЯ ДІАГРАМ -->
 <div style="display:none;">
@@ -1797,6 +1796,6 @@
 
     })();
 </script>
-<div th:replace="~{fragments :: settingsPanelScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
 </html>

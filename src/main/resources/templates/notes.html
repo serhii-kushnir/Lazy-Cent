@@ -6,7 +6,7 @@
     <title th:text="#{notes.title} + ' - Lazy Cent'">Нотатки - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
-    <div th:replace="~{fragments :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
     <style>
         /* ===== АНІМАЦІЇ ===== */
         @keyframes fadeInUp {
@@ -171,10 +171,10 @@
 </head>
 <body>
 
-<nav th:replace="~{fragments :: navbar('notes')}"></nav>
-<div th:replace="~{fragments :: settingsPanel}"></div>
-<div th:replace="~{fragments :: cookieBanner}"></div>
-<div th:replace="~{fragments :: toastContainer}"></div>
+<nav th:replace="~{fragments/navbar :: navbar('notes')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
 
 <div class="container-fluid mt-4">
 
@@ -430,9 +430,9 @@
 </div>
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<footer th:replace="~{fragments :: footer}"></footer>
-<div th:replace="~{fragments :: themeScript}"></div>
-<div th:replace="~{fragments :: toastScript}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/head :: themeScript}"></div>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <script th:inline="javascript">
     (function() {
@@ -615,6 +615,6 @@
         });
     })();
 </script>
-<div th:replace="~{fragments :: settingsPanelScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
 </html>

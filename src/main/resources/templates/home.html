@@ -133,19 +133,19 @@
             border-color: #3a3f4a;
         }
     </style>
-    <div th:replace="~{fragments :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
 </head>
 <body>
 
 <!-- ===== НАВБАР ===== -->
-<nav th:replace="~{fragments :: navbar('home')}"></nav>
+<nav th:replace="~{fragments/navbar :: navbar('home')}"></nav>
 
 <!-- ===== ПАНЕЛЬ НАЛАШТУВАНЬ ===== -->
-<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
 
 <!-- ===== TOAST ===== -->
-<div th:replace="~{fragments :: cookieBanner}"></div>
-<div th:replace="~{fragments :: toastContainer}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
 
 <div class="container mt-4">
 
@@ -275,7 +275,7 @@
                     <p class="mb-0">
                         <i class="fas fa-balance-scale me-1"></i>
                         <span th:text="#{index.balance}">Баланс</span>:
-                        <strong th:class="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        <strong th:classappend="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
                                 th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
                     </p>
                 </div>
@@ -300,7 +300,7 @@
                     <p class="mb-0">
                         <i class="fas fa-balance-scale me-1"></i>
                         <span th:text="#{index.balance}">Баланс</span>:
-                        <strong th:class="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        <strong th:classappend="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
                                 th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
                     </p>
                 </div>
@@ -325,7 +325,7 @@
                     <p class="mb-0">
                         <i class="fas fa-balance-scale me-1"></i>
                         <span th:text="#{index.balance}">Баланс</span>:
-                        <strong th:class="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        <strong th:classappend="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
                                 th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</strong>
                     </p>
                 </div>
@@ -438,12 +438,12 @@
 </div>
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<footer th:replace="~{fragments :: footer}"></footer>
-<div th:replace="~{fragments :: themeScript}"></div>
-<div th:replace="~{fragments :: toastScript}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/head :: themeScript}"></div>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <!-- ===== СКРИПТ ПАНЕЛІ ===== -->
-<div th:replace="~{fragments :: settingsPanelScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 
 <script th:inline="javascript">
     (function() {

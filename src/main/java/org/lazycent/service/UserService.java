@@ -7,6 +7,8 @@ import org.lazycent.model.Currency;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class UserService {
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
     private final NoteService noteService;
+    private final MessageSource messageSource;   // ← ДОДАНО
 
     @Value("${app.demo.random-days:14}")
     private int demoDays;
@@ -42,10 +45,10 @@ public class UserService {
     @Transactional
     public User registerUser(String username, String rawPassword, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("Користувач з таким іменем вже існує");
+            throw new ValidationException(msg("error.username.exists"));
         }
         if (email != null && !email.isEmpty() && userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
+            throw new ValidationException(msg("error.email.exists"));
         }
 
         User user = new User();
@@ -68,20 +71,10 @@ public class UserService {
         return registerUser(username, rawPassword, null);
     }
 
-    // ==================== OAuth2 – ЗБЕРІГАЄМО АБО ОНОВЛЮЄМО ====================
+    // ==================== OAuth2 ====================
 
-    /**
-     * Основна логіка для OAuth2. Пріоритет пошуку:
-     * <ol>
-     *   <li>За композитним ключем (provider + providerId) — найнадійніше</li>
-     *   <li>За email — для зв'язування з локальним акаунтом</li>
-     *   <li>Створення нового користувача</li>
-     * </ol>
-     */
     @Transactional
     public User saveOrUpdateOAuth2User(String provider, String providerId, String email, String name) {
-
-        // ===== 1. Пошук за (provider, providerId) =====
         User existing = userRepository.findByProviderAndProviderId(provider, providerId).orElse(null);
         if (existing != null) {
             log.info("Знайдено OAuth2-користувача за (provider={}, providerId={}): {}",
@@ -102,12 +95,10 @@ public class UserService {
             return changed ? userRepository.save(existing) : existing;
         }
 
-        // ===== 2. Пошук за email (зв'язування з локальним акаунтом) =====
         if (email != null && !email.isEmpty()) {
             User byEmail = userRepository.findByEmail(email).orElse(null);
 
             if (byEmail != null) {
-                // 2a. Локальний акаунт — зв'язуємо
                 if (byEmail.getProvider() == null || byEmail.getProvider().isEmpty()) {
                     log.info("Зв'язуємо локальний акаунт '{}' з OAuth2-провайдером {}",
                             byEmail.getUsername(), provider);
@@ -119,7 +110,6 @@ public class UserService {
                     return userRepository.save(byEmail);
                 }
 
-                // 2b. Той самий провайдер, але інший providerId — оновлюємо
                 if (provider.equals(byEmail.getProvider())) {
                     log.warn("Оновлено providerId для користувача '{}': {} → {}",
                             byEmail.getUsername(), byEmail.getProviderId(), providerId);
@@ -127,18 +117,14 @@ public class UserService {
                     return userRepository.save(byEmail);
                 }
 
-                // 2c. Інший провайдер із тим самим email — не зливаємо
                 log.warn("Email '{}' вже використовується через {}. Створюємо нового користувача без email.",
                         email, byEmail.getProvider());
                 email = null;
             }
         }
 
-        // ===== 3. Новий користувач =====
         return createNewOAuth2User(provider, providerId, email, name);
     }
-
-    // ==================== СТАРИЙ МЕТОД (для сумісності) ====================
 
     @Deprecated
     @Transactional
@@ -149,7 +135,6 @@ public class UserService {
     private User createNewOAuth2User(String provider, String providerId, String email, String name) {
         User newUser = new User();
 
-        // Username: name → email → provider_providerId
         String username;
         if (name != null && !name.isEmpty()) {
             username = name;
@@ -165,7 +150,6 @@ public class UserService {
         newUser.setProviderId(providerId);
         newUser.setRole("USER");
         newUser.setPreferredCurrency(Currency.defaultCurrency().name());
-        // Випадковий пароль — поле NOT NULL, але OAuth2-користувач ним не користується
         newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
 
         User savedUser = userRepository.save(newUser);
@@ -184,21 +168,21 @@ public class UserService {
         User managedUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
 
-        // Якщо OAuth2 – ЗАБОРОНЯЄМО будь-які зміни
         if (managedUser.getProvider() != null && !managedUser.getProvider().isEmpty()) {
             log.warn("Спроба зміни профілю OAuth2-користувача: {} (заборонено)", managedUser.getUsername());
-            throw new RuntimeException("Для OAuth2-користувачів зміна даних недоступна. Всі зміни виконуються через ваш обліковий запис " + managedUser.getProvider());
+            throw new ValidationException(
+                    "Для OAuth2-користувачів зміна даних недоступна. Всі зміни виконуються через ваш обліковий запис "
+                            + managedUser.getProvider());
         }
 
-        // Для локальних користувачів – повне оновлення
         if (!managedUser.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
-            throw new RuntimeException("Користувач з таким ім'ям вже існує");
+            throw new ValidationException(msg("error.username.exists"));
         }
 
         if (email != null && !email.isEmpty() &&
                 !email.equals(managedUser.getEmail()) &&
                 userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Користувач з такою електронною поштою вже зареєстрований");
+            throw new ValidationException(msg("error.email.exists"));
         }
 
         managedUser.setUsername(username);
@@ -209,7 +193,7 @@ public class UserService {
         if (currentPassword != null && !currentPassword.isEmpty() &&
                 newPassword != null && !newPassword.isEmpty()) {
             if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
-                throw new RuntimeException("Поточний пароль введено неправильно");
+                throw new ValidationException(msg("error.password.current.wrong"));
             }
             managedUser.setPassword(passwordEncoder.encode(newPassword));
         }
@@ -223,8 +207,7 @@ public class UserService {
     @Transactional
     public void updateCurrency(User user, String currency) {
         Currency parsed = Currency.fromCode(currency)
-                .orElseThrow(() -> new ValidationException(
-                        "Непідтримувана валюта: " + currency));
+                .orElseThrow(() -> new ValidationException(msg("error.currency.unsupported", currency)));
 
         User managedUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
@@ -248,5 +231,16 @@ public class UserService {
         userRepository.delete(managedUser);
 
         log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), managedUser.getId());
+    }
+
+    // ==================== ДОПОМІЖНІ ====================
+
+    private String msg(String key, Object... args) {
+        try {
+            return messageSource.getMessage(key, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            log.warn("Не знайдено переклад для ключа '{}': {}", key, e.getMessage());
+            return key;
+        }
     }
 }

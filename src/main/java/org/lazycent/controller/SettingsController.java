@@ -45,10 +45,10 @@ public class SettingsController extends BaseController {
                     .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
             updateSecurityContext(authentication, updatedUser);
             log.info("Валюта оновлена на {} для користувача {}", currency, updatedUser.getUsername());
-            redirectAttributes.addFlashAttribute("successMessage", "Валюту змінено на " + currency);
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.currency.changed", currency));
         } catch (Exception e) {
             log.error("Помилка зміни валюти: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
         return redirectToReferer(request);
     }
@@ -71,7 +71,7 @@ public class SettingsController extends BaseController {
             User updatedUser = userRepository.findById(currentUser.getId())
                     .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
             updateSecurityContext(authentication, updatedUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Профіль успішно оновлено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.profile.updated"));
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -89,10 +89,10 @@ public class SettingsController extends BaseController {
 
         try {
             budgetService.clearAllUserData(currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Всі дані успішно видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.data.cleared"));
         } catch (Exception e) {
             log.error("Помилка при очищенні даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при очищенні даних: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.data.clearError", e.getMessage()));
         }
         return redirectToReferer(request);
     }
@@ -110,11 +110,11 @@ public class SettingsController extends BaseController {
             userService.deleteAccount(currentUser);
             request.getSession().invalidate();
             SecurityContextHolder.clearContext();
-            redirectAttributes.addFlashAttribute("successMessage", "Акаунт успішно видалено!");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.account.deleted"));
             return "redirect:/login";
         } catch (Exception e) {
             log.error("Помилка при видаленні акаунта: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні акаунта: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.account.deleteError", e.getMessage()));
             return "redirect:/";
         }
     }
@@ -131,13 +131,15 @@ public class SettingsController extends BaseController {
         try {
             demoDataService.createDefaultCategories(currentUser);
             demoDataService.createRandomTransactions(currentUser, 14);
-            redirectAttributes.addFlashAttribute("successMessage", "Демо-дані успішно додано! 🎉");
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.demo.added"));
         } catch (Exception e) {
             log.error("Помилка генерації демо-даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
         }
         return redirectToReferer(request);
     }
+
+    // ==================== МОВА ====================
 
     @PostMapping("/settings/language")
     public String updateLanguage(@RequestParam String lang,
@@ -147,7 +149,7 @@ public class SettingsController extends BaseController {
         Locale locale;
         switch (lang) {
             case "en" -> locale = Locale.ENGLISH;
-            case "uk" -> locale = new Locale("uk", "UA");
+            case "uk" -> locale = Locale.forLanguageTag("uk-UA");
             default -> locale = Locale.ENGLISH;
         }
 
@@ -155,7 +157,9 @@ public class SettingsController extends BaseController {
 
         log.info("Мову змінено на {}", locale);
 
-        // Повертаємось на попередню сторінку
+        String message = msg("toast.language.changed." + lang);
+        redirectAttributes.addFlashAttribute("successMessage", message);
+
         String referer = request.getHeader("Referer");
         if (referer != null && !referer.isEmpty() && referer.contains("/settings")) {
             return "redirect:" + referer;
