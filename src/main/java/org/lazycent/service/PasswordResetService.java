@@ -2,11 +2,13 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.event.PasswordResetRequestedEvent;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.PasswordResetToken;
 import org.lazycent.model.User;
 import org.lazycent.repository.PasswordResetTokenRepository;
 import org.lazycent.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,15 +24,16 @@ public class PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
-    private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
     private final MessageSource messageSource;
+    private final ApplicationEventPublisher eventPublisher;   // ← ДОДАНО
 
     @Transactional
     public void createPasswordResetToken(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
 
         if (user == null) {
+            // Не розкриваємо існування email — завжди кажемо "лист надіслано"
             log.info("Спроба відновлення пароля для неіснуючого email: {}", email);
             return;
         }
@@ -43,7 +46,10 @@ public class PasswordResetService {
         resetToken.setUser(user);
         tokenRepository.save(resetToken);
 
-        mailService.sendPasswordResetEmail(user.getEmail(), token);
+        // Публікуємо подію — listener відпрацює після COMMIT
+        eventPublisher.publishEvent(
+                new PasswordResetRequestedEvent(user.getEmail(), token));
+
         log.info("Токен відновлення пароля створено для користувача {}", user.getUsername());
     }
 
