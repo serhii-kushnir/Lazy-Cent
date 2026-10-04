@@ -25,9 +25,6 @@ public class User implements UserDetails {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, length = 5)
-    private String preferredLanguage = "uk";
-
     @Column(nullable = false, unique = true)
     private String username;
 
@@ -37,6 +34,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String role;
 
+    /**
+     * Email nullable: OAuth2-провайдери не завжди його повертають.
+     * unique = true дозволяє декілька NULL (стандартна поведінка SQL).
+     */
     @Column(unique = true)
     private String email;
 
@@ -45,6 +46,9 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String preferredCurrency = "UAH";
+
+    @Column(nullable = true)
+    private String preferredLanguage;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

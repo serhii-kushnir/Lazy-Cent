@@ -1,4 +1,3 @@
-// DemoDataService.java – повний код з логуванням
 package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
@@ -53,6 +52,8 @@ public class DemoDataService {
             "Я", "Клієнт", "Друг", "Колега"
     );
 
+    // ==================== КАТЕГОРІЇ ====================
+
     @Transactional
     public void createDefaultCategories(User user) {
         long count = categoryRepository.countByOwner(user);
@@ -65,11 +66,11 @@ public class DemoDataService {
         createCategory("Дорога", "EXPENSE", user);
         createCategory("Ліки", "EXPENSE", user);
         createCategory("Одяг", "EXPENSE", user);
-        createCategory("Інше", "EXPENSE", user);
+        createCategory("Різне", "EXPENSE", user);
         createCategory("Чаєві", "INCOME", user);
-        createCategory("Зарплата", "INCOME", user);
         createCategory("Премія", "INCOME", user);
-        createCategory("Різне", "INCOME", user);
+        createCategory("Зарплата", "INCOME", user);
+        createCategory("Інше", "INCOME", user);
         log.info("Категорії створено для користувача {}.", user.getUsername());
     }
 
@@ -83,9 +84,12 @@ public class DemoDataService {
         }
     }
 
+    // ==================== ДЕМО-ТРАНЗАКЦІЇ ====================
+
     @Transactional
     public void createRandomTransactions(User user, int days) {
-        log.info("=== ПОЧАТОК СТВОРЕННЯ ДЕМО-ДАННИХ для користувача: {} (id={}) ===", user.getUsername(), user.getId());
+        log.info("=== ПОЧАТОК СТВОРЕННЯ ДЕМО-ДАНИХ для користувача: {} (id={}) ===",
+                user.getUsername(), user.getId());
 
         // Перевіряємо наявність категорій
         long categoryCount = categoryRepository.countByOwner(user);
@@ -111,13 +115,14 @@ public class DemoDataService {
         Category transport = getCategory(user, "Дорога", "EXPENSE");
         Category medicine = getCategory(user, "Ліки", "EXPENSE");
         Category clothes = getCategory(user, "Одяг", "EXPENSE");
-        Category miscExpense = getCategory(user, "Інше", "EXPENSE");
+        Category miscExpense = getCategory(user, "Різне", "EXPENSE");
         Category tips = getCategory(user, "Чаєві", "INCOME");
-        Category salaryM = getCategory(user, "Зарплата", "INCOME");
-        Category salaryS = getCategory(user, "Премія", "INCOME");
-        Category miscIncome = getCategory(user, "Різне", "INCOME");
+        Category salaryM = getCategory(user, "Премія", "INCOME");
+        Category salaryS = getCategory(user, "Зарплата", "INCOME");
+        Category miscIncome = getCategory(user, "Інше", "INCOME");
 
-        record ExpenseCategoryOption(Category category, List<String> descriptions, double minAmount, double maxAmount) {}
+        record ExpenseCategoryOption(Category category, List<String> descriptions,
+                                     double minAmount, double maxAmount) {}
         List<ExpenseCategoryOption> expenseOptions = new java.util.ArrayList<>();
         expenseOptions.add(new ExpenseCategoryOption(food, FOOD_DESCRIPTIONS, 40.0, 350.0));
         expenseOptions.add(new ExpenseCategoryOption(transport, TRANSPORT_DESCRIPTIONS, 20.0, 250.0));
@@ -125,7 +130,8 @@ public class DemoDataService {
         if (clothes != null) expenseOptions.add(new ExpenseCategoryOption(clothes, CLOTHES_DESCRIPTIONS, 200.0, 1500.0));
         if (miscExpense != null) expenseOptions.add(new ExpenseCategoryOption(miscExpense, MISC_EXPENSE_DESCRIPTIONS, 30.0, 500.0));
 
-        record IncomeCategoryOption(Category category, List<String> descriptions, double minAmount, double maxAmount) {}
+        record IncomeCategoryOption(Category category, List<String> descriptions,
+                                    double minAmount, double maxAmount) {}
         List<IncomeCategoryOption> incomeOptions = new java.util.ArrayList<>();
         incomeOptions.add(new IncomeCategoryOption(tips, TIPS_DESCRIPTIONS, 50.0, 400.0));
         if (miscIncome != null) incomeOptions.add(new IncomeCategoryOption(miscIncome, MISC_INCOME_DESCRIPTIONS, 100.0, 1000.0));
@@ -209,18 +215,22 @@ public class DemoDataService {
             dayBudgetRepository.save(budget);
             runningBalance = budget.getRemainingBalance();
 
-            log.info("День {}: витрати={}₴, доходи={}₴, баланс={}₴", date, dayExpenses, dayIncomes, budget.getRemainingBalance());
+            log.info("День {}: витрати={}₴, доходи={}₴, баланс={}₴",
+                    date, dayExpenses, dayIncomes, budget.getRemainingBalance());
         }
 
-        // Підсумкове логування
+        // ===== Підсумкове логування (тільки по поточному користувачу) =====
         long totalDays = dayBudgetRepository.countByOwner(user);
-        log.info("=== ЗАВЕРШЕНО СТВОРЕННЯ ДЕМО-ДАННИХ для користувача {} ===", user.getUsername());
-        log.info("Створено {} днів, всього днів у базі: {}", createdDays, totalDays);
+        long userExpenses = expenseRepository.countByOwner(user);
+        long userIncomes = incomeRepository.countByOwner(user);
 
-        // Перевіряємо, чи є витрати/доходи
-        long expenseCount = expenseRepository.count(); // можна додати пошук за користувачем, але це для логу
-        log.info("Загальна кількість витрат у базі: {}", expenseCount);
+        log.info("=== ЗАВЕРШЕНО СТВОРЕННЯ ДЕМО-ДАНИХ для користувача {} ===", user.getUsername());
+        log.info("Створено {} днів, всього днів у базі: {}", createdDays, totalDays);
+        log.info("Витрат у базі для користувача {}: {}", user.getUsername(), userExpenses);
+        log.info("Доходів у базі для користувача {}: {}", user.getUsername(), userIncomes);
     }
+
+    // ==================== ДОПОМІЖНІ ====================
 
     private Category getCategory(User user, String name, String type) {
         Category cat = categoryRepository.findByNameAndOwner(name, user).orElse(null);

@@ -10,7 +10,7 @@ import java.util.Set;
 @Entity
 @Table(
         name = "day_budget",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"date", "user_id"})  // ← головне
+        uniqueConstraints = @UniqueConstraint(columnNames = {"date", "user_id"})
 )
 @Getter
 @Setter
@@ -24,7 +24,11 @@ public class DayBudget {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false)          // ← ТІЛЬКИ nullable, БЕЗ unique
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
+    @Column(nullable = false)
     private LocalDate date;
 
     private String dayName;

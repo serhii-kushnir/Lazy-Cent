@@ -2,9 +2,10 @@ package org.lazycent.config;
 
 import lombok.RequiredArgsConstructor;
 import org.lazycent.model.Category;
+import org.lazycent.model.Currency;
 import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
-import org.lazycent.service.BudgetService;
+import org.lazycent.service.CategoryService;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
@@ -21,22 +22,17 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GlobalControllerAdvice {
 
-    private final BudgetService budgetService;
+    private final CategoryService categoryService;
     private final MessageSource messageSource;
 
     // ==================== ВАЛЮТА ====================
 
     @ModelAttribute("currencySymbol")
     public String getCurrencySymbol() {
-        String currency = getPreferredCurrency();
-        return switch (currency) {
-            case "USD" -> "$";
-            case "EUR" -> "€";
-            case "GBP" -> "£";
-            case "PLN" -> "zł";
-            case "CZK" -> "Kč";
-            default -> "₴";
-        };
+        String code = getPreferredCurrency();
+        return Currency.fromCode(code)
+                .map(Currency::getSymbol)
+                .orElse(Currency.defaultCurrency().getSymbol());
     }
 
     @ModelAttribute("preferredCurrency")
@@ -80,16 +76,22 @@ public class GlobalControllerAdvice {
     public List<Category> populateExpenseCategories() {
         User user = getCurrentUser();
         if (user == null) return Collections.emptyList();
-        try { return budgetService.getExpenseCategories(user); }
-        catch (Exception e) { return Collections.emptyList(); }
+        try {
+            return categoryService.getExpenseCategories(user);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     @ModelAttribute("incomeCategories")
     public List<Category> populateIncomeCategories() {
         User user = getCurrentUser();
         if (user == null) return Collections.emptyList();
-        try { return budgetService.getIncomeCategories(user); }
-        catch (Exception e) { return Collections.emptyList(); }
+        try {
+            return categoryService.getIncomeCategories(user);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
     }
 
     // ==================== ДНІ ТИЖНЯ (ЛОКАЛІЗОВАНІ) ====================
@@ -138,5 +140,10 @@ public class GlobalControllerAdvice {
             case "github" -> "GitHub";
             default -> provider;
         };
+    }
+
+    @ModelAttribute("supportedCurrencies")
+    public Currency[] getSupportedCurrencies() {
+        return Currency.values();
     }
 }

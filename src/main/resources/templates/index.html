@@ -736,6 +736,7 @@
 
 <nav th:replace="~{fragments :: navbar('index')}"></nav>
 <div sec:authorize="isAuthenticated()" th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: cookieBanner}"></div>
 <div sec:authorize="isAuthenticated()" th:replace="~{fragments :: toastContainer}"></div>
 
 <!-- ===================== HERO ===================== -->
@@ -1081,6 +1082,7 @@
 
 <div th:replace="~{fragments :: themeScript}"></div>
 <div sec:authorize="isAuthenticated()" th:replace="~{fragments :: toastScript}"></div>
+<div th:replace="~{fragments :: cookieBannerScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <div sec:authorize="isAuthenticated()" th:replace="~{fragments :: settingsPanelScript}"></div>
 

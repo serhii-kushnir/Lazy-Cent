@@ -15,6 +15,8 @@ import java.util.List;
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Long> {
 
+    // ==================== ПІДСУМКИ ====================
+
     @Query("SELECT SUM(i.amount) FROM Income i WHERE i.dayBudget.date = :date")
     Double sumIncomesByDate(@Param("date") LocalDate date);
 
@@ -24,7 +26,6 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
     List<Object[]> sumIncomesByCategory(@Param("startDate") LocalDate startDate,
                                         @Param("endDate") LocalDate endDate);
 
-    // Нові методи з користувачем
     @Query("SELECT SUM(i.amount) FROM Income i WHERE i.dayBudget.date = :date AND i.dayBudget.owner = :user")
     Double sumIncomesByDateAndUser(@Param("date") LocalDate date, @Param("user") User user);
 
@@ -35,6 +36,14 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
     List<Object[]> sumIncomesByCategoryAndUser(@Param("startDate") LocalDate startDate,
                                                @Param("endDate") LocalDate endDate,
                                                @Param("user") User user);
+
+    @Query("SELECT SUM(i.amount) FROM Income i " +
+            "WHERE i.dayBudget.date BETWEEN :start AND :end AND i.dayBudget.owner = :user")
+    Double sumIncomesByDateBetweenAndUser(@Param("start") LocalDate start,
+                                          @Param("end") LocalDate end,
+                                          @Param("user") User user);
+
+    // ==================== ПІДСУМКИ ПО ДНЯХ / КАТЕГОРІЯХ ====================
 
     @Query("SELECT new org.lazycent.model.dto.DailySummaryDto(" +
             "i.dayBudget.date, " +
@@ -64,4 +73,12 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
     List<CategorySummaryDto> getIncomeCategorySummaries(@Param("startDate") LocalDate startDate,
                                                         @Param("endDate") LocalDate endDate,
                                                         @Param("user") User user);
+
+    // ==================== ЛІЧИЛЬНИКИ ====================
+
+    /**
+     * Кількість доходів конкретного користувача (для логування в демо-даних).
+     */
+    @Query("SELECT COUNT(i) FROM Income i WHERE i.dayBudget.owner = :user")
+    long countByOwner(@Param("user") User user);
 }

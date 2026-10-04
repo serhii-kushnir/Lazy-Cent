@@ -7,6 +7,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,6 +21,11 @@ public class MailService {
     @Value("${spring.mail.from}")
     private String fromEmail;
 
+    /**
+     * Відправка листа відбувається асинхронно (в окремому пулі потоків "mailExecutor"),
+     * щоб не блокувати HTTP-потік користувача на 2-5 секунд поки SMTP-сервер відповідає.
+     */
+    @Async("mailExecutor")
     public void sendPasswordResetEmail(String to, String token) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

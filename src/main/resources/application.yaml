@@ -1,28 +1,46 @@
 spring:
+  # ===================== MESSAGES =====================
   messages:
-      basename: messages
-      encoding: UTF-8
-      fallback-to-system-locale: false
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
+  # ===================== APPLICATION =====================
   application:
     name: lazycent
+
+  # ===================== DATASOURCE =====================
   datasource:
     url: jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    username: ${DB_USER}
+    password: ${DB_PASS}
+
+  # ===================== FLYWAY =====================
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+    validate-on-migrate: true
+    clean-disabled: true
+
+  # ===================== JPA =====================
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: false
+        default_batch_fetch_size: 16
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
 
+  # ===================== SECURITY / OAUTH2 =====================
   security:
     oauth2:
       client:
@@ -34,7 +52,7 @@ spring:
               - email
               - profile
 
-  # ===================== MAIL (SMTP) =====================
+  # ===================== MAIL =====================
   mail:
     host: smtp.gmail.com
     port: 587
@@ -48,13 +66,11 @@ spring:
             enable: true
     from: ${MAIL_USERNAME}
 
+# ===================== SERVER =====================
 server:
   port: 8081
 
-logging:
-  level:
-    org.lazycent: DEBUG
-    org.lazycent.config.LocaleAwareAuthenticationSuccessHandler: DEBUG
+# ===================== APP =====================
 app:
   demo:
     enabled: true
@@ -62,3 +78,21 @@ app:
     default-password: demo
     random-days: 14
     new-user-days: 7
+  rate-limit:
+     trust-forwarded-for: true
+
+# ===================== ACTUATOR =====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      roles: ADMIN
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true

@@ -215,7 +215,10 @@
                         </button>
                     </div>
                 </div>
-
+                <div th:if="${param.ratelimited}" class="alert alert-warning" role="alert">
+                    <i class="fas fa-clock me-2"></i>
+                    <span th:text="#{auth.login.rateLimited}">Забагато спроб входу. Спробуйте через хвилину.</span>
+                </div>
                 <div th:if="${param.error}" class="alert alert-danger" role="alert">
                     <i class="fas fa-exclamation-circle me-2"></i>
                     <span th:text="#{auth.login.error}">Невірне ім'я користувача або пароль</span>

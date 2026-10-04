@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{error.403.title} + ' - Lazy Cent'">Доступ заборонено</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments :: themeAssets}"></div>
+    <style>
+        .error-card { text-align: center; padding: 3rem 1.5rem; max-width: 600px; margin: 0 auto; }
+        .emoji-large { font-size: 4rem; display: block; margin-bottom: 1rem; }
+        .error-code { font-size: 6rem; font-weight: 700; color: var(--bs-secondary-color); line-height: 1; }
+        .error-title { font-size: 2rem; margin: 1rem 0; }
+        .error-description { color: var(--bs-secondary-color); margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments :: navbar('none')}"></nav>
+<div th:replace="~{fragments :: settingsPanel}"></div>
+<div th:replace="~{fragments :: cookieBanner}"></div>
+<div th:replace="~{fragments :: toastContainer}"></div>
+
+<div class="container">
+    <div class="error-card">
+        <span class="emoji-large">🔒</span>
+        <div class="error-code">403</div>
+        <h1 class="error-title" th:text="#{error.403.title}">Доступ заборонено</h1>
+        <p class="error-description" th:text="#{error.403.description}">
+            У вас немає прав для перегляду цієї сторінки.
+        </p>
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home"></i> <span th:text="#{error.404.home}">На головну</span>
+            </a>
+            <button class="btn btn-outline-secondary" onclick="history.back()">
+                <i class="fas fa-arrow-left"></i> <span th:text="#{error.404.back}">Назад</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments :: footer}"></footer>
+<div th:replace="~{fragments :: themeScript}"></div>
+<div th:replace="~{fragments :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments :: settingsPanelScript}"></div>
+</body>
+</html>

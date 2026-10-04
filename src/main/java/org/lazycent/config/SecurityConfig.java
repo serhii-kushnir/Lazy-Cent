@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -15,26 +16,42 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final LocaleAwareAuthenticationSuccessHandler successHandler;
+    private final RateLimitFilter rateLimitFilter;
+    private final JsonAwareAuthenticationEntryPoint jsonAwareAuthenticationEntryPoint;  // ← ДОДАНО
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // Rate limit перед формою логіну
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Дозволи на URL
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",                    // ← лендінг для всіх
+                                "/",
                                 "/login", "/register",
                                 "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
                                 "/favicon.ico", "/logo.png",
-                                "/privacy", "/terms", "/error",
-                                "/forgot-password", "/reset-password"
+                                "/privacy", "/terms", "/error", "/error/**",
+                                "/forgot-password", "/reset-password",
+                                "/actuator/health", "/actuator/health/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+
+                // ===== ENTRY POINT: JSON для AJAX, redirect для HTML =====
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jsonAwareAuthenticationEntryPoint)
+                )
+
+                // ===== FORM LOGIN =====
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(successHandler)
                         .permitAll()
                 )
+
+                // ===== OAUTH2 LOGIN =====
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
                         .userInfoEndpoint(userInfo -> userInfo
@@ -42,12 +59,12 @@ public class SecurityConfig {
                         )
                         .successHandler(successHandler)
                 )
+
+                // ===== LOGOUT =====
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
-                )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+                );
 
         return http.build();
     }

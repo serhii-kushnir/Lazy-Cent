@@ -1,0 +1,70 @@
+spring:
+  # ===================== DATASOURCE =====================
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # ===================== FLYWAY ВИМКНЕНО =====================
+  flyway:
+    enabled: false
+
+  # ===================== JPA =====================
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # ===================== H2 CONSOLE =====================
+  h2:
+    console:
+      enabled: false
+
+  # ===================== BEAN OVERRIDING =====================
+  main:
+    allow-bean-definition-overriding: true
+
+  # ===================== MAIL (STUB) =====================
+  mail:
+    host: localhost
+    port: 2525
+    username: test@example.com
+    password: test
+    from: test@example.com
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# ===================== ACTUATOR =====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+  health:
+    mail:
+      enabled: false
+
+# ===================== APP =====================
+app:
+  demo:
+    enabled: false
+    random-days: 0
+
+# ===================== LOGGING =====================
+logging:
+  level:
+    org.lazycent: WARN
