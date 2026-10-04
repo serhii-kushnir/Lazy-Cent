@@ -28,7 +28,7 @@ public class TransactionController extends BaseController {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.duplicateExpense(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату дубльовано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.duplicated"));
         return "redirect:/day/" + date;
     }
 
@@ -39,7 +39,7 @@ public class TransactionController extends BaseController {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.duplicateIncome(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід дубльовано!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.duplicated"));
         return "redirect:/day/" + date;
     }
 
@@ -53,7 +53,7 @@ public class TransactionController extends BaseController {
         if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.getDateByExpense(id, currentUser);
         budgetService.deleteExpense(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату видалено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.deleted"));
         return "redirect:/day/" + date;
     }
 
@@ -65,7 +65,7 @@ public class TransactionController extends BaseController {
         if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
         budgetService.deleteIncome(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід видалено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.deleted"));
         return "redirect:/day/" + date;
     }
 
@@ -91,7 +91,7 @@ public class TransactionController extends BaseController {
         budgetService.updateExpense(id, description, amount, categoryId, quantity, details,
                 shareWithFamily, time, buyer, seller, currentUser);
         LocalDate date = budgetService.getDateByExpense(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Витрату оновлено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.updated"));
         return "redirect:/day/" + date;
     }
 
@@ -115,7 +115,7 @@ public class TransactionController extends BaseController {
         budgetService.updateIncome(id, description, amount, categoryId, quantity, details,
                 shareWithFamily, time, buyer, seller, currentUser);
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
-        redirectAttributes.addFlashAttribute("successMessage", "Дохід оновлено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.updated"));
         return "redirect:/day/" + date;
     }
 }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="toastContainer">
+    <div class="toast-container">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-info-circle me-2" id="toastIcon"></i>
+                <strong class="me-auto" id="toastTitle" th:text="#{toast.message}">Повідомлення</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+</div>
+
+<th:block th:fragment="toastScript">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const successMessage = /*[[${successMessage}]]*/ null;
+        const errorMessage = /*[[${errorMessage}]]*/ null;
+        const MSG_SUCCESS = /*[[#{toast.success}]]*/ 'Успішно!';
+        const MSG_ERROR   = /*[[#{toast.error}]]*/   'Помилка!';
+        const MSG_INFO    = /*[[#{toast.info}]]*/    'Інформація';
+        /*]]>*/
+        (function() {
+            function showToast(message, type) {
+                const toastElement = document.getElementById('liveToast');
+                if (!toastElement) return;
+                const toastTitle = document.getElementById('toastTitle');
+                const toastMessage = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+                toastElement.classList.remove('success', 'error');
+                if (type === 'success') {
+                    toastElement.classList.add('success');
+                    toastIcon.className = 'fas fa-check-circle me-2';
+                    toastTitle.textContent = MSG_SUCCESS;
+                } else if (type === 'error') {
+                    toastElement.classList.add('error');
+                    toastIcon.className = 'fas fa-exclamation-circle me-2';
+                    toastTitle.textContent = MSG_ERROR;
+                } else {
+                    toastIcon.className = 'fas fa-info-circle me-2';
+                    toastTitle.textContent = MSG_INFO;
+                }
+                toastMessage.textContent = message;
+                const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+                toast.show();
+            }
+            if (successMessage) {
+                showToast(successMessage, 'success');
+            } else if (errorMessage) {
+                showToast(errorMessage, 'error');
+            }
+        })();
+    </script>
+</th:block>
+
+</body>
+</html>

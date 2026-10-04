@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="cookieBanner" id="cookieBanner" style="display: none;">
+    <div class="cookie-banner">
+        <div class="cookie-banner-content">
+            <div class="cookie-banner-icon">
+                <i class="fas fa-cookie-bite"></i>
+            </div>
+            <div class="cookie-banner-text">
+                <strong th:text="#{cookie.title}">Ми використовуємо cookie</strong>
+                <p th:text="#{cookie.message}">
+                    Цей сайт використовує файли cookie для підтримки сесії, збереження налаштувань (тема, мова) та покращення роботи застосунку.
+                    Детальніше — у нашій
+                    <a href="/privacy" target="_blank" th:text="#{footer.privacy}">Політиці конфіденційності</a>.
+                </p>
+            </div>
+            <div class="cookie-banner-actions">
+                <button type="button" class="btn btn-outline-secondary btn-sm cookie-btn-reject"
+                        th:text="#{cookie.reject}">Тільки необхідні</button>
+                <button type="button" class="btn btn-primary btn-sm cookie-btn-accept"
+                        th:text="#{cookie.accept}">Прийняти всі</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:fragment="cookieBannerScript">
+    <script>
+        (function initCookieBanner() {
+            const banner = document.getElementById('cookieBanner');
+            if (!banner) return;
+
+            const STORAGE_KEY = 'lazycent-cookie-consent';
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) {
+                setTimeout(() => { banner.style.display = 'block'; }, 600);
+            }
+
+            const acceptBtn = banner.querySelector('.cookie-btn-accept');
+            const rejectBtn = banner.querySelector('.cookie-btn-reject');
+
+            function saveChoice(choice) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        choice: choice,
+                        timestamp: Date.now()
+                    }));
+                } catch (e) { /* ignore */ }
+                banner.style.display = 'none';
+            }
+
+            if (acceptBtn) acceptBtn.addEventListener('click', () => saveChoice('accept'));
+            if (rejectBtn) rejectBtn.addEventListener('click', () => saveChoice('reject'));
+        })();
+    </script>
+</th:block>
+
+</body>
+</html>

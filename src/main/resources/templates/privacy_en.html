@@ -6,7 +6,7 @@
     <title th:text="#{privacy.title} + ' - Lazy Cent'">Privacy Policy - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
-    <div th:replace="~{fragments :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
     <style>
         .policy-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
         .policy-container h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
@@ -32,11 +32,11 @@
 </head>
 <body>
 
-<nav th:replace="~{fragments :: navbar('privacy')}"></nav>
+<nav th:replace="~{fragments/navbar :: navbar('privacy')}"></nav>
 
-<div th:replace="~{fragments :: settingsPanel}"></div>
-<div th:replace="~{fragments :: cookieBanner}"></div>
-<div th:replace="~{fragments :: toastContainer}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
 
 <div class="container policy-container">
     <h1 th:text="#{privacy.title}">Privacy Policy</h1>
@@ -154,12 +154,12 @@
     </div>
 </div>
 
-<footer th:replace="~{fragments :: footer}"></footer>
-<div th:replace="~{fragments :: themeScript}"></div>
-<div th:replace="~{fragments :: toastScript}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/head :: themeScript}"></div>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-<div th:replace="~{fragments :: settingsPanelScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 
 </body>
 </html>

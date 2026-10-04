@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <li class="nav-item">
+                    <a sec:authorize="isAuthenticated()"
+                       class="nav-link"
+                       th:classappend="${active == 'home'} ? ' active'"
+                       href="/home">
+                        <i class="fas fa-home me-1"></i><span th:text="#{nav.home}">Головна</span>
+                    </a>
+                    <a sec:authorize="!isAuthenticated()"
+                       class="nav-link"
+                       th:classappend="${active == 'index'} ? ' active'"
+                       href="/">
+                        <i class="fas fa-home me-1"></i><span th:text="#{nav.home}">Головна</span>
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" href="/budget">
+                        <i class="fas fa-chart-line me-1"></i><span th:text="#{nav.budget}">Бюджет</span>
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" href="/totals">
+                        <i class="fas fa-chart-pie me-1"></i><span th:text="#{nav.totals}">Підсумки</span>
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" href="/all-days">
+                        <i class="fas fa-calendar-alt me-1"></i><span th:text="#{nav.allDays}">Всі дні</span>
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" href="/notes">
+                        <i class="fas fa-sticky-note me-1"></i><span th:text="#{nav.notes}">Нотатки</span>
+                    </a>
+                </li>
+
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <button class="user-avatar" id="openSettingsBtn" type="button" th:title="#{settings.title}">
+                        <span class="avatar-placeholder" sec:authentication="name"></span>
+                        <span class="ms-1 d-none d-sm-inline" sec:authentication="name"></span>
+                    </button>
+                </li>
+
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" href="/login" th:text="#{nav.login}">Увійти</a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" href="/register" th:text="#{nav.register}">Реєстрація</a>
+                </li>
+
+                <li class="nav-item dropdown ms-lg-2 mt-2 mt-lg-0" sec:authorize="!isAuthenticated()">
+                    <button class="btn theme-toggle-btn btn-sm dropdown-toggle"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                            th:title="#{settings.language}">
+                        <i class="fas fa-globe"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               th:href="@{''(lang='uk')}"
+                               th:classappend="${#locale.language == 'uk'} ? 'active'">
+                                <span>🇺🇦</span>
+                                <span th:text="#{lang.uk}">Українська</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                               th:href="@{''(lang='en')}"
+                               th:classappend="${#locale.language == 'en'} ? 'active'">
+                                <span>🇬🇧</span>
+                                <span th:text="#{lang.en}">English</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-item ms-lg-2 mt-2 mt-lg-0" sec:authorize="isAnonymous()">
+                    <button id="themeToggle" class="btn theme-toggle-btn btn-sm" type="button" th:title="#{settings.theme}">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // Перемикач теми (тільки для анонімних)
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                const icon = btn.querySelector('i');
+                const root = document.documentElement;
+
+                function updateIcon() {
+                    const theme = root.getAttribute('data-bs-theme') || 'light';
+                    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+
+                updateIcon();
+
+                btn.addEventListener('click', function() {
+                    const current = root.getAttribute('data-bs-theme') || 'light';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    root.setAttribute('data-bs-theme', next);
+                    localStorage.setItem('lazycent-theme', next);
+                    updateIcon();
+                });
+            }
+
+            // Ініціали аватара
+            function setAvatarInitials() {
+                const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
+                if (!avatarPlaceholder) return;
+                const name = avatarPlaceholder.textContent.trim();
+                if (!name) return;
+                const initials = name.split(' ')
+                    .filter(w => w.length > 0)
+                    .map(w => w.charAt(0).toUpperCase())
+                    .slice(0, 2)
+                    .join('');
+                avatarPlaceholder.textContent = initials || 'U';
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setAvatarInitials);
+            } else {
+                setAvatarInitials();
+            }
+        })();
+    </script>
+</nav>
+
+</body>
+</html>

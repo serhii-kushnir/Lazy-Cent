@@ -25,8 +25,6 @@ public class BudgetController extends BaseController {
     private final BudgetPlanningService budgetPlanningService;
     private final CategoryService categoryService;
 
-    // ==================== БЮДЖЕТ ====================
-
     @GetMapping("/budget")
     public String viewBudget(@RequestParam(value = "month", required = false) Integer month,
                              @RequestParam(value = "year", required = false) Integer year,
@@ -68,7 +66,7 @@ public class BudgetController extends BaseController {
         if (currentUser == null) return "redirect:/login";
 
         budgetPlanningService.saveOrUpdateBudgetPlan(currentUser, month, year, totalBudget);
-        redirectAttributes.addFlashAttribute("successMessage", "Бюджет збережено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.budget.saved"));
         return "redirect:/budget?month=" + month + "&year=" + year;
     }
 
@@ -84,7 +82,7 @@ public class BudgetController extends BaseController {
         if (currentUser == null) return "redirect:/login";
 
         budgetPlanningService.saveCategoryLimit(currentUser, categoryId, month, year, limitAmount, note);
-        redirectAttributes.addFlashAttribute("successMessage", "Ліміт для категорії збережено!");
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.categoryLimit.saved"));
         return "redirect:/budget?month=" + month + "&year=" + year;
     }
 }

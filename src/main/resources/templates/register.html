@@ -6,7 +6,7 @@
     <title th:text="#{auth.register.title} + ' - Lazy Cent'">Реєстрація - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
-    <div th:replace="~{fragments :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
     <style>
         .auth-page {
             min-height: 100vh; display: flex; align-items: center;
@@ -132,7 +132,7 @@
 </head>
 <body>
 
-<nav th:replace="~{fragments :: navbar('register')}"></nav>
+<nav th:replace="~{fragments/navbar :: navbar('register')}"></nav>
 
 <div class="auth-page">
     <div class="auth-container">
@@ -270,9 +270,9 @@
     </div>
 </div>
 
-<footer th:replace="~{fragments :: footer}"></footer>
-<div th:replace="~{fragments :: themeScript}"></div>
-<div th:replace="~{fragments :: toastScript}"></div>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/head :: themeScript}"></div>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
