@@ -17,7 +17,6 @@ spring:
     password: ${DB_PASS}
 
   # ===================== FLYWAY =====================
-  # УВАГА: у Spring Boot це spring.flyway.*, НЕ flyway.*
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -79,6 +78,8 @@ app:
     default-password: demo
     random-days: 14
     new-user-days: 7
+  rate-limit:
+     trust-forwarded-for: true
 
 # ===================== ACTUATOR =====================
 management:
