@@ -206,7 +206,7 @@
             <div class="card budget-card h-100">
                 <div class="card-body text-center">
                     <h6 class="text-muted" th:text="#{budget.remaining}">Залишок</h6>
-                    <h3 th:class="${dashboard.remainingBudget >= 0} ? 'text-success' : 'text-danger'"
+                    <h3 th:classappend="${dashboard.remainingBudget >= 0} ? 'text-success' : 'text-danger'"
                         th:text="${#numbers.formatDecimal(dashboard.remainingBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
                 </div>
             </div>
@@ -215,7 +215,7 @@
             <div class="card budget-card h-100">
                 <div class="card-body text-center">
                     <h6 class="text-muted" th:text="#{budget.projected}">Прогноз на кінець місяця</h6>
-                    <h4 th:class="${dashboard.projectedBalance >= 0} ? 'text-success' : 'text-danger'"
+                    <h4 th:classappend="${dashboard.projectedBalance >= 0} ? 'text-success' : 'text-danger'"
                         th:text="${#numbers.formatDecimal(dashboard.projectedBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h4>
                     <small class="text-muted">
                         <span th:text="#{budget.dailyAverage}">Середні витрати на день:</span>

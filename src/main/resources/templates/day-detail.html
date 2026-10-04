@@ -399,7 +399,8 @@
                             <div class="icon-circle"><i class="fas fa-balance-scale fa-1x fa-sm-2x" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"></i></div>
                             <div class="text-truncate" style="min-width:0;">
                                 <h6 class="text-muted mb-0 small" th:text="#{day.balance}">Баланс</h6>
-                                <h5 class="mb-0 fw-bold" th:class="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h5>
+                                <h5 class="mb-0 fw-bold" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"
+                                    th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h5>
                             </div>
                         </div>
                     </div>

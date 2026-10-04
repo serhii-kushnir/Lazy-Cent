@@ -497,7 +497,7 @@
                             <td class="col-day" th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></td>
                             <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-balance" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
+                            <td class="col-balance" th:classappend="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
                                 th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-count" th:text="${budget.expenses.size() + budget.incomes.size()}"></td>
                             <td class="col-actions no-print">
@@ -592,7 +592,7 @@
                                 </p>
                                 <p class="balance-row"><i class="fas fa-balance-scale me-2"></i>
                                     <span th:text="#{common.balance} + ':'">Баланс:</span>
-                                    <strong class="value-amount" th:class="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
+                                    <strong class="value-amount" th:classappend="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
                                             th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
                                 </p>
                                 <a th:href="'/day/' + ${budget.date}" class="btn btn-primary w-100 mt-2">
