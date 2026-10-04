@@ -17,11 +17,15 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final LocaleAwareAuthenticationSuccessHandler successHandler;
     private final RateLimitFilter rateLimitFilter;
+    private final JsonAwareAuthenticationEntryPoint jsonAwareAuthenticationEntryPoint;  // ← ДОДАНО
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // Rate limit перед формою логіну
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Дозволи на URL
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
@@ -34,11 +38,20 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+
+                // ===== ENTRY POINT: JSON для AJAX, redirect для HTML =====
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jsonAwareAuthenticationEntryPoint)
+                )
+
+                // ===== FORM LOGIN =====
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(successHandler)
                         .permitAll()
                 )
+
+                // ===== OAUTH2 LOGIN =====
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
                         .userInfoEndpoint(userInfo -> userInfo
@@ -46,6 +59,8 @@ public class SecurityConfig {
                         )
                         .successHandler(successHandler)
                 )
+
+                // ===== LOGOUT =====
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()

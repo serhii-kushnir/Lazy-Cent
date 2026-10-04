@@ -3,24 +3,28 @@ package org.lazycent.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.service.CategoryService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-
+/**
+ * MVC-контролер для CRUD категорій через HTML-форми.
+ * <p>
+ * AJAX endpoints ({@code /categories/expense}, {@code /categories/income})
+ * винесені в {@link CategoryRestController}, щоб мати окрему обробку помилок
+ * (JSON замість HTML-редіректу).
+ */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class CategoryController extends BaseController {
 
     private final CategoryService categoryService;
-
-    // ==================== CRUD ====================
 
     @PostMapping("/categories/add")
     public String addCategory(@RequestParam String name,
@@ -73,21 +77,5 @@ public class CategoryController extends BaseController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return redirectToReferer(request);
-    }
-
-    // ==================== AJAX (КРИТИЧНО ВАЖЛИВО!) ====================
-
-    @GetMapping("/categories/expense")
-    @ResponseBody
-    public List<Category> getExpenseCategoriesJson(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
-        return currentUser != null ? categoryService.getExpenseCategories(currentUser) : List.of();
-    }
-
-    @GetMapping("/categories/income")
-    @ResponseBody
-    public List<Category> getIncomeCategoriesJson(Authentication authentication) {
-        User currentUser = getCurrentUser(authentication);
-        return currentUser != null ? categoryService.getIncomeCategories(currentUser) : List.of();
     }
 }
