@@ -68,3 +68,17 @@ app:
 logging:
   level:
     org.lazycent: WARN
+
+# ===================== SERVER =====================
+# ===================== SERVER =====================
+server:
+  port: 0   # випадковий порт, щоб не конфліктувати
+  servlet:
+    session:
+      timeout: 60m
+      cookie:
+        name: LAZYCENT_SESSION
+        http-only: true
+        secure: false   # у тестах HTTP, не HTTPS
+        same-site: lax
+        path: /
