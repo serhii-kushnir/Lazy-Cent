@@ -31,6 +31,16 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     })
     List<DayBudget> findByOwnerAndDateBetween(User owner, LocalDate start, LocalDate end);
 
+    /**
+     * Усі дні користувача СТРОГО після вказаної дати, відсортовані за зростанням.
+     * Використовується для каскадного перерахунку балансів.
+     */
+    @EntityGraph(attributePaths = {
+            "expenses", "expenses.category",
+            "incomes", "incomes.category"
+    })
+    List<DayBudget> findByOwnerAndDateAfterOrderByDateAsc(User owner, LocalDate date);
+
     Optional<DayBudget> findFirstByOwnerOrderByDateDesc(User owner);
 
     Optional<DayBudget> findFirstByOwnerAndDateBeforeOrderByDateDesc(User owner, LocalDate date);

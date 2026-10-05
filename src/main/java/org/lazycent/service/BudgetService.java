@@ -68,9 +68,6 @@ public class BudgetService {
         LocalDate date = request.getDate();
         DayBudget dayBudget = getOrCreateDayBudget(date, user);
 
-        // Шукаємо категорію одразу з перевіркою типу — захист від
-        // підміни categoryId у формі (можна передати INCOME-категорію
-        // у POST /expense і отримати Expense з INCOME-категорією).
         Category category = categoryService.getCategoryByIdAndType(
                 request.getCategoryId(), user, type.name());
 
@@ -101,19 +98,13 @@ public class BudgetService {
         }
     }
 
-    /**
-     * ⚠️ FIX: підтримуємо bidirectional зв'язок — додаємо збережений Expense
-     * у колекцію dayBudget.expenses. Без цього Hibernate не бачить
-     * новий елемент у колекції (getTotalExpenses() = 0) і не каскадно
-     * видаляє його при deleteDay().
-     */
     @Transactional
     public Expense addExpense(Long dayBudgetId, Expense expense) {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
                 .orElseThrow(() -> new EntityNotFoundException("DayBudget", dayBudgetId));
         expense.setDayBudget(dayBudget);
         Expense saved = expenseRepository.save(expense);
-        dayBudget.getExpenses().add(saved);   // <-- КЛЮЧОВИЙ ФІКС
+        dayBudget.getExpenses().add(saved);
         updateDayBudgetBalance(dayBudget);
         return saved;
     }
@@ -124,47 +115,60 @@ public class BudgetService {
                 .orElseThrow(() -> new EntityNotFoundException("DayBudget", dayBudgetId));
         income.setDayBudget(dayBudget);
         Income saved = incomeRepository.save(income);
-        dayBudget.getIncomes().add(saved);    // <-- КЛЮЧОВИЙ ФІКС
+        dayBudget.getIncomes().add(saved);
         updateDayBudgetBalance(dayBudget);
         return saved;
     }
 
     // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
+    /**
+     * Перераховує {@code remainingBalance} для одного дня і каскадно
+     * оновлює всі наступні дні.
+     */
     private void updateDayBudgetBalance(DayBudget dayBudget) {
         double totalExpenses = dayBudget.getTotalExpenses();
         double totalIncomes = dayBudget.getTotalIncomes();
-        double previousBalance = dayBudget.getStartingBalance() != null ? dayBudget.getStartingBalance() : 0.0;
+        double previousBalance = dayBudget.getStartingBalance() != null
+                ? dayBudget.getStartingBalance() : 0.0;
 
         dayBudget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
         dayBudgetRepository.save(dayBudget);
 
-        updateNextDaysBalances(dayBudget.getDate(), dayBudget.getOwner());
+        // Anchor — сам цей день: його remainingBalance щойно оновлено,
+        // і всі дні після нього мають стартувати від нього.
+        recalculateBalancesAfter(dayBudget.getDate(), dayBudget.getOwner());
     }
 
-    private void updateNextDaysBalances(LocalDate fromDate, User user) {
-        LocalDate endDate = dayBudgetRepository
-                .findFirstByOwnerOrderByDateDesc(user)
-                .map(DayBudget::getDate)
-                .orElse(null);
-
-        if (endDate == null || !endDate.isAfter(fromDate)) {
-            return;
-        }
-
-        List<DayBudget> nextBudgets = dayBudgetRepository
-                .findByOwnerAndDateBetween(user, fromDate.plusDays(1), endDate);
-
-        if (nextBudgets.isEmpty()) {
-            return;
-        }
-
-        Double previousBalance = dayBudgetRepository
+    /**
+     * Перераховує {@code startingBalance} і {@code remainingBalance} для
+     * всіх днів користувача, що йдуть СТРОГО ПІСЛЯ {@code fromDate}.
+     *
+     * <p><b>Семантика {@code fromDate}:</b> це «якір» — день, чий
+     * {@code remainingBalance} уже правильний і НЕ потребує перерахунку.
+     * Метод бере його як початковий баланс для наступних днів.
+     *
+     * <p><b>Особливий випадок:</b> якщо {@code fromDate} не існує в БД
+     * (наприклад, у {@code deleteDay} ми передаємо {@code deletedDate-1},
+     * а видалили найперший день) — початковий баланс = 0.0.
+     *
+     * <p>Метод ідемпотентний: якщо всі баланси вже правильні, нічого
+     * не зміниться (Hibernate не зробить UPDATE, якщо значення ті самі).
+     */
+    private void recalculateBalancesAfter(LocalDate fromDate, User user) {
+        double previousBalance = dayBudgetRepository
                 .findByDateAndOwner(fromDate, user)
                 .map(DayBudget::getRemainingBalance)
                 .orElse(0.0);
 
-        for (DayBudget budget : nextBudgets) {
+        List<DayBudget> subsequent = dayBudgetRepository
+                .findByOwnerAndDateAfterOrderByDateAsc(user, fromDate);
+
+        if (subsequent.isEmpty()) {
+            return;
+        }
+
+        for (DayBudget budget : subsequent) {
             budget.setStartingBalance(previousBalance);
 
             double dayExpenses = budget.getTotalExpenses();
@@ -175,10 +179,10 @@ public class BudgetService {
             previousBalance = newBalance;
         }
 
-        dayBudgetRepository.saveAll(nextBudgets);
+        dayBudgetRepository.saveAll(subsequent);
 
-        log.debug("Перераховано баланси для {} наступних днів користувача {}",
-                nextBudgets.size(), user.getUsername());
+        log.debug("Перераховано баланси для {} наступних днів користувача {} (починаючи з {})",
+                subsequent.size(), user.getUsername(), fromDate.plusDays(1));
     }
 
     // ==================== ОТРИМАННЯ ДАНИХ ====================
@@ -255,7 +259,6 @@ public class BudgetService {
         duplicate.setBuyer(original.getBuyer());
         duplicate.setSeller(original.getSeller());
         expenseRepository.save(duplicate);
-        // FIX: підтримуємо bidirectional
         original.getDayBudget().getExpenses().add(duplicate);
         updateDayBudgetBalance(original.getDayBudget());
         return original.getDayBudget().getDate();
@@ -324,8 +327,6 @@ public class BudgetService {
         expense.setDescription(description);
         expense.setAmount(amount);
         if (categoryId != null) {
-            // FIX: перевіряємо, що категорія типу EXPENSE — інакше можна
-            // було підмінити EXPENSE-категорію на INCOME і зламати аналітику.
             Category category = categoryService.getCategoryByIdAndType(
                     categoryId, user, TransactionType.EXPENSE.name());
             expense.setCategory(category);
@@ -353,7 +354,6 @@ public class BudgetService {
         income.setDescription(description);
         income.setAmount(amount);
         if (categoryId != null) {
-            // FIX: те саме для INCOME.
             Category category = categoryService.getCategoryByIdAndType(
                     categoryId, user, TransactionType.INCOME.name());
             income.setCategory(category);
@@ -371,6 +371,19 @@ public class BudgetService {
 
     // ==================== ВИДАЛЕННЯ ДНЯ ====================
 
+    /**
+     * Видаляє день разом з усіма транзакціями та перераховує баланси
+     * для всіх наступних днів.
+     *
+     * <p><b>Чому anchor = {@code deletedDate.minusDays(1)}, а не {@code deletedDate}:</b>
+     * видалений день уже НЕ існує в БД. Його {@code findByDateAndOwner}
+     * поверне {@code empty}, і ми отримаємо {@code previousBalance = 0.0},
+     * що зламає всі наступні баланси. День ПЕРЕД видаленим не чіпали —
+     * його {@code remainingBalance} і є правильний якір.
+     *
+     * <p>Якщо видаляємо найперший день — {@code deletedDate-1} не існує,
+     * тоді {@code previousBalance} коректно дорівнює {@code 0.0}.
+     */
     @Transactional
     public void deleteDay(Long dayBudgetId, User user) {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
@@ -382,7 +395,9 @@ public class BudgetService {
         dayBudgetRepository.delete(dayBudget);
         dayBudgetRepository.flush();
 
-        updateNextDaysBalances(deletedDate.minusDays(1), user);
+        // Anchor — день ПЕРЕД видаленим. Всі дні після нього (крім
+        // самого видаленого) буде перераховано.
+        recalculateBalancesAfter(deletedDate.minusDays(1), user);
     }
 
     // ==================== ПІДСУМКИ ====================
