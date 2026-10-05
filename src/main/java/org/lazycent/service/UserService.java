@@ -2,6 +2,7 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.exception.EntityNotFoundException;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Currency;
 import org.lazycent.model.User;
@@ -25,7 +26,7 @@ public class UserService {
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
     private final NoteService noteService;
-    private final MessageSource messageSource;   // ← ДОДАНО
+    private final MessageSource messageSource;
 
     @Value("${app.demo.random-days:14}")
     private int demoDays;
@@ -165,8 +166,7 @@ public class UserService {
     @Transactional
     public void updateProfile(User user, String username, String email,
                               String currentPassword, String newPassword) {
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        User managedUser = loadManagedUser(user);
 
         if (managedUser.getProvider() != null && !managedUser.getProvider().isEmpty()) {
             log.warn("Спроба зміни профілю OAuth2-користувача: {} (заборонено)", managedUser.getUsername());
@@ -175,27 +175,45 @@ public class UserService {
                             + managedUser.getProvider());
         }
 
-        if (!managedUser.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
+        // Валідація нового username
+        if (username == null || username.isBlank()) {
+            throw new ValidationException(msg("error.username.empty"));
+        }
+
+        // Якщо username змінюється — перевіряємо, що нове вільне
+        if (!managedUser.getUsername().equals(username)
+                && userRepository.findByUsername(username).isPresent()) {
             throw new ValidationException(msg("error.username.exists"));
         }
 
-        if (email != null && !email.isEmpty() &&
-                !email.equals(managedUser.getEmail()) &&
-                userRepository.findByEmail(email).isPresent()) {
+        // Email — опціонально, але якщо задано і змінюється — перевіряємо унікальність
+        if (email != null && !email.isEmpty()
+                && !email.equals(managedUser.getEmail())
+                && userRepository.findByEmail(email).isPresent()) {
             throw new ValidationException(msg("error.email.exists"));
+        }
+
+        // Зміна пароля:
+        // - якщо обидва задані → міняємо;
+        // - якщо жоден не заданий → не чіпаємо;
+        // - якщо заданий тільки один → помилка (щоб не було "тихої" невдачі).
+        boolean hasCurrent = currentPassword != null && !currentPassword.isEmpty();
+        boolean hasNew = newPassword != null && !newPassword.isEmpty();
+
+        if (hasCurrent ^ hasNew) {
+            throw new ValidationException(msg("error.password.change.incomplete"));
+        }
+
+        if (hasCurrent && hasNew) {
+            if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
+                throw new ValidationException(msg("error.password.current.wrong"));
+            }
+            managedUser.setPassword(passwordEncoder.encode(newPassword));
         }
 
         managedUser.setUsername(username);
         if (email != null && !email.isEmpty()) {
             managedUser.setEmail(email);
-        }
-
-        if (currentPassword != null && !currentPassword.isEmpty() &&
-                newPassword != null && !newPassword.isEmpty()) {
-            if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
-                throw new ValidationException(msg("error.password.current.wrong"));
-            }
-            managedUser.setPassword(passwordEncoder.encode(newPassword));
         }
 
         userRepository.save(managedUser);
@@ -209,8 +227,7 @@ public class UserService {
         Currency parsed = Currency.fromCode(currency)
                 .orElseThrow(() -> new ValidationException(msg("error.currency.unsupported", currency)));
 
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        User managedUser = loadManagedUser(user);
 
         managedUser.setPreferredCurrency(parsed.name());
         userRepository.save(managedUser);
@@ -222,18 +239,45 @@ public class UserService {
 
     @Transactional
     public void deleteAccount(User user) {
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        User managedUser = loadManagedUser(user);
 
         budgetService.clearAllUserData(managedUser);
         noteService.deleteAllNotes(managedUser);
 
         userRepository.delete(managedUser);
 
-        log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), managedUser.getId());
+        log.info("Акаунт користувача {} (id={}) видалено",
+                managedUser.getUsername(), managedUser.getId());
     }
 
     // ==================== ДОПОМІЖНІ ====================
+
+    /**
+     * Завантажує managed-версію користувача з БД.
+     *
+     * <p>Захищає від NPE, якщо:
+     * <ul>
+     *   <li>{@code user == null} — наприклад, якщо в контролері не спрацював
+     *       {@code getCurrentUser()};</li>
+     *   <li>{@code user.getId() == null} — transient-об'єкт, ще не збережений
+     *       у БД;</li>
+     *   <li>юзера видалено паралельно — {@link EntityNotFoundException}.</li>
+     * </ul>
+     *
+     * @throws ValidationException якщо {@code user} або {@code user.id} — null
+     * @throws EntityNotFoundException якщо юзера не знайдено в БД
+     */
+    private User loadManagedUser(User user) {
+        if (user == null) {
+            throw new ValidationException("Користувач не ідентифікований");
+        }
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new ValidationException("Користувач ще не збережений у БД");
+        }
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Користувача", userId));
+    }
 
     private String msg(String key, Object... args) {
         try {
