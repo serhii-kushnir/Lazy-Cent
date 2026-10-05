@@ -1,5 +1,6 @@
 package org.lazycent.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,17 +9,18 @@ import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.repository.CategoryRepository;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +29,6 @@ class CategoryServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    @InjectMocks
     private CategoryService categoryService;
 
     private User user;
@@ -35,6 +36,19 @@ class CategoryServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Фіксуємо українську локаль, щоб ResourceBundleMessageSource
+        // брав texts із messages.properties (а не messages_en.properties).
+        // Без цього msg() повертає англійські тексти, і тести падають.
+        LocaleContextHolder.setLocale(Locale.forLanguageTag("uk-UA"));
+
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setFallbackToSystemLocale(false);
+        messageSource.setUseCodeAsDefaultMessage(false);
+
+        categoryService = new CategoryService(categoryRepository, messageSource);
+
         user = new User();
         user.setId(1L);
         user.setUsername("testuser");
@@ -44,6 +58,12 @@ class CategoryServiceTest {
         category.setName("Їжа");
         category.setType("EXPENSE");
         category.setOwner(user);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Скидаємо локаль, щоб не впливати на інші тести
+        LocaleContextHolder.resetLocaleContext();
     }
 
     // ==================== addCategory ====================
@@ -107,9 +127,42 @@ class CategoryServiceTest {
 
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
 
+        // Український текст: "У вас немає доступу до цього ресурсу"
         assertThatThrownBy(() -> categoryService.getCategoryById(10L, otherUser))
                 .isInstanceOf(AccessDeniedException.class)
-                .hasMessageContaining("не належить");
+                .hasMessageContaining("доступу");
+    }
+
+    // ==================== getCategoryByIdAndType ====================
+
+    @Test
+    void getCategoryByIdAndType_returnsCategory_whenTypeMatches() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        // category.type = "EXPENSE"
+
+        Category result = categoryService.getCategoryByIdAndType(10L, user, "EXPENSE");
+
+        assertThat(result).isEqualTo(category);
+    }
+
+    @Test
+    void getCategoryByIdAndType_isCaseInsensitive() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+
+        // Регістр не важливий — "expense" теж валідний
+        Category result = categoryService.getCategoryByIdAndType(10L, user, "expense");
+
+        assertThat(result).isEqualTo(category);
+    }
+
+    @Test
+    void getCategoryByIdAndType_throwsValidation_whenTypeMismatch() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        // category.type = "EXPENSE", а просимо INCOME
+
+        assertThatThrownBy(() -> categoryService.getCategoryByIdAndType(10L, user, "INCOME"))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("EXPENSE");   // повідомлення містить справжній тип категорії
     }
 
     // ==================== deleteCategory ====================
@@ -134,5 +187,45 @@ class CategoryServiceTest {
                 .isInstanceOf(AccessDeniedException.class);
 
         verify(categoryRepository, never()).deleteById(anyLong());
+    }
+
+    // ==================== updateCategory ====================
+
+    @Test
+    void updateCategory_updatesName_whenValid() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByNameIgnoreCaseAndOwner("Нова назва", user))
+                .thenReturn(Optional.empty());
+        when(categoryRepository.save(any(Category.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Category result = categoryService.updateCategory(10L, "Нова назва", user);
+
+        assertThat(result.getName()).isEqualTo("Нова назва");
+    }
+
+    @Test
+    void updateCategory_throwsValidation_whenNameEmpty() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+
+        assertThatThrownBy(() -> categoryService.updateCategory(10L, "   ", user))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("порожньою");
+    }
+
+    @Test
+    void updateCategory_throwsValidation_whenDuplicate() {
+        Category existing = new Category();
+        existing.setId(20L);
+        existing.setName("Нова назва");
+        existing.setOwner(user);
+
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByNameIgnoreCaseAndOwner("Нова назва", user))
+                .thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> categoryService.updateCategory(10L, "Нова назва", user))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("вже існує");
     }
 }

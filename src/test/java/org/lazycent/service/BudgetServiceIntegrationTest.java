@@ -2,6 +2,7 @@ package org.lazycent.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.lazycent.exception.ValidationException;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.*;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -201,5 +203,47 @@ class BudgetServiceIntegrationTest {
         r.setAmount(amount);
         r.setQuantity(1);
         budgetService.addTransaction(r, TransactionType.INCOME, user);
+    }
+
+    @Test
+    void addTransaction_throwsValidation_whenCategoryTypeMismatch() {
+        // foodCategory має тип EXPENSE, а ми пробуємо записати INCOME
+        TransactionRequest request = new TransactionRequest();
+        request.setDate(LocalDate.of(2026, 10, 3));
+        request.setCategoryId(foodCategory.getId());   // EXPENSE-категорія
+        request.setDescription("Зарплата");
+        request.setAmount(1000.0);
+        request.setQuantity(1);
+
+        assertThatThrownBy(() -> budgetService.addTransaction(
+                request, TransactionType.INCOME, user))
+                .isInstanceOf(org.lazycent.exception.ValidationException.class);
+
+        // Нічого не записалось
+        assertThat(incomeRepository.count()).isZero();
+        assertThat(expenseRepository.count()).isZero();
+    }
+
+    @Test
+    void updateExpense_throwsValidation_whenCategoryTypeMismatch() {
+        // Спочатку створюємо Expense з EXPENSE-категорією
+        LocalDate date = LocalDate.of(2026, 10, 3);
+        TransactionRequest request = new TransactionRequest();
+        request.setDate(date);
+        request.setCategoryId(foodCategory.getId());
+        request.setDescription("Продукти");
+        request.setAmount(100.0);
+        request.setQuantity(1);
+        budgetService.addTransaction(request, TransactionType.EXPENSE, user);
+
+        Long expenseId = expenseRepository.findAll().get(0).getId();
+
+        // Створюємо INCOME-категорію і пробуємо нею підмінити
+        Category salary = categoryService.addCategory("Зарплата-тест", "INCOME", user);
+
+        assertThatThrownBy(() -> budgetService.updateExpense(
+                expenseId, "Хак", 100.0, salary.getId(),
+                1, null, false, null, null, null, user))
+                .isInstanceOf(org.lazycent.exception.ValidationException.class);
     }
 }

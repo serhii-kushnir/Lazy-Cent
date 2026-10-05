@@ -67,7 +67,12 @@ public class BudgetService {
     public void addTransaction(TransactionRequest request, TransactionType type, User user) {
         LocalDate date = request.getDate();
         DayBudget dayBudget = getOrCreateDayBudget(date, user);
-        Category category = categoryService.getCategoryById(request.getCategoryId(), user);
+
+        // Шукаємо категорію одразу з перевіркою типу — захист від
+        // підміни categoryId у формі (можна передати INCOME-категорію
+        // у POST /expense і отримати Expense з INCOME-категорією).
+        Category category = categoryService.getCategoryByIdAndType(
+                request.getCategoryId(), user, type.name());
 
         if (type == TransactionType.EXPENSE) {
             Expense expense = new Expense();
@@ -319,7 +324,10 @@ public class BudgetService {
         expense.setDescription(description);
         expense.setAmount(amount);
         if (categoryId != null) {
-            Category category = categoryService.getCategoryById(categoryId, user);
+            // FIX: перевіряємо, що категорія типу EXPENSE — інакше можна
+            // було підмінити EXPENSE-категорію на INCOME і зламати аналітику.
+            Category category = categoryService.getCategoryByIdAndType(
+                    categoryId, user, TransactionType.EXPENSE.name());
             expense.setCategory(category);
         }
         expense.setQuantity(quantity != null ? quantity : 1);
@@ -345,7 +353,9 @@ public class BudgetService {
         income.setDescription(description);
         income.setAmount(amount);
         if (categoryId != null) {
-            Category category = categoryService.getCategoryById(categoryId, user);
+            // FIX: те саме для INCOME.
+            Category category = categoryService.getCategoryByIdAndType(
+                    categoryId, user, TransactionType.INCOME.name());
             income.setCategory(category);
         }
         income.setQuantity(quantity != null ? quantity : 1);

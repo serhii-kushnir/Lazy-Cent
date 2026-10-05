@@ -23,7 +23,7 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final MessageSource messageSource;   // ← ДОДАНО
+    private final MessageSource messageSource;
 
     // ==================== ЧИТАННЯ (з кешем) ====================
 
@@ -52,6 +52,32 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Категорію", id));
         if (!category.getOwner().equals(user)) {
             throw new AccessDeniedException(msg("error.access.denied"));
+        }
+        return category;
+    }
+
+    /**
+     * Знаходить категорію за ID і власником, додатково перевіряючи тип.
+     *
+     * <p>Захист від розсинхрону: якщо хтось передасть INCOME-категорію
+     * у Expense-транзакцію — буде {@link ValidationException}, а не тихе
+     * «ну ок, запишемо як витрату». Це блокує підміну {@code categoryId}
+     * через DevTools або прямий POST.
+     *
+     * @param id           ID категорії
+     * @param user         власник
+     * @param expectedType очікуваний тип — {@code "EXPENSE"} або {@code "INCOME"}
+     *                     (зазвичай {@code TransactionType.EXPENSE.name()})
+     * @throws EntityNotFoundException якщо категорії немає
+     * @throws AccessDeniedException   якщо категорія не належить користувачу
+     * @throws ValidationException     якщо тип категорії не збігається
+     */
+    public Category getCategoryByIdAndType(Long id, User user, String expectedType) {
+        Category category = getCategoryById(id, user);   // власник уже перевірено
+        if (!expectedType.equalsIgnoreCase(category.getType())) {
+            throw new ValidationException(msg(
+                    "error.category.type.mismatch",
+                    expectedType, category.getType()));
         }
         return category;
     }

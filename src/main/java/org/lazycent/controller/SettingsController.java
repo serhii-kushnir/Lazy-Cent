@@ -159,13 +159,8 @@ public class SettingsController extends BaseController {
         String message = msg("toast.language.changed." + lang);
         redirectAttributes.addFlashAttribute("successMessage", message);
 
-        // Використовуємо той самий безпечний редірект, що й для решти налаштувань.
-        // Якщо Referer вказує на /settings/... — повернемось туди,
-        // інакше — на головну.
-        String redirect = redirectUtils.redirectToReferer(request);
-        if (redirect.startsWith("redirect:/settings")) {
-            return redirect;
-        }
-        return "redirect:/";
+        // RedirectUtils сам розбереться: якщо Referer — це свій URL,
+        // повернемось туди; якщо порожній або чужий — на головну.
+        return redirectUtils.redirectToReferer(request);
     }
 }
