@@ -13,22 +13,11 @@ import java.net.URISyntaxException;
  * <p><b>Політика:</b>
  * <ul>
  *   <li>Relative path без authority — приймаємо.</li>
- *   <li>Absolute URL (https://...) — приймаємо, ТІЛЬКИ якщо хост і порт
- *       збігаються з поточним запитом. Це потрібно, бо браузер завжди
- *       шле повний URL у Referer, а не просто path.</li>
+ *   <li>Absolute URL (https://...) — приймаємо ТІЛЬКИ якщо хост і порт
+ *       збігаються з поточним запитом.</li>
  *   <li>Protocol-relative (//evil.com/path) — завжди відкидаємо.</li>
- *   <li>Інший хост — відкидаємо.</li>
+ *   <li>Інший хост/порт — відкидаємо.</li>
  * </ul>
- *
- * <h3>Приклади (запит з localhost:8081)</h3>
- * <pre>
- *   /budget                                → redirect:/budget                    ✅
- *   http://localhost:8081/home             → redirect:/home                      ✅ (свій)
- *   http://localhost:8081/day/2026-10-03   → redirect:/day/2026-10-03            ✅ (свій)
- *   https://evil.com/phishing              → redirect:/                           ❌ (чужий)
- *   //evil.com/path                        → redirect:/                           ❌ (protocol-relative)
- *   javascript:alert(1)                    → redirect:/                           ❌ (не http)
- * </pre>
  */
 @Component
 @Slf4j
@@ -50,55 +39,39 @@ public class RedirectUtils {
             }
 
             // Absolute URL — перевіряємо, що це наш хост
-            if (uri.isAbsolute()) {
-                if (!isSameOrigin(uri, request)) {
-                    log.debug("Referer відкинуто (інший origin): {}", referer);
-                    return "redirect:/";
-                }
+            if (uri.isAbsolute() && !isSameOrigin(uri, request)) {
+                log.debug("Referer відкинуто (інший origin): {}", referer);
+                return "redirect:/";
             }
 
             String path = uri.getPath();
             String query = uri.getQuery();
 
-            // Додаткова страховка: path має бути внутрішнім
             if (path == null || !path.startsWith("/") || path.startsWith("//")) {
                 log.debug("Referer відкинуто (не внутрішній шлях): {}", referer);
                 return "redirect:/";
             }
 
-            String target = (query != null && !query.isEmpty())
-                    ? path + "?" + query
-                    : path;
-
-            return "redirect:" + target;
+            return "redirect:" + (query != null && !query.isEmpty() ? path + "?" + query : path);
         } catch (URISyntaxException e) {
             log.warn("Невалідний Referer: {}", referer);
             return "redirect:/";
         }
     }
 
-    /**
-     * Перевіряє, що URI вказує на той самий хост і порт, що й поточний запит.
-     * Враховує, що порт може бути не вказаний (тоді — дефолтний для схеми).
-     */
     private boolean isSameOrigin(URI uri, HttpServletRequest request) {
         String scheme = uri.getScheme();
-        // Дозволяємо тільки http/https
         if (scheme == null || !(scheme.equals("http") || scheme.equals("https"))) {
             return false;
         }
-
         String host = uri.getHost();
         if (host == null || !host.equalsIgnoreCase(request.getServerName())) {
             return false;
         }
-
         int port = uri.getPort();
-        int requestPort = request.getServerPort();
         if (port == -1) {
-            // Дефолтний порт для схеми
             port = "https".equals(scheme) ? 443 : 80;
         }
-        return port == requestPort;
+        return port == request.getServerPort();
     }
 }

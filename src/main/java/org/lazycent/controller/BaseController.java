@@ -24,7 +24,7 @@ public abstract class BaseController {
     protected MessageSource messageSource;
 
     @Autowired
-    protected RedirectUtils redirectUtils;
+    protected RedirectUtils redirectUtils;   // ← КЛЮЧОВЕ: protected, щоб бачили нащадки
 
     protected User getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -41,7 +41,8 @@ public abstract class BaseController {
             }
             return fromDb;
         }
-        log.warn("Невідомий тип principal: {} — getCurrentUser повертає null", principal.getClass().getName());
+        log.warn("Невідомий тип principal: {} — getCurrentUser повертає null",
+                principal.getClass().getName());
         return null;
     }
 

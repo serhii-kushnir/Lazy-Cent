@@ -9,6 +9,8 @@ import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.repository.CategoryRepository;
+import org.lazycent.repository.ExpenseRepository;
+import org.lazycent.repository.IncomeRepository;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -26,8 +28,9 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceTest {
 
-    @Mock
-    private CategoryRepository categoryRepository;
+    @Mock private CategoryRepository categoryRepository;
+    @Mock private ExpenseRepository expenseRepository;
+    @Mock private IncomeRepository incomeRepository;
 
     private CategoryService categoryService;
 
@@ -36,9 +39,6 @@ class CategoryServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Фіксуємо українську локаль, щоб ResourceBundleMessageSource
-        // брав texts із messages.properties (а не messages_en.properties).
-        // Без цього msg() повертає англійські тексти, і тести падають.
         LocaleContextHolder.setLocale(Locale.forLanguageTag("uk-UA"));
 
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
@@ -47,7 +47,11 @@ class CategoryServiceTest {
         messageSource.setFallbackToSystemLocale(false);
         messageSource.setUseCodeAsDefaultMessage(false);
 
-        categoryService = new CategoryService(categoryRepository, messageSource);
+        categoryService = new CategoryService(
+                categoryRepository,
+                expenseRepository,
+                incomeRepository,
+                messageSource);
 
         user = new User();
         user.setId(1L);
@@ -62,7 +66,6 @@ class CategoryServiceTest {
 
     @AfterEach
     void tearDown() {
-        // Скидаємо локаль, щоб не впливати на інші тести
         LocaleContextHolder.resetLocaleContext();
     }
 
@@ -127,7 +130,6 @@ class CategoryServiceTest {
 
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
 
-        // Український текст: "У вас немає доступу до цього ресурсу"
         assertThatThrownBy(() -> categoryService.getCategoryById(10L, otherUser))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessageContaining("доступу");
@@ -138,7 +140,6 @@ class CategoryServiceTest {
     @Test
     void getCategoryByIdAndType_returnsCategory_whenTypeMatches() {
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        // category.type = "EXPENSE"
 
         Category result = categoryService.getCategoryByIdAndType(10L, user, "EXPENSE");
 
@@ -149,7 +150,6 @@ class CategoryServiceTest {
     void getCategoryByIdAndType_isCaseInsensitive() {
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
 
-        // Регістр не важливий — "expense" теж валідний
         Category result = categoryService.getCategoryByIdAndType(10L, user, "expense");
 
         assertThat(result).isEqualTo(category);
@@ -158,18 +158,19 @@ class CategoryServiceTest {
     @Test
     void getCategoryByIdAndType_throwsValidation_whenTypeMismatch() {
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-        // category.type = "EXPENSE", а просимо INCOME
 
         assertThatThrownBy(() -> categoryService.getCategoryByIdAndType(10L, user, "INCOME"))
                 .isInstanceOf(ValidationException.class)
-                .hasMessageContaining("EXPENSE");   // повідомлення містить справжній тип категорії
+                .hasMessageContaining("EXPENSE");
     }
 
     // ==================== deleteCategory ====================
 
     @Test
-    void deleteCategory_deletesWhenOwnerMatches() {
+    void deleteCategory_deletesWhenOwnerMatches_andNoUsages() {
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(expenseRepository.countByCategoryAndOwner(category, user)).thenReturn(0L);
+        when(incomeRepository.countByCategoryAndOwner(category, user)).thenReturn(0L);
 
         categoryService.deleteCategory(10L, user);
 
@@ -185,6 +186,45 @@ class CategoryServiceTest {
 
         assertThatThrownBy(() -> categoryService.deleteCategory(10L, otherUser))
                 .isInstanceOf(AccessDeniedException.class);
+
+        verify(categoryRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    void deleteCategory_throwsValidation_whenUsedInExpenses() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(expenseRepository.countByCategoryAndOwner(category, user)).thenReturn(5L);
+        when(incomeRepository.countByCategoryAndOwner(category, user)).thenReturn(0L);
+
+        assertThatThrownBy(() -> categoryService.deleteCategory(10L, user))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("5");    // повідомлення містить кількість
+
+        verify(categoryRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    void deleteCategory_throwsValidation_whenUsedInIncomes() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(expenseRepository.countByCategoryAndOwner(category, user)).thenReturn(0L);
+        when(incomeRepository.countByCategoryAndOwner(category, user)).thenReturn(3L);
+
+        assertThatThrownBy(() -> categoryService.deleteCategory(10L, user))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("3");
+
+        verify(categoryRepository, never()).deleteById(anyLong());
+    }
+
+    @Test
+    void deleteCategory_throwsValidation_whenUsedInBoth() {
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(expenseRepository.countByCategoryAndOwner(category, user)).thenReturn(2L);
+        when(incomeRepository.countByCategoryAndOwner(category, user)).thenReturn(3L);
+
+        assertThatThrownBy(() -> categoryService.deleteCategory(10L, user))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("5");    // 2 + 3
 
         verify(categoryRepository, never()).deleteById(anyLong());
     }

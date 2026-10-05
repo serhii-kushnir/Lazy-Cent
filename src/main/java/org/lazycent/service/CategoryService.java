@@ -7,6 +7,8 @@ import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.repository.CategoryRepository;
+import org.lazycent.repository.ExpenseRepository;
+import org.lazycent.repository.IncomeRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
@@ -23,6 +25,8 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ExpenseRepository expenseRepository;
+    private final IncomeRepository incomeRepository;
     private final MessageSource messageSource;
 
     // ==================== ЧИТАННЯ (з кешем) ====================
@@ -61,25 +65,34 @@ public class CategoryService {
      *
      * <p>Захист від розсинхрону: якщо хтось передасть INCOME-категорію
      * у Expense-транзакцію — буде {@link ValidationException}, а не тихе
-     * «ну ок, запишемо як витрату». Це блокує підміну {@code categoryId}
-     * через DevTools або прямий POST.
+     * «ну ок, запишемо як витрату».
      *
      * @param id           ID категорії
      * @param user         власник
      * @param expectedType очікуваний тип — {@code "EXPENSE"} або {@code "INCOME"}
-     *                     (зазвичай {@code TransactionType.EXPENSE.name()})
      * @throws EntityNotFoundException якщо категорії немає
      * @throws AccessDeniedException   якщо категорія не належить користувачу
      * @throws ValidationException     якщо тип категорії не збігається
      */
     public Category getCategoryByIdAndType(Long id, User user, String expectedType) {
-        Category category = getCategoryById(id, user);   // власник уже перевірено
+        Category category = getCategoryById(id, user);
         if (!expectedType.equalsIgnoreCase(category.getType())) {
             throw new ValidationException(msg(
                     "error.category.type.mismatch",
                     expectedType, category.getType()));
         }
         return category;
+    }
+
+    /**
+     * Перевіряє, чи категорія використовується у транзакціях.
+     *
+     * @return сумарна кількість витрат і доходів у цій категорії
+     */
+    public long countUsages(Category category, User user) {
+        long expenses = expenseRepository.countByCategoryAndOwner(category, user);
+        long incomes = incomeRepository.countByCategoryAndOwner(category, user);
+        return expenses + incomes;
     }
 
     // ==================== СТВОРЕННЯ ====================
@@ -140,6 +153,24 @@ public class CategoryService {
 
     // ==================== ВИДАЛЕННЯ ====================
 
+    /**
+     * Видаляє категорію, якщо вона не використовується в жодній транзакції.
+     *
+     * <p><b>Чому pre-check:</b> FK-констрейнт у БД теж спрацює, але:
+     * <ul>
+     *   <li>повідомлення від БД неспецифічне — незрозуміло, скільки
+     *       транзакцій блокує видалення;</li>
+     *   <li>pre-check дає змогу віддати {@link ValidationException}
+     *       (400) замість {@link org.springframework.dao.DataIntegrityViolationException}
+     *       (яку {@code GlobalExceptionHandler} мапить у загальне
+     *       «Можливо, ви намагаєтесь видалити категорію...»);</li>
+     *   <li>швидше — без rollback-у транзакції.</li>
+     * </ul>
+     *
+     * <p>Race condition між pre-check і delete (хтось додав транзакцію
+     * паралельно) все ще можливий — його ловить FK і
+     * {@code DataIntegrityViolationException} handler як fallback.
+     */
     @Transactional
     @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public void deleteCategory(Long id, User user) {
@@ -148,7 +179,15 @@ public class CategoryService {
         if (!category.getOwner().equals(user)) {
             throw new AccessDeniedException(msg("error.access.denied"));
         }
+
+        long usages = countUsages(category, user);
+        if (usages > 0) {
+            throw new ValidationException(msg("error.category.inUse", usages));
+        }
+
         categoryRepository.deleteById(id);
+        log.info("Категорію '{}' (id={}) видалено користувачем {}",
+                category.getName(), id, user.getUsername());
     }
 
     @Transactional
@@ -156,6 +195,9 @@ public class CategoryService {
     public void deleteAllCategories(User user) {
         List<Category> categories = categoryRepository.findAllByOwner(user);
         if (!categories.isEmpty()) {
+            // Для clearAllUserData — спочатку видаляються DayBudget
+            // (каскадно з Expense/Income), потім категорії. Тому
+            // pre-check тут не потрібен.
             categoryRepository.deleteAll(categories);
         }
     }

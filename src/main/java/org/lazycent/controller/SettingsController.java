@@ -48,9 +48,9 @@ public class SettingsController extends BaseController {
             redirectAttributes.addFlashAttribute("successMessage", msg("toast.currency.changed", currency));
         } catch (Exception e) {
             log.error("Помилка зміни валюти: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request);
+        return redirectUtils.redirectToReferer(request);
     }
 
     // ==================== ПРОФІЛЬ ====================
@@ -75,7 +75,7 @@ public class SettingsController extends BaseController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request);
+        return redirectUtils.redirectToReferer(request);
     }
 
     // ==================== ОЧИЩЕННЯ ДАНИХ ====================
@@ -92,9 +92,10 @@ public class SettingsController extends BaseController {
             redirectAttributes.addFlashAttribute("successMessage", msg("toast.data.cleared"));
         } catch (Exception e) {
             log.error("Помилка при очищенні даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.data.clearError", e.getMessage()));
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    msg("toast.data.clearError", e.getMessage()));
         }
-        return redirectToReferer(request);
+        return redirectUtils.redirectToReferer(request);
     }
 
     // ==================== ВИДАЛЕННЯ АКАУНТА ====================
@@ -114,7 +115,8 @@ public class SettingsController extends BaseController {
             return "redirect:/login";
         } catch (Exception e) {
             log.error("Помилка при видаленні акаунта: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.account.deleteError", e.getMessage()));
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    msg("toast.account.deleteError", e.getMessage()));
             return "redirect:/";
         }
     }
@@ -134,9 +136,9 @@ public class SettingsController extends BaseController {
             redirectAttributes.addFlashAttribute("successMessage", msg("toast.demo.added"));
         } catch (Exception e) {
             log.error("Помилка генерації демо-даних: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", msg("toast.error.withMessage", e.getMessage()));
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return redirectToReferer(request);
+        return redirectUtils.redirectToReferer(request);
     }
 
     // ==================== МОВА ====================
@@ -159,8 +161,6 @@ public class SettingsController extends BaseController {
         String message = msg("toast.language.changed." + lang);
         redirectAttributes.addFlashAttribute("successMessage", message);
 
-        // RedirectUtils сам розбереться: якщо Referer — це свій URL,
-        // повернемось туди; якщо порожній або чужий — на головну.
         return redirectUtils.redirectToReferer(request);
     }
 }

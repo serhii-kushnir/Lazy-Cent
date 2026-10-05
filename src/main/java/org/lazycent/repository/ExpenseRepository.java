@@ -1,5 +1,6 @@
 package org.lazycent.repository;
 
+import org.lazycent.model.Category;
 import org.lazycent.model.Expense;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.CategorySummaryDto;
@@ -81,4 +82,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
      */
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.dayBudget.owner = :user")
     long countByOwner(@Param("user") User user);
+
+    /**
+     * Кількість витрат у конкретній категорії конкретного користувача.
+     * Використовується для pre-check перед видаленням категорії,
+     * щоб не покладатися на FK-помилку від БД.
+     */
+    @Query("SELECT COUNT(e) FROM Expense e " +
+            "WHERE e.category = :category AND e.dayBudget.owner = :user")
+    long countByCategoryAndOwner(@Param("category") Category category,
+                                 @Param("user") User user);
 }

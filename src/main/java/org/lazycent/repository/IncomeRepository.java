@@ -1,5 +1,6 @@
 package org.lazycent.repository;
 
+import org.lazycent.model.Category;
 import org.lazycent.model.Income;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.CategorySummaryDto;
@@ -81,4 +82,13 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
      */
     @Query("SELECT COUNT(i) FROM Income i WHERE i.dayBudget.owner = :user")
     long countByOwner(@Param("user") User user);
+
+    /**
+     * Кількість доходів у конкретній категорії конкретного користувача.
+     * Використовується для pre-check перед видаленням категорії.
+     */
+    @Query("SELECT COUNT(i) FROM Income i " +
+            "WHERE i.category = :category AND i.dayBudget.owner = :user")
+    long countByCategoryAndOwner(@Param("category") Category category,
+                                 @Param("user") User user);
 }
