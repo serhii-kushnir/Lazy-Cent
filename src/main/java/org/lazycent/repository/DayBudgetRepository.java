@@ -2,6 +2,7 @@ package org.lazycent.repository;
 
 import org.lazycent.model.DayBudget;
 import org.lazycent.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -31,15 +32,17 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     })
     List<DayBudget> findByOwnerAndDateBetween(User owner, LocalDate start, LocalDate end);
 
-    /**
-     * Усі дні користувача СТРОГО після вказаної дати, відсортовані за зростанням.
-     * Використовується для каскадного перерахунку балансів.
-     */
     @EntityGraph(attributePaths = {
             "expenses", "expenses.category",
             "incomes", "incomes.category"
     })
     List<DayBudget> findByOwnerAndDateAfterOrderByDateAsc(User owner, LocalDate date);
+
+    /**
+     * Сторінка днів користувача, відсортована за датою (DESC).
+     * Без {@code @EntityGraph} — див. javadoc у реалізації сервісу.
+     */
+    List<DayBudget> findByOwnerOrderByDateDesc(User owner, Pageable pageable);
 
     Optional<DayBudget> findFirstByOwnerOrderByDateDesc(User owner);
 

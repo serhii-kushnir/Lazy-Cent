@@ -60,6 +60,8 @@ management:
 
 # ===================== APP =====================
 app:
+  days:
+    max-loaded: 180
   demo:
     enabled: false
     random-days: 0

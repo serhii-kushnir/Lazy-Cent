@@ -341,6 +341,17 @@
         </div>
     </div>
 
+    <!-- ===== WARNING: обмеження історії ===== -->
+    <div th:if="${isLimited}" class="alert alert-info no-print toolbar-animated" role="alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <span th:text="#{allDays.limited(${allBudgets.size()}, ${totalDays})}">
+        Показано останні 180 з 730 днів.
+    </span>
+        <a href="/totals" class="alert-link ms-2" th:text="#{allDays.limited.viewAll}">
+            Переглянути всю історію →
+        </a>
+    </div>
+
     <!-- ===== ДІАГРАМИ ===== -->
     <div class="chart-section chart-animated" id="chartSection">
         <div class="row mb-4">

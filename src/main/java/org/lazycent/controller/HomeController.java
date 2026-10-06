@@ -1,5 +1,7 @@
 package org.lazycent.controller;
 
+import org.lazycent.model.DayBudget;
+import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +88,13 @@ public class HomeController extends BaseController {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
-        model.addAttribute("allBudgets", budgetService.getAllBudgets(currentUser));
+        long totalDays = dayBudgetRepository.countByOwner(currentUser);
+        List<DayBudget> allBudgets = budgetService.getAllBudgets(currentUser);
+        boolean isLimited = totalDays > allBudgets.size();
+
+        model.addAttribute("allBudgets", allBudgets);
+        model.addAttribute("totalDays", totalDays);
+        model.addAttribute("isLimited", isLimited);
         model.addAttribute("expenseCategories", categoryService.getExpenseCategories(currentUser));
         model.addAttribute("incomeCategories", categoryService.getIncomeCategories(currentUser));
         return "all-days";

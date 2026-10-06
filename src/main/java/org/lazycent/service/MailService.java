@@ -26,25 +26,32 @@ public class MailService {
     @Value("${app.url:http://localhost:8081}")
     private String appUrl;
 
+    /**
+     * Надсилає лист для відновлення пароля у фоновому потоці.
+     *
+     * <p><b>Чому без try-catch:</b> метод {@code @Async} — виняток у
+     * ньому не потрапляє до користувача (HTTP-відповідь уже пішла).
+     * Ловити його тут безглуздо; замість цього
+     * {@code AsyncConfig.getAsyncUncaughtExceptionHandler()} залогує
+     * його з класом і методом, а в майбутньому — інкрементує метрику.
+     *
+     * <p>Метод ідемпотентний за призначенням (надсилання листа), тож
+     * його можна ретраїти без побічних ефектів.
+     */
     @Async("mailExecutor")
     public void sendPasswordResetEmail(String to, String token) {
-        try {
-            Locale locale = LocaleContextHolder.getLocale();
+        Locale locale = LocaleContextHolder.getLocale();
 
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(fromEmail);
-            message.setTo(to);
-            message.setSubject(messageSource.getMessage("mail.passwordReset.subject", null, locale));
-            message.setText(messageSource.getMessage(
-                    "mail.passwordReset.body",
-                    new Object[]{ appUrl, token },
-                    locale));
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(to);
+        message.setSubject(messageSource.getMessage("mail.passwordReset.subject", null, locale));
+        message.setText(messageSource.getMessage(
+                "mail.passwordReset.body",
+                new Object[]{ appUrl, token },
+                locale));
 
-            mailSender.send(message);
-            log.info("Лист для відновлення пароля надіслано на {}", to);
-        } catch (Exception e) {
-            log.error("Помилка надсилання листа: {}", e.getMessage());
-            throw new RuntimeException("Не вдалося надіслати лист. Спробуйте пізніше.");
-        }
+        mailSender.send(message);
+        log.info("Лист для відновлення пароля надіслано на {}", to);
     }
 }

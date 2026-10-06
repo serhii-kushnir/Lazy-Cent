@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -245,5 +246,39 @@ class BudgetServiceIntegrationTest {
                 expenseId, "Хак", 100.0, salary.getId(),
                 1, null, false, null, null, null, user))
                 .isInstanceOf(org.lazycent.exception.ValidationException.class);
+    }
+
+    @Test
+    void getAllBudgets_returnsAtMostMaxDays() {
+        // Створюємо 250 днів (більше за дефолтний ліміт 180)
+        LocalDate start = LocalDate.of(2025, 1, 1);
+        for (int i = 0; i < 250; i++) {
+            budgetService.getOrCreateDayBudget(start.plusDays(i), user);
+        }
+
+        List<DayBudget> result = budgetService.getAllBudgets(user);
+
+        assertThat(result).hasSize(180);   // дефолтний ліміт
+    }
+
+    @Test
+    void getAllBudgets_returnsAscendingOrder() {
+        LocalDate day1 = LocalDate.of(2026, 10, 1);
+        LocalDate day2 = LocalDate.of(2026, 10, 2);
+        LocalDate day3 = LocalDate.of(2026, 10, 3);
+
+        budgetService.getOrCreateDayBudget(day1, user);
+        budgetService.getOrCreateDayBudget(day2, user);
+        budgetService.getOrCreateDayBudget(day3, user);
+
+        List<DayBudget> result = budgetService.getAllBudgets(user);
+
+        assertThat(result).extracting(DayBudget::getDate)
+                .containsExactly(day1, day2, day3);
+    }
+
+    @Test
+    void getAllBudgets_returnsEmpty_whenUserIsNull() {
+        assertThat(budgetService.getAllBudgets(null)).isEmpty();
     }
 }

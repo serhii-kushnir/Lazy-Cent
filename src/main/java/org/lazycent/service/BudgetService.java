@@ -9,6 +9,10 @@ import org.lazycent.repository.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -26,6 +30,8 @@ public class BudgetService {
     private final BudgetPlanRepository budgetPlanRepository;
     private final CategoryBudgetLimitRepository categoryBudgetLimitRepository;
     private final CategoryService categoryService;
+    @Value("${app.days.max-loaded:180}")
+    private int maxDaysLoaded;
 
     private static final Map<Integer, String> DAY_NAMES = Map.of(
             1, "Понеділок", 2, "Вівторок", 3, "Середа", 4, "Четвер",
@@ -229,14 +235,37 @@ public class BudgetService {
         return total;
     }
 
+    /**
+     * Повертає останні {@code maxDaysLoaded} днів користувача у
+     * хронологічному порядку (ASC), щоб шаблон не змінювався.
+     *
+     * <p><b>Чому обмежуємо:</b> {@code @EntityGraph} на колекціях
+     * не дозволяє Hibernate пагінувати в SQL. Для юзера з роками історії
+     * (730+ днів × 10 транзакцій) завантаження всіх даних у пам'ять
+     * може дати десятки МБ на один запит і призвести до OOM.
+     *
+     * <p>Обмежуємо останніми N днями (дефолт 180 = ~пів року).
+     * Фільтри та пошук на фронті продовжують працювати — на завантаженому
+     * зрізі. Для повної історії користувач має сторінку «Підсумки» з
+     * фільтром по датах.
+     */
     public List<DayBudget> getAllBudgets(User user) {
         if (user == null) {
             log.warn("getAllBudgets: user is null");
             return List.of();
         }
-        List<DayBudget> budgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
-        log.info("Отримано {} днів для користувача {}", budgets.size(), user.getUsername());
-        return budgets;
+
+        List<DayBudget> recentDesc = dayBudgetRepository.findByOwnerOrderByDateDesc(
+                user, PageRequest.of(0, maxDaysLoaded));
+
+        // Шаблон очікує хронологічний порядок (ASC) — для коректної
+        // нумерації рядків, графіків і сортування.
+        List<DayBudget> result = new ArrayList<>(recentDesc);
+        Collections.reverse(result);
+
+        log.info("Отримано {} днів для користувача {} (ліміт {})",
+                result.size(), user.getUsername(), maxDaysLoaded);
+        return result;
     }
 
     // ==================== ДУБЛЮВАННЯ ====================

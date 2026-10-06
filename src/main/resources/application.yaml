@@ -93,6 +93,12 @@ server:
 # ===================== APP =====================
 app:
   url: ${APP_URL:http://localhost:8081}
+  days:
+    # Максимум днів, які завантажуються на /all-days.
+    # @EntityGraph на колекціях не дає Hibernate пагінувати в SQL,
+    # тому завантажуємо останні N днів замість усієї історії.
+    # Для повної історії — фільтр по датах на /totals.
+    max-loaded: ${DAYS_MAX_LOADED:180}
   demo:
     enabled: false
     default-user: demo
