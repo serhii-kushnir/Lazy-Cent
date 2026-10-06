@@ -143,4 +143,20 @@ class PasswordResetServiceIntegrationTest {
         assertThat(reloaded.getPassword()).isNotEqualTo("encoded");
         assertThat(tokenRepository.count()).isZero();
     }
+
+    @Test
+    void validateToken_throwsAndDeletes_whenTokenExpired() {
+        // Створюємо прострочений токен вручну
+        PasswordResetToken expired = new PasswordResetToken();
+        expired.setToken("expired-token-123");
+        expired.setUser(user);
+        expired.setExpiryDate(java.time.LocalDateTime.now().minusHours(1));
+        tokenRepository.save(expired);
+
+        assertThatThrownBy(() -> passwordResetService.validateToken("expired-token-123"))
+                .isInstanceOf(org.lazycent.exception.ValidationException.class);
+
+        // Токен видалено з БД
+        assertThat(tokenRepository.findByToken("expired-token-123")).isEmpty();
+    }
 }

@@ -277,6 +277,243 @@ class BudgetServiceIntegrationTest {
                 .containsExactly(day1, day2, day3);
     }
 
+    // ==================== DUPLICATE ====================
+
+    @Test
+    void duplicateExpense_createsCopyWithKopiaSuffix() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "Продукти");
+
+        Long expenseId = expenseRepository.findAll().get(0).getId();
+        LocalDate resultDate = budgetService.duplicateExpense(expenseId, user);
+
+        assertThat(resultDate).isEqualTo(date);
+        assertThat(expenseRepository.count()).isEqualTo(2);
+        assertThat(expenseRepository.findAll())
+                .anyMatch(e -> e.getDescription().equals("Продукти (копія)"));
+    }
+
+    @Test
+    void duplicateExpense_throwsAccessDenied_forDifferentUser() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "Продукти");
+        Long expenseId = expenseRepository.findAll().get(0).getId();
+
+        User other = createOtherUser();
+
+        assertThatThrownBy(() -> budgetService.duplicateExpense(expenseId, other))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
+    void duplicateIncome_createsCopy() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addIncome(date, 500.0, "Бонус");
+
+        Long incomeId = incomeRepository.findAll().get(0).getId();
+        LocalDate resultDate = budgetService.duplicateIncome(incomeId, user);
+
+        assertThat(resultDate).isEqualTo(date);
+        assertThat(incomeRepository.count()).isEqualTo(2);
+    }
+
+    // ==================== UPDATE ====================
+
+    @Test
+    void updateExpense_changesFields_andRecalculates() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "Продукти");
+        Long expenseId = expenseRepository.findAll().get(0).getId();
+
+        budgetService.updateExpense(expenseId, "Оновлено", 250.0,
+                foodCategory.getId(), 2, "деталі", false, null, "я", "магазин", user);
+
+        Expense reloaded = expenseRepository.findById(expenseId).orElseThrow();
+        assertThat(reloaded.getDescription()).isEqualTo("Оновлено");
+        assertThat(reloaded.getAmount()).isEqualTo(250.0);
+        assertThat(reloaded.getQuantity()).isEqualTo(2);
+
+        DayBudget budget = dayBudgetRepository.findByDateAndOwner(date, user).orElseThrow();
+        assertThat(budget.getTotalExpenses()).isEqualTo(250.0);
+    }
+
+    @Test
+    void updateExpense_throwsAccessDenied_forDifferentUser() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "Продукти");
+        Long expenseId = expenseRepository.findAll().get(0).getId();
+
+        User other = createOtherUser();
+
+        assertThatThrownBy(() -> budgetService.updateExpense(
+                expenseId, "x", 10.0, foodCategory.getId(), 1, null, false, null, null, null, other))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
+    void updateIncome_changesFields_andRecalculates() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        Category salary = categoryService.addCategory("Зарплата-upd", "INCOME", user);
+
+        budgetService.getOrCreateDayBudget(date, user);
+        addIncome(date, 1000.0, "Початковий");
+        Long incomeId = incomeRepository.findAll().get(0).getId();
+
+        budgetService.updateIncome(incomeId, "Оновлено", 5000.0,
+                salary.getId(), 1, null, false, null, null, null, user);
+
+        Income reloaded = incomeRepository.findById(incomeId).orElseThrow();
+        assertThat(reloaded.getAmount()).isEqualTo(5000.0);
+
+        DayBudget budget = dayBudgetRepository.findByDateAndOwner(date, user).orElseThrow();
+        assertThat(budget.getTotalIncomes()).isEqualTo(5000.0);
+    }
+
+    // ==================== DELETE SINGLE ====================
+
+    @Test
+    void deleteExpense_removesAndRecalculates() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "X");
+        Long id = expenseRepository.findAll().get(0).getId();
+
+        budgetService.deleteExpense(id, user);
+
+        assertThat(expenseRepository.count()).isZero();
+        DayBudget budget = dayBudgetRepository.findByDateAndOwner(date, user).orElseThrow();
+        assertThat(budget.getTotalExpenses()).isEqualTo(0.0);
+    }
+
+    @Test
+    void deleteExpense_throwsAccessDenied_forDifferentUser() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "X");
+        Long id = expenseRepository.findAll().get(0).getId();
+
+        User other = createOtherUser();
+
+        assertThatThrownBy(() -> budgetService.deleteExpense(id, other))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
+    void deleteIncome_removesAndRecalculates() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addIncome(date, 500.0, "X");
+        Long id = incomeRepository.findAll().get(0).getId();
+
+        budgetService.deleteIncome(id, user);
+
+        assertThat(incomeRepository.count()).isZero();
+    }
+
+    // ==================== DATE HELPERS ====================
+
+    @Test
+    void getDateByExpense_returnsCorrectDate() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "X");
+        Long id = expenseRepository.findAll().get(0).getId();
+
+        assertThat(budgetService.getDateByExpense(id, user)).isEqualTo(date);
+    }
+
+    @Test
+    void getDateByExpense_throwsAccessDenied_forDifferentUser() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addExpense(date, 100.0, "X");
+        Long id = expenseRepository.findAll().get(0).getId();
+
+        User other = createOtherUser();
+
+        assertThatThrownBy(() -> budgetService.getDateByExpense(id, other))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+    }
+
+    @Test
+    void getDateByIncome_returnsCorrectDate() {
+        LocalDate date = LocalDate.of(2026, 10, 5);
+        budgetService.getOrCreateDayBudget(date, user);
+        addIncome(date, 500.0, "X");
+        Long id = incomeRepository.findAll().get(0).getId();
+
+        assertThat(budgetService.getDateByIncome(id, user)).isEqualTo(date);
+    }
+
+    // ==================== GET ALL ====================
+
+    @Test
+    void getAllBudgets_returnsEmpty_forNullUser() {
+        assertThat(budgetService.getAllBudgets(null)).isEmpty();
+    }
+
+    @Test
+    void getAllBudgets_returnsAllDaysForUser() {
+        budgetService.getOrCreateDayBudget(LocalDate.of(2026, 10, 1), user);
+        budgetService.getOrCreateDayBudget(LocalDate.of(2026, 10, 2), user);
+        budgetService.getOrCreateDayBudget(LocalDate.of(2026, 10, 3), user);
+
+        assertThat(budgetService.getAllBudgets(user)).hasSize(3);
+    }
+
+    // ==================== SUMMARIES ====================
+
+    @Test
+    void getTodaySummary_returnsNonNull() {
+        assertThat(budgetService.getTodaySummary(user)).isNotNull();
+    }
+
+    @Test
+    void getWeekSummary_returnsNonNull() {
+        assertThat(budgetService.getWeekSummary(user)).isNotNull();
+    }
+
+    @Test
+    void getMonthSummary_returnsNonNull() {
+        assertThat(budgetService.getMonthSummary(user)).isNotNull();
+    }
+
+    @Test
+    void getTotalBudget_aggregatesExpensesAndIncomes() {
+        LocalDate day1 = LocalDate.of(2026, 10, 1);
+        LocalDate day2 = LocalDate.of(2026, 10, 2);
+
+        budgetService.getOrCreateDayBudget(day1, user);
+        addIncome(day1, 1000.0, "Дохід");
+        addExpense(day1, 200.0, "Витрата");
+
+        budgetService.getOrCreateDayBudget(day2, user);
+        addExpense(day2, 300.0, "Витрата 2");
+
+        TotalBudget total = budgetService.getTotalBudget(day1, day2, user);
+
+        assertThat(total.getTotalIncomes()).isEqualTo(1000.0);
+        assertThat(total.getTotalExpenses()).isEqualTo(500.0);
+        assertThat(total.getBalance()).isEqualTo(500.0);
+        assertThat(total.getDailySummaries()).hasSize(2);
+    }
+
+    // ==================== ХЕЛПЕР ====================
+
+    private User createOtherUser() {
+        User other = new User();
+        other.setUsername("other_" + System.nanoTime());
+        other.setPassword("x");
+        other.setRole("USER");
+        other.setPreferredCurrency("UAH");
+        return userRepository.save(other);
+    }
+
     @Test
     void getAllBudgets_returnsEmpty_whenUserIsNull() {
         assertThat(budgetService.getAllBudgets(null)).isEmpty();

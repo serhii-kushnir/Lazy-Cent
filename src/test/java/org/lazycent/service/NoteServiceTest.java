@@ -136,6 +136,115 @@ class NoteServiceTest {
                 .isInstanceOf(AccessDeniedException.class);
     }
 
+    // ==================== CREATE ====================
+
+    @Test
+    void createNote_savesAndReturnsNote() {
+        when(noteRepository.save(any(Note.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        Note input = new Note();
+        input.setTitle("Test");
+        input.setOwner(owner);
+
+        Note result = noteService.createNote(input);
+
+        assertThat(result).isSameAs(input);
+        verify(noteRepository).save(input);
+    }
+
+    // ==================== READ ====================
+
+    @Test
+    void getArchivedNotes_returnsEmpty_forNullUser() {
+        assertThat(noteService.getArchivedNotes(null)).isEmpty();
+    }
+
+    @Test
+    void getArchivedNotes_delegatesToRepository() {
+        when(noteRepository.findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(owner))
+                .thenReturn(java.util.List.of(note));
+
+        assertThat(noteService.getArchivedNotes(owner)).containsExactly(note);
+    }
+
+    @Test
+    void searchNotes_returnsEmpty_forNullUser() {
+        assertThat(noteService.searchNotes(null, "query")).isEmpty();
+    }
+
+    @Test
+    void searchNotes_delegatesToRepository() {
+        when(noteRepository.searchNotes(owner, "test"))
+                .thenReturn(java.util.List.of(note));
+
+        assertThat(noteService.searchNotes(owner, "test")).containsExactly(note);
+    }
+
+    @Test
+    void getNoteById_returnsForOwner() {
+        when(noteRepository.findByIdAndOwner(100L, owner))
+                .thenReturn(java.util.Optional.of(note));
+
+        assertThat(noteService.getNoteById(100L, owner)).isSameAs(note);
+    }
+
+    @Test
+    void getNoteById_throwsAccessDenied_forIntruder() {
+        when(noteRepository.findByIdAndOwner(100L, intruder))
+                .thenReturn(java.util.Optional.empty());
+
+        assertThatThrownBy(() -> noteService.getNoteById(100L, intruder))
+                .isInstanceOf(AccessDeniedException.class);
+    }
+
+    // ==================== DELETE ALL ====================
+
+    @Test
+    void deleteAllNotes_deletesNothing_whenEmpty() {
+        when(noteRepository.findByOwner(owner)).thenReturn(java.util.List.of());
+
+        noteService.deleteAllNotes(owner);
+
+        verify(noteRepository, never()).deleteAll(anyList());
+    }
+
+    @Test
+    void deleteAllNotes_deletesAll_whenNonEmpty() {
+        when(noteRepository.findByOwner(owner)).thenReturn(java.util.List.of(note));
+
+        noteService.deleteAllNotes(owner);
+
+        verify(noteRepository).deleteAll(java.util.List.of(note));
+    }
+
+    // ==================== UPDATE WITH NULLS ====================
+
+    @Test
+    void updateNote_keepsExistingColors_whenNull() {
+        note.setColor("#abc");
+        note.setTextColor("#def");
+        when(noteRepository.findByIdAndOwner(100L, owner))
+                .thenReturn(java.util.Optional.of(note));
+        when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Note result = noteService.updateNote(100L, "t", "c", null, null, owner);
+
+        assertThat(result.getColor()).isEqualTo("#abc");
+        assertThat(result.getTextColor()).isEqualTo("#def");
+    }
+
+    @Test
+    void updateNote_handlesNullContent() {
+        when(noteRepository.findByIdAndOwner(100L, owner))
+                .thenReturn(java.util.Optional.of(note));
+        when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Note result = noteService.updateNote(100L, "t", null, null, null, owner);
+
+        assertThat(result.getContent()).isEmpty();
+    }
+
     @Test
     void getActiveNotes_returnsEmpty_forNullUser() {
         assertThat(noteService.getActiveNotes(null)).isEmpty();

@@ -77,6 +77,76 @@ class UserServiceTest {
         LocaleContextHolder.resetLocaleContext();
     }
 
+    // ==================== FINDERS ====================
+
+    @Test
+    void findByUsername_returnsUser_whenExists() {
+        when(userRepository.findByUsername("testuser"))
+                .thenReturn(Optional.of(managedUser));
+
+        assertThat(userService.findByUsername("testuser")).isSameAs(managedUser);
+    }
+
+    @Test
+    void findByUsername_returnsNull_whenNotExists() {
+        when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+        assertThat(userService.findByUsername("ghost")).isNull();
+    }
+
+    @Test
+    void findByEmail_returnsUser_whenExists() {
+        when(userRepository.findByEmail("test@example.com"))
+                .thenReturn(Optional.of(managedUser));
+
+        assertThat(userService.findByEmail("test@example.com")).isSameAs(managedUser);
+    }
+
+    @Test
+    void findByEmail_returnsNull_whenNotExists() {
+        when(userRepository.findByEmail("ghost@example.com")).thenReturn(Optional.empty());
+
+        assertThat(userService.findByEmail("ghost@example.com")).isNull();
+    }
+
+    // ==================== DEPRECATED ====================
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void registerUser_withoutEmail_delegatesToFullVersion() {
+        when(userRepository.findByUsername("newuser")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId(1L);
+            return u;
+        });
+
+        User result = userService.registerUser("newuser", "Password1!");
+
+        assertThat(result.getUsername()).isEqualTo("newuser");
+        assertThat(result.getEmail()).isNull();
+        verify(demoDataService).createDefaultCategories(any(User.class));
+    }
+
+    @Test
+    @SuppressWarnings("deprecation")
+    void saveOAuth2User_delegatesToSaveOrUpdate() {
+        when(userRepository.findByProviderAndProviderId("google", "g-123"))
+                .thenReturn(Optional.empty());
+        when(userRepository.findByEmail("g@example.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User u = inv.getArgument(0);
+            u.setId(1L);
+            return u;
+        });
+
+        User result = userService.saveOAuth2User(
+                "google", "g-123", "g@example.com", "Google User");
+
+        assertThat(result.getProvider()).isEqualTo("google");
+        assertThat(result.getProviderId()).isEqualTo("g-123");
+    }
+
     // ==================== loadManagedUser ====================
 
     @Test
