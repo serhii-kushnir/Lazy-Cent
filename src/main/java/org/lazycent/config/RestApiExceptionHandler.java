@@ -15,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -112,5 +113,19 @@ public class RestApiExceptionHandler {
         } catch (Exception e) {
             return key;
         }
+    }
+
+    /**
+     * Optimistic lock conflict (дві вкладки одночасно редагують одну
+     * категорію). Для REST-клієнтів — 409 JSON замість 500 HTML.
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiErrorDto> handleOptimisticLock(
+            ObjectOptimisticLockingFailureException ex,
+            HttpServletRequest request) {
+        log.warn("REST 409 (optimistic lock) на {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiErrorDto.of(409, "Conflict",
+                        msg("error.optimistic.lock"), request.getRequestURI()));
     }
 }

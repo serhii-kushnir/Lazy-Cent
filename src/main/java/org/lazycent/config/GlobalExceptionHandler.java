@@ -92,8 +92,7 @@ public class GlobalExceptionHandler {
                                        HttpServletRequest request,
                                        RedirectAttributes redirectAttributes) {
         log.warn("Optimistic lock conflict: {}", ex.getMessage());
-        redirectAttributes.addFlashAttribute("errorMessage",
-                "Дані були змінені в іншій сесії. Оновіть сторінку та спробуйте ще раз.");
+        redirectAttributes.addFlashAttribute("errorMessage", msg("error.optimistic.lock"));
         return redirectUtils.redirectToReferer(request);
     }
 
