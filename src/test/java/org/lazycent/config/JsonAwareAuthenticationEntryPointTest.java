@@ -56,4 +56,41 @@ class JsonAwareAuthenticationEntryPointTest {
         assertThat(resp.getStatus()).isEqualTo(302);
         assertThat(resp.getRedirectedUrl()).isEqualTo("/login");
     }
+
+    @Test
+    void commence_setsContentTypeJson_whenAcceptIsApplicationJson() throws Exception {
+        MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/x");
+        req.addHeader("Accept", "application/json");
+        MockHttpServletResponse resp = new MockHttpServletResponse();
+
+        entryPoint.commence(req, resp, new BadCredentialsException("x"));
+
+        assertThat(resp.getContentType()).contains("application/json");
+        assertThat(resp.getCharacterEncoding()).isEqualTo("UTF-8");
+    }
+
+    @Test
+    void commence_jsonContainsTimestamp() throws Exception {
+        MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/x");
+        req.addHeader("Accept", "application/json");
+        MockHttpServletResponse resp = new MockHttpServletResponse();
+
+        entryPoint.commence(req, resp, new BadCredentialsException("x"));
+
+        String body = resp.getContentAsString();
+        assertThat(body).contains("\"timestamp\"");
+        assertThat(body).contains("\"traceId\"");
+    }
+
+    @Test
+    void commence_redirectsToLogin_whenAcceptIsPlainText() throws Exception {
+        MockHttpServletRequest req = new MockHttpServletRequest("GET", "/budget");
+        req.addHeader("Accept", "text/plain");
+        MockHttpServletResponse resp = new MockHttpServletResponse();
+
+        entryPoint.commence(req, resp, new BadCredentialsException("x"));
+
+        assertThat(resp.getStatus()).isEqualTo(302);
+        assertThat(resp.getRedirectedUrl()).isEqualTo("/login");
+    }
 }

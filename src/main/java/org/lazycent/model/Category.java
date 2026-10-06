@@ -5,6 +5,13 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
+@Table(
+        name = "category",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_category_user_name",
+                columnNames = {"user_id", "name"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,6 +23,19 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
+
+    /**
+     * Optimistic lock version.
+     *
+     * <p>Захищає від «lost update», коли два запити одночасно редагують
+     * ту саму категорію (наприклад, дві вкладки браузера). Hibernate
+     * додає {@code WHERE version = ?} до UPDATE — якщо хтось між SELECT
+     * і UPDATE змінив рядок, оновлення впаде з
+     * {@link org.springframework.orm.ObjectOptimisticLockingFailureException}.
+     */
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @NotBlank(message = "Назва категорії не може бути порожньою")
     @Size(max = 100, message = "Назва категорії не може перевищувати 100 символів")

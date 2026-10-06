@@ -43,13 +43,13 @@ class AuthControllerTest {
     void homePage_redirectsToLogin_forAnonymous() throws Exception {
         mockMvc.perform(get("/home"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void budgetPage_redirectsToLogin_forAnonymous() throws Exception {
         mockMvc.perform(get("/budget"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(redirectedUrl("/login"));
     }
 }

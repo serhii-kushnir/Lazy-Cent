@@ -94,6 +94,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -133,6 +134,39 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- JaCoCo — code coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>**/LazyCentApplication.class</exclude>
+                        <exclude>**/*Application*.class</exclude>
+                        <exclude>**/*Config*.class</exclude>
+                        <exclude>org/lazycent/model/**</exclude>
+                        <exclude>**/model/dto/**</exclude>
+                        <exclude>**/event/**</exclude>   <!-- records без логіки -->
+                        <exclude>**/exception/package-info.class</exclude>
                     </excludes>
                 </configuration>
             </plugin>

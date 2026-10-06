@@ -105,4 +105,42 @@ class RestApiExceptionHandlerTest {
                         .param("type", "EXPENSE"))
                 .andExpect(status().is3xxRedirection());
     }
+
+    @Test
+    void ajaxEndpoint_returns400Json_whenValidationFails() throws Exception {
+        // CategoryRestController не приймає @Valid DTO, але інші
+        // endpoints можуть. Цей тест — для покриття гілки
+        // handleBusinessValidation (ValidationException).
+        when(categoryService.getIncomeCategories(any()))
+                .thenThrow(new org.lazycent.exception.ValidationException("Bad"));
+
+        mockMvc.perform(get("/categories/income").with(user(testUser)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("Bad"));
+    }
+
+    @Test
+    void ajaxEndpoint_returns404Json_whenEntityNotFound() throws Exception {
+        when(categoryService.getExpenseCategories(any()))
+                .thenThrow(new org.lazycent.exception.EntityNotFoundException("Категорію", 99L));
+
+        mockMvc.perform(get("/categories/expense").with(user(testUser)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"));
+    }
+
+    @Test
+    void ajaxEndpoint_returns409Json_whenOptimisticLock() throws Exception {
+        when(categoryService.getExpenseCategories(any()))
+                .thenThrow(new org.springframework.orm.ObjectOptimisticLockingFailureException(
+                        "Entity", 1L));
+
+        mockMvc.perform(get("/categories/expense").with(user(testUser)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"));
+    }
 }

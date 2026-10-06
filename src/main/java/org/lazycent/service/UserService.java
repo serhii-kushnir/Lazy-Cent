@@ -2,9 +2,11 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.exception.EntityNotFoundException;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Currency;
 import org.lazycent.model.User;
+import org.lazycent.repository.PasswordResetTokenRepository;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -21,11 +23,12 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
     private final NoteService noteService;
-    private final MessageSource messageSource;   // ← ДОДАНО
+    private final MessageSource messageSource;
 
     @Value("${app.demo.random-days:14}")
     private int demoDays;
@@ -165,8 +168,7 @@ public class UserService {
     @Transactional
     public void updateProfile(User user, String username, String email,
                               String currentPassword, String newPassword) {
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        User managedUser = loadManagedUser(user);
 
         if (managedUser.getProvider() != null && !managedUser.getProvider().isEmpty()) {
             log.warn("Спроба зміни профілю OAuth2-користувача: {} (заборонено)", managedUser.getUsername());
@@ -175,27 +177,38 @@ public class UserService {
                             + managedUser.getProvider());
         }
 
-        if (!managedUser.getUsername().equals(username) && userRepository.findByUsername(username).isPresent()) {
+        if (username == null || username.isBlank()) {
+            throw new ValidationException(msg("error.username.empty"));
+        }
+
+        if (!managedUser.getUsername().equals(username)
+                && userRepository.findByUsername(username).isPresent()) {
             throw new ValidationException(msg("error.username.exists"));
         }
 
-        if (email != null && !email.isEmpty() &&
-                !email.equals(managedUser.getEmail()) &&
-                userRepository.findByEmail(email).isPresent()) {
+        if (email != null && !email.isEmpty()
+                && !email.equals(managedUser.getEmail())
+                && userRepository.findByEmail(email).isPresent()) {
             throw new ValidationException(msg("error.email.exists"));
+        }
+
+        boolean hasCurrent = currentPassword != null && !currentPassword.isEmpty();
+        boolean hasNew = newPassword != null && !newPassword.isEmpty();
+
+        if (hasCurrent ^ hasNew) {
+            throw new ValidationException(msg("error.password.change.incomplete"));
+        }
+
+        if (hasCurrent && hasNew) {
+            if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
+                throw new ValidationException(msg("error.password.current.wrong"));
+            }
+            managedUser.setPassword(passwordEncoder.encode(newPassword));
         }
 
         managedUser.setUsername(username);
         if (email != null && !email.isEmpty()) {
             managedUser.setEmail(email);
-        }
-
-        if (currentPassword != null && !currentPassword.isEmpty() &&
-                newPassword != null && !newPassword.isEmpty()) {
-            if (!passwordEncoder.matches(currentPassword, managedUser.getPassword())) {
-                throw new ValidationException(msg("error.password.current.wrong"));
-            }
-            managedUser.setPassword(passwordEncoder.encode(newPassword));
         }
 
         userRepository.save(managedUser);
@@ -209,8 +222,7 @@ public class UserService {
         Currency parsed = Currency.fromCode(currency)
                 .orElseThrow(() -> new ValidationException(msg("error.currency.unsupported", currency)));
 
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        User managedUser = loadManagedUser(user);
 
         managedUser.setPreferredCurrency(parsed.name());
         userRepository.save(managedUser);
@@ -220,20 +232,55 @@ public class UserService {
 
     // ==================== ВИДАЛЕННЯ АКАУНТА ====================
 
+    /**
+     * Видаляє акаунт користувача разом з усіма пов'язаними даними.
+     *
+     * <p><b>Порядок видалення важливий</b> — FK-констрейнти:
+     * <ol>
+     *   <li>{@code password_reset_token} — FK на {@code users}, не
+     *       покритий {@code clearAllUserData}; без цього кроку
+     *       {@code userRepository.delete()} впаде з FK-violation,
+     *       якщо у юзера є активний токен скидання пароля.</li>
+     *   <li>{@code day_budget} + {@code category} + {@code budget_plans}
+     *       + {@code category_budget_limits} — все через
+     *       {@code clearAllUserData}.</li>
+     *   <li>{@code notes} — FK на {@code users}.</li>
+     *   <li>сам {@code user}.</li>
+     * </ol>
+     */
     @Transactional
     public void deleteAccount(User user) {
-        User managedUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new RuntimeException("Користувача не знайдено"));
+        User managedUser = loadManagedUser(user);
+        Long userId = managedUser.getId();
 
+        // 1. Токени скидання пароля (FK на users, не покрито clearAllUserData)
+        passwordResetTokenRepository.deleteByUserId(userId);
+
+        // 2. Бюджетні дані: day_budget, category, budget_plans, category_budget_limits
         budgetService.clearAllUserData(managedUser);
+
+        // 3. Нотатки
         noteService.deleteAllNotes(managedUser);
 
+        // 4. Сам користувач
         userRepository.delete(managedUser);
 
-        log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), managedUser.getId());
+        log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), userId);
     }
 
     // ==================== ДОПОМІЖНІ ====================
+
+    private User loadManagedUser(User user) {
+        if (user == null) {
+            throw new ValidationException("Користувач не ідентифікований");
+        }
+        Long userId = user.getId();
+        if (userId == null) {
+            throw new ValidationException("Користувач ще не збережений у БД");
+        }
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Користувача", userId));
+    }
 
     private String msg(String key, Object... args) {
         try {

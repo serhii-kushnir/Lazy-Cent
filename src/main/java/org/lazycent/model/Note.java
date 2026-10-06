@@ -30,8 +30,8 @@ public class Note {
 
     private String color; // фон
 
-    @Column(nullable = false)
-    private String textColor = "#212529"; // колір тексту
+    @Column(nullable = false, columnDefinition = "VARCHAR(255) DEFAULT '#212529'")
+    private String textColor = "#212529";
 
     private boolean pinned = false;
 

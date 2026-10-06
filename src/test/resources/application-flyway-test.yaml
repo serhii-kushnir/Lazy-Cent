@@ -1,0 +1,77 @@
+spring:
+  # ===================== DATASOURCE =====================
+  datasource:
+    url: jdbc:h2:mem:flyway-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # ===================== FLYWAY (УВІМКНЕНО) =====================
+  # Ключова відмінність від application-test.yaml: Flyway тут працює
+  # по-справжньому. Це єдиний тест, який перевіряє SQL-міграції.
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false   # чиста БД — baseline не потрібен
+    validate-on-migrate: true
+    clean-disabled: true
+
+  # ===================== JPA =====================
+  # validate: Hibernate НЕ створює схему сам, а перевіряє, що
+  # entity відповідають тому, що створив Flyway. Якщо в міграції
+  # бракує колонки/таблиці — контекст не підніметься.
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  # ===================== H2 CONSOLE =====================
+  h2:
+    console:
+      enabled: false
+
+  # ===================== MAIL (STUB) =====================
+  mail:
+    host: localhost
+    port: 2525
+    username: test@example.com
+    password: test
+    from: test@example.com
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# ===================== ACTUATOR =====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    mail:
+      enabled: false
+
+# ===================== APP =====================
+app:
+  days:
+    max-loaded: 180
+  demo:
+    enabled: false
+  rate-limit:
+    trust-forwarded-for: false
+
+# ===================== LOGGING =====================
+logging:
+  level:
+    org.lazycent: WARN
+    org.flywaydb: INFO   # видно, які міграції застосовуються

@@ -67,20 +67,46 @@ spring:
     from: ${MAIL_USERNAME}
 
 # ===================== SERVER =====================
+# ===================== SERVER =====================
 server:
   port: 8081
+  servlet:
+    session:
+      # 60 хвилин неактивності → сесія інвалідується.
+      # Після цього — редірект на /login.
+      timeout: 60m
+      cookie:
+        # Кастомне ім'я, щоб не світити стандартний JSESSIONID (security by obscurity,
+        # але ускладнює fingerprinting).
+        name: LAZYCENT_SESSION
+        # Захист від XSS: JavaScript не бачить cookie з сесією.
+        http-only: true
+        # У продакшн — увімкнути (HTTPS-only). У dev з HTTP — вимкнути,
+        # інакше cookie не буде передаватись і логін не працюватиме.
+        secure: ${SESSION_COOKIE_SECURE:false}
+        # Захист від CSRF через зовнішні сайти: cookie передається тільки
+        # на same-site переходах top-level. Lax — безпечний дефолт.
+        same-site: lax
+        # Префікс шляху; / означає — для всього застосунку.
+        path: /
 
 # ===================== APP =====================
 app:
   url: ${APP_URL:http://localhost:8081}
+  days:
+    max-loaded: ${DAYS_MAX_LOADED:180}
   demo:
-    enabled: true
-    default-user: demo
-    default-password: demo
-    random-days: 14
-    new-user-days: 7
+    enabled: ${DEMO_ENABLED:false}
+    default-user: ${DEMO_USER:demo}
+    default-password: ${DEMO_PASSWORD:demo}
+    random-days: ${DEMO_RANDOM_DAYS:14}
   rate-limit:
-     trust-forwarded-for: true
+    trust-forwarded-for: ${TRUST_FORWARDED_FOR:false}
+  password-reset:
+    # Cron для щоденного очищення прострочених токенів.
+    # Формат: second minute hour day month weekday
+    # Дефолт: щодня о 03:00.
+    cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
 
 # ===================== ACTUATOR =====================
 management:

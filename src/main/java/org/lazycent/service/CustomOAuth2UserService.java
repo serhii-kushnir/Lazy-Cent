@@ -23,23 +23,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+        OAuth2User oAuth2User = fetchOAuth2User(userRequest);
 
         Map<String, Object> attributes = oAuth2User.getAttributes();
         String provider = userRequest.getClientRegistration().getRegistrationId();
 
-        // providerId: спочатку "sub" (Google, OIDC), потім "id" (GitHub і деякі інші)
-        String providerId = attributes.get("sub") != null
-                ? attributes.get("sub").toString()
-                : attributes.get("id") != null
-                  ? attributes.get("id").toString()
-                  : null;
+        String providerId = extractProviderId(attributes);
 
         if (providerId == null) {
             throw new OAuth2AuthenticationException("Провайдер не повернув ідентифікатор користувача");
         }
 
-        // Email може бути відсутнім — залишаємо null, НЕ створюємо фейковий
         String email = attributes.get("email") != null
                 ? attributes.get("email").toString()
                 : null;
@@ -54,5 +48,30 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user = userService.saveOrUpdateOAuth2User(provider, providerId, email, name);
 
         return new CustomOAuth2User(oAuth2User, user);
+    }
+
+    /**
+     * Викликає реальний OAuth2 endpoint провайдера.
+     *
+     * <p><b>Навіщо окремий {@code protected}-метод:</b> щоб у тестах
+     * підмінити його без реального HTTP-виклику. {@code DefaultOAuth2UserService.loadUser()}
+     * робить REST-запит, який у unit-тесті недоступний.
+     */
+    protected OAuth2User fetchOAuth2User(OAuth2UserRequest userRequest) {
+        return super.loadUser(userRequest);
+    }
+
+    /**
+     * Витягує providerId з атрибутів провайдера.
+     * Google (OIDC) → {@code sub}; GitHub → {@code id}.
+     */
+    private String extractProviderId(Map<String, Object> attributes) {
+        if (attributes.get("sub") != null) {
+            return attributes.get("sub").toString();
+        }
+        if (attributes.get("id") != null) {
+            return attributes.get("id").toString();
+        }
+        return null;
     }
 }

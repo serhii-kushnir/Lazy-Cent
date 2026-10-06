@@ -6,8 +6,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -17,15 +21,13 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final LocaleAwareAuthenticationSuccessHandler successHandler;
     private final RateLimitFilter rateLimitFilter;
-    private final JsonAwareAuthenticationEntryPoint jsonAwareAuthenticationEntryPoint;  // ← ДОДАНО
+    private final JsonAwareAuthenticationEntryPoint jsonAwareAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Rate limit перед формою логіну
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // Дозволи на URL
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
@@ -39,19 +41,32 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // ===== ENTRY POINT: JSON для AJAX, redirect для HTML =====
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jsonAwareAuthenticationEntryPoint)
                 )
 
-                // ===== FORM LOGIN =====
+                // ===== SESSION MANAGEMENT =====
+                // ВАЖЛИВО: порядок методів має значення.
+                // - sessionCreationPolicy, sessionFixation — прямі методи
+                //   SessionManagementConfigurer.
+                // - maximumSessions(...) повертає ConcurrencyControlConfigurer,
+                //   який НЕ повертає нас назад через `.and()` (deprecated).
+                //   Тому maximumSessions завжди має бути ОСТАННІМ.
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation(fixation -> fixation.migrateSession())
+                        .maximumSessions(3)
+                        .maxSessionsPreventsLogin(false)
+                        .expiredUrl("/login?expired")
+                        .sessionRegistry(sessionRegistry())
+                )
+
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler(successHandler)
                         .permitAll()
                 )
 
-                // ===== OAUTH2 LOGIN =====
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
                         .userInfoEndpoint(userInfo -> userInfo
@@ -60,12 +75,29 @@ public class SecurityConfig {
                         .successHandler(successHandler)
                 )
 
-                // ===== LOGOUT =====
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("LAZYCENT_SESSION")
                         .permitAll()
                 );
 
         return http.build();
+    }
+
+    /**
+     * Реєстр сесій для {@code maximumSessions(3)}.
+     */
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    /**
+     * Обов'язковий бін для коректного трекінгу сесій.
+     */
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
     }
 }

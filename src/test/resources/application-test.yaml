@@ -60,11 +60,31 @@ management:
 
 # ===================== APP =====================
 app:
+  days:
+    max-loaded: 180
   demo:
     enabled: false
     random-days: 0
+  password-reset:
+    # Вимикаємо в тестах, щоб @Scheduled не запускався.
+    # Spring інтерпретує "-" як "не планувати".
+    cleanup-cron: "-"
 
 # ===================== LOGGING =====================
 logging:
   level:
     org.lazycent: WARN
+
+# ===================== SERVER =====================
+# ===================== SERVER =====================
+server:
+  port: 0   # випадковий порт, щоб не конфліктувати
+  servlet:
+    session:
+      timeout: 60m
+      cookie:
+        name: LAZYCENT_SESSION
+        http-only: true
+        secure: false   # у тестах HTTP, не HTTPS
+        same-site: lax
+        path: /

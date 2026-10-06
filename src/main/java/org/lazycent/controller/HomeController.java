@@ -1,5 +1,8 @@
 package org.lazycent.controller;
 
+import org.lazycent.model.DayBudget;
+import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.TotalBudget;
@@ -13,10 +16,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -33,8 +39,15 @@ public class HomeController extends BaseController {
      * "/" — лендінг для анонімних, редірект на "/home" для залогінених.
      */
     @GetMapping("/")
-    public String index(Authentication authentication) {
+    public String index(Authentication authentication,
+                        HttpServletRequest request,
+                        RedirectAttributes redirectAttributes) {
         if (getCurrentUser(authentication) != null) {
+            Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
+            if (inputFlashMap != null) {
+                inputFlashMap.forEach((key, value) ->
+                        redirectAttributes.addFlashAttribute(key, value));
+            }
             return "redirect:/home";
         }
         return "index";
@@ -75,7 +88,13 @@ public class HomeController extends BaseController {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
-        model.addAttribute("allBudgets", budgetService.getAllBudgets(currentUser));
+        long totalDays = dayBudgetRepository.countByOwner(currentUser);
+        List<DayBudget> allBudgets = budgetService.getAllBudgets(currentUser);
+        boolean isLimited = totalDays > allBudgets.size();
+
+        model.addAttribute("allBudgets", allBudgets);
+        model.addAttribute("totalDays", totalDays);
+        model.addAttribute("isLimited", isLimited);
         model.addAttribute("expenseCategories", categoryService.getExpenseCategories(currentUser));
         model.addAttribute("incomeCategories", categoryService.getIncomeCategories(currentUser));
         return "all-days";

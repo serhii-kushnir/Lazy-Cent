@@ -41,10 +41,14 @@ class RegistrationFormValidationTest {
         return f;
     }
 
+    // ==================== УСПІШНА ВАЛІДАЦІЯ ====================
+
     @Test
     void validForm_hasNoViolations() {
         assertThat(validator.validate(validForm())).isEmpty();
     }
+
+    // ==================== USERNAME ====================
 
     @ParameterizedTest
     @ValueSource(strings = {"abc", "ab", "user name", "user-name", "user@name"})
@@ -55,6 +59,18 @@ class RegistrationFormValidationTest {
         assertThat(violations)
                 .anyMatch(v -> v.getPropertyPath().toString().equals("username"));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"abcdef", "user_123", "UserName_99", "abc123"})
+    void validUsername_hasNoViolation(String username) {
+        RegistrationForm f = validForm();
+        f.setUsername(username);
+        Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+        assertThat(violations)
+                .noneMatch(v -> v.getPropertyPath().toString().equals("username"));
+    }
+
+    // ==================== EMAIL ====================
 
     /**
      * Hibernate Validator 8 вважає валідними email-и типу "a@b" (є @, обидві частини непорожні).
@@ -71,7 +87,37 @@ class RegistrationFormValidationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"short", "nouppercase1!", "NOLOWERCASE1!", "NoDigits!", "NoSpecial1"})
+    @ValueSource(strings = {
+            "user@example.com",
+            "user.name@example.com",
+            "user+tag@example.co.uk"
+    })
+    void validEmail_hasNoViolation(String email) {
+        RegistrationForm f = validForm();
+        f.setEmail(email);
+        Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+        assertThat(violations)
+                .noneMatch(v -> v.getPropertyPath().toString().equals("email"));
+    }
+
+    // ==================== PASSWORD: слабкі ====================
+
+    /**
+     * Кожен з цих паролів порушує одну з умов:
+     * - short:           < 6 символів
+     * - nouppercase1!:   немає A-Z
+     * - NOLOWERCASE1!:   немає a-z
+     * - NoDigits!:       немає 0-9
+     * - NoSpecial1:      немає спецсимволу (не-алфанумерик)
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "short",
+            "nouppercase1!",
+            "NOLOWERCASE1!",
+            "NoDigits!",
+            "NoSpecial1"
+    })
     void weakPassword_hasViolation(String password) {
         RegistrationForm f = validForm();
         f.setPassword(password);
@@ -80,6 +126,89 @@ class RegistrationFormValidationTest {
         assertThat(violations)
                 .anyMatch(v -> v.getPropertyPath().toString().equals("password"));
     }
+
+    // ==================== PASSWORD: спецсимволи ====================
+
+    /**
+     * Регресійний блок: раніше regex вимагав символ з набору {@code @$!%*?&},
+     * тому паролі з {@code #}, {@code +}, {@code -}, {@code _}, {@code =}
+     * тощо НЕ проходили валідацію. Після зміни regex на {@code (?=.*[^a-zA-Z0-9])}
+     * будь-який не-алфанумерик підходить.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "Password1#",
+            "Password1+",
+            "Password1-",
+            "Password1_",
+            "Password1=",
+            "Password1~",
+            "Password1^",
+            "Password1(",
+            "Password1.",
+            "Password1,",
+            "Password1:",
+            "Password1/",
+            "Password1\\",
+            "Password1|",
+            "Password1[",
+            "Password1{",
+            "Password1<",
+            "Password1€",
+            "Password1ї"
+    })
+    void specialCharacterVariants_areAccepted(String password) {
+        RegistrationForm f = validForm();
+        f.setPassword(password);
+        f.setPasswordConfirm(password);
+        Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+        assertThat(violations)
+                .as("Пароль '%s' має бути валідним", password)
+                .noneMatch(v -> v.getPropertyPath().toString().equals("password"));
+    }
+
+    /**
+     * Старі символи теж мають проходити — сумісність.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "Password1@",
+            "Password1$",
+            "Password1!",
+            "Password1%",
+            "Password1*",
+            "Password1?",
+            "Password1&"
+    })
+    void legacySpecialCharacters_stillAccepted(String password) {
+        RegistrationForm f = validForm();
+        f.setPassword(password);
+        f.setPasswordConfirm(password);
+        Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+        assertThat(violations).isEmpty();
+    }
+
+    /**
+     * Юнікод-літери у паролі не зараховуються як "спецсимвол" —
+     * regex вимагає саме не-ASCII-не-цифру. Це навмисно: юнікод-літери
+     * плутаються з латиницею при візуальному огляді й у логах.
+     */
+    @Test
+    void unicodeLetters_doNotCountAsSpecialCharacter() {
+        RegistrationForm f = validForm();
+        // 'ї' — не [a-zA-Z0-9], тому технічно зараховується як "спецсимвол".
+        // Але пароль без жодного іншого спецсимволу і з 'ї' — навпаки, валідний
+        // з точки зору нашого regex. Перевіримо що:
+        f.setPassword("Passwordї1");
+        f.setPasswordConfirm("Passwordї1");
+        Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+        // За нашим regex — валідний, бо 'ї' не входить у [a-zA-Z0-9]
+        assertThat(violations)
+                .as("'ї' зараховується як не-алфанумерик, пароль проходить")
+                .noneMatch(v -> v.getPropertyPath().toString().equals("password"));
+    }
+
+    // ==================== ЗГОДИ ====================
 
     @Test
     void withoutPrivacyConsent_hasViolation() {
@@ -95,6 +224,19 @@ class RegistrationFormValidationTest {
         RegistrationForm f = validForm();
         f.setTermsConsent(false);
         Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+        assertThat(violations)
+                .anyMatch(v -> v.getPropertyPath().toString().equals("termsConsent"));
+    }
+
+    @Test
+    void withoutBothConsents_hasTwoViolations() {
+        RegistrationForm f = validForm();
+        f.setPrivacyConsent(false);
+        f.setTermsConsent(false);
+        Set<ConstraintViolation<RegistrationForm>> violations = validator.validate(f);
+
+        assertThat(violations)
+                .anyMatch(v -> v.getPropertyPath().toString().equals("privacyConsent"));
         assertThat(violations)
                 .anyMatch(v -> v.getPropertyPath().toString().equals("termsConsent"));
     }

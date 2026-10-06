@@ -33,7 +33,6 @@ class SecurityConfigTest {
 
     @BeforeEach
     void setUp() {
-        // Використовуємо idempotent create-or-get, щоб пережити кілька тестів у класі
         testUser = userRepository.findByUsername(TEST_USERNAME)
                 .orElseGet(() -> {
                     User u = new User();
@@ -69,9 +68,8 @@ class SecurityConfigTest {
 
     @Test
     void cssStatic_isPubliclyAccessible() throws Exception {
-        // статика не має редіректити на /login
         mockMvc.perform(get("/css/test.css"))
-                .andExpect(status().isNotFound()); // але НЕ 302 redirect
+                .andExpect(status().isNotFound());
     }
 
     // ==================== ЗАХИЩЕНІ URL ====================
@@ -80,13 +78,11 @@ class SecurityConfigTest {
     void budgetPage_redirectsToLogin_whenAnonymous() throws Exception {
         mockMvc.perform(get("/budget"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     void budgetPage_isAccessible_whenAuthenticated() throws Exception {
-        // Використовуємо РЕАЛЬНОГО User з БД — тоді BaseController.getCurrentUser()
-        // його розпізнає і BudgetController не робить redirect на /login
         mockMvc.perform(get("/budget").with(user(testUser)))
                 .andExpect(status().isOk());
     }
@@ -95,7 +91,6 @@ class SecurityConfigTest {
 
     @Test
     void postWithoutCsrf_isForbidden() throws Exception {
-        // POST /settings/currency без CSRF-токена → 403
         mockMvc.perform(post("/settings/currency")
                         .param("currency", "USD")
                         .with(user(testUser)))
@@ -104,7 +99,6 @@ class SecurityConfigTest {
 
     @Test
     void postWithCsrf_isProcessed() throws Exception {
-        // POST /settings/currency з CSRF-токеном — редірект, але точно не 403
         mockMvc.perform(post("/settings/currency")
                         .param("currency", "USD")
                         .with(csrf())
