@@ -26,8 +26,18 @@ public class PasswordResetService {
     private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final MessageSource messageSource;
-    private final ApplicationEventPublisher eventPublisher;   // ← ДОДАНО
+    private final ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Створює токен скидання пароля і публікує подію для надсилання листа.
+     *
+     * <p><b>Чому flush між delete і save:</b> Hibernate не гарантує порядок
+     * SQL-запитів без явного flush. Якщо виконати insert ПЕРЕД delete,
+     * у БД опиняться два токени для одного юзера (бо уникального
+     * констрейнту на {@code user_id} немає). Тоді {@code findByToken}
+     * може знайти "старий" — і користувач отримає посилання, яке не
+     * спрацює.
+     */
     @Transactional
     public void createPasswordResetToken(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
@@ -38,15 +48,19 @@ public class PasswordResetService {
             return;
         }
 
+        // 1. Видалити попередні токени — і ОДРАЗУ flush, щоб delete
+        //    гарантовано виконався ДО наступного insert.
         tokenRepository.deleteByUserId(user.getId());
+        tokenRepository.flush();
 
+        // 2. Створити новий токен
         String token = UUID.randomUUID().toString().replace("-", "");
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
         resetToken.setUser(user);
         tokenRepository.save(resetToken);
 
-        // Публікуємо подію — listener відпрацює після COMMIT
+        // 3. Подія — listener відпрацює після COMMIT
         eventPublisher.publishEvent(
                 new PasswordResetRequestedEvent(user.getEmail(), token));
 

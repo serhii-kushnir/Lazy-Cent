@@ -439,15 +439,36 @@ public class BudgetService {
 
     // ==================== ОЧИЩЕННЯ ДАНИХ ====================
 
+    /**
+     * Видаляє всі бюджетні дані користувача.
+     *
+     * <p><b>Порядок і flush критичні:</b>
+     * <ol>
+     *   <li>{@code day_budget} — каскадно видалить {@code expense} і
+     *       {@code income} (бо {@code cascade = ALL, orphanRemoval = true}).
+     *       Але flush ПОТРІБЕН: без нього наступний {@code deleteAll(categories)}
+     *       виконається ДО того, як Hibernate видалить expense/income, і
+     *       FK {@code expense.category_id → category.id} заблокує видалення
+     *       категорій.</li>
+     *   <li>{@code category} — після того, як усі expense/income зникли.</li>
+     *   <li>{@code budget_plans}, {@code category_budget_limits} — FK на
+     *       {@code users}, але не на {@code category}, тому порядок
+     *       з category неважливий.</li>
+     * </ol>
+     */
     @Transactional
     public void clearAllUserData(User user) {
+        // 1. Дні бюджету (каскадно видалить expense/income)
         List<DayBudget> dayBudgets = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
         if (!dayBudgets.isEmpty()) {
             dayBudgetRepository.deleteAll(dayBudgets);
+            dayBudgetRepository.flush();   // ← КРИТИЧНО: FK category → expense/income
         }
 
+        // 2. Категорії — тепер FK-конфліктів немає
         categoryService.deleteAllCategories(user);
 
+        // 3. Плани і ліміти
         budgetPlanRepository.deleteByOwner(user);
         categoryBudgetLimitRepository.deleteByOwner(user);
 

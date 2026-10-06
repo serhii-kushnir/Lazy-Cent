@@ -1,5 +1,6 @@
 package org.lazycent.service;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.lazycent.event.PasswordResetRequestedEvent;
@@ -10,22 +11,24 @@ import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.event.ApplicationEvents;
 import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-@RecordApplicationEvents   // ← дає нам ApplicationEvents для перевірки
+@RecordApplicationEvents
 class PasswordResetServiceIntegrationTest {
 
     @Autowired private PasswordResetService passwordResetService;
@@ -33,15 +36,15 @@ class PasswordResetServiceIntegrationTest {
     @Autowired private PasswordResetTokenRepository tokenRepository;
     @Autowired private ApplicationEvents applicationEvents;
 
-    // Мокаємо MailService, щоб не чіпати SMTP (і щоб listener
-    // не спрацював по-справжньому, бо це AFTER_COMMIT — а
-    // у тесті з @Transactional commit'у НЕ буде!)
+    // @MockBean — щоб listener не робив реальних викликів SMTP
     @MockBean private MailService mailService;
 
     private User user;
 
     @BeforeEach
     void setUp() {
+        LocaleContextHolder.setLocale(Locale.forLanguageTag("uk-UA"));
+
         tokenRepository.deleteAll();
         userRepository.deleteAll();
 
@@ -54,15 +57,20 @@ class PasswordResetServiceIntegrationTest {
         user = userRepository.save(user);
     }
 
+    @AfterEach
+    void tearDown() {
+        LocaleContextHolder.resetLocaleContext();
+    }
+
+    // ==================== createPasswordResetToken ====================
+
     @Test
     void createPasswordResetToken_publishesEvent() {
         passwordResetService.createPasswordResetToken("reset@example.com");
 
-        // Подія опублікована
         long published = applicationEvents.stream(PasswordResetRequestedEvent.class).count();
         assertThat(published).isEqualTo(1);
 
-        // Токен збережено
         PasswordResetToken token = tokenRepository.findByToken(
                 applicationEvents.stream(PasswordResetRequestedEvent.class)
                         .findFirst().orElseThrow().token()
@@ -79,15 +87,30 @@ class PasswordResetServiceIntegrationTest {
         verify(mailService, never()).sendPasswordResetEmail(anyString(), anyString());
     }
 
+    /**
+     * КРИТИЧНИЙ тест: два поспіль виклики мають залишити РІВНО 1 токен.
+     *
+     * <p>До фіксу (без flush між delete і save) Hibernate міг виконати
+     * insert ПЕРЕД delete, і в БД залишалось 2 токени. `findByToken`
+     * іноді знаходив старий — і юзер отримував битий лінк.
+     */
     @Test
-    void createPasswordResetToken_replacesPreviousToken() {
+    void createPasswordResetToken_replacesOldToken_reliably() {
         passwordResetService.createPasswordResetToken("reset@example.com");
         passwordResetService.createPasswordResetToken("reset@example.com");
 
-        // deleteByUserId має видалити старий і залишити один новий
-        long count = tokenRepository.count();
-        assertThat(count).isEqualTo(1);
+        assertThat(tokenRepository.count()).isEqualTo(1);
     }
+
+    @Test
+    void createPasswordResetToken_createsTokenWithFutureExpiry() {
+        passwordResetService.createPasswordResetToken("reset@example.com");
+
+        PasswordResetToken token = tokenRepository.findAll().get(0);
+        assertThat(token.getExpiryDate()).isAfter(java.time.LocalDateTime.now());
+    }
+
+    // ==================== validateToken ====================
 
     @Test
     void validateToken_throws_whenTokenInvalid() {
@@ -96,7 +119,20 @@ class PasswordResetServiceIntegrationTest {
     }
 
     @Test
-    void resetPassword_changesPassword() {
+    void validateToken_returnsUser_whenTokenValid() {
+        passwordResetService.createPasswordResetToken("reset@example.com");
+        String token = applicationEvents.stream(PasswordResetRequestedEvent.class)
+                .findFirst().orElseThrow().token();
+
+        User result = passwordResetService.validateToken(token);
+
+        assertThat(result.getId()).isEqualTo(user.getId());
+    }
+
+    // ==================== resetPassword ====================
+
+    @Test
+    void resetPassword_changesPassword_andDeletesToken() {
         passwordResetService.createPasswordResetToken("reset@example.com");
         String token = applicationEvents.stream(PasswordResetRequestedEvent.class)
                 .findFirst().orElseThrow().token();

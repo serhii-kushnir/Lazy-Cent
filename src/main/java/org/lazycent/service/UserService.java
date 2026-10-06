@@ -6,6 +6,7 @@ import org.lazycent.exception.EntityNotFoundException;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Currency;
 import org.lazycent.model.User;
+import org.lazycent.repository.PasswordResetTokenRepository;
 import org.lazycent.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
@@ -175,28 +177,21 @@ public class UserService {
                             + managedUser.getProvider());
         }
 
-        // Валідація нового username
         if (username == null || username.isBlank()) {
             throw new ValidationException(msg("error.username.empty"));
         }
 
-        // Якщо username змінюється — перевіряємо, що нове вільне
         if (!managedUser.getUsername().equals(username)
                 && userRepository.findByUsername(username).isPresent()) {
             throw new ValidationException(msg("error.username.exists"));
         }
 
-        // Email — опціонально, але якщо задано і змінюється — перевіряємо унікальність
         if (email != null && !email.isEmpty()
                 && !email.equals(managedUser.getEmail())
                 && userRepository.findByEmail(email).isPresent()) {
             throw new ValidationException(msg("error.email.exists"));
         }
 
-        // Зміна пароля:
-        // - якщо обидва задані → міняємо;
-        // - якщо жоден не заданий → не чіпаємо;
-        // - якщо заданий тільки один → помилка (щоб не було "тихої" невдачі).
         boolean hasCurrent = currentPassword != null && !currentPassword.isEmpty();
         boolean hasNew = newPassword != null && !newPassword.isEmpty();
 
@@ -237,36 +232,44 @@ public class UserService {
 
     // ==================== ВИДАЛЕННЯ АКАУНТА ====================
 
+    /**
+     * Видаляє акаунт користувача разом з усіма пов'язаними даними.
+     *
+     * <p><b>Порядок видалення важливий</b> — FK-констрейнти:
+     * <ol>
+     *   <li>{@code password_reset_token} — FK на {@code users}, не
+     *       покритий {@code clearAllUserData}; без цього кроку
+     *       {@code userRepository.delete()} впаде з FK-violation,
+     *       якщо у юзера є активний токен скидання пароля.</li>
+     *   <li>{@code day_budget} + {@code category} + {@code budget_plans}
+     *       + {@code category_budget_limits} — все через
+     *       {@code clearAllUserData}.</li>
+     *   <li>{@code notes} — FK на {@code users}.</li>
+     *   <li>сам {@code user}.</li>
+     * </ol>
+     */
     @Transactional
     public void deleteAccount(User user) {
         User managedUser = loadManagedUser(user);
+        Long userId = managedUser.getId();
 
+        // 1. Токени скидання пароля (FK на users, не покрито clearAllUserData)
+        passwordResetTokenRepository.deleteByUserId(userId);
+
+        // 2. Бюджетні дані: day_budget, category, budget_plans, category_budget_limits
         budgetService.clearAllUserData(managedUser);
+
+        // 3. Нотатки
         noteService.deleteAllNotes(managedUser);
 
+        // 4. Сам користувач
         userRepository.delete(managedUser);
 
-        log.info("Акаунт користувача {} (id={}) видалено",
-                managedUser.getUsername(), managedUser.getId());
+        log.info("Акаунт користувача {} (id={}) видалено", managedUser.getUsername(), userId);
     }
 
     // ==================== ДОПОМІЖНІ ====================
 
-    /**
-     * Завантажує managed-версію користувача з БД.
-     *
-     * <p>Захищає від NPE, якщо:
-     * <ul>
-     *   <li>{@code user == null} — наприклад, якщо в контролері не спрацював
-     *       {@code getCurrentUser()};</li>
-     *   <li>{@code user.getId() == null} — transient-об'єкт, ще не збережений
-     *       у БД;</li>
-     *   <li>юзера видалено паралельно — {@link EntityNotFoundException}.</li>
-     * </ul>
-     *
-     * @throws ValidationException якщо {@code user} або {@code user.id} — null
-     * @throws EntityNotFoundException якщо юзера не знайдено в БД
-     */
     private User loadManagedUser(User user) {
         if (user == null) {
             throw new ValidationException("Користувач не ідентифікований");

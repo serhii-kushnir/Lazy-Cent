@@ -68,6 +68,7 @@ public class NoteService {
         List<Note> notes = noteRepository.findByOwner(user);
         if (!notes.isEmpty()) {
             noteRepository.deleteAll(notes);
+            noteRepository.flush();   // ← додано
         }
     }
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.lazycent.exception.EntityNotFoundException;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.User;
+import org.lazycent.repository.PasswordResetTokenRepository;
 import org.lazycent.repository.UserRepository;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     @Mock private UserRepository userRepository;
+    @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
     @Mock private DemoDataService demoDataService;
     @Mock private BudgetService budgetService;
     @Mock private NoteService noteService;
@@ -53,6 +55,7 @@ class UserServiceTest {
 
         userService = new UserService(
                 userRepository,
+                passwordResetTokenRepository,
                 passwordEncoder,
                 demoDataService,
                 budgetService,
@@ -74,7 +77,7 @@ class UserServiceTest {
         LocaleContextHolder.resetLocaleContext();
     }
 
-    // ==================== loadManagedUser (через updateCurrency) ====================
+    // ==================== loadManagedUser ====================
 
     @Test
     void updateCurrency_throwsValidation_whenUserIsNull() {
@@ -87,7 +90,6 @@ class UserServiceTest {
     void updateCurrency_throwsValidation_whenUserIdIsNull() {
         User transientUser = new User();
         transientUser.setUsername("transient");
-        // id залишається null
 
         assertThatThrownBy(() -> userService.updateCurrency(transientUser, "USD"))
                 .isInstanceOf(ValidationException.class)
@@ -238,8 +240,30 @@ class UserServiceTest {
 
         userService.deleteAccount(managedUser);
 
+        // КРИТИЧНО: password_reset_token має чиститись ПЕРШИМ,
+        // інакше FK-violation на userRepository.delete()
+        verify(passwordResetTokenRepository).deleteByUserId(1L);
         verify(budgetService).clearAllUserData(managedUser);
         verify(noteService).deleteAllNotes(managedUser);
         verify(userRepository).delete(managedUser);
+    }
+
+    /**
+     * Перевіряє ПОРЯДОК викликів у deleteAccount: токени → бюджет → нотатки → юзер.
+     *
+     * <p>Це не просто "перевірка що всі викликані" — тут важливий саме порядок,
+     * бо FK-констрейнти в БД. Mockito {@code InOrder} дозволяє це перевірити.
+     */
+    @Test
+    void deleteAccount_clearsInCorrectOrder() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(managedUser));
+
+        userService.deleteAccount(managedUser);
+
+        var inOrder = inOrder(passwordResetTokenRepository, budgetService, noteService, userRepository);
+        inOrder.verify(passwordResetTokenRepository).deleteByUserId(1L);
+        inOrder.verify(budgetService).clearAllUserData(managedUser);
+        inOrder.verify(noteService).deleteAllNotes(managedUser);
+        inOrder.verify(userRepository).delete(managedUser);
     }
 }
