@@ -1,17 +1,65 @@
+# Build artifacts
 target/
-.git/
-.gitignore
+!target/*.jar
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
 .idea/
 *.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
 .vscode/
-.mvn/
-mvnw
-mvnw.cmd
-data/
-logs/
-*.log
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
 README.md
-lombok.config
+CHANGELOG.md
+docs/
+*.md
+
+# Логи
+*.log
+logs/
+
+# Тимчасові
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Docker
 Dockerfile
 .dockerignore
+docker-compose*.yml
+
+# Fly
 fly.toml
+
+# Env
+.env
+.env.*
+application-local.yml
+application-local.properties
