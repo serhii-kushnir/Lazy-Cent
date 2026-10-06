@@ -16,7 +16,7 @@ public class PasswordResetController extends BaseController {
     private final PasswordResetService passwordResetService;
 
     private static final Pattern PASSWORD_PATTERN =
-            Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&]).{6,}$");
+            Pattern.compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{6,}$");
 
     @GetMapping("/forgot-password")
     public String showForgotPasswordForm() {
