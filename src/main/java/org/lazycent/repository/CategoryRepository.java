@@ -11,17 +11,7 @@ import java.util.Optional;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    // ---- Застарілі методи (без користувача) ----
-    @Deprecated
-    List<Category> findByType(String type);
-
-    @Deprecated
-    Optional<Category> findByName(String name);
-
-    @Deprecated
-    Optional<Category> findByNameIgnoreCase(String name);
-
-    // ---- НОВІ МЕТОДИ З КОРИСТУВАЧЕМ ----
+    // ---- Методи з фільтром по власнику ----
 
     List<Category> findByTypeAndOwner(String type, User owner);
 
