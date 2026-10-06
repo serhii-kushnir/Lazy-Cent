@@ -69,7 +69,7 @@ spring:
 # ===================== SERVER =====================
 # ===================== SERVER =====================
 server:
-  port: 8081
+  port: 8080
   servlet:
     session:
       # 60 хвилин неактивності → сесія інвалідується.
@@ -92,7 +92,7 @@ server:
 
 # ===================== APP =====================
 app:
-  url: ${APP_URL:http://localhost:8081}
+  url: ${APP_URL:http://localhost:8080}
   days:
     max-loaded: ${DAYS_MAX_LOADED:180}
   demo:
