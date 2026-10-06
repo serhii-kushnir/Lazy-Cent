@@ -1,0 +1,17 @@
+target/
+.git/
+.gitignore
+.idea/
+*.iml
+.vscode/
+.mvn/
+mvnw
+mvnw.cmd
+data/
+logs/
+*.log
+README.md
+lombok.config
+Dockerfile
+.dockerignore
+fly.toml

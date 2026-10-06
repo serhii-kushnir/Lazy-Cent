@@ -11,7 +11,7 @@ spring:
 
   # ===================== DATASOURCE =====================
   datasource:
-    url: jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE}
     driver-class-name: org.h2.Driver
     username: ${DB_USER}
     password: ${DB_PASS}
@@ -29,7 +29,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     open-in-view: false
     properties:
       hibernate:
@@ -96,7 +96,7 @@ app:
   days:
     max-loaded: ${DAYS_MAX_LOADED:180}
   demo:
-    enabled: ${DEMO_ENABLED:false}
+    enabled: ${DEMO_ENABLED:true}
     default-user: ${DEMO_USER:demo}
     default-password: ${DEMO_PASSWORD:demo}
     random-days: ${DEMO_RANDOM_DAYS:14}
