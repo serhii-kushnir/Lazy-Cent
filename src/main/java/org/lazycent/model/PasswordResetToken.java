@@ -33,7 +33,11 @@ public class PasswordResetToken {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        expiryDate = createdAt.plusHours(24); // токен діє 24 години
+        // Не перезаписуємо expiryDate, якщо його задано вручну —
+        // потрібно для integration-тестів cleanup.
+        if (expiryDate == null) {
+            expiryDate = createdAt.plusHours(24);
+        }
     }
 
     public boolean isExpired() {

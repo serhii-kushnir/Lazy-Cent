@@ -94,18 +94,19 @@ server:
 app:
   url: ${APP_URL:http://localhost:8081}
   days:
-    # Максимум днів, які завантажуються на /all-days.
-    # @EntityGraph на колекціях не дає Hibernate пагінувати в SQL,
-    # тому завантажуємо останні N днів замість усієї історії.
-    # Для повної історії — фільтр по датах на /totals.
     max-loaded: ${DAYS_MAX_LOADED:180}
   demo:
-    enabled: false
-    default-user: demo
-    default-password: demo
-    random-days: 14
+    enabled: ${DEMO_ENABLED:false}
+    default-user: ${DEMO_USER:demo}
+    default-password: ${DEMO_PASSWORD:demo}
+    random-days: ${DEMO_RANDOM_DAYS:14}
   rate-limit:
     trust-forwarded-for: ${TRUST_FORWARDED_FOR:false}
+  password-reset:
+    # Cron для щоденного очищення прострочених токенів.
+    # Формат: second minute hour day month weekday
+    # Дефолт: щодня о 03:00.
+    cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
 
 # ===================== ACTUATOR =====================
 management:

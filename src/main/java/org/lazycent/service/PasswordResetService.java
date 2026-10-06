@@ -11,10 +11,12 @@ import org.lazycent.repository.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -28,22 +30,13 @@ public class PasswordResetService {
     private final MessageSource messageSource;
     private final ApplicationEventPublisher eventPublisher;
 
-    /**
-     * Створює токен скидання пароля і публікує подію для надсилання листа.
-     *
-     * <p><b>Чому flush між delete і save:</b> Hibernate не гарантує порядок
-     * SQL-запитів без явного flush. Якщо виконати insert ПЕРЕД delete,
-     * у БД опиняться два токени для одного юзера (бо уникального
-     * констрейнту на {@code user_id} немає). Тоді {@code findByToken}
-     * може знайти "старий" — і користувач отримає посилання, яке не
-     * спрацює.
-     */
+    // ==================== СТВОРЕННЯ ТОКЕНА ====================
+
     @Transactional
     public void createPasswordResetToken(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
 
         if (user == null) {
-            // Не розкриваємо існування email — завжди кажемо "лист надіслано"
             log.info("Спроба відновлення пароля для неіснуючого email: {}", email);
             return;
         }
@@ -67,6 +60,8 @@ public class PasswordResetService {
         log.info("Токен відновлення пароля створено для користувача {}", user.getUsername());
     }
 
+    // ==================== ВАЛІДАЦІЯ ТА RESET ====================
+
     @Transactional
     public User validateToken(String token) {
         PasswordResetToken resetToken = tokenRepository.findByToken(token)
@@ -88,6 +83,33 @@ public class PasswordResetService {
         tokenRepository.deleteByUserId(user.getId());
         log.info("Пароль відновлено для користувача {}", user.getUsername());
     }
+
+    // ==================== SCHEDULED CLEANUP ====================
+
+    /**
+     * Видаляє прострочені токени скидання пароля.
+     *
+     * <p>Запускається щодня о 03:00. Прострочені токени — це ті, у яких
+     * {@code expiryDate < now}. Вони не потрібні нікому:
+     * {@code validateToken} їх все одно відкине, але вони займають
+     * місце в БД і в індексах.
+     *
+     * <p>Час задається через {@code app.password-reset.cleanup-cron}
+     * (дефолт: {@code 0 0 3 * * *} — щодня о 03:00).
+     */
+    @Scheduled(cron = "${app.password-reset.cleanup-cron:0 0 3 * * *}")
+    @Transactional
+    public void cleanupExpiredTokens() {
+        LocalDateTime threshold = LocalDateTime.now();
+        int deleted = tokenRepository.deleteByExpiryDateBefore(threshold);
+        if (deleted > 0) {
+            log.info("Очищено {} прострочених токенів скидання пароля", deleted);
+        } else {
+            log.debug("Прострочених токенів скидання пароля не знайдено");
+        }
+    }
+
+    // ==================== ДОПОМІЖНІ ====================
 
     private String msg(String key, Object... args) {
         try {

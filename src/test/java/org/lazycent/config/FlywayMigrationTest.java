@@ -81,7 +81,7 @@ class FlywayMigrationTest {
             assertThat(count).as("Кількість міграцій у flyway_schema_history").isGreaterThanOrEqualTo(3);
             assertThat(appliedVersions)
                     .as("Усі очікувані версії мають бути в історії")
-                    .contains("1", "2", "3", "4");
+                    .contains("1", "2", "3", "4", "5");
         }
     }
 
@@ -201,5 +201,27 @@ class FlywayMigrationTest {
                     .isNotNull()
                     .contains("#212529");
         }
+    }
+
+    @Test
+    void categoryUniqueIndex_exists() throws SQLException {
+        Set<String> uniqueIndexes = new HashSet<>();
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT DISTINCT index_name " +
+                             "FROM INFORMATION_SCHEMA.INDEX_COLUMNS " +
+                             "WHERE table_schema = 'PUBLIC' " +
+                             "  AND table_name = 'CATEGORY'")) {
+
+            while (rs.next()) {
+                uniqueIndexes.add(rs.getString("index_name").toUpperCase());
+            }
+        }
+
+        assertThat(uniqueIndexes)
+                .as("V5 мала створити unique index uk_category_user_name")
+                .contains("UK_CATEGORY_USER_NAME");
     }
 }

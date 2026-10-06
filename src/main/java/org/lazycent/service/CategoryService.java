@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,20 +61,6 @@ public class CategoryService {
         return category;
     }
 
-    /**
-     * Знаходить категорію за ID і власником, додатково перевіряючи тип.
-     *
-     * <p>Захист від розсинхрону: якщо хтось передасть INCOME-категорію
-     * у Expense-транзакцію — буде {@link ValidationException}, а не тихе
-     * «ну ок, запишемо як витрату».
-     *
-     * @param id           ID категорії
-     * @param user         власник
-     * @param expectedType очікуваний тип — {@code "EXPENSE"} або {@code "INCOME"}
-     * @throws EntityNotFoundException якщо категорії немає
-     * @throws AccessDeniedException   якщо категорія не належить користувачу
-     * @throws ValidationException     якщо тип категорії не збігається
-     */
     public Category getCategoryByIdAndType(Long id, User user, String expectedType) {
         Category category = getCategoryById(id, user);
         if (!expectedType.equalsIgnoreCase(category.getType())) {
@@ -84,11 +71,6 @@ public class CategoryService {
         return category;
     }
 
-    /**
-     * Перевіряє, чи категорія використовується у транзакціях.
-     *
-     * @return сумарна кількість витрат і доходів у цій категорії
-     */
     public long countUsages(Category category, User user) {
         long expenses = expenseRepository.countByCategoryAndOwner(category, user);
         long incomes = incomeRepository.countByCategoryAndOwner(category, user);
@@ -97,6 +79,17 @@ public class CategoryService {
 
     // ==================== СТВОРЕННЯ ====================
 
+    /**
+     * Створює нову категорію.
+     *
+     * <p><b>Захист від race condition:</b> попередня перевірка
+     * {@code findByNameIgnoreCaseAndOwner} + {@code save} не атомарні.
+     * Два паралельні запити можуть обидва пройти перевірку й обидва
+     * вставити рядок. Unique index {@code uk_category_user_name}
+     * (V5) гарантує, що другий INSERT впаде з
+     * {@link DataIntegrityViolationException}, яку ми перетворюємо
+     * у зрозумілу {@link ValidationException}.
+     */
     @Transactional
     @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public Category addCategory(String name, String type, User user) {
@@ -111,7 +104,15 @@ public class CategoryService {
         category.setName(normalizedName);
         category.setType(type.toUpperCase());
         category.setOwner(user);
-        return categoryRepository.save(category);
+        try {
+            return categoryRepository.save(category);
+        } catch (DataIntegrityViolationException e) {
+            // Race condition: між перевіркою вище і save хтось устиг
+            // вставити категорію з такою самою назвою.
+            log.warn("Race condition при створенні категорії '{}' для користувача {}",
+                    normalizedName, user.getUsername());
+            throw new ValidationException(msg("error.category.name.exists"));
+        }
     }
 
     @Transactional
@@ -123,7 +124,15 @@ public class CategoryService {
                     cat.setName(name);
                     cat.setType(type);
                     cat.setOwner(user);
-                    return categoryRepository.save(cat);
+                    try {
+                        return categoryRepository.save(cat);
+                    } catch (DataIntegrityViolationException e) {
+                        // Паралельний виклик устиг створити — повертаємо існуючий.
+                        log.debug("Категорія '{}' уже створена паралельно", name);
+                        return categoryRepository.findByNameAndOwner(name, user)
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "Категорію '" + name + "' не знайдено після race condition"));
+                    }
                 });
     }
 
@@ -148,29 +157,17 @@ public class CategoryService {
                     }
                 });
         category.setName(normalizedName);
-        return categoryRepository.save(category);
+        try {
+            return categoryRepository.save(category);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Race condition при оновленні категорії id={} для користувача {}",
+                    id, user.getUsername());
+            throw new ValidationException(msg("error.category.name.exists"));
+        }
     }
 
     // ==================== ВИДАЛЕННЯ ====================
 
-    /**
-     * Видаляє категорію, якщо вона не використовується в жодній транзакції.
-     *
-     * <p><b>Чому pre-check:</b> FK-констрейнт у БД теж спрацює, але:
-     * <ul>
-     *   <li>повідомлення від БД неспецифічне — незрозуміло, скільки
-     *       транзакцій блокує видалення;</li>
-     *   <li>pre-check дає змогу віддати {@link ValidationException}
-     *       (400) замість {@link org.springframework.dao.DataIntegrityViolationException}
-     *       (яку {@code GlobalExceptionHandler} мапить у загальне
-     *       «Можливо, ви намагаєтесь видалити категорію...»);</li>
-     *   <li>швидше — без rollback-у транзакції.</li>
-     * </ul>
-     *
-     * <p>Race condition між pre-check і delete (хтось додав транзакцію
-     * паралельно) все ще можливий — його ловить FK і
-     * {@code DataIntegrityViolationException} handler як fallback.
-     */
     @Transactional
     @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
     public void deleteCategory(Long id, User user) {
@@ -195,10 +192,8 @@ public class CategoryService {
     public void deleteAllCategories(User user) {
         List<Category> categories = categoryRepository.findAllByOwner(user);
         if (!categories.isEmpty()) {
-            // Для clearAllUserData — спочатку видаляються DayBudget
-            // (каскадно з Expense/Income), потім категорії. Тому
-            // pre-check тут не потрібен.
             categoryRepository.deleteAll(categories);
+            categoryRepository.flush();
         }
     }
 

@@ -5,6 +5,13 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Entity
+@Table(
+        name = "category",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_category_user_name",
+                columnNames = {"user_id", "name"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
