@@ -28,6 +28,18 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String username;
 
+    /**
+     * BCrypt-хеш пароля.
+     *
+     * <p><b>@JsonIgnore критично:</b> якщо User колись потрапить у JSON-відповідь
+     * (наприклад, новий /api/users/me або випадкова серіалізація у логах через Jackson),
+     * без цієї анотації хеш витече. Це не пароль у чистому вигляді, але дозволяє
+     * офлайн-брутфорс.
+     *
+     * <p>Аналогічно для {@code providerId} — це внутрішній ідентифікатор у провайдера,
+     * і його розкриття створює поверхню для targeted атак.
+     */
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -42,6 +54,8 @@ public class User implements UserDetails {
     private String email;
 
     private String provider;
+
+    @JsonIgnore
     private String providerId;
 
     @Column(nullable = false)

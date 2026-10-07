@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.BudgetDashboardDto;
 import org.lazycent.model.dto.CategorySummaryDto;
-import org.lazycent.model.dto.DailySummaryDto;
 import org.lazycent.repository.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -54,6 +53,26 @@ class BudgetPlanningServiceTest {
         user.setId(1L);
         user.setUsername("planner_user");
         user.setPreferredCurrency("UAH");
+    }
+
+    // ==================== ХЕЛПЕРИ ДЛЯ STUB ====================
+
+    /**
+     * Заглушує всі репозиторні залежності для виклику {@code getDashboard}.
+     * Окремий хелпер — щоб кожен тест не дублював 6 рядків when(...).
+     */
+    private void stubEmptyDashboard(int month, int year) {
+        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, month, year))
+                .thenReturn(Optional.empty());
+        when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
+        when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
+        when(categoryBudgetLimitRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, month, year))
+                .thenReturn(Collections.emptyList());
+        when(expenseRepository.getExpenseCategorySummaries(any(), any(), eq(user)))
+                .thenReturn(Collections.emptyList());
+        when(expenseRepository.getDailyExpenseSummaries(any(), any(), eq(user)))
+                .thenReturn(Collections.emptyList());
+        when(categoryService.getAllCategories(user)).thenReturn(Collections.emptyList());
     }
 
     // ==================== BUDGET PLAN ====================
@@ -129,17 +148,7 @@ class BudgetPlanningServiceTest {
 
     @Test
     void getDashboard_returnsEmptyData_whenNoTransactions() {
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(any(), eq(10), eq(2026)))
-                .thenReturn(Optional.empty());
-        when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(null);
-        when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(null);
-        when(categoryBudgetLimitRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
-                .thenReturn(Collections.emptyList());
-        when(expenseRepository.getExpenseCategorySummaries(any(), any(), eq(user)))
-                .thenReturn(Collections.emptyList());
-        when(expenseRepository.getDailyExpenseSummaries(any(), any(), eq(user)))
-                .thenReturn(Collections.emptyList());
-        when(categoryService.getAllCategories(user)).thenReturn(Collections.emptyList());
+        stubEmptyDashboard(10, 2026);
 
         BudgetDashboardDto dto = service.getDashboard(user, 10, 2026);
 
@@ -176,17 +185,7 @@ class BudgetPlanningServiceTest {
 
     @Test
     void getDashboard_fillsDailyExpenses_forEveryDay() {
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 2, 2026))
-                .thenReturn(Optional.empty());
-        when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
-        when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
-        when(categoryBudgetLimitRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 2, 2026))
-                .thenReturn(Collections.emptyList());
-        when(expenseRepository.getExpenseCategorySummaries(any(), any(), eq(user)))
-                .thenReturn(Collections.emptyList());
-        when(expenseRepository.getDailyExpenseSummaries(any(), any(), eq(user)))
-                .thenReturn(Collections.emptyList());
-        when(categoryService.getAllCategories(user)).thenReturn(Collections.emptyList());
+        stubEmptyDashboard(2, 2026);
 
         BudgetDashboardDto dto = service.getDashboard(user, 2, 2026);
 
@@ -227,6 +226,101 @@ class BudgetPlanningServiceTest {
 
         assertThat(dto.getCategories()).hasSize(1);
         assertThat(dto.getCategories().get(0).getStatus()).isEqualTo("WARNING"); // 85% > 80
+    }
+
+    // ==================== daysPassed: FIX ====================
+    //
+    // Семантика (після фіксу):
+    //   • майбутній місяць  → daysPassed = 0 (жодного дня не минуло)
+    //   • минулий місяць    → daysPassed = daysInMonth (усі дні минули)
+    //   • поточний місяць   → daysPassed = today.getDayOfMonth()
+    //
+    // Раніше daysPassed = today.getDayOfMonth() для БУДЬ-ЯКОГО місяця, що
+    // давало неправильний прогноз для минулих/майбутніх періодів.
+
+    @Test
+    void getDashboard_daysPassed_isZero_forFutureMonth() {
+        // Беремо "далеке майбутнє" — гарантовано після LocalDate.now()
+        LocalDate now = LocalDate.now();
+        int futureMonth = now.getMonthValue() == 12 ? 1 : now.getMonthValue() + 1;
+        int futureYear = now.getMonthValue() == 12 ? now.getYear() + 1 : now.getYear();
+
+        stubEmptyDashboard(futureMonth, futureYear);
+
+        BudgetDashboardDto dto = service.getDashboard(user, futureMonth, futureYear);
+
+        assertThat(dto.getDaysPassed())
+                .as("У майбутньому місяці жоден день ще не минув")
+                .isZero();
+        assertThat(dto.getDailyAverageExpense())
+                .as("Без минулих днів середнє = 0")
+                .isZero();
+    }
+
+    @Test
+    void getDashboard_daysPassed_equalsAllDays_forPastMonth() {
+        LocalDate now = LocalDate.now();
+        int pastMonth = now.getMonthValue() == 1 ? 12 : now.getMonthValue() - 1;
+        int pastYear = now.getMonthValue() == 1 ? now.getYear() - 1 : now.getYear();
+
+        stubEmptyDashboard(pastMonth, pastYear);
+
+        BudgetDashboardDto dto = service.getDashboard(user, pastMonth, pastYear);
+
+        // Усі дні минулого місяця вже пройшли
+        assertThat(dto.getDaysPassed())
+                .as("У минулому місяці всі дні вже минули")
+                .isEqualTo(dto.getDaysInMonth());
+    }
+
+    @Test
+    void getDashboard_daysPassed_equalsToday_forCurrentMonth() {
+        LocalDate now = LocalDate.now();
+
+        stubEmptyDashboard(now.getMonthValue(), now.getYear());
+
+        BudgetDashboardDto dto = service.getDashboard(user, now.getMonthValue(), now.getYear());
+
+        assertThat(dto.getDaysPassed())
+                .as("У поточному місяці daysPassed = today.getDayOfMonth()")
+                .isEqualTo(now.getDayOfMonth());
+        assertThat(dto.getDaysInMonth())
+                .isEqualTo(now.lengthOfMonth());
+    }
+
+    @Test
+    void getDashboard_projectedBalance_usesRealDaysPassed_forPastMonth() {
+        // Регресійний тест: раніше для минулого місяця dailyAverage рахувався
+        // як totalExpenses / today.getDayOfMonth(), що завищувало прогноз.
+        LocalDate now = LocalDate.now();
+        int pastMonth = now.getMonthValue() == 1 ? 12 : now.getMonthValue() - 1;
+        int pastYear = now.getMonthValue() == 1 ? now.getYear() - 1 : now.getYear();
+
+        double totalExpenses = 3000.0;
+
+        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, pastMonth, pastYear))
+                .thenReturn(Optional.empty());
+        when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user)))
+                .thenReturn(totalExpenses);
+        when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
+        when(categoryBudgetLimitRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, pastMonth, pastYear))
+                .thenReturn(Collections.emptyList());
+        when(expenseRepository.getExpenseCategorySummaries(any(), any(), eq(user)))
+                .thenReturn(Collections.emptyList());
+        when(expenseRepository.getDailyExpenseSummaries(any(), any(), eq(user)))
+                .thenReturn(Collections.emptyList());
+        when(categoryService.getAllCategories(user)).thenReturn(Collections.emptyList());
+
+        BudgetDashboardDto dto = service.getDashboard(user, pastMonth, pastYear);
+
+        // Прогноз для минулого місяця = totalExpenses (бо всі дні пройшли).
+        // Раніше dailyAverage = 3000/15 = 200, projectedTotal = 200*30 = 6000 — неправильно.
+        assertThat(dto.getDailyAverageExpense())
+                .as("Середнє за минулий місяць = сума / кількість днів місяця")
+                .isEqualTo(totalExpenses / dto.getDaysInMonth());
+        assertThat(dto.getProjectedTotalExpenses())
+                .as("Для минулого місяця projected == total")
+                .isEqualTo(totalExpenses);
     }
 
     // ==================== CURRENT MONTH/YEAR ====================

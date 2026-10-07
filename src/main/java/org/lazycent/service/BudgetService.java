@@ -239,15 +239,21 @@ public class BudgetService {
      * Повертає останні {@code maxDaysLoaded} днів користувача у
      * хронологічному порядку (ASC), щоб шаблон не змінювався.
      *
-     * <p><b>Чому обмежуємо:</b> {@code @EntityGraph} на колекціях
-     * не дозволяє Hibernate пагінувати в SQL. Для юзера з роками історії
-     * (730+ днів × 10 транзакцій) завантаження всіх даних у пам'ять
-     * може дати десятки МБ на один запит і призвести до OOM.
+     * <p><b>Двоетапна вибірка (P2):</b>
+     * <ol>
+     *   <li>Крок 1 — {@code findRecentDates} вибирає ТІЛЬКИ дати з
+     *       SQL-пагінацією. Hibernate додає {@code LIMIT ? OFFSET ?},
+     *       у пам'ять вантажаться лише {@code maxDaysLoaded} дат.</li>
+     *   <li>Крок 2 — {@code findByOwnerAndDateInOrderByDateAsc}
+     *       завантажує дні з {@code @EntityGraph} за конкретними датами.
+     *       Оскільки це НЕ {@code Pageable}, Hibernate не робить
+     *       in-memory pagination — генерує нормальний {@code JOIN FETCH}.</li>
+     * </ol>
      *
-     * <p>Обмежуємо останніми N днями (дефолт 180 = ~пів року).
-     * Фільтри та пошук на фронті продовжують працювати — на завантаженому
-     * зрізі. Для повної історії користувач має сторінку «Підсумки» з
-     * фільтром по датах.
+     * <p>Раніше був один виклик {@code findByOwnerOrderByDateDesc} без
+     * {@code @EntityGraph}, що давало {@code LazyInitializationException}
+     * у view (див. fix P0). Тепер — обидві проблеми (lazy + in-memory
+     * pagination) вирішені одночасно.
      */
     public List<DayBudget> getAllBudgets(User user) {
         if (user == null) {
@@ -255,13 +261,18 @@ public class BudgetService {
             return List.of();
         }
 
-        List<DayBudget> recentDesc = dayBudgetRepository.findByOwnerOrderByDateDesc(
+        // Крок 1: SQL-пагінація — тільки дати
+        List<LocalDate> recentDates = dayBudgetRepository.findRecentDates(
                 user, PageRequest.of(0, maxDaysLoaded));
 
-        // Шаблон очікує хронологічний порядок (ASC) — для коректної
-        // нумерації рядків, графіків і сортування.
-        List<DayBudget> result = new ArrayList<>(recentDesc);
-        Collections.reverse(result);
+        if (recentDates.isEmpty()) {
+            return List.of();
+        }
+
+        // Крок 2: JOIN FETCH для конкретних дат. Порядок — ASC,
+        // щоб шаблон не змінювався.
+        List<DayBudget> result = dayBudgetRepository
+                .findByOwnerAndDateInOrderByDateAsc(user, recentDates);
 
         log.info("Отримано {} днів для користувача {} (ліміт {})",
                 result.size(), user.getUsername(), maxDaysLoaded);

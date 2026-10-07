@@ -95,7 +95,7 @@ public class BudgetPlanningService {
         // 3. Витрати по категоріях
         List<CategorySummaryDto> expenseSummaries = expenseRepository.getExpenseCategorySummaries(start, end, user);
 
-// Отримуємо ВСІ категорії один раз
+        // Отримуємо ВСІ категорії один раз
         List<Category> allCategories = categoryService.getAllCategories(user);
 
         Map<Category, Double> categoryExpenses = new HashMap<>();
@@ -131,10 +131,29 @@ public class BudgetPlanningService {
             dailyExpenses.put(dto.getDate(), dto.getTotalExpenses());
         }
 
-        // 5. Прогноз
+        // 5. Прогноз.
+        //
+        // FIX: daysPassed більше не = today.getDayOfMonth() для будь-якого місяця.
+        // Правильна семантика:
+        //   • майбутній місяць  → 0 днів минуло (ще не почався)
+        //   • минулий місяць    → усі дні місяця минули
+        //   • поточний місяць   → today.getDayOfMonth()
+        // Це виправляє прогноз при перегляді бюджету на минулий або майбутній місяць
+        // (раніше, наприклад, для вересня у жовтні показувало 15 днів замість 30).
         LocalDate today = LocalDate.now();
-        int daysPassed = today.getDayOfMonth();
         int daysInMonth = start.lengthOfMonth();
+        int daysPassed;
+        if (start.isAfter(today)) {
+            // майбутній місяць — жоден день ще не минув
+            daysPassed = 0;
+        } else if (end.isBefore(today)) {
+            // минулий місяць — усі дні вже минули
+            daysPassed = daysInMonth;
+        } else {
+            // поточний місяць — реальна кількість днів, що минули
+            daysPassed = today.getDayOfMonth();
+        }
+
         double dailyAverage = daysPassed > 0 ? totalExpenses / daysPassed : 0.0;
         double projectedTotalExpenses = dailyAverage * daysInMonth;
         double projectedBalance = totalBudget - projectedTotalExpenses;

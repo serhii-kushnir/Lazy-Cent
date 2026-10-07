@@ -120,7 +120,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         if (blocked) {
             log.warn("Rate limit exceeded for IP: {} on {}", ip, request.getRequestURI());
-            response.sendRedirect(request.getRequestURI() + "?ratelimited=true");
+            // FIX: коректний separator, якщо в URL уже є query string
+            // (наприклад, /login?error → /login?error&ratelimited=true,
+            // а не /login?error?ratelimited=true).
+            String separator = request.getQueryString() == null ? "?" : "&";
+            response.sendRedirect(request.getRequestURI() + separator + "ratelimited=true");
             return;
         }
 

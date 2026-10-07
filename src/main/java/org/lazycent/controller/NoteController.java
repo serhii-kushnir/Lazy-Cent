@@ -45,7 +45,8 @@ public class NoteController extends BaseController {
         note.setOwner(currentUser);
         noteService.createNote(note);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Нотатку створено!");
+        // FIX: локалізоване повідомлення
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.created"));
         return "redirect:/notes";
     }
 
@@ -62,7 +63,8 @@ public class NoteController extends BaseController {
 
         noteService.updateNote(id, title, content, color, textColor, currentUser);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Нотатку оновлено!");
+        // FIX: локалізоване повідомлення
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.updated"));
         return "redirect:/notes";
     }
 
@@ -75,7 +77,8 @@ public class NoteController extends BaseController {
 
         noteService.deleteNote(id, currentUser);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Нотатку видалено!");
+        // FIX: локалізоване повідомлення
+        redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.deleted"));
         return "redirect:/notes";
     }
 
@@ -88,8 +91,9 @@ public class NoteController extends BaseController {
 
         Note result = noteService.togglePinned(id, currentUser);
 
+        // FIX: локалізовані повідомлення
         redirectAttributes.addFlashAttribute("successMessage",
-                result.isPinned() ? "Нотатку закріплено!" : "Нотатку відкріплено!");
+                result.isPinned() ? msg("toast.note.pinned") : msg("toast.note.unpinned"));
         return "redirect:/notes";
     }
 
@@ -102,8 +106,9 @@ public class NoteController extends BaseController {
 
         Note result = noteService.toggleArchived(id, currentUser);
 
+        // FIX: локалізовані повідомлення
         redirectAttributes.addFlashAttribute("successMessage",
-                result.isArchived() ? "Нотатку заархівовано!" : "Нотатку відновлено!");
+                result.isArchived() ? msg("toast.note.archived") : msg("toast.note.unarchived"));
         return "redirect:/notes";
     }
 }

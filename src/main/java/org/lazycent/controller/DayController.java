@@ -95,10 +95,12 @@ public class DayController extends BaseController {
 
         try {
             budgetService.deleteDay(id, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "День успішно видалено!");
+            // FIX: локалізоване повідомлення замість хардкоду
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.day.deleted"));
         } catch (Exception e) {
             log.error("Error deleting day: ", e);
-            redirectAttributes.addFlashAttribute("errorMessage", "Помилка при видаленні дня: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    msg("toast.day.deleteError", e.getMessage()));
         }
         return "redirect:/all-days";
     }
@@ -146,11 +148,16 @@ public class DayController extends BaseController {
     private String getFirstErrorMessage(BindingResult bindingResult) {
         return bindingResult.getAllErrors().stream()
                 .map(e -> e.getDefaultMessage())
+                .filter(java.util.Objects::nonNull)
                 .findFirst()
-                .orElse("Невірні дані");
+                // FIX: локалізований fallback замість "Невірні дані"
+                .orElseGet(() -> msg("error.form.invalid"));
     }
 
     private String successMessageFor(TransactionType type) {
-        return type == TransactionType.EXPENSE ? "Витрату додано!" : "Дохід додано!";
+        // FIX: локалізовані повідомлення
+        return type == TransactionType.EXPENSE
+                ? msg("toast.expense.added")
+                : msg("toast.income.added");
     }
 }
