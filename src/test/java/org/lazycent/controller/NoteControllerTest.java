@@ -12,9 +12,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -46,6 +49,26 @@ class NoteControllerTest {
         testUser.setRole("USER");
         testUser.setPreferredCurrency("UAH");
         testUser = userRepository.save(testUser);
+    }
+
+    /**
+     * Кладе українську локаль у сесію для конкретного запиту.
+     *
+     * <p><b>Навіщо:</b> {@code SessionLocaleResolver} читає локаль ТІЛЬКИ
+     * з сесії під ключем {@link SessionLocaleResolver#LOCALE_SESSION_ATTRIBUTE_NAME}.
+     * {@code LocaleContextHolder.setLocale(...)} у {@code @BeforeEach}
+     * перезаписується {@code DispatcherServlet} під час запиту.
+     *
+     * <p>Використовується у тестах, де очікується український текст
+     * (регресійний захист від хардкоду — до P0 fix повідомлення були
+     * хардкоджені українською, і ці тести проходили випадково).
+     */
+    private MockHttpServletRequestBuilder withUkrainianLocale(
+            MockHttpServletRequestBuilder builder) {
+        return builder
+                .sessionAttr(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME,
+                        Locale.forLanguageTag("uk-UA"))
+                .locale(Locale.forLanguageTag("uk-UA"));
     }
 
     // ==================== GET /notes ====================
@@ -144,6 +167,9 @@ class NoteControllerTest {
     }
 
     // ==================== POST /notes/toggle-pin/{id} ====================
+    //
+    // FIX: тести очікують український текст → треба .sessionAttr(...)
+    // з uk-UA, бо NoteController тепер використовує msg() (P0 fix).
 
     @Test
     void togglePin_pinned_returnsPinnedMessage() throws Exception {
@@ -153,9 +179,9 @@ class NoteControllerTest {
 
         when(noteService.togglePinned(10L, testUser)).thenReturn(note);
 
-        mockMvc.perform(post("/notes/toggle-pin/10")
+        mockMvc.perform(withUkrainianLocale(post("/notes/toggle-pin/10")
                         .with(csrf())
-                        .with(user(testUser)))
+                        .with(user(testUser))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("successMessage",
                         org.hamcrest.Matchers.containsString("закріплено")));
@@ -169,9 +195,9 @@ class NoteControllerTest {
 
         when(noteService.togglePinned(10L, testUser)).thenReturn(note);
 
-        mockMvc.perform(post("/notes/toggle-pin/10")
+        mockMvc.perform(withUkrainianLocale(post("/notes/toggle-pin/10")
                         .with(csrf())
-                        .with(user(testUser)))
+                        .with(user(testUser))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("successMessage",
                         org.hamcrest.Matchers.containsString("відкріплено")));
@@ -187,9 +213,9 @@ class NoteControllerTest {
 
         when(noteService.toggleArchived(10L, testUser)).thenReturn(note);
 
-        mockMvc.perform(post("/notes/toggle-archive/10")
+        mockMvc.perform(withUkrainianLocale(post("/notes/toggle-archive/10")
                         .with(csrf())
-                        .with(user(testUser)))
+                        .with(user(testUser))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("successMessage",
                         org.hamcrest.Matchers.containsString("заархівовано")));
@@ -203,9 +229,9 @@ class NoteControllerTest {
 
         when(noteService.toggleArchived(10L, testUser)).thenReturn(note);
 
-        mockMvc.perform(post("/notes/toggle-archive/10")
+        mockMvc.perform(withUkrainianLocale(post("/notes/toggle-archive/10")
                         .with(csrf())
-                        .with(user(testUser)))
+                        .with(user(testUser))))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("successMessage",
                         org.hamcrest.Matchers.containsString("відновлено")));

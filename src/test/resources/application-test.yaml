@@ -65,9 +65,10 @@ app:
   demo:
     enabled: false
     random-days: 0
+  # У тестах — без проксі
+  trust-proxy: false
   password-reset:
     # Вимикаємо в тестах, щоб @Scheduled не запускався.
-    # Spring інтерпретує "-" як "не планувати".
     cleanup-cron: "-"
 
 # ===================== LOGGING =====================

@@ -43,8 +43,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
     /**
      * Довіряти заголовку X-Forwarded-For тільки якщо застосунок справді
      * стоїть за reverse proxy. За замовчуванням false (безпечно).
+     *
+     * <p>Property уніфіковано з {@link RedirectUtils} під спільним ім'ям
+     * {@code app.trust-proxy}. Раніше було окреме
+     * {@code app.rate-limit.trust-forwarded-for}.
      */
-    @Value("${app.rate-limit.trust-forwarded-for:false}")
+    @Value("${app.trust-proxy:false}")
     private boolean trustForwardedFor;
 
     private final Map<String, Deque<Long>> attemptsByIp = new ConcurrentHashMap<>();

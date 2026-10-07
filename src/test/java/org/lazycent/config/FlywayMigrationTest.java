@@ -81,7 +81,7 @@ class FlywayMigrationTest {
             assertThat(count).as("Кількість міграцій у flyway_schema_history").isGreaterThanOrEqualTo(3);
             assertThat(appliedVersions)
                     .as("Усі очікувані версії мають бути в історії")
-                    .contains("1", "2", "3", "4", "5");
+                    .contains("1", "2", "3", "4", "5", "6");
         }
     }
 
@@ -223,5 +223,46 @@ class FlywayMigrationTest {
         assertThat(uniqueIndexes)
                 .as("V5 мала створити unique index uk_category_user_name")
                 .contains("UK_CATEGORY_USER_NAME");
+    }
+
+    // ==================== V6: case-insensitive unique ====================
+
+    @Test
+    void categoryTable_hasNameLowerColumn() throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             ResultSet rs = conn.getMetaData().getColumns(
+                     null, "PUBLIC", "CATEGORY", "NAME_LOWER")) {
+
+            assertThat(rs.next())
+                    .as("V6 мала додати колонку 'name_lower' у 'category'")
+                    .isTrue();
+
+            String isNullable = rs.getString("IS_NULLABLE");
+            assertThat(isNullable)
+                    .as("V6 мала створити NOT NULL колонку")
+                    .isEqualToIgnoringCase("NO");
+        }
+    }
+
+    @Test
+    void categoryCaseInsensitiveUniqueIndex_exists() throws SQLException {
+        Set<String> indexes = new HashSet<>();
+
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT DISTINCT index_name " +
+                             "FROM INFORMATION_SCHEMA.INDEX_COLUMNS " +
+                             "WHERE table_schema = 'PUBLIC' " +
+                             "  AND table_name = 'CATEGORY'")) {
+
+            while (rs.next()) {
+                indexes.add(rs.getString("index_name").toUpperCase());
+            }
+        }
+
+        assertThat(indexes)
+                .as("V6 мала створити unique index uk_category_user_name_lower")
+                .contains("UK_CATEGORY_USER_NAME_LOWER");
     }
 }

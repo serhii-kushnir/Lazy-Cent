@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.lazycent.exception.ValidationException;
+import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.repository.CategoryRepository;
 import org.lazycent.repository.UserRepository;
@@ -92,5 +93,37 @@ class CategoryServiceUniqueConstraintTest {
         categoryService.addCategory("Їжа", "EXPENSE", other);
 
         assertThat(categoryRepository.count()).isEqualTo(2);
+    }
+
+    /**
+     * Регресійний тест V6: перевіряє, що unique index
+     * {@code uk_category_user_name_lower} справді блокує вставку
+     * case-insensitive дублікатів на рівні БД.
+     *
+     * <p>Сервісна перевірка {@code findByNameIgnoreCaseAndOwner} ловить
+     * це раніше, але при race condition (два паралельні запити) вона
+     * не спрацьовує — тут і потрібен БД-констрейнт.
+     *
+     * <p>Тест обходить сервіс і звертається до репозиторію напряму,
+     * щоб перевірити саме БД-рівень.
+     */
+    @Test
+    void uniqueIndex_lower_blocksCaseInsensitiveDuplicates_atDbLevel() {
+        categoryService.addCategory("Їжа", "EXPENSE", user);
+
+        // Сервіс має відхилити — перевірка вище за течією
+        assertThatThrownBy(() -> categoryService.addCategory("їжа", "EXPENSE", user))
+                .isInstanceOf(ValidationException.class);
+
+        // Але перевіряємо саме БД: обходимо сервіс і вставляємо напряму
+        Category duplicate = new Category();
+        duplicate.setName("їжа");
+        duplicate.setNameLower("їжа");
+        duplicate.setType("EXPENSE");
+        duplicate.setOwner(user);
+        duplicate.setVersion(0L);
+
+        assertThatThrownBy(() -> categoryRepository.saveAndFlush(duplicate))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
     }
 }

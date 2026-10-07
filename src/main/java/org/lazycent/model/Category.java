@@ -7,10 +7,26 @@ import lombok.*;
 @Entity
 @Table(
         name = "category",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_category_user_name",
-                columnNames = {"user_id", "name"}
-        )
+        uniqueConstraints = {
+                // V5: case-sensitive на (user_id, name) — дешевший на точний match
+                @UniqueConstraint(
+                        name = "uk_category_user_name",
+                        columnNames = {"user_id", "name"}
+                ),
+                // V6: case-insensitive на (user_id, name_lower) — захист від
+                // race condition, коли два паралельні addCategory з різним
+                // регістром проходять сервісну перевірку findByNameIgnoreCase.
+                //
+                // Дублюється в entity, щоб Hibernate ddl-auto створював
+                // той самий index у тестах (Flyway у них вимкнено). Без
+                // цього schema з тестів і з прода різниться, і
+                // CategoryServiceUniqueConstraintTest не може перевірити
+                // БД-рівень.
+                @UniqueConstraint(
+                        name = "uk_category_user_name_lower",
+                        columnNames = {"user_id", "name_lower"}
+                )
+        }
 )
 @Getter
 @Setter
@@ -24,15 +40,6 @@ public class Category {
     @EqualsAndHashCode.Include
     private Long id;
 
-    /**
-     * Optimistic lock version.
-     *
-     * <p>Захищає від «lost update», коли два запити одночасно редагують
-     * ту саму категорію (наприклад, дві вкладки браузера). Hibernate
-     * додає {@code WHERE version = ?} до UPDATE — якщо хтось між SELECT
-     * і UPDATE змінив рядок, оновлення впаде з
-     * {@link org.springframework.orm.ObjectOptimisticLockingFailureException}.
-     */
     @Version
     @Column(nullable = false)
     private Long version;
@@ -42,6 +49,22 @@ public class Category {
     @Column(nullable = false)
     private String name;
 
+    /**
+     * Нормалізована назва в НИЖНЬОМУ регістрі — службове поле для
+     * case-insensitive унікальності.
+     *
+     * <p><b>Навіщо:</b> H2 2.x не підтримує expression indexes
+     * ({@code CREATE UNIQUE INDEX ON category (user_id, LOWER(name))}),
+     * тому тримаємо окрему колонку, яка завжди містить
+     * {@code name.toLowerCase()}.
+     *
+     * <p>Заповнюється автоматично у {@link #syncNameLower()} перед
+     * кожним {@code persist}/{@code update}. Бізнес-логіка НЕ має
+     * використовувати це поле — воно для БД.
+     */
+    @Column(name = "name_lower", nullable = false)
+    private String nameLower;
+
     @NotBlank(message = "Тип категорії обов'язковий")
     @Pattern(regexp = "EXPENSE|INCOME", message = "Тип категорії може бути лише EXPENSE або INCOME")
     @Column(nullable = false)
@@ -50,4 +73,16 @@ public class Category {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
+
+    /**
+     * Синхронізує {@link #nameLower} з {@link #name} перед
+     * INSERT/UPDATE.
+     */
+    @PrePersist
+    @PreUpdate
+    protected void syncNameLower() {
+        if (name != null) {
+            nameLower = name.toLowerCase();
+        }
+    }
 }

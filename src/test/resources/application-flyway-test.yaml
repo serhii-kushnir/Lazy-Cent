@@ -67,8 +67,7 @@ app:
     max-loaded: 180
   demo:
     enabled: false
-  rate-limit:
-    trust-forwarded-for: false
+  trust-proxy: false
 
 # ===================== LOGGING =====================
 logging:
