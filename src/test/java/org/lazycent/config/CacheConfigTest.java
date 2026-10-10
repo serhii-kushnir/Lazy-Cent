@@ -7,6 +7,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 /**
  * Unit-тести {@link CacheConfig}.
@@ -48,10 +49,18 @@ class CacheConfigTest {
     @Test
     void cacheManager_returnsNullForUnknownCache() {
         CacheManager manager = config.cacheManager();
-        // CaffeineCacheManager з явним списком імен не створює нових
-        // на вимогу (getCache), але тут може повернути null або створити.
-        // Caffeine 3.x за замовчуванням динамічний — повертає кеш.
-        // Перевіряємо, що довільні імена не валять менеджер.
-        assertThat(manager).isNotNull();
+
+        // CaffeineCacheManager з явним списком імен (через конструктор)
+        // повертає null для невідомих кешів, а не створює їх на вимогу.
+        Cache unknown = manager.getCache("nonexistent");
+        assertThat(unknown).isNull();
+    }
+
+    @Test
+    void cacheManager_doesNotThrowForUnknownCacheLookup() {
+        CacheManager manager = config.cacheManager();
+
+        assertThatCode(() -> manager.getCache("random-name"))
+                .doesNotThrowAnyException();
     }
 }

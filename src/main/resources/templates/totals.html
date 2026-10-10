@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="/lib/chart.js/chart.umd.min.js"></script>
 
-    <div th:replace="~{fragments/head :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
 
     <style>
         :root {
@@ -993,7 +993,6 @@
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
-<div th:replace="~{fragments/head :: themeScript}"></div>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <!-- ПЕРЕДАЄМО ДАНІ ДЛЯ ДІАГРАМ -->

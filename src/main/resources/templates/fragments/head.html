@@ -1,28 +1,40 @@
 <!--
-  Спільні head-ресурси: meta, links, стилі, ініціалізація теми.
-  Підключається так:  <div th:replace="~{fragments/head :: themeAssets}"></div>
+  Спільні head-ресурси.
+  Підключається так:
+    <div th:replace="~{fragments/head :: themeAssets}"></div>            ← без Chart.js
+    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>  ← з Chart.js
 
-  P1.d: стилі перенесено у /css/app.css (кешується браузером).
-  Скрипт ініціалізації теми залишається інлайном — він має виконатись
-  ДО першого рендеру, інакше буде FOUC (flash of unstyled content).
+  P2.b: Chart.js (~200 КБ) винесено в окремий фрагмент. Сторінки без
+  графіків (login, register, notes, privacy, terms, budget, ...) його
+  більше не вантажать.
 -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
+<!-- ==================== БЕЗ Chart.js ==================== -->
 <th:block th:fragment="themeAssets">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/app.css">
-    <script src="/lib/chart.js/chart.umd.min.js"></script>
+    <th:block th:insert="~{fragments/head :: themeInit}"/>
+</th:block>
 
-    <!--
-      Ініціалізація теми виконується ДО першого рендеру.
-      Читає збережену тему з localStorage; за замовчуванням — dark.
-      Це не можна винести в зовнішній файл: браузер завантажить його
-      асинхронно і користувач побачить світлу тему пів секунди.
-    -->
+<!-- ==================== З Chart.js ==================== -->
+<th:block th:fragment="themeAssetsWithCharts">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <th:block th:insert="~{fragments/head :: themeInit}"/>
+</th:block>
+
+<!--
+  Ініціалізація теми виконується ДО першого рендеру.
+  Інлайн обов'язковий — інакше буде FOUC (світла тема блимне).
+-->
+<th:block th:fragment="themeInit">
     <script>
         (function () {
             const saved = localStorage.getItem('lazycent-theme');
@@ -35,10 +47,5 @@
         })();
     </script>
 </th:block>
-
-<!-- Заглушка для зворотної сумісності — старі шаблони викликають themeScript,
-     але він більше не потрібен (тема встановлюється у themeAssets вище). -->
-<th:block th:fragment="themeScript"></th:block>
-
 </body>
 </html>

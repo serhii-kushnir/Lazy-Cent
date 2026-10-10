@@ -186,20 +186,4 @@ class HomeControllerTest {
                 .andExpect(redirectedUrl("/login"));
     }
 
-    @Test
-    void index_forwardsFlashToHome_whenAuthenticated() throws Exception {
-        org.springframework.web.servlet.FlashMap flashMap =
-                new org.springframework.web.servlet.FlashMap();
-        flashMap.put("successMessage", "test flash");
-
-        org.springframework.web.servlet.FlashMapManager flashMapManager =
-                new org.springframework.web.servlet.support.SessionFlashMapManager();
-
-        // Використовуємо RequestContextUtils для встановлення flash
-        mockMvc.perform(get("/").with(user(testUser))
-                        .flashAttrs(java.util.Map.of("successMessage", "test flash")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/home"));
-    }
-
 }

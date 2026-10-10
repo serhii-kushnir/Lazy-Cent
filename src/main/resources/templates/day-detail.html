@@ -6,8 +6,7 @@
     <title th:text="${#temporals.format(dayBudget.date, 'dd/MM/yyyy')} + ' — ' + #{app.title}">Day — LazyCent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
-    <script src="/lib/chart.js/chart.umd.min.js"></script>
-    <div th:replace="~{fragments/head :: themeAssets}"></div>
+    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
     <style>
         /* ===== АНІМАЦІЇ ===== */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -911,7 +910,6 @@
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
-<div th:replace="~{fragments/head :: themeScript}"></div>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <script th:inline="javascript">

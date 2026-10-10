@@ -115,27 +115,6 @@ public class CategoryService {
         }
     }
 
-    @Transactional
-    @CacheEvict(value = {"expenseCategories", "incomeCategories"}, key = "#user.id")
-    public Category createIfNotExists(String name, String type, User user) {
-        return categoryRepository.findByNameAndOwner(name, user)
-                .orElseGet(() -> {
-                    Category cat = new Category();
-                    cat.setName(name);
-                    cat.setType(type);
-                    cat.setOwner(user);
-                    try {
-                        return categoryRepository.save(cat);
-                    } catch (DataIntegrityViolationException e) {
-                        // Паралельний виклик устиг створити — повертаємо існуючий.
-                        log.debug("Категорія '{}' уже створена паралельно", name);
-                        return categoryRepository.findByNameAndOwner(name, user)
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "Категорію '" + name + "' не знайдено після race condition"));
-                    }
-                });
-    }
-
     // ==================== ОНОВЛЕННЯ ====================
 
     @Transactional
