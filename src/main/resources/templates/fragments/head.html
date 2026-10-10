@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/app.css">
-    <th:block th:insert="~{fragments/head :: themeInit}"/>
+    <th:block th:insert="~{fragments/head :: themeInit}"></th:block>
 </th:block>
 
 <!-- ==================== З Chart.js ==================== -->
@@ -27,7 +27,8 @@
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/app.css">
-    <th:block th:insert="~{fragments/head :: themeInit}"/>
+    <script src="/lib/chart.js/chart.umd.min.js"></script>
+    <th:block th:insert="~{fragments/head :: themeInit}"></th:block>
 </th:block>
 
 <!--
@@ -47,5 +48,6 @@
         })();
     </script>
 </th:block>
+
 </body>
 </html>
