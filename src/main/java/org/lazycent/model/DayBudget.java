@@ -42,7 +42,16 @@ public class DayBudget {
     private Double startingBalance;
     private Double remainingBalance;
 
-    @ManyToOne
+    /**
+     * P2.c: {@code owner} тепер LAZY.
+     *
+     * <p><b>Де читається:</b>
+     * <ul>
+     *   <li>{@code BudgetService.updateDayBudgetBalance/recalculateBalancesAfter} — всередині {@code @Transactional};</li>
+     *   <li>Thymeleaf — {@code owner} НЕ використовується.</li>
+     * </ul>
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 

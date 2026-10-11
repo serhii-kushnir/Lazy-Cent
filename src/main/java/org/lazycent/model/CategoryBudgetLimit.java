@@ -19,11 +19,32 @@ public class CategoryBudgetLimit {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne
+    /**
+     * P2.c: {@code category} тепер LAZY.
+     *
+     * <p><b>Де читається:</b>
+     * <ul>
+     *   <li>{@code BudgetPlanningService.getDashboard} — {@code l.getCategory().getId()}
+     *       всередині {@code @Transactional(readOnly = true)};</li>
+     *   <li>{@code saveCategoryLimit} — {@code findByCategoryAndOwner...} WHERE-фільтр.</li>
+     * </ul>
+     *
+     * <p><b>Увага:</b> у {@code getDashboard} ми формуємо
+     * {@code Map<Long, Double> limitMap} з {@code l.getCategory().getId()}.
+     * Це всередині транзакції — ОК. Але якщо колись викличете цей метод
+     * без {@code @Transactional}, {@code getId()} на lazy-proxy теж кинеться
+     * (бо Hibernate має завантажити проксі, щоб дізнатись id). Зараз
+     * метод транзакційний — безпечно.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToOne
+    /**
+     * P2.c: {@code owner} тепер LAZY. WHERE-фільтр у репозиторії, шаблони
+     * його не читають.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 

@@ -1,4 +1,3 @@
-// Note.java – переконайтеся, що є поле textColor
 package org.lazycent.model;
 
 import jakarta.persistence.*;
@@ -28,7 +27,7 @@ public class Note {
     @Column(length = 5000)
     private String content;
 
-    private String color; // фон
+    private String color;
 
     @Column(nullable = false, columnDefinition = "VARCHAR(255) DEFAULT '#212529'")
     private String textColor = "#212529";
@@ -43,7 +42,17 @@ public class Note {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @ManyToOne
+    /**
+     * P2.c: {@code owner} тепер LAZY.
+     *
+     * <p><b>Де читається:</b>
+     * <ul>
+     *   <li>{@code NoteService.getOwnedNote} — використовує {@code findByIdAndOwner},
+     *       де owner у WHERE-фільтрі; явного {@code .getOwner()} немає;</li>
+     *   <li>Thymeleaf {@code notes.html} — {@code note.owner} НЕ використовується.</li>
+     * </ul>
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 }

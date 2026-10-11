@@ -18,11 +18,17 @@ public class Income {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne
+    /**
+     * P2.c: LAZY. Див. коментар в {@link Expense#dayBudget}.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "day_budget_id", nullable = false)
     private DayBudget dayBudget;
 
-    @ManyToOne
+    /**
+     * P2.c: LAZY. Див. коментар в {@link Expense#category}.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 

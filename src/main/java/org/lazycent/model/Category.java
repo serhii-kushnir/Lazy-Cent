@@ -8,20 +8,10 @@ import lombok.*;
 @Table(
         name = "category",
         uniqueConstraints = {
-                // V5: case-sensitive на (user_id, name) — дешевший на точний match
                 @UniqueConstraint(
                         name = "uk_category_user_name",
                         columnNames = {"user_id", "name"}
                 ),
-                // V6: case-insensitive на (user_id, name_lower) — захист від
-                // race condition, коли два паралельні addCategory з різним
-                // регістром проходять сервісну перевірку findByNameIgnoreCase.
-                //
-                // Дублюється в entity, щоб Hibernate ddl-auto створював
-                // той самий index у тестах (Flyway у них вимкнено). Без
-                // цього schema з тестів і з прода різниться, і
-                // CategoryServiceUniqueConstraintTest не може перевірити
-                // БД-рівень.
                 @UniqueConstraint(
                         name = "uk_category_user_name_lower",
                         columnNames = {"user_id", "name_lower"}
@@ -49,19 +39,6 @@ public class Category {
     @Column(nullable = false)
     private String name;
 
-    /**
-     * Нормалізована назва в НИЖНЬОМУ регістрі — службове поле для
-     * case-insensitive унікальності.
-     *
-     * <p><b>Навіщо:</b> H2 2.x не підтримує expression indexes
-     * ({@code CREATE UNIQUE INDEX ON category (user_id, LOWER(name))}),
-     * тому тримаємо окрему колонку, яка завжди містить
-     * {@code name.toLowerCase()}.
-     *
-     * <p>Заповнюється автоматично у {@link #syncNameLower()} перед
-     * кожним {@code persist}/{@code update}. Бізнес-логіка НЕ має
-     * використовувати це поле — воно для БД.
-     */
     @Column(name = "name_lower", nullable = false)
     private String nameLower;
 
@@ -70,14 +47,21 @@ public class Category {
     @Column(nullable = false)
     private String type;
 
-    @ManyToOne
+    /**
+     * P2.c: {@code owner} тепер LAZY.
+     *
+     * <p><b>Де читається:</b>
+     * <ul>
+     *   <li>{@code CategoryService.getCategoryById/deleteCategory/updateCategory} — всередині {@code @Transactional};</li>
+     *   <li>Thymeleaf — {@code owner} НЕ використовується (шаблони читають тільки {@code name}, {@code id}, {@code type}).</li>
+     * </ul>
+     *
+     * <p><b>Ризик LazyInit:</b> відсутній. Усі місця, де потрібен {@code owner}, або в транзакції, або в WHERE-фільтрі репозиторію.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
 
-    /**
-     * Синхронізує {@link #nameLower} з {@link #name} перед
-     * INSERT/UPDATE.
-     */
     @PrePersist
     @PreUpdate
     protected void syncNameLower() {

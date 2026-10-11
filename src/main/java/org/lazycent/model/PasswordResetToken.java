@@ -2,6 +2,7 @@ package org.lazycent.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,7 +21,17 @@ public class PasswordResetToken {
     @Column(nullable = false, unique = true, length = 64)
     private String token;
 
-    @ManyToOne
+    /**
+     * P2.c: {@code user} тепер LAZY.
+     *
+     * <p><b>Де читається:</b>
+     * <ul>
+     *   <li>{@code PasswordResetService.validateToken} — {@code resetToken.getUser()}
+     *       всередині {@code @Transactional};</li>
+     *   <li>Thymeleaf/контролери — {@code token.user} НЕ читається.</li>
+     * </ul>
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -33,8 +44,6 @@ public class PasswordResetToken {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        // Не перезаписуємо expiryDate, якщо його задано вручну —
-        // потрібно для integration-тестів cleanup.
         if (expiryDate == null) {
             expiryDate = createdAt.plusHours(24);
         }

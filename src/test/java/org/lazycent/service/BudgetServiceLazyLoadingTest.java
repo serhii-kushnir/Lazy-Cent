@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.lazycent.model.Category;
 import org.lazycent.model.DayBudget;
+import org.lazycent.model.Expense;
 import org.lazycent.model.TransactionType;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.TransactionRequest;
@@ -29,19 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * Регресійний тест на {@code LazyInitializationException} + перевірка,
- * що {@link BudgetService#getAllBudgets} справді використовує SQL LIMIT
- * (двоетапна вибірка).
+ * Регресійні тести на {@code LazyInitializationException} після P2.c
+ * (LAZY для {@code @ManyToOne}).
  *
- * <p><b>Чому без {@code @Transactional} на класі:</b> мета тесту —
- * перевірити, що колекції {@code expenses}/{@code incomes} ініціалізовані
- * ДО закриття Hibernate-сесії. Якщо навісити {@code @Transactional} на
- * клас, сесія буде відкрита весь час і {@code LazyInitializationException}
- * ніколи не виникне — тест пройде навіть із багом.
- *
- * <p><b>Cleanup у {@code setUp}:</b> оскільки клас НЕ {@code @Transactional},
- * дані між тестами треба чистити вручну. Порядок ВАЖЛИВИЙ — дочірні
- * таблиці ДО батьківських, інакше FK-violation.
+ * <p><b>Ідея:</b> сервіс відпрацьовує у власній транзакції, вона закривається,
+ * і ми читаємо поля результату ПОЗА сесією. Якщо {@code @EntityGraph}
+ * не покриває потрібне поле — тут упадемо.
  */
 @SpringBootTest
 @ActiveProfiles("test")
@@ -49,7 +43,6 @@ class BudgetServiceLazyLoadingTest {
 
     @Autowired private BudgetService budgetService;
     @Autowired private CategoryService categoryService;
-
     @Autowired private UserRepository userRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private DayBudgetRepository dayBudgetRepository;
@@ -66,33 +59,15 @@ class BudgetServiceLazyLoadingTest {
     @BeforeEach
     void setUp() {
         cleanDb();
-
         user = new User();
         user.setUsername("lazy_test_user");
         user.setPassword("x");
         user.setRole("USER");
         user.setPreferredCurrency("UAH");
         user = userRepository.save(user);
-
         foodCategory = categoryService.addCategory("Тестова їжа", "EXPENSE", user);
     }
 
-    /**
-     * Чистить усі таблиці в правильному порядку:
-     * <ol>
-     *   <li>{@code expense}, {@code income} — FK на {@code day_budget} і {@code category}</li>
-     *   <li>{@code day_budget} — FK на {@code users}</li>
-     *   <li>{@code category} — FK на {@code users}</li>
-     *   <li>{@code budget_plans}, {@code category_budget_limits},
-     *       {@code notes}, {@code password_reset_token} — FK на {@code users}</li>
-     *   <li>{@code users} — корінь</li>
-     * </ol>
-     *
-     * <p>Використовуємо {@code deleteAllInBatch()}, а не {@code deleteAll()}:
-     * batch-варіант генерує один {@code DELETE FROM x}, а не завантажує
-     * всі entity в пам'ять і видаляє по одному. Для тесту з 250 днями
-     * різниця суттєва.
-     */
     private void cleanDb() {
         expenseRepository.deleteAllInBatch();
         incomeRepository.deleteAllInBatch();
@@ -105,12 +80,6 @@ class BudgetServiceLazyLoadingTest {
         userRepository.deleteAllInBatch();
     }
 
-    /**
-     * ГОЛОВНИЙ тест: після повернення з {@code getAllBudgets} колекції
-     * {@code expenses} та {@code incomes} мають бути ініціалізовані —
-     * тобто доступ до них без активної сесії НЕ кидає
-     * {@code LazyInitializationException}.
-     */
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void getAllBudgets_initializesCollections_afterSessionCloses() {
@@ -128,7 +97,6 @@ class BudgetServiceLazyLoadingTest {
         List<DayBudget> budgets = budgetService.getAllBudgets(user);
         assertThat(budgets).hasSize(1);
 
-        // Це той самий виклик, що робить Thymeleaf на /all-days:499.
         DayBudget budget = budgets.get(0);
         assertThatCode(() -> {
             assertThat(budget.getTotalExpenses()).isEqualTo(100.0);
@@ -139,38 +107,54 @@ class BudgetServiceLazyLoadingTest {
     }
 
     /**
-     * Симуляція view-рендерингу: HTTP-потік, сесія закрита.
+     * P2.c: {@code Expense.category} має бути доступним поза транзакцією.
+     * Покривається {@code @EntityGraph} у {@code DayBudgetRepository.findByDateAndOwner}.
      */
     @Test
-    void getAllBudgets_doesNotThrow_whenAccessingLazyFields() {
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void getAllBudgets_initializesExpenseCategory_afterSessionCloses() {
         LocalDate date = LocalDate.of(2026, 10, 5);
         budgetService.getOrCreateDayBudget(date, user);
 
-        List<DayBudget> budgets = budgetService.getAllBudgets(user);
+        TransactionRequest req = new TransactionRequest();
+        req.setDate(date);
+        req.setCategoryId(foodCategory.getId());
+        req.setDescription("Продукти");
+        req.setAmount(100.0);
+        req.setQuantity(1);
+        budgetService.addTransaction(req, TransactionType.EXPENSE, user);
 
-        assertThatCode(() ->
-                budgets.forEach(b -> {
-                    b.getTotalExpenses();
-                    b.getTotalIncomes();
-                    b.getExpenses().size();
-                    b.getIncomes().size();
-                })
-        ).doesNotThrowAnyException();
+        List<DayBudget> budgets = budgetService.getAllBudgets(user);
+        DayBudget budget = budgets.get(0);
+
+        // Симуляція рендеру day-detail.html: template читає expense.category.name
+        assertThatCode(() -> {
+            for (Expense e : budget.getExpenses()) {
+                assertThat(e.getCategory()).isNotNull();
+                assertThat(e.getCategory().getName()).isEqualTo("Тестова їжа");
+            }
+        }).doesNotThrowAnyException();
     }
 
     /**
-     * Перевіряє, що SQL LIMIT справді працює — а не in-memory обрізка.
-     *
-     * <p><b>Як:</b> створюємо 250 днів (більше за дефолтний ліміт 180),
-     * викликаємо {@code getAllBudgets}. Перевіряємо:
-     * <ol>
-     *   <li>Розмір результату = 180 (ліміт застосовано).</li>
-     *   <li>Порядок — ASC (шаблон очікує хронологію).</li>
-     *   <li>Це НЕ перші 180 днів (1..180), а ОСТАННІ 180 (71..250) —
-     *       тобто пагінація взяла свіжі дні.</li>
-     *   <li>Колекції проініціалізовані (Fix B + @EntityGraph).</li>
-     * </ol>
+     * P2.c: {@code Category.owner} — LAZY. Читається всередині сервісу.
+     * Поза транзакцією — не має бути доступу (перевіряємо, що шаблон його не читає).
      */
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void getExpenseCategories_returnsCategories_withoutOwnerAccess() {
+        List<Category> categories = categoryService.getExpenseCategories(user);
+
+        // Це те, що робить шаблон: читає id/name/type. Owner НЕ читається.
+        assertThatCode(() -> {
+            for (Category c : categories) {
+                assertThat(c.getId()).isNotNull();
+                assertThat(c.getName()).isNotBlank();
+                assertThat(c.getType()).isEqualTo("EXPENSE");
+            }
+        }).doesNotThrowAnyException();
+    }
+
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void getAllBudgets_usesSqlLimit_notInMemoryPagination() {
@@ -181,32 +165,20 @@ class BudgetServiceLazyLoadingTest {
 
         List<DayBudget> result = budgetService.getAllBudgets(user);
 
-        // 1. Ліміт застосовано
         assertThat(result).hasSize(180);
-
-        // 2. Порядок ASC
         assertThat(result.get(0).getDate())
                 .isBefore(result.get(result.size() - 1).getDate());
 
-        // 3. Це ОСТАННІ 180 днів (i = 70 .. 249)
-        LocalDate expectedFirst = start.plusDays(70);   // 2026-03-12
-        LocalDate expectedLast  = start.plusDays(249);  // 2026-09-07
+        LocalDate expectedFirst = start.plusDays(70);
+        LocalDate expectedLast = start.plusDays(249);
 
-        assertThat(result.get(0).getDate())
-                .as("Перший день результату має бути 71-м днем від start (останні 180)")
-                .isEqualTo(expectedFirst);
-        assertThat(result.get(result.size() - 1).getDate())
-                .as("Останній день результату має бути 250-м днем від start")
-                .isEqualTo(expectedLast);
+        assertThat(result.get(0).getDate()).isEqualTo(expectedFirst);
+        assertThat(result.get(result.size() - 1).getDate()).isEqualTo(expectedLast);
 
-        // 4. Колекції проініціалізовані
         assertThatCode(() -> result.forEach(DayBudget::getTotalExpenses))
                 .doesNotThrowAnyException();
     }
 
-    /**
-     * Перевіряє, що метод справді повертає дні в хронологічному порядку ASC.
-     */
     @Test
     void getAllBudgets_returnsChronologicalOrderAsc() {
         budgetService.getOrCreateDayBudget(LocalDate.of(2026, 10, 1), user);
