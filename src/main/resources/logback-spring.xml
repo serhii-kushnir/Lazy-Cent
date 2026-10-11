@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <!--
+      Керує file-appenders.
+      За замовчуванням false: логи тільки в stdout.
+      Це правильний режим для Fly.io, Docker, Kubernetes — там
+      stdout збирається платформою (fly logs, docker logs, kubectl logs).
+      Файли в контейнері все одно ефемерні і не потрапляють у централізоване сховище.
+
+      Увімкнути для локальної розробки: LOG_TO_FILE=true або
+      app.logging.file.enabled=true в application.yaml.
+    -->
+    <springProperty scope="context" name="LOG_TO_FILE"
+                    source="app.logging.file.enabled"
+                    defaultValue="false"/>
+
     <!-- ==================== КОНСОЛЬ ==================== -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -8,38 +22,41 @@
         </encoder>
     </appender>
 
-    <!-- ==================== ФАЙЛ: ВСІ ЛОГИ ==================== -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>./logs/lazycent.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>./logs/lazycent.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>50MB</maxFileSize>
-            <maxHistory>30</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-}] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+    <!-- ==================== ФАЙЛИ (тільки коли LOG_TO_FILE=true) ==================== -->
+    <if condition='property("LOG_TO_FILE").equals("true")'>
+        <then>
+            <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>./logs/lazycent.log</file>
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>./logs/lazycent.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                    <maxFileSize>50MB</maxFileSize>
+                    <maxHistory>30</maxHistory>
+                    <totalSizeCap>1GB</totalSizeCap>
+                </rollingPolicy>
+                <encoder>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-}] %-5level %logger{36} - %msg%n</pattern>
+                </encoder>
+            </appender>
 
-    <!-- ==================== ФАЙЛ: ТІЛЬКИ ПОМИЛКИ ==================== -->
-    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>./logs/lazycent-error.log</file>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>./logs/lazycent-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
-            <maxHistory>90</maxHistory>
-            <totalSizeCap>500MB</totalSizeCap>
-        </rollingPolicy>
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-}] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+            <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+                <file>./logs/lazycent-error.log</file>
+                <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                    <level>ERROR</level>
+                    <onMatch>ACCEPT</onMatch>
+                    <onMismatch>DENY</onMismatch>
+                </filter>
+                <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                    <fileNamePattern>./logs/lazycent-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                    <maxFileSize>10MB</maxFileSize>
+                    <maxHistory>90</maxHistory>
+                    <totalSizeCap>500MB</totalSizeCap>
+                </rollingPolicy>
+                <encoder>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{traceId:-}] %-5level %logger{36} - %msg%n</pattern>
+                </encoder>
+            </appender>
+        </then>
+    </if>
 
     <!-- ==================== РІВНІ ЛОГЕРІВ ==================== -->
     <logger name="org.lazycent" level="DEBUG"/>
@@ -49,8 +66,16 @@
     <!-- ==================== ROOT ==================== -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="ERROR_FILE"/>
     </root>
+
+    <!-- Додаємо file-appenders, якщо вони активні. -->
+    <if condition='property("LOG_TO_FILE").equals("true")'>
+        <then>
+            <root level="INFO">
+                <appender-ref ref="FILE"/>
+                <appender-ref ref="ERROR_FILE"/>
+            </root>
+        </then>
+    </if>
 
 </configuration>

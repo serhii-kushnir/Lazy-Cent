@@ -13,6 +13,8 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE}
     driver-class-name: org.h2.Driver
+    # Дефолти для локального запуску без env-змінних:
+    #   H2 створює БД з user=sa і порожнім паролем.
     username: ${DB_USER}
     password: ${DB_PASS}
 
@@ -54,8 +56,8 @@ spring:
 
   # ===================== MAIL =====================
   mail:
-    host: smtp.gmail.com
-    port: 587
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     properties:
@@ -64,51 +66,50 @@ spring:
           auth: true
           starttls:
             enable: true
-    from: ${MAIL_USERNAME}
+    from: ${MAIL_FROM:${MAIL_USERNAME}}
 
 # ===================== SERVER =====================
-# ===================== SERVER =====================
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
     session:
       # 60 хвилин неактивності → сесія інвалідується.
-      # Після цього — редірект на /login.
       timeout: 60m
       cookie:
-        # Кастомне ім'я, щоб не світити стандартний JSESSIONID (security by obscurity,
-        # але ускладнює fingerprinting).
+        # Кастомне ім'я, щоб не світити стандартний JSESSIONID
         name: LAZYCENT_SESSION
         # Захист від XSS: JavaScript не бачить cookie з сесією.
         http-only: true
-        # У продакшн — увімкнути (HTTPS-only). У dev з HTTP — вимкнути,
-        # інакше cookie не буде передаватись і логін не працюватиме.
+        # У продакшн — увімкнути (HTTPS-only).
         secure: ${SESSION_COOKIE_SECURE:false}
-        # Захист від CSRF через зовнішні сайти: cookie передається тільки
-        # на same-site переходах top-level. Lax — безпечний дефолт.
+        # Захист від CSRF: cookie передається тільки на same-site переходах.
         same-site: lax
-        # Префікс шляху; / означає — для всього застосунку.
         path: /
 
-# ===================== APP =====================
 # ===================== APP =====================
 app:
   url: ${APP_URL:http://localhost:8080}
   days:
     max-loaded: ${DAYS_MAX_LOADED:180}
   demo:
-    enabled: ${DEMO_ENABLED:true}
+    # Дефолт false — щоб випадковий деплой без DEMO_ENABLED не створив
+    # юзера demo/demo. У application-test.yaml теж false.
+    enabled: ${DEMO_ENABLED:false}
     default-user: ${DEMO_USER:demo}
-    default-password: ${DEMO_PASSWORD:demo}
+    default-password: ${DEMO_PASSWORD:}
     random-days: ${DEMO_RANDOM_DAYS:14}
   # Уніфіковане property для reverse proxy.
-  # Використовується і RateLimitFilter, і RedirectUtils.
+  # Використовується RateLimitFilter і RedirectUtils.
   trust-proxy: ${TRUST_PROXY:false}
   password-reset:
     # Cron для щоденного очищення прострочених токенів.
-    # Формат: second minute hour day month weekday
-    # Дефолт: щодня о 03:00.
     cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
+  logging:
+    # Керує file-appenders у logback-spring.xml.
+    # false (default) — логи тільки в stdout (підходить для Fly.io, Docker, Kubernetes).
+    # true — додатково пише в ./logs/*.log (для локальної розробки).
+    file:
+      enabled: ${LOG_TO_FILE:false}
 
 # ===================== ACTUATOR =====================
 management:

@@ -4,20 +4,30 @@ import org.junit.jupiter.api.Test;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.Executor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.mock;
 
 /**
  * Unit-тести {@link AsyncConfig}.
  *
- * <p>Не перевіряємо singleton-ність бінів — це справа Spring-контексту
- * (див. {@link AsyncConfigSpringTest}). Тут тестуємо логіку: кастомний
- * {@code AsyncUncaughtExceptionHandler} і те, що він не кидає виняток.
+ * <p>Оскільки {@code AsyncConfig} тепер інжектить {@code mailExecutor}
+ * через конструктор, у тесті передаємо mock — це ізолює логіку
+ * (обробник винятків) від Spring-контексту.
+ *
+ * <p>Singleton-ність бінів перевіряється у {@link AsyncConfigSpringTest}.
  */
 class AsyncConfigTest {
 
-    private final AsyncConfig config = new AsyncConfig();
+    private final Executor mockExecutor = mock(Executor.class);
+    private final AsyncConfig config = new AsyncConfig(mockExecutor);
+
+    @Test
+    void getAsyncExecutor_returnsInjectedExecutor() {
+        assertThat(config.getAsyncExecutor()).isSameAs(mockExecutor);
+    }
 
     @Test
     void getAsyncUncaughtExceptionHandler_returnsCustomHandler() {
@@ -37,13 +47,6 @@ class AsyncConfigTest {
                         method,
                         new Object[]{"test@example.com"}))
                 .doesNotThrowAnyException();
-    }
-
-    @Test
-    void mailExecutor_createsNonNullExecutor() {
-        // Просто перевіряємо, що бін створюється без помилок
-        assertThat(config.mailExecutor()).isNotNull();
-        assertThat(config.getAsyncExecutor()).isNotNull();
     }
 
     @SuppressWarnings("unused")

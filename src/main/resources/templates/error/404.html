@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Сторінку не знайдено - Lazy Cent</title>
+    <title th:text="#{error.404.title} + ' - ' + #{app.title}">Сторінку не знайдено - Lazy Cent</title>
     <div th:replace="~{fragments/head :: themeAssets}"></div>
     <style>
         .error-card {

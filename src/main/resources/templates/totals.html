@@ -404,23 +404,6 @@
         </div>
     </div>
 
-    <script>
-        function filterByCategory(category, type) {
-            var categoryFilter = document.getElementById('categoryFilter');
-            if (categoryFilter) {
-                categoryFilter.value = category;
-                categoryFilter.dispatchEvent(new Event('change'));
-            }
-            var typeFilter = document.getElementById('typeFilter');
-            if (typeFilter) {
-                typeFilter.value = type;
-                typeFilter.dispatchEvent(new Event('change'));
-            }
-            var table = document.querySelector('.table-wrap-animated');
-            if (table) table.scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
-
     <!-- КАРТКА БАЛАНСУ -->
     <div class="balance-row balance-animated">
         <div class="balance-cell">
