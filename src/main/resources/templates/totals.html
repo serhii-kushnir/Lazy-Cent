@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="/lib/chart.js/chart.umd.min.js"></script>
 
     <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
+    <script src="/js/transaction-common.js" defer></script>
 
     <style>
         :root {
@@ -296,13 +296,6 @@
         [data-bs-theme="dark"] .chart-legend-table td { color: #e6e6e6 !important; }
         [data-bs-theme="dark"] .chart-legend-table .amount-col { color: #9aa3b2 !important; }
 
-        .delete-details { background: #f8f9fa; border-radius: 0.5rem; padding: 1rem; margin: 0.5rem 0; }
-        [data-bs-theme="dark"] .delete-details { background: #2a2e37; }
-        .delete-details .row { margin-bottom: 0.3rem; }
-        .delete-details .label { font-weight: 600; color: #555; }
-        [data-bs-theme="dark"] .delete-details .label { color: #9aa3b2; }
-        .delete-details .value { color: var(--text-primary); word-break: break-word; }
-
         .modal-content { border-radius: 1rem; }
         .transaction-type-toggle { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
         .transaction-type-toggle .btn { flex: 1; padding: 0.6rem; font-weight: 600; border-radius: 0.5rem; }
@@ -412,14 +405,6 @@
     </div>
 
     <script>
-        function exportTotals() {
-            var from = document.getElementById('dateFrom').value;
-            var to = document.getElementById('dateTo').value;
-            var url = '/export/totals';
-            if (from && to) url += '?startDate=' + from + '&endDate=' + to;
-            window.location.href = url;
-        }
-
         function filterByCategory(category, type) {
             var categoryFilter = document.getElementById('categoryFilter');
             if (categoryFilter) {
@@ -688,9 +673,7 @@
 
 </div>
 
-<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-
-<!-- Додавання транзакції -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ТРАНЗАКЦІЇ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -794,206 +777,7 @@
     </div>
 </div>
 
-<!-- Підтвердження видалення -->
-<div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span th:text="#{delete.confirm}">Підтвердження видалення</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-center" th:text="#{delete.question}">Ви впевнені, що хочете видалити цю транзакцію?</p>
-                <p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
-                <hr>
-                <div class="delete-details">
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.type}">Тип:</div><div class="col-8 value" id="deleteType"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.time}">Час:</div><div class="col-8 value" id="deleteTime"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.name}">Найменування:</div><div class="col-8 value" id="deleteDescription"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.quantity}">Кількість:</div><div class="col-8 value" id="deleteQuantity"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.amount}">Сума:</div><div class="col-8 value" id="deleteAmount"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.buyer}">Покупець:</div><div class="col-8 value" id="deleteBuyer"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.seller}">Продавець:</div><div class="col-8 value" id="deleteSeller"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.category}">Категорія:</div><div class="col-8 value" id="deleteCategory"></div></div>
-                    <div class="row mb-2" id="deleteDetailsRow"><div class="col-4 label fw-bold" th:text="#{delete.details}">Деталі:</div><div class="col-8 value" id="deleteDetails"></div></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                <form id="deleteForm" method="post" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn-danger" th:text="#{delete.deleteBtn}">Видалити</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Редагування витрати -->
-<div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i><span th:text="#{modal.editExpense}">Редагувати витрату</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editExpenseForm" method="post">
-                <div class="modal-body">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <select name="categoryId" class="form-select" id="editExpenseCategory" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="editExpenseDescription" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="editExpenseBuyer">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="editExpenseSeller">
-                    </div>
-                    <div class="mb-3"><label class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="editExpenseTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Редагування доходу -->
-<div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i><span th:text="#{modal.editIncome}">Редагувати дохід</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editIncomeForm" method="post">
-                <div class="modal-body">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <select name="categoryId" class="form-select" id="editIncomeCategory" required>
-                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="editIncomeDescription" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="editIncomeBuyer">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="editIncomeSeller">
-                    </div>
-                    <div class="mb-3"><label class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="editIncomeTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Дублювання -->
-<div class="modal fade no-print" id="cloneModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-copy me-2"></i><span th:text="#{modal.duplicate}">Дублювати транзакцію</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="cloneForm" method="post">
-                <div class="modal-body">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-                    <div class="mb-3">
-                        <label class="form-label" th:text="#{modal.type}">Тип</label>
-                        <div class="transaction-type-toggle">
-                            <button type="button" class="btn btn-outline-danger active-expense" id="cloneTypeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> <span th:text="#{modal.type.expense}">Витрата</span>
-                            </button>
-                            <button type="button" class="btn btn-outline-success" id="cloneTypeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> <span th:text="#{modal.type.income}">Дохід</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <select name="categoryId" class="form-select" id="cloneCategory" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="cloneDescription" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="cloneBuyer">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="cloneSeller">
-                    </div>
-                    <div class="mb-3"><label class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="cloneTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="cloneCharCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{modal.duplicateBtn}">Дублювати</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
-
-<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<footer th:replace="~{fragments/footer :: footer}"></footer>
-<div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <!-- ПЕРЕДАЄМО ДАНІ ДЛЯ ДІАГРАМ -->
 <div style="display:none;">
@@ -1005,13 +789,41 @@
           th:data-amount="${entry.value}"></span>
 </div>
 
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+
+<!--
+  P2.a: спільна логіка транзакцій винесена у /js/transaction-common.js.
+  Тут залишається ЛИШЕ специфічне для totals:
+    • chart rendering (server-side дані, не DOM-рядки)
+    • analytics toggle, chart collapse
+    • filters для КАТЕГОРІЙ (не транзакцій): search, date, type, category
+    • view toggle (таблиця/картки для категорій)
+    • sorting категорій
+    • calculatePercentages
+-->
 <script th:inline="javascript">
-    (function() {
+    document.addEventListener('DOMContentLoaded', function () {
         'use strict';
 
+        // ===== P2.a: init спільної логіки транзакцій =====
+        window.LazyCentTx.init({
+            currencySymbol: /*[[${currencySymbol}]]*/ '₴',
+            buildActionUrl: function (type, dateStr) {
+                if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
+                return type === 'EXPENSE'
+                    ? '/day/' + dateStr + '/expense'
+                    : '/day/' + dateStr + '/income';
+            },
+            i18n: {
+                noCategories: /*[[#{totals.allCategories}]]*/ 'Немає категорій'
+            }
+        });
+
+        // ===== ЛОКАЛЬНИЙ КОД =====
         var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
 
-        // ===== i18n для JS =====
         var i18n = {
             toastSuccess:   /*[[#{toast.success}]]*/ 'Успішно!',
             toastError:     /*[[#{toast.error}]]*/   'Помилка!',
@@ -1029,45 +841,21 @@
 
         function fmt(template) {
             var args = Array.prototype.slice.call(arguments, 1);
-            return template.replace(/\{(\d+)\}/g, function(m, i) {
+            return template.replace(/\{(\d+)\}/g, function (m, i) {
                 return args[i] !== undefined ? args[i] : m;
             });
         }
 
-        // ===== TOAST =====
-        function showToast(message, type) {
-            var toastElement = document.getElementById('liveToast');
-            if (!toastElement) return;
-            var toastTitle = document.getElementById('toastTitle');
-            var toastMessage = document.getElementById('toastMessage');
-            var toastIcon = document.getElementById('toastIcon');
-            toastElement.classList.remove('success', 'error');
-            if (type === 'success') {
-                toastElement.classList.add('success');
-                toastIcon.className = 'fas fa-check-circle me-2';
-                toastTitle.textContent = i18n.toastSuccess;
-            } else if (type === 'error') {
-                toastElement.classList.add('error');
-                toastIcon.className = 'fas fa-exclamation-circle me-2';
-                toastTitle.textContent = i18n.toastError;
-            } else {
-                toastIcon.className = 'fas fa-info-circle me-2';
-                toastTitle.textContent = i18n.toastInfo;
-            }
-            toastMessage.textContent = message;
-            new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 }).show();
-        }
-
-        // ===== ЗБІР ДАНИХ =====
+        // ===== ЗБІР ДАНИХ ДЛЯ ДІАГРАМ =====
         var expenseCategories = [], expenseAmounts = [];
         var incomeCategories = [], incomeAmounts = [];
 
-        document.querySelectorAll('#expenseData').forEach(function(el) {
+        document.querySelectorAll('#expenseData').forEach(function (el) {
             var cat = el.getAttribute('data-category');
             var amount = parseFloat(el.getAttribute('data-amount')) || 0;
             if (cat && amount > 0) { expenseCategories.push(cat); expenseAmounts.push(amount); }
         });
-        document.querySelectorAll('#incomeData').forEach(function(el) {
+        document.querySelectorAll('#incomeData').forEach(function (el) {
             var cat = el.getAttribute('data-category');
             var amount = parseFloat(el.getAttribute('data-amount')) || 0;
             if (cat && amount > 0) { incomeCategories.push(cat); incomeAmounts.push(amount); }
@@ -1076,27 +864,27 @@
         // ===== ФІЛЬТР КАТЕГОРІЙ =====
         function populateCategoryFilter() {
             var allCategories = [];
-            expenseCategories.forEach(function(c) { if (!allCategories.includes(c)) allCategories.push(c); });
-            incomeCategories.forEach(function(c) { if (!allCategories.includes(c)) allCategories.push(c); });
+            expenseCategories.forEach(function (c) { if (allCategories.indexOf(c) === -1) allCategories.push(c); });
+            incomeCategories.forEach(function (c) { if (allCategories.indexOf(c) === -1) allCategories.push(c); });
             allCategories.sort();
             var filterSelect = document.getElementById('categoryFilter');
             if (!filterSelect) return;
             var currentVal = filterSelect.value;
             filterSelect.innerHTML = '<option value="all">' + i18n.allCategories + '</option>';
-            allCategories.forEach(function(cat) {
+            allCategories.forEach(function (cat) {
                 var opt = document.createElement('option');
                 opt.value = cat; opt.textContent = cat;
                 filterSelect.appendChild(opt);
             });
-            if (currentVal && allCategories.includes(currentVal)) filterSelect.value = currentVal;
+            if (currentVal && allCategories.indexOf(currentVal) !== -1) filterSelect.value = currentVal;
         }
 
         // ===== ДАНІ ДЛЯ СТОВПЧИКІВ =====
         var allBarCategories = [], allBarAmounts = [], barColors = [];
-        expenseCategories.forEach(function(cat, idx) {
+        expenseCategories.forEach(function (cat, idx) {
             allBarCategories.push(cat); allBarAmounts.push(expenseAmounts[idx]); barColors.push('#dc3545');
         });
-        incomeCategories.forEach(function(cat, idx) {
+        incomeCategories.forEach(function (cat, idx) {
             allBarCategories.push(cat); allBarAmounts.push(incomeAmounts[idx]); barColors.push('#198754');
         });
 
@@ -1113,8 +901,8 @@
         function calculatePercentages() {
             var expenseEntries = document.querySelectorAll('.category-row[data-type="EXPENSE"]');
             var totalExpenses = 0;
-            expenseEntries.forEach(function(row) { totalExpenses += parseFloat(row.dataset.amount) || 0; });
-            expenseEntries.forEach(function(row, idx) {
+            expenseEntries.forEach(function (row) { totalExpenses += parseFloat(row.dataset.amount) || 0; });
+            expenseEntries.forEach(function (row, idx) {
                 var amount = parseFloat(row.dataset.amount) || 0;
                 var percent = totalExpenses > 0 ? (amount / totalExpenses * 100) : 0;
                 row.dataset.percent = percent.toFixed(1);
@@ -1124,8 +912,8 @@
 
             var incomeEntries = document.querySelectorAll('.category-row[data-type="INCOME"]');
             var totalIncomes = 0;
-            incomeEntries.forEach(function(row) { totalIncomes += parseFloat(row.dataset.amount) || 0; });
-            incomeEntries.forEach(function(row, idx) {
+            incomeEntries.forEach(function (row) { totalIncomes += parseFloat(row.dataset.amount) || 0; });
+            incomeEntries.forEach(function (row, idx) {
                 var amount = parseFloat(row.dataset.amount) || 0;
                 var percent = totalIncomes > 0 ? (amount / totalIncomes * 100) : 0;
                 row.dataset.percent = percent.toFixed(1);
@@ -1133,7 +921,7 @@
                 if (cell) cell.textContent = percent.toFixed(1) + '%';
             });
 
-            document.querySelectorAll('.category-card-wrapper').forEach(function(card) {
+            document.querySelectorAll('.category-card-wrapper').forEach(function (card) {
                 var type = card.dataset.type;
                 var amount = parseFloat(card.dataset.amount) || 0;
                 var total = type === 'EXPENSE' ? totalExpenses : totalIncomes;
@@ -1154,7 +942,7 @@
                 if (col) col.style.display = 'none';
                 return;
             }
-            var colors = expenseCategories.map(function(n, i) { return getCategoryColor(n, i); });
+            var colors = expenseCategories.map(function (n, i) { return getCategoryColor(n, i); });
             if (window.expenseChartInstance) window.expenseChartInstance.destroy();
             window.expenseChartInstance = new Chart(canvas, {
                 type: 'doughnut',
@@ -1163,9 +951,9 @@
             });
             var legendContainer = document.getElementById('expenseLegend');
             if (legendContainer) {
-                var total = expenseAmounts.reduce(function(a,b) { return a + b; }, 0);
+                var total = expenseAmounts.reduce(function (a, b) { return a + b; }, 0);
                 var html = '<table class="chart-legend-table"><tbody>';
-                expenseCategories.forEach(function(name, idx) {
+                expenseCategories.forEach(function (name, idx) {
                     var amount = expenseAmounts[idx];
                     var color = getCategoryColor(name, idx);
                     var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
@@ -1184,7 +972,7 @@
                 if (col) col.style.display = 'none';
                 return;
             }
-            var colors = incomeCategories.map(function(n, i) { return getCategoryColor(n, i + 5); });
+            var colors = incomeCategories.map(function (n, i) { return getCategoryColor(n, i + 5); });
             if (window.incomeChartInstance) window.incomeChartInstance.destroy();
             window.incomeChartInstance = new Chart(canvas, {
                 type: 'doughnut',
@@ -1193,9 +981,9 @@
             });
             var legendContainer = document.getElementById('incomeLegend');
             if (legendContainer) {
-                var total = incomeAmounts.reduce(function(a,b) { return a + b; }, 0);
+                var total = incomeAmounts.reduce(function (a, b) { return a + b; }, 0);
                 var html = '<table class="chart-legend-table"><tbody>';
-                incomeCategories.forEach(function(name, idx) {
+                incomeCategories.forEach(function (name, idx) {
                     var amount = incomeAmounts[idx];
                     var color = getCategoryColor(name, idx + 5);
                     var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
@@ -1226,574 +1014,279 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { display: true, ticks: { maxRotation: 45, minRotation: 30 } },
-                        y: { beginAtZero: true, ticks: { callback: function(v) { return v + ' ' + currencySymbol; } } }
+                        y: { beginAtZero: true, ticks: { callback: function (v) { return v + ' ' + currencySymbol; } } }
                     }
                 }
             });
         }
 
         function renderAllCharts() {
-            setTimeout(function() { renderExpenseChart(); renderIncomeChart(); renderBarChart(); }, 150);
+            setTimeout(function () { renderExpenseChart(); renderIncomeChart(); renderBarChart(); }, 150);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var analyticsToggle = document.getElementById('analyticsToggle');
-            var chartsContainer = document.getElementById('chartsContainer');
-            var barRow = document.getElementById('barChartRow');
-            if (!analyticsToggle) return;
+        // ===== ANALYTICS TOGGLE + CHART COLLAPSE =====
+        var analyticsToggle = document.getElementById('analyticsToggle');
+        var chartsContainer = document.getElementById('chartsContainer');
+        var barRow = document.getElementById('barChartRow');
 
-            function setAnalyticsMode(mode) {
-                analyticsToggle.querySelectorAll('.btn').forEach(function(btn) {
-                    btn.classList.toggle('active', btn.dataset.mode === mode);
-                });
-                if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow.style.display = 'none'; }
-                else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow.style.display = ''; }
-                else { chartsContainer.style.display = 'flex'; barRow.style.display = ''; }
-                localStorage.setItem('totals-analytics-mode', mode);
-                setTimeout(renderAllCharts, 100);
-            }
-            setAnalyticsMode(localStorage.getItem('totals-analytics-mode') || 'both');
-            analyticsToggle.addEventListener('click', function(e) {
-                var btn = e.target.closest('.btn');
-                if (!btn || btn.classList.contains('active')) return;
-                setAnalyticsMode(btn.dataset.mode);
+        function setAnalyticsMode(mode) {
+            analyticsToggle.querySelectorAll('.btn').forEach(function (btn) {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
             });
-
-            var toggleChartBtn = document.getElementById('toggleChartBtn');
-            var chartBody = document.getElementById('chartBody');
-            var chartIcon = document.getElementById('chartToggleIcon');
-            if (toggleChartBtn && chartBody) {
-                if (localStorage.getItem('totals-chart-collapsed') === 'true') {
-                    chartBody.style.display = 'none';
-                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
-                }
-                toggleChartBtn.addEventListener('click', function() {
-                    var isHidden = chartBody.style.display === 'none';
-                    if (isHidden) {
-                        chartBody.style.display = '';
-                        chartIcon.className = 'fas fa-chevron-up toggle-icon';
-                        localStorage.setItem('totals-chart-collapsed', 'false');
-                        setTimeout(renderAllCharts, 100);
-                    } else {
-                        chartBody.style.display = 'none';
-                        chartIcon.className = 'fas fa-chevron-down toggle-icon';
-                        localStorage.setItem('totals-chart-collapsed', 'true');
-                    }
-                });
-            }
+            if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow.style.display = 'none'; }
+            else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow.style.display = ''; }
+            else { chartsContainer.style.display = 'flex'; barRow.style.display = ''; }
+            localStorage.setItem('totals-analytics-mode', mode);
+            setTimeout(renderAllCharts, 100);
+        }
+        setAnalyticsMode(localStorage.getItem('totals-analytics-mode') || 'both');
+        analyticsToggle.addEventListener('click', function (e) {
+            var btn = e.target.closest('.btn');
+            if (!btn || btn.classList.contains('active')) return;
+            setAnalyticsMode(btn.dataset.mode);
         });
 
-        // ===== ФІЛЬТРИ =====
-        document.addEventListener('DOMContentLoaded', function() {
-            var searchInput = document.getElementById('searchInput');
-            var dateFrom = document.getElementById('dateFrom');
-            var dateTo = document.getElementById('dateTo');
-            var applyDateBtn = document.getElementById('applyDateFilter');
-            var clearDateBtn = document.getElementById('clearDateFilter');
-            var typeFilter = document.getElementById('typeFilter');
-            var categoryFilter = document.getElementById('categoryFilter');
-            var pageSizeSelect = document.getElementById('pageSizeSelect');
-            var loadMoreBtn = document.getElementById('loadMoreBtn');
-            var viewToggle = document.getElementById('viewToggle');
-            var totalRowsSpan = document.getElementById('totalRowsCount');
-            var visibleInfo = document.getElementById('visibleInfo');
-            var noCardsResults = document.getElementById('noCardsResults');
-            var cardsView = document.getElementById('cardsView');
-            var tableView = document.getElementById('tableView');
-
-            populateCategoryFilter();
-
-            var currentPage = 1;
-            var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
-            var filteredItems = [];
-
-            function setViewMode(mode) {
-                if (mode === 'cards') {
-                    cardsView.classList.add('show');
-                    tableView.classList.add('hidden');
-                    viewToggle.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
-                    viewToggle.querySelector('[data-view="cards"]').classList.add('active');
-                    localStorage.setItem('totals-view-mode', 'cards');
-                } else {
-                    cardsView.classList.remove('show');
-                    tableView.classList.remove('hidden');
-                    viewToggle.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
-                    viewToggle.querySelector('[data-view="table"]').classList.add('active');
-                    localStorage.setItem('totals-view-mode', 'table');
-                }
-                updateUI();
+        var toggleChartBtn = document.getElementById('toggleChartBtn');
+        var chartBody = document.getElementById('chartBody');
+        var chartIcon = document.getElementById('chartToggleIcon');
+        if (toggleChartBtn && chartBody) {
+            if (localStorage.getItem('totals-chart-collapsed') === 'true') {
+                chartBody.style.display = 'none';
+                chartIcon.className = 'fas fa-chevron-down toggle-icon';
             }
-            setViewMode(localStorage.getItem('totals-view-mode') === 'cards' ? 'cards' : 'table');
-            viewToggle.addEventListener('click', function(e) {
-                var btn = e.target.closest('button');
-                if (!btn) return;
-                setViewMode(btn.dataset.view);
+            toggleChartBtn.addEventListener('click', function () {
+                var isHidden = chartBody.style.display === 'none';
+                if (isHidden) {
+                    chartBody.style.display = '';
+                    chartIcon.className = 'fas fa-chevron-up toggle-icon';
+                    localStorage.setItem('totals-chart-collapsed', 'false');
+                    setTimeout(renderAllCharts, 100);
+                } else {
+                    chartBody.style.display = 'none';
+                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                    localStorage.setItem('totals-chart-collapsed', 'true');
+                }
+            });
+        }
+
+        // ===== ФІЛЬТРИ + VIEW TOGGLE + SORT =====
+        var searchInput = document.getElementById('searchInput');
+        var dateFrom = document.getElementById('dateFrom');
+        var dateTo = document.getElementById('dateTo');
+        var applyDateBtn = document.getElementById('applyDateFilter');
+        var clearDateBtn = document.getElementById('clearDateFilter');
+        var typeFilter = document.getElementById('typeFilter');
+        var categoryFilter = document.getElementById('categoryFilter');
+        var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var loadMoreBtn = document.getElementById('loadMoreBtn');
+        var viewToggle = document.getElementById('viewToggle');
+        var totalRowsSpan = document.getElementById('totalRowsCount');
+        var visibleInfo = document.getElementById('visibleInfo');
+        var noCardsResults = document.getElementById('noCardsResults');
+        var cardsView = document.getElementById('cardsView');
+        var tableView = document.getElementById('tableView');
+
+        populateCategoryFilter();
+
+        var currentPage = 1;
+        var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
+        var filteredItems = [];
+
+        function setViewMode(mode) {
+            if (mode === 'cards') {
+                cardsView.classList.add('show');
+                tableView.classList.add('hidden');
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+                viewToggle.querySelector('[data-view="cards"]').classList.add('active');
+                localStorage.setItem('totals-view-mode', 'cards');
+            } else {
+                cardsView.classList.remove('show');
+                tableView.classList.remove('hidden');
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+                viewToggle.querySelector('[data-view="table"]').classList.add('active');
+                localStorage.setItem('totals-view-mode', 'table');
+            }
+            updateUI();
+        }
+        setViewMode(localStorage.getItem('totals-view-mode') === 'cards' ? 'cards' : 'table');
+        viewToggle.addEventListener('click', function (e) {
+            var btn = e.target.closest('button');
+            if (!btn) return;
+            setViewMode(btn.dataset.view);
+        });
+
+        function getFilteredItems() {
+            var searchTerm = searchInput.value.toLowerCase().trim();
+            var typeValue = typeFilter.value;
+            var categoryValue = categoryFilter.value;
+            var items = document.querySelectorAll('.category-row');
+            var result = [];
+            items.forEach(function (item) {
+                var category = (item.dataset.category || '').toLowerCase();
+                var amount = parseFloat(item.dataset.amount) || 0;
+                var type = item.dataset.type || '';
+                var match = true;
+                if (searchTerm) {
+                    var text = (category + ' ' + amount).toLowerCase();
+                    match = text.indexOf(searchTerm) !== -1;
+                }
+                if (typeValue !== 'all' && type !== typeValue) match = false;
+                if (categoryValue !== 'all' && category !== categoryValue.toLowerCase()) match = false;
+                if (match) result.push(item);
+            });
+            return result;
+        }
+
+        function updateRowNumbers() {
+            document.querySelectorAll('#categoriesBody .category-row').forEach(function (row, idx) {
+                if (row.style.display === 'none') return;
+                var numCell = row.querySelector('.col-number');
+                if (numCell) numCell.textContent = idx + 1;
+            });
+        }
+
+        function updateUI() {
+            var total = filteredItems.length;
+            if (totalRowsSpan) totalRowsSpan.textContent = total;
+            document.querySelectorAll('.category-row').forEach(function (row) { row.style.display = 'none'; });
+            document.querySelectorAll('.category-card-wrapper').forEach(function (card) { card.style.display = 'none'; });
+
+            var cardMap = new Map();
+            document.querySelectorAll('.category-card-wrapper').forEach(function (c) {
+                cardMap.set(c.dataset.category + '_' + c.dataset.type, c);
             });
 
-            function getFilteredItems() {
-                var searchTerm = searchInput.value.toLowerCase().trim();
-                var typeValue = typeFilter.value;
-                var categoryValue = categoryFilter.value;
-                var items = document.querySelectorAll('.category-row');
-                var result = [];
-                items.forEach(function(item) {
-                    var category = (item.dataset.category || '').toLowerCase();
-                    var amount = parseFloat(item.dataset.amount) || 0;
-                    var type = item.dataset.type || '';
-                    var match = true;
-                    if (searchTerm) {
-                        var text = (category + ' ' + amount).toLowerCase();
-                        match = text.includes(searchTerm);
-                    }
-                    if (typeValue !== 'all' && type !== typeValue) match = false;
-                    if (categoryValue !== 'all' && category !== categoryValue.toLowerCase()) match = false;
-                    if (match) result.push(item);
-                });
-                return result;
-            }
-
-            function updateRowNumbers() {
-                document.querySelectorAll('#categoriesBody .category-row[style*="display: block"]').forEach(function(row, idx) {
-                    var numCell = row.querySelector('.col-number');
-                    if (numCell) numCell.textContent = idx + 1;
-                });
-            }
-
-            function updateUI() {
-                var total = filteredItems.length;
-                if (totalRowsSpan) totalRowsSpan.textContent = total;
-                document.querySelectorAll('.category-row').forEach(function(row) { row.style.display = 'none'; });
-                document.querySelectorAll('.category-card-wrapper').forEach(function(card) { card.style.display = 'none'; });
-
-                var cardMap = new Map();
-                document.querySelectorAll('.category-card-wrapper').forEach(function(c) {
-                    cardMap.set(c.dataset.category + '_' + c.dataset.type, c);
-                });
-
-                if (pageSize === 0) {
-                    filteredItems.forEach(function(row) {
-                        row.style.display = '';
-                        var card = cardMap.get(row.dataset.category + '_' + row.dataset.type);
-                        if (card) card.style.display = '';
-                    });
-                    if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, total, total);
-                    if (loadMoreBtn) {
-                        loadMoreBtn.disabled = true;
-                        loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
-                    }
-                    if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
-                    updateRowNumbers();
-                    setTimeout(calculatePercentages, 50);
-                    return;
-                }
-
-                var end = Math.min(currentPage * pageSize, total);
-                var visibleRows = filteredItems.slice(0, end);
-                visibleRows.forEach(function(row) {
+            if (pageSize === 0) {
+                filteredItems.forEach(function (row) {
                     row.style.display = '';
                     var card = cardMap.get(row.dataset.category + '_' + row.dataset.type);
                     if (card) card.style.display = '';
                 });
-
-                var allShown = (end >= total);
-                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, end, total);
+                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, total, total);
                 if (loadMoreBtn) {
-                    loadMoreBtn.disabled = allShown || total === 0;
-                    loadMoreBtn.innerHTML = allShown && total > 0
-                        ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
-                        : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
+                    loadMoreBtn.disabled = true;
+                    loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
                 }
                 if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
                 updateRowNumbers();
                 setTimeout(calculatePercentages, 50);
+                return;
             }
 
-            function applyFiltersAndPaginate() {
-                filteredItems = getFilteredItems();
-                currentPage = 1;
-                updateUI();
-                setTimeout(renderAllCharts, 100);
-            }
-
-            function loadMore() {
-                if (pageSize === 0) return;
-                var total = filteredItems.length;
-                var shown = Math.min(currentPage * pageSize, total);
-                if (shown >= total) { loadMoreBtn.disabled = true; return; }
-                currentPage++;
-                updateUI();
-            }
-
-            searchInput.addEventListener('input', applyFiltersAndPaginate);
-            typeFilter.addEventListener('change', applyFiltersAndPaginate);
-            categoryFilter.addEventListener('change', applyFiltersAndPaginate);
-            pageSizeSelect.addEventListener('change', function() {
-                pageSize = parseInt(this.value) || 0;
-                currentPage = 1;
-                updateUI();
+            var end = Math.min(currentPage * pageSize, total);
+            var visibleRows = filteredItems.slice(0, end);
+            visibleRows.forEach(function (row) {
+                row.style.display = '';
+                var card = cardMap.get(row.dataset.category + '_' + row.dataset.type);
+                if (card) card.style.display = '';
             });
-            loadMoreBtn.addEventListener('click', loadMore);
 
-            // Фільтр дати
-            function updateData() {
-                var from = dateFrom.value, to = dateTo.value;
-                window.location.href = (from && to) ? '/totals?startDate=' + from + '&endDate=' + to : '/totals';
+            var allShown = (end >= total);
+            if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, end, total);
+            if (loadMoreBtn) {
+                loadMoreBtn.disabled = allShown || total === 0;
+                loadMoreBtn.innerHTML = allShown && total > 0
+                    ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
+                    : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
             }
-            applyDateBtn.addEventListener('click', function(e) { e.preventDefault(); updateData(); });
-            clearDateBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                dateFrom.value = '';
-                dateTo.value = '';
-                window.location.href = '/totals';
-            });
-            dateFrom.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
-            dateTo.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
+            if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
+            updateRowNumbers();
+            setTimeout(calculatePercentages, 50);
+        }
 
-            // Сортування
-            function sortRowsBy(column, direction) {
-                var th = document.querySelector('.sortable[data-sort="' + column + '"]');
-                var dataType = th ? th.dataset.type : 'string';
-                var rowsArray = Array.from(document.querySelectorAll('.category-row'));
-                rowsArray.sort(function(a, b) {
-                    var aVal = a.dataset[column] || '', bVal = b.dataset[column] || '';
-                    if (dataType === 'number') {
-                        return direction === 'asc' ? (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0) : (parseFloat(bVal) || 0) - (parseFloat(aVal) || 0);
-                    }
-                    aVal = aVal.toString().toLowerCase();
-                    bVal = bVal.toString().toLowerCase();
-                    return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                });
-                var tbody = document.getElementById('categoriesBody');
-                rowsArray.forEach(function(row) { tbody.appendChild(row); });
-                document.querySelectorAll('.sortable').forEach(function(t) {
-                    t.classList.remove('active-asc', 'active-desc');
-                    var icon = t.querySelector('.sort-icon');
-                    if (icon) icon.className = 'fas fa-sort sort-icon';
-                });
-                if (th) {
-                    th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
-                    var icon = th.querySelector('.sort-icon');
-                    if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+        function applyFiltersAndPaginate() {
+            filteredItems = getFilteredItems();
+            currentPage = 1;
+            updateUI();
+            setTimeout(renderAllCharts, 100);
+        }
+
+        function loadMore() {
+            if (pageSize === 0) return;
+            var total = filteredItems.length;
+            var shown = Math.min(currentPage * pageSize, total);
+            if (shown >= total) { loadMoreBtn.disabled = true; return; }
+            currentPage++;
+            updateUI();
+        }
+
+        searchInput.addEventListener('input', applyFiltersAndPaginate);
+        typeFilter.addEventListener('change', applyFiltersAndPaginate);
+        categoryFilter.addEventListener('change', applyFiltersAndPaginate);
+        pageSizeSelect.addEventListener('change', function () {
+            pageSize = parseInt(this.value) || 0;
+            currentPage = 1;
+            updateUI();
+        });
+        loadMoreBtn.addEventListener('click', loadMore);
+
+        // Фільтр дати — перехід на серверний endpoint
+        function updateData() {
+            var from = dateFrom.value, to = dateTo.value;
+            window.location.href = (from && to) ? '/totals?startDate=' + from + '&endDate=' + to : '/totals';
+        }
+        applyDateBtn.addEventListener('click', function (e) { e.preventDefault(); updateData(); });
+        clearDateBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            dateFrom.value = '';
+            dateTo.value = '';
+            window.location.href = '/totals';
+        });
+        dateFrom.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
+        dateTo.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
+
+        // Сортування
+        function sortRowsBy(column, direction) {
+            var th = document.querySelector('.sortable[data-sort="' + column + '"]');
+            var dataType = th ? th.dataset.type : 'string';
+            var rowsArray = Array.from(document.querySelectorAll('.category-row'));
+            rowsArray.sort(function (a, b) {
+                var aVal = a.dataset[column] || '', bVal = b.dataset[column] || '';
+                if (dataType === 'number') {
+                    return direction === 'asc'
+                        ? (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0)
+                        : (parseFloat(bVal) || 0) - (parseFloat(aVal) || 0);
                 }
-                applyFiltersAndPaginate();
-            }
-            document.querySelectorAll('.sortable').forEach(function(th) {
-                th.addEventListener('click', function() {
-                    var column = this.dataset.sort;
-                    var currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
-                    var direction = 'asc';
-                    if (currentDir === 'asc') direction = 'desc';
-                    else if (currentDir === 'desc') direction = 'asc';
-                    sortRowsBy(column, direction);
-                });
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
             });
-
+            var tbody = document.getElementById('categoriesBody');
+            rowsArray.forEach(function (row) { tbody.appendChild(row); });
+            document.querySelectorAll('.sortable').forEach(function (t) {
+                t.classList.remove('active-asc', 'active-desc');
+                var icon = t.querySelector('.sort-icon');
+                if (icon) icon.className = 'fas fa-sort sort-icon';
+            });
+            if (th) {
+                th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
+                var icon = th.querySelector('.sort-icon');
+                if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+            }
             applyFiltersAndPaginate();
-            setTimeout(calculatePercentages, 300);
-        });
-
-        // ===== МОДАЛЬНІ ВІКНА =====
-        function populateCategories(selectElement, categories) {
-            if (!selectElement) return;
-            selectElement.innerHTML = '';
-            if (!categories || categories.length === 0) {
-                var opt = document.createElement('option');
-                opt.value = ''; opt.textContent = i18n.noCategories; opt.disabled = true;
-                selectElement.appendChild(opt);
-                return;
-            }
-            categories.forEach(function(cat) {
-                var opt = document.createElement('option');
-                opt.value = cat.id; opt.textContent = cat.name;
-                selectElement.appendChild(opt);
-            });
         }
 
-        async function fetchCategories(type) {
-            try { return await (await fetch(type === 'EXPENSE' ? '/categories/expense' : '/categories/income')).json(); }
-            catch (err) { console.warn(err); return []; }
-        }
-
-        var typeExpenseBtn = document.getElementById('typeExpenseBtn');
-        var typeIncomeBtn = document.getElementById('typeIncomeBtn');
-        var transactionType = document.getElementById('transactionType');
-        var transactionForm = document.getElementById('transactionForm');
-        var categorySelect = document.getElementById('categorySelect');
-        var dateInput = document.getElementById('transactionDate');
-        var expenseCategoriesSelect = [];
-        var incomeCategoriesSelect = [];
-
-        async function setTransactionType(type) {
-            if (!transactionType || !transactionForm) return;
-            if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
-            if (type === 'EXPENSE') {
-                if (expenseCategoriesSelect.length === 0) expenseCategoriesSelect = await fetchCategories('EXPENSE');
-                populateCategories(categorySelect, expenseCategoriesSelect);
-                transactionType.value = 'EXPENSE';
-                typeExpenseBtn.className = 'btn active-expense';
-                typeIncomeBtn.className = 'btn btn-outline-success';
-            } else {
-                if (incomeCategoriesSelect.length === 0) incomeCategoriesSelect = await fetchCategories('INCOME');
-                populateCategories(categorySelect, incomeCategoriesSelect);
-                transactionType.value = 'INCOME';
-                typeIncomeBtn.className = 'btn active-income';
-                typeExpenseBtn.className = 'btn btn-outline-danger';
-            }
-            updateFormAction();
-        }
-
-        function updateFormAction() {
-            var dateVal = dateInput ? dateInput.value : '';
-            if (!dateVal) return;
-            var type = transactionType ? transactionType.value : 'EXPENSE';
-            transactionForm.action = type === 'EXPENSE' ? '/day/' + dateVal + '/expense' : '/day/' + dateVal + '/income';
-        }
-
-        if (typeExpenseBtn && typeIncomeBtn) {
-            setTransactionType('EXPENSE');
-            typeExpenseBtn.addEventListener('click', function(e) { e.preventDefault(); setTransactionType('EXPENSE'); });
-            typeIncomeBtn.addEventListener('click', function(e) { e.preventDefault(); setTransactionType('INCOME'); });
-            if (dateInput) dateInput.addEventListener('change', updateFormAction);
-        }
-
-        var amountInput = document.getElementById('transactionAmount');
-        if (amountInput) {
-            document.getElementById('amountMinus')?.addEventListener('click', function() {
-                var val = parseFloat(amountInput.value) || 0;
-                if (val > 0) { val = Math.round((val - 0.01) * 100) / 100; amountInput.value = val.toFixed(2); }
-            });
-            document.getElementById('amountPlus')?.addEventListener('click', function() {
-                var val = parseFloat(amountInput.value) || 0;
-                val = Math.round((val + 0.01) * 100) / 100;
-                amountInput.value = val.toFixed(2);
-            });
-            amountInput.addEventListener('blur', function() {
-                amountInput.value = (parseFloat(amountInput.value) || 0).toFixed(2);
-            });
-        }
-
-        var quantityInput = document.getElementById('transactionQuantity');
-        if (quantityInput) {
-            document.getElementById('quantityMinus')?.addEventListener('click', function() {
-                var val = parseInt(quantityInput.value) || 1;
-                if (val > 1) quantityInput.value = val - 1;
-            });
-            document.getElementById('quantityPlus')?.addEventListener('click', function() {
-                var val = parseInt(quantityInput.value) || 1;
-                quantityInput.value = val + 1;
-            });
-        }
-
-        var detailsTextarea = document.getElementById('transactionDetails');
-        var charCount = document.getElementById('charCount');
-        if (detailsTextarea && charCount) {
-            detailsTextarea.addEventListener('input', function() {
-                charCount.textContent = this.value.length;
-                charCount.style.color = this.value.length >= 250 ? '#dc3545' : '';
-            });
-            charCount.textContent = detailsTextarea.value.length;
-        }
-
-        var modal = document.getElementById('transactionModal');
-        if (modal) {
-            modal.addEventListener('show.bs.modal', function() {
-                var timeInput = document.getElementById('transactionTime');
-                if (timeInput && !timeInput.value) {
-                    var now = new Date();
-                    timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-                }
-                if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
-                document.querySelectorAll('.is-invalid').forEach(function(el) { el.classList.remove('is-invalid'); });
-                updateFormAction();
-            });
-            modal.addEventListener('hidden.bs.modal', function() {
-                document.getElementById('transactionForm').reset();
-                setTransactionType('EXPENSE');
-                if (quantityInput) quantityInput.value = 1;
-                if (charCount) charCount.textContent = 0;
-                if (amountInput) amountInput.value = '0.00';
-                document.querySelectorAll('.is-invalid').forEach(function(el) { el.classList.remove('is-invalid'); });
-            });
-        }
-
-        if (transactionForm) {
-            transactionForm.addEventListener('submit', function(e) {
-                var valid = true;
-                var name = document.getElementById('transactionName');
-                if (!name.value.trim()) { name.classList.add('is-invalid'); valid = false; } else name.classList.remove('is-invalid');
-                var amount = document.getElementById('transactionAmount');
-                if (parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; } else amount.classList.remove('is-invalid');
-                var category = document.getElementById('categorySelect');
-                if (!category.value) { category.classList.add('is-invalid'); valid = false; } else category.classList.remove('is-invalid');
-                if (!valid) { e.preventDefault(); document.querySelector('.is-invalid')?.focus(); }
-            });
-        }
-
-        // Редагування
-        document.querySelectorAll('.action-edit').forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                var type = this.dataset.type, id = this.dataset.id, category = this.dataset.category;
-                var description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                var quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
-                var time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-                if (type === 'expense') {
-                    var modalEl = document.getElementById('editExpenseModal');
-                    if (modalEl) {
-                        document.getElementById('editExpenseId').value = id;
-                        document.getElementById('editExpenseCategory').value = category;
-                        document.getElementById('editExpenseDescription').value = description;
-                        document.getElementById('editExpenseAmount').value = amount.toFixed(2);
-                        document.getElementById('editExpenseQuantity').value = quantity;
-                        document.getElementById('editExpenseTime').value = time;
-                        document.getElementById('editExpenseDetails').value = details;
-                        document.getElementById('editExpenseBuyer').value = buyer;
-                        document.getElementById('editExpenseSeller').value = seller;
-                        document.getElementById('editExpenseCharCount').textContent = details.length;
-                        document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    }
-                } else {
-                    var modalEl = document.getElementById('editIncomeModal');
-                    if (modalEl) {
-                        document.getElementById('editIncomeId').value = id;
-                        document.getElementById('editIncomeCategory').value = category;
-                        document.getElementById('editIncomeDescription').value = description;
-                        document.getElementById('editIncomeAmount').value = amount.toFixed(2);
-                        document.getElementById('editIncomeQuantity').value = quantity;
-                        document.getElementById('editIncomeTime').value = time;
-                        document.getElementById('editIncomeDetails').value = details;
-                        document.getElementById('editIncomeBuyer').value = buyer;
-                        document.getElementById('editIncomeSeller').value = seller;
-                        document.getElementById('editIncomeCharCount').textContent = details.length;
-                        document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    }
-                }
+        document.querySelectorAll('.sortable').forEach(function (th) {
+            th.addEventListener('click', function () {
+                var column = this.dataset.sort;
+                var currentDir = this.classList.contains('active-asc') ? 'asc'
+                    : (this.classList.contains('active-desc') ? 'desc' : null);
+                var direction = 'asc';
+                if (currentDir === 'asc') direction = 'desc';
+                else if (currentDir === 'desc') direction = 'asc';
+                sortRowsBy(column, direction);
             });
         });
 
-        // Дублювання
-        var cloneModalEl = document.getElementById('cloneModal');
-        var cloneTypeInput = document.getElementById('cloneType');
+        applyFiltersAndPaginate();
+        setTimeout(calculatePercentages, 300);
 
-        document.querySelectorAll('.action-duplicate').forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                var type = this.dataset.type, category = this.dataset.category;
-                var description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                var quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
-                var time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-                document.getElementById('cloneCategory').value = category;
-                document.getElementById('cloneDescription').value = description;
-                document.getElementById('cloneAmount').value = amount.toFixed(2);
-                document.getElementById('cloneQuantity').value = quantity;
-                document.getElementById('cloneTime').value = time;
-                document.getElementById('cloneDetails').value = details;
-                document.getElementById('cloneBuyer').value = buyer;
-                document.getElementById('cloneSeller').value = seller;
-                document.getElementById('cloneCharCount').textContent = details.length;
-                var initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
-                cloneTypeInput.value = initialType;
-                var expenseBtn = document.getElementById('cloneTypeExpenseBtn');
-                var incomeBtn = document.getElementById('cloneTypeIncomeBtn');
-                if (initialType === 'EXPENSE') {
-                    expenseBtn.className = 'btn active-expense';
-                    incomeBtn.className = 'btn btn-outline-success';
-                    fetchCategories('EXPENSE').then(function(cats) { populateCategories(document.getElementById('cloneCategory'), cats); });
-                } else {
-                    incomeBtn.className = 'btn active-income';
-                    expenseBtn.className = 'btn btn-outline-danger';
-                    fetchCategories('INCOME').then(function(cats) { populateCategories(document.getElementById('cloneCategory'), cats); });
-                }
-                if (cloneModalEl) bootstrap.Modal.getOrCreateInstance(cloneModalEl).show();
-            });
-        });
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            .forEach(function (el) { new bootstrap.Tooltip(el); });
 
-        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
-            cloneTypeInput.value = 'EXPENSE';
-            this.className = 'btn active-expense';
-            document.getElementById('cloneTypeIncomeBtn').className = 'btn btn-outline-success';
-            fetchCategories('EXPENSE').then(function(cats) { populateCategories(document.getElementById('cloneCategory'), cats); });
-        });
-        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
-            cloneTypeInput.value = 'INCOME';
-            this.className = 'btn active-income';
-            document.getElementById('cloneTypeExpenseBtn').className = 'btn btn-outline-danger';
-            fetchCategories('INCOME').then(function(cats) { populateCategories(document.getElementById('cloneCategory'), cats); });
-        });
-
-        // Видалення
-        document.querySelectorAll('.action-delete').forEach(function(item) {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                var id = this.dataset.id, type = this.dataset.type;
-                var description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                var category = this.dataset.category || '', details = this.dataset.details || '';
-                var time = this.dataset.time || '', quantity = this.dataset.quantity || '1';
-                var buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-                var deleteForm = document.getElementById('deleteForm');
-                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
-                document.getElementById('deleteType').textContent = (type === 'expense') ? i18n.typeExpense : i18n.typeIncome;
-                document.getElementById('deleteTime').textContent = time || '—';
-                document.getElementById('deleteDescription').textContent = description || '—';
-                document.getElementById('deleteQuantity').textContent = quantity || '1';
-                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ' + currencySymbol;
-                document.getElementById('deleteBuyer').textContent = buyer || '—';
-                document.getElementById('deleteSeller').textContent = seller || '—';
-                document.getElementById('deleteCategory').textContent = category || '—';
-                var detailsRow = document.getElementById('deleteDetailsRow');
-                if (details && details.trim().length > 0) {
-                    document.getElementById('deleteDetails').textContent = details;
-                    detailsRow.style.display = '';
-                } else detailsRow.style.display = 'none';
-                var modalEl = document.getElementById('deleteConfirmModal');
-                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            });
-        });
-
-        // Теплі клавіші
-        document.addEventListener('keydown', function(e) {
-            var openModals = document.querySelectorAll('.modal.show');
-            if (openModals.length === 0) return;
-            if (e.key === 'Escape') {
-                openModals.forEach(function(m) { var i = bootstrap.Modal.getInstance(m); if (i) i.hide(); });
-                e.preventDefault();
-                return;
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                for (var i = 0; i < openModals.length; i++) {
-                    var form = openModals[i].querySelector('form:not(#deleteForm):not(#deleteDayForm)');
-                    if (form) {
-                        var submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
-                        else { form.submit(); e.preventDefault(); break; }
-                    }
-                }
-            }
-        });
-
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(function(el) { return new bootstrap.Tooltip(el); });
-
-        window.openCategorySettings = function() {
-            var modalEl = document.getElementById('transactionModal');
-            if (modalEl) { var m = bootstrap.Modal.getInstance(modalEl); if (m) m.hide(); }
-            setTimeout(function() {
-                var drawer = document.getElementById('settingsDrawer');
-                var overlay = document.getElementById('settingsOverlay');
-                if (drawer && overlay) {
-                    drawer.classList.add('open');
-                    overlay.classList.add('open');
-                    document.body.style.overflow = 'hidden';
-                    document.querySelector('#drawerMenu .menu-item[data-section="categories"]')?.click();
-                }
-            }, 350);
-        };
-
-        setTimeout(function() { if (typeof Chart !== 'undefined') renderAllCharts(); }, 500);
+        setTimeout(function () { if (typeof Chart !== 'undefined') renderAllCharts(); }, 500);
         setTimeout(calculatePercentages, 1000);
-
-    })();
+    });
 </script>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>

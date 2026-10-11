@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
-    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
+    <script src="/js/transaction-common.js" defer></script>
     <style>
         /* ===== АНІМАЦІЇ ===== */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -590,7 +590,6 @@
             <!-- КАРТКИ -->
             <div id="cardsView" class="cards-view-container">
                 <div class="row" id="cardsContainer">
-                    <!-- Витрати -->
                     <th:block th:each="expense, status : ${dayBudget.expenses}">
                         <div class="transaction-card-wrapper" data-type="expense" th:data-id="${expense.id}">
                             <div class="transaction-card">
@@ -617,7 +616,6 @@
                             </div>
                         </div>
                     </th:block>
-                    <!-- Доходи -->
                     <th:block th:each="income, status : ${dayBudget.incomes}">
                         <div class="transaction-card-wrapper" data-type="income" th:data-id="${income.id}">
                             <div class="transaction-card">
@@ -913,91 +911,69 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 
+<!--
+  P2.a: спільна логіка транзакцій винесена у /js/transaction-common.js.
+  Тут залишається ЛИШЕ локальний код, специфічний для day-detail:
+    • chart rendering (5, 6)
+    • view toggle (9)
+    • table filters + pagination (10)
+    • sorting (13)
+    • column resize (14)
+    • duplicate / edit / delete modals (16, 17, 18)
+-->
 <script th:inline="javascript">
-    (function() {
+    document.addEventListener('DOMContentLoaded', function () {
         'use strict';
 
+        // ===== P2.a: init спільної логіки транзакцій =====
+        window.LazyCentTx.init({
+            currencySymbol: /*[[${currencySymbol}]]*/ '₴',
+            buildActionUrl: function (type, dateStr) {
+                // day-detail використовує /day/{date}/expense endpoint.
+                // dateStr беремо з поля форми (readonly, завжди заповнене).
+                if (!dateStr) dateStr = /*[[${dayBudget.date}]]*/ '2026-01-01';
+                return type === 'EXPENSE'
+                    ? '/day/' + dateStr + '/expense'
+                    : '/day/' + dateStr + '/income';
+            },
+            i18n: {
+                noCategories: /*[[#{settings.categories.noExpenses}]]*/ 'Немає категорій'
+            }
+        });
+
+        // ===== ЛОКАЛЬНИЙ КОД =====
         var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
 
-        // ===== i18n для JS =====
         var i18n = {
-            toastSuccess: /*[[#{toast.success}]]*/ 'Успішно!',
-            toastError:   /*[[#{toast.error}]]*/   'Помилка!',
-            toastInfo:    /*[[#{toast.info}]]*/    'Інформація',
-            noCategories: /*[[#{settings.categories.noExpenses}]]*/ 'Немає категорій',
+            toastSuccess:   /*[[#{toast.success}]]*/ 'Успішно!',
+            toastError:     /*[[#{toast.error}]]*/   'Помилка!',
+            toastInfo:      /*[[#{toast.info}]]*/    'Інформація',
             noTransactions: /*[[#{day.noTransactions}]]*/ 'Немає транзакцій за цей день',
-            showing:      /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
-            allLoaded:    /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
-            loadMore:     /*[[#{common.loadMore}]]*/ 'Завантажити ще',
-            allCategories: /*[[#{totals.allCategories}]]*/ 'Всі категорії',
-            expense:      /*[[#{type.EXPENSE}]]*/ 'Витрата',
-            income:       /*[[#{type.INCOME}]]*/ 'Дохід',
-            balance:      /*[[#{common.balance}]]*/ 'Баланс',
+            showing:        /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
+            allLoaded:      /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
+            loadMore:       /*[[#{common.loadMore}]]*/ 'Завантажити ще',
+            allCategories:  /*[[#{totals.allCategories}]]*/ 'Всі категорії',
+            expense:        /*[[#{type.EXPENSE}]]*/ 'Витрата',
+            income:         /*[[#{type.INCOME}]]*/ 'Дохід',
+            balance:        /*[[#{common.balance}]]*/ 'Баланс',
             chartNotLoaded: /*[[#{common.noData}]]*/ 'Chart.js не завантажено.',
-            chartError:   /*[[#{toast.error}]]*/ 'Помилка створення діаграми.'
+            chartError:     /*[[#{toast.error}]]*/ 'Помилка створення діаграми.'
         };
 
-        function fmt(template, ...args) {
-            return template.replace(/\{(\d+)\}/g, (m, i) => args[i] !== undefined ? args[i] : m);
-        }
-
-        // ===== ГЛОБАЛЬНІ ФУНКЦІЇ =====
-        window.populateCategories = function(selectElement, categories) {
-            if (!selectElement) return;
-            selectElement.innerHTML = '';
-            if (!categories || categories.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = i18n.noCategories;
-                opt.disabled = true;
-                selectElement.appendChild(opt);
-                return;
-            }
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.name;
-                selectElement.appendChild(opt);
+        function fmt(template) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return template.replace(/\{(\d+)\}/g, function (m, i) {
+                return args[i] !== undefined ? args[i] : m;
             });
-        };
-
-        window.fetchCategories = async function(type) {
-            const url = type === 'EXPENSE' ? '/categories/expense' : '/categories/income';
-            try {
-                const response = await fetch(url);
-                return await response.json();
-            } catch (err) {
-                console.warn(err);
-                return [];
-            }
-        };
-
-        window.openCategorySettings = function() {
-            const modalEl = document.getElementById('transactionModal');
-            if (modalEl) {
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
-            }
-            setTimeout(function() {
-                const drawer = document.getElementById('settingsDrawer');
-                const overlay = document.getElementById('settingsOverlay');
-                if (drawer && overlay) {
-                    drawer.classList.add('open');
-                    overlay.classList.add('open');
-                    document.body.style.overflow = 'hidden';
-                    const categoriesTab = document.querySelector('#drawerMenu .menu-item[data-section="categories"]');
-                    if (categoriesTab) categoriesTab.click();
-                }
-            }, 350);
-        };
+        }
 
         // ===== 1. TOAST =====
         function showToast(message, type) {
-            const toastElement = document.getElementById('liveToast');
+            var toastElement = document.getElementById('liveToast');
             if (!toastElement) return;
-            const toastTitle = document.getElementById('toastTitle');
-            const toastMessage = document.getElementById('toastMessage');
-            const toastIcon = document.getElementById('toastIcon');
+            var toastTitle = document.getElementById('toastTitle');
+            var toastMessage = document.getElementById('toastMessage');
+            var toastIcon = document.getElementById('toastIcon');
             toastElement.classList.remove('success', 'error');
             if (type === 'success') {
                 toastElement.classList.add('success');
@@ -1016,143 +992,68 @@
         }
 
         // ===== 2. ДАТА =====
-        let currentDate = '';
-        const dateInput = document.getElementById('transactionDate');
-        if (dateInput && dateInput.value) currentDate = dateInput.value;
-        if (!currentDate) currentDate = /*[[${dayBudget.date}]]*/ '';
-        if (!currentDate) {
-            const now = new Date();
-            currentDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-        }
+        var dateInput = document.getElementById('transactionDate');
+        var currentDate = dateInput && dateInput.value ? dateInput.value : /*[[${dayBudget.date}]]*/ '2026-01-01';
 
-        const STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
-        const COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
-        const FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
-        const CHART_VISIBLE_KEY = 'lazycent_chart_visible_' + currentDate;
-        const VIEW_MODE_KEY = 'lazycent_view_mode_' + currentDate;
-        const ANALYTICS_MODE_KEY = 'daydetail-analytics-mode';
-
-        // ===== 3. КАТЕГОРІЇ =====
-        let expenseCategories = /*[[${expenseCategories}]]*/ null;
-        let incomeCategories = /*[[${incomeCategories}]]*/ null;
-        const categorySelect = document.getElementById('categorySelect');
-
-        function populateCategoriesLocal(categories) {
-            window.populateCategories(categorySelect, categories);
-        }
-
-        function fetchExpenseCategories() {
-            window.fetchCategories('EXPENSE').then(data => {
-                expenseCategories = data;
-                const typeInput = document.getElementById('transactionType');
-                if (typeInput && typeInput.value === 'EXPENSE') populateCategoriesLocal(expenseCategories);
-            });
-        }
-
-        function fetchIncomeCategories() {
-            window.fetchCategories('INCOME').then(data => {
-                incomeCategories = data;
-                const typeInput = document.getElementById('transactionType');
-                if (typeInput && typeInput.value === 'INCOME') populateCategoriesLocal(incomeCategories);
-            });
-        }
-
-        if (!expenseCategories || expenseCategories.length === 0) fetchExpenseCategories();
-        else populateCategoriesLocal(expenseCategories);
-        if (!incomeCategories || incomeCategories.length === 0) fetchIncomeCategories();
-
-        // ===== 4. ПЕРЕМИКАЧ ТИПУ =====
-        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
-        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
-        const transactionType = document.getElementById('transactionType');
-        const transactionForm = document.getElementById('transactionForm');
-
-        function setTransactionType(type) {
-            if (!transactionType || !transactionForm) return;
-            const dateVal = dateInput ? dateInput.value : currentDate;
-            if (!dateVal) return;
-
-            if (type === 'EXPENSE') {
-                if (expenseCategories && expenseCategories.length > 0) populateCategoriesLocal(expenseCategories);
-                else fetchExpenseCategories();
-                transactionType.value = 'EXPENSE';
-                typeExpenseBtn.className = 'btn active-expense';
-                typeIncomeBtn.className = 'btn btn-outline-success';
-                transactionForm.action = '/day/' + dateVal + '/expense';
-            } else {
-                if (incomeCategories && incomeCategories.length > 0) populateCategoriesLocal(incomeCategories);
-                else fetchIncomeCategories();
-                transactionType.value = 'INCOME';
-                typeIncomeBtn.className = 'btn active-income';
-                typeExpenseBtn.className = 'btn btn-outline-danger';
-                transactionForm.action = '/day/' + dateVal + '/income';
-            }
-        }
-
-        if (typeExpenseBtn && typeIncomeBtn && transactionType && transactionForm) {
-            setTransactionType('EXPENSE');
-            typeExpenseBtn.addEventListener('click', function(e) { e.preventDefault(); setTransactionType('EXPENSE'); });
-            typeIncomeBtn.addEventListener('click', function(e) { e.preventDefault(); setTransactionType('INCOME'); });
-        }
+        var STORAGE_KEY = 'lazycent_sort_day_' + currentDate;
+        var COL_WIDTH_KEY = 'lazycent_col_widths_' + currentDate;
+        var FILTERS_KEY = 'lazycent_filters_day_' + currentDate;
+        var CHART_VISIBLE_KEY = 'lazycent_chart_visible_' + currentDate;
+        var VIEW_MODE_KEY = 'lazycent_view_mode_' + currentDate;
+        var ANALYTICS_MODE_KEY = 'daydetail-analytics-mode';
 
         // ===== 5. ДІАГРАМИ =====
-        const CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
+        var CHART_PALETTE = ['#C9A227', '#B5533C', '#4F7942', '#1B2430', '#8C7A5B'];
+
         function getCategoryColor(name, index) {
             if (!name) return '#6c757d';
             if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            var hash = 0;
+            for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
             return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
         }
 
         function renderChart(type) {
-            const canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
-            const legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
-            const chartCanvas = document.getElementById(canvasId);
-            const legendContainer = document.getElementById(legendId);
+            var canvasId = type === 'expense' ? 'expenseChart' : 'incomeChart';
+            var legendId = type === 'expense' ? 'expenseLegend' : 'incomeLegend';
+            var chartCanvas = document.getElementById(canvasId);
+            var legendContainer = document.getElementById(legendId);
             if (!chartCanvas) return;
             if (typeof Chart === 'undefined') {
                 chartCanvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>';
                 return;
             }
-
-            const rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
-            const categoryMap = new Map();
-
-            rows.forEach(row => {
-                const catCell = row.querySelector('.col-category .category-text');
+            var rows = document.querySelectorAll('#transactionsBody .transaction-row[data-type="' + type + '"]');
+            var categoryMap = new Map();
+            rows.forEach(function (row) {
+                var catCell = row.querySelector('.col-category .category-text');
                 if (!catCell) return;
-                const catName = catCell.textContent.trim();
-                const amountCell = row.querySelector('td:nth-child(6)');
+                var catName = catCell.textContent.trim();
+                var amountCell = row.querySelector('td:nth-child(6)');
                 if (!amountCell) return;
-                const amountText = amountCell.textContent.trim().replace(' ' + currencySymbol, '').replace(/,/g, '');
-                const amount = parseFloat(amountText) || 0;
+                var amountText = amountCell.textContent.trim().replace(' ' + currencySymbol, '').replace(/,/g, '');
+                var amount = parseFloat(amountText) || 0;
                 if (amount > 0) categoryMap.set(catName, (categoryMap.get(catName) || 0) + amount);
             });
-
-            const entries = Array.from(categoryMap.entries()).sort((a, b) => b[1] - a[1]);
-            const labels = entries.map(e => e[0]);
-            const data = entries.map(e => e[1]);
-
-            const chartCol = document.getElementById(type + 'ChartCol');
+            var entries = Array.from(categoryMap.entries()).sort(function (a, b) { return b[1] - a[1]; });
+            var labels = entries.map(function (e) { return e[0]; });
+            var data = entries.map(function (e) { return e[1]; });
+            var chartCol = document.getElementById(type + 'ChartCol');
             if (data.length === 0) { if (chartCol) chartCol.style.display = 'none'; return; }
-            else { if (chartCol) chartCol.style.display = ''; }
-
-            const colors = labels.map((name, idx) => getCategoryColor(name, idx));
-            const chartKey = type + 'ChartInstance';
-            if (window[chartKey]) { try { window[chartKey].destroy(); } catch(e) {} window[chartKey] = null; }
-
+            else if (chartCol) chartCol.style.display = '';
+            var colors = labels.map(function (name, idx) { return getCategoryColor(name, idx); });
+            var chartKey = type + 'ChartInstance';
+            if (window[chartKey]) { try { window[chartKey].destroy(); } catch (e) {} window[chartKey] = null; }
             try {
                 window[chartKey] = new Chart(chartCanvas, {
                     type: 'doughnut',
                     data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
                     options: {
                         responsive: true, maintainAspectRatio: true,
-                        onClick: function(e, elements) {
+                        onClick: function (e, elements) {
                             if (elements.length > 0) {
-                                const index = elements[0].index;
-                                const category = labels[index];
-                                const categoryFilter = document.getElementById('categoryFilter');
+                                var category = labels[elements[0].index];
+                                var categoryFilter = document.getElementById('categoryFilter');
                                 if (categoryFilter) { categoryFilter.value = category; categoryFilter.dispatchEvent(new Event('change')); }
                             }
                         },
@@ -1160,66 +1061,58 @@
                         cutout: '55%'
                     }
                 });
-
                 if (legendContainer) {
-                    const total = data.reduce((a, b) => a + b, 0);
-                    let html = '<table class="chart-legend-table"><tbody>';
-                    entries.forEach(([name, amount], idx) => {
-                        const color = getCategoryColor(name, idx);
-                        const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                    var total = data.reduce(function (a, b) { return a + b; }, 0);
+                    var html = '<table class="chart-legend-table"><tbody>';
+                    entries.forEach(function (e, idx) {
+                        var name = e[0], amount = e[1];
+                        var color = getCategoryColor(name, idx);
+                        var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
                         html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
                     });
                     legendContainer.innerHTML = html + '</tbody></table>';
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error(e);
                 chartCanvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartError + '</p>';
             }
         }
 
         function renderBarChart() {
-            const canvas = document.getElementById('barChart');
+            var canvas = document.getElementById('barChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-
-            const savedMode = localStorage.getItem(ANALYTICS_MODE_KEY) || 'both';
-            const shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
-            const row = document.getElementById('barChartRow');
+            var savedMode = localStorage.getItem(ANALYTICS_MODE_KEY) || 'both';
+            var shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
+            var row = document.getElementById('barChartRow');
             if (!row) return;
-
-            const rows = document.querySelectorAll('#transactionsBody .transaction-row');
-            const expenseMap = new Map();
-            const incomeMap = new Map();
-            let hasData = false;
-
-            rows.forEach(row => {
-                if (row.style.display === 'none') return;
-                const type = row.dataset.type;
-                const catCell = row.querySelector('.col-category .category-text');
+            var rows = document.querySelectorAll('#transactionsBody .transaction-row');
+            var expenseMap = new Map();
+            var incomeMap = new Map();
+            var hasData = false;
+            rows.forEach(function (r) {
+                if (r.style.display === 'none') return;
+                var type = r.dataset.type;
+                var catCell = r.querySelector('.col-category .category-text');
                 if (!catCell) return;
-                const catName = catCell.textContent.trim();
-                const amountCell = row.querySelector('td:nth-child(6)');
+                var catName = catCell.textContent.trim();
+                var amountCell = r.querySelector('td:nth-child(6)');
                 if (!amountCell) return;
-                const amountText = amountCell.textContent.trim().replace(' ' + currencySymbol, '').replace(/,/g, '');
-                const amount = parseFloat(amountText) || 0;
+                var amountText = amountCell.textContent.trim().replace(' ' + currencySymbol, '').replace(/,/g, '');
+                var amount = parseFloat(amountText) || 0;
                 if (amount > 0) {
                     hasData = true;
                     if (type === 'expense') expenseMap.set(catName, (expenseMap.get(catName) || 0) + amount);
                     else incomeMap.set(catName, (incomeMap.get(catName) || 0) + amount);
                 }
             });
-
-            const allCategories = new Set([...expenseMap.keys(), ...incomeMap.keys()]);
-            const sortedCategories = Array.from(allCategories).sort();
-
+            var allCategories = new Set([].concat(Array.from(expenseMap.keys()), Array.from(incomeMap.keys())));
+            var sortedCategories = Array.from(allCategories).sort();
             if (sortedCategories.length === 0 || !hasData || !shouldShowBar) { row.style.display = 'none'; return; }
             row.style.display = '';
-
-            const expenseData = sortedCategories.map(cat => expenseMap.get(cat) || 0);
-            const incomeData = sortedCategories.map(cat => incomeMap.get(cat) || 0);
-
+            var expenseData = sortedCategories.map(function (c) { return expenseMap.get(c) || 0; });
+            var incomeData = sortedCategories.map(function (c) { return incomeMap.get(c) || 0; });
             if (window.barChartInstance) window.barChartInstance.destroy();
-
             window.barChartInstance = new Chart(canvas, {
                 type: 'bar',
                 data: {
@@ -1234,226 +1127,122 @@
                     plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } },
                     scales: {
                         x: { ticks: { maxRotation: 45, minRotation: 30, autoSkip: true, maxTicksLimit: 15 } },
-                        y: { beginAtZero: true, ticks: { callback: v => v + ' ' + currencySymbol } }
+                        y: { beginAtZero: true, ticks: { callback: function (v) { return v + ' ' + currencySymbol; } } }
                     }
                 }
             });
         }
 
         function renderAllCharts() {
-            setTimeout(function() { renderChart('expense'); renderChart('income'); renderBarChart(); }, 100);
+            setTimeout(function () { renderChart('expense'); renderChart('income'); renderBarChart(); }, 100);
         }
 
         function assignCategoryColors() {
-            document.querySelectorAll('.category-text').forEach(el => {
-                const name = el.getAttribute('data-category');
+            document.querySelectorAll('.category-text').forEach(function (el) {
+                var name = el.getAttribute('data-category');
                 if (name) el.style.color = getCategoryColor(name, 0);
             });
         }
 
         // ===== 6. ТОГЛ ДІАГРАМ =====
-        document.addEventListener('DOMContentLoaded', function() {
-            const analyticsToggle = document.getElementById('analyticsToggle');
-            const chartsContainer = document.getElementById('chartsContainer');
-            const barRow = document.getElementById('barChartRow');
+        var analyticsToggle = document.getElementById('analyticsToggle');
+        var chartsContainer = document.getElementById('chartsContainer');
+        var barRow = document.getElementById('barChartRow');
 
-            function setAnalyticsMode(mode) {
-                analyticsToggle.querySelectorAll('.btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-                if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow.style.display = 'none'; }
-                else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow.style.display = ''; }
-                else { chartsContainer.style.display = 'flex'; barRow.style.display = ''; }
-                localStorage.setItem(ANALYTICS_MODE_KEY, mode);
-                setTimeout(renderAllCharts, 100);
-            }
-
-            const savedMode = localStorage.getItem(ANALYTICS_MODE_KEY) || 'both';
-            setAnalyticsMode(savedMode);
-
-            analyticsToggle.addEventListener('click', function(e) {
-                const btn = e.target.closest('.btn');
-                if (!btn || btn.classList.contains('active')) return;
-                setAnalyticsMode(btn.dataset.mode);
-            });
-
-            const toggleChartBtn = document.getElementById('toggleChartBtn');
-            const chartBody = document.getElementById('chartBody');
-            const chartIcon = document.getElementById('chartToggleIcon');
-            if (toggleChartBtn && chartBody) {
-                const savedCollapsed = localStorage.getItem(CHART_VISIBLE_KEY);
-                if (savedCollapsed === 'true') { chartBody.style.display = 'none'; chartIcon.className = 'fas fa-chevron-down toggle-icon'; }
-                toggleChartBtn.addEventListener('click', function() {
-                    const isHidden = chartBody.style.display === 'none';
-                    if (isHidden) {
-                        chartBody.style.display = '';
-                        chartIcon.className = 'fas fa-chevron-up toggle-icon';
-                        localStorage.setItem(CHART_VISIBLE_KEY, 'false');
-                        setTimeout(renderAllCharts, 100);
-                    } else {
-                        chartBody.style.display = 'none';
-                        chartIcon.className = 'fas fa-chevron-down toggle-icon';
-                        localStorage.setItem(CHART_VISIBLE_KEY, 'true');
-                    }
-                });
-            }
-        });
-
-        // ===== 7. СУМА / КІЛЬКІСТЬ / ЛІЧИЛЬНИК =====
-        function formatAmountField() {
-            const amountInput = document.getElementById('transactionAmount');
-            if (!amountInput) return;
-            let val = parseFloat(amountInput.value);
-            if (isNaN(val) || val < 0) val = 0;
-            amountInput.value = val.toFixed(2);
+        function setAnalyticsMode(mode) {
+            analyticsToggle.querySelectorAll('.btn').forEach(function (btn) { btn.classList.toggle('active', btn.dataset.mode === mode); });
+            if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow.style.display = 'none'; }
+            else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow.style.display = ''; }
+            else { chartsContainer.style.display = 'flex'; barRow.style.display = ''; }
+            localStorage.setItem(ANALYTICS_MODE_KEY, mode);
+            setTimeout(renderAllCharts, 100);
         }
 
-        const amountInput = document.getElementById('transactionAmount');
-        if (amountInput) {
-            document.getElementById('amountMinus')?.addEventListener('click', function() {
-                let val = parseFloat(amountInput.value) || 0;
-                if (val > 0) { val = Math.round((val - 0.01) * 100) / 100; amountInput.value = val.toFixed(2); }
-                formatAmountField();
-            });
-            document.getElementById('amountPlus')?.addEventListener('click', function() {
-                let val = parseFloat(amountInput.value) || 0;
-                val = Math.round((val + 0.01) * 100) / 100;
-                amountInput.value = val.toFixed(2);
-                formatAmountField();
-            });
-            amountInput.addEventListener('blur', formatAmountField);
-            amountInput.addEventListener('change', formatAmountField);
-        }
-
-        const quantityInput = document.getElementById('transactionQuantity');
-        if (quantityInput) {
-            document.getElementById('quantityMinus')?.addEventListener('click', function() {
-                let val = parseInt(quantityInput.value) || 1;
-                if (val > 1) quantityInput.value = val - 1;
-            });
-            document.getElementById('quantityPlus')?.addEventListener('click', function() {
-                let val = parseInt(quantityInput.value) || 1;
-                quantityInput.value = val + 1;
-            });
-        }
-
-        const detailsTextarea = document.getElementById('transactionDetails');
-        const charCount = document.getElementById('charCount');
-        if (detailsTextarea && charCount) {
-            detailsTextarea.addEventListener('input', function() {
-                charCount.textContent = this.value.length;
-                charCount.style.color = this.value.length >= 250 ? '#dc3545' : '';
-            });
-            charCount.textContent = detailsTextarea.value.length;
-        }
-
-        document.getElementById('transactionModal')?.addEventListener('hidden.bs.modal', function() {
-            const form = document.getElementById('transactionForm');
-            if (form) form.reset();
-            if (transactionType) setTransactionType('EXPENSE');
-            if (quantityInput) quantityInput.value = 1;
-            if (charCount) charCount.textContent = 0;
-            if (amountInput) amountInput.value = '0.00';
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        setAnalyticsMode(localStorage.getItem(ANALYTICS_MODE_KEY) || 'both');
+        analyticsToggle.addEventListener('click', function (e) {
+            var btn = e.target.closest('.btn');
+            if (!btn || btn.classList.contains('active')) return;
+            setAnalyticsMode(btn.dataset.mode);
         });
 
-        transactionForm?.addEventListener('submit', function(e) {
-            let valid = true;
-            const name = document.getElementById('transactionName');
-            if (name && !name.value.trim()) { name.classList.add('is-invalid'); valid = false; } else if (name) name.classList.remove('is-invalid');
-            const amount = document.getElementById('transactionAmount');
-            if (amount && parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; } else if (amount) amount.classList.remove('is-invalid');
-            if (categorySelect && !categorySelect.value) { categorySelect.classList.add('is-invalid'); valid = false; } else if (categorySelect) categorySelect.classList.remove('is-invalid');
-            if (!valid) { e.preventDefault(); document.querySelector('.is-invalid')?.focus(); }
-        });
-
-        document.getElementById('transactionModal')?.addEventListener('show.bs.modal', function() {
-            const timeInput = document.getElementById('transactionTime');
-            if (timeInput && !timeInput.value) {
-                const now = new Date();
-                timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+        var toggleChartBtn = document.getElementById('toggleChartBtn');
+        var chartBody = document.getElementById('chartBody');
+        var chartIcon = document.getElementById('chartToggleIcon');
+        if (toggleChartBtn && chartBody) {
+            if (localStorage.getItem(CHART_VISIBLE_KEY) === 'true') {
+                chartBody.style.display = 'none';
+                chartIcon.className = 'fas fa-chevron-down toggle-icon';
             }
-            if (amountInput && (!amountInput.value || parseFloat(amountInput.value) === 0)) amountInput.value = '0.00';
-            else if (amountInput) formatAmountField();
-        });
-
-        // ===== 8. ТЕПЛІ КЛАВІШІ =====
-        document.addEventListener('keydown', function(e) {
-            const openModals = document.querySelectorAll('.modal.show');
-            if (openModals.length === 0) return;
-            if (e.key === 'Escape') {
-                openModals.forEach(m => { const i = bootstrap.Modal.getInstance(m); if (i) i.hide(); });
-                e.preventDefault();
-                return;
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                for (const modal of openModals) {
-                    const form = modal.querySelector('form:not(#deleteForm):not(#deleteDayForm)');
-                    if (form) {
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
-                        else { form.submit(); e.preventDefault(); break; }
-                    }
+            toggleChartBtn.addEventListener('click', function () {
+                var isHidden = chartBody.style.display === 'none';
+                if (isHidden) {
+                    chartBody.style.display = '';
+                    chartIcon.className = 'fas fa-chevron-up toggle-icon';
+                    localStorage.setItem(CHART_VISIBLE_KEY, 'false');
+                    setTimeout(renderAllCharts, 100);
+                } else {
+                    chartBody.style.display = 'none';
+                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                    localStorage.setItem(CHART_VISIBLE_KEY, 'true');
                 }
-            }
-        });
+            });
+        }
 
         // ===== 9. ПЕРЕМИКАЧ ВИГЛЯДУ =====
-        const viewToggle = document.getElementById('viewToggle');
-        const tableView = document.getElementById('tableView');
-        const cardsView = document.getElementById('cardsView');
+        var viewToggle = document.getElementById('viewToggle');
+        var tableView = document.getElementById('tableView');
+        var cardsView = document.getElementById('cardsView');
 
         function setViewMode(mode) {
             if (mode === 'cards') {
                 tableView.classList.add('hidden'); cardsView.classList.add('show');
-                viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="cards"]').classList.add('active');
                 localStorage.setItem(VIEW_MODE_KEY, 'cards');
             } else {
                 tableView.classList.remove('hidden'); cardsView.classList.remove('show');
-                viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
                 localStorage.setItem(VIEW_MODE_KEY, 'table');
             }
         }
-
-        const savedViewMode = localStorage.getItem(VIEW_MODE_KEY);
-        setViewMode(savedViewMode === 'cards' ? 'cards' : 'table');
-
-        viewToggle.addEventListener('click', function(e) {
-            const btn = e.target.closest('button');
+        setViewMode(localStorage.getItem(VIEW_MODE_KEY) === 'cards' ? 'cards' : 'table');
+        viewToggle.addEventListener('click', function (e) {
+            var btn = e.target.closest('button');
             if (!btn) return;
             setViewMode(btn.dataset.view);
         });
 
         // ===== 10. ЛОГІКА ТАБЛИЦІ =====
-        const searchInput = document.getElementById('searchInput');
-        const typeFilter = document.getElementById('typeFilter');
-        const categoryFilter = document.getElementById('categoryFilter');
-        const pageSizeSelect = document.getElementById('pageSizeSelect');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const visibleInfo = document.getElementById('visibleInfo');
-        const totalRowsSpan = document.getElementById('totalRowsCount');
-        const tableBody = document.getElementById('transactionsBody');
-        const cardsContainer = document.getElementById('cardsContainer');
+        var searchInput = document.getElementById('searchInput');
+        var typeFilter = document.getElementById('typeFilter');
+        var categoryFilter = document.getElementById('categoryFilter');
+        var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var loadMoreBtn = document.getElementById('loadMoreBtn');
+        var visibleInfo = document.getElementById('visibleInfo');
+        var totalRowsSpan = document.getElementById('totalRowsCount');
+        var tableBody = document.getElementById('transactionsBody');
+        var cardsContainer = document.getElementById('cardsContainer');
 
-        let allRows = [];
-        let currentPage = 1;
-        let pageSize = 20;
-        let filterType = 'all';
-        let filterCategory = '';
-        let searchText = '';
-        let visibleRows = [];
+        var allRows = [];
+        var currentPage = 1;
+        var pageSize = 20;
+        var filterType = 'all';
+        var filterCategory = '';
+        var searchText = '';
+        var visibleRows = [];
 
         function populateCategoryFilter() {
-            const rows = tableBody.querySelectorAll('.transaction-row');
-            const categories = new Set();
-            rows.forEach(row => {
-                const catCell = row.querySelector('.col-category .category-text');
-                if (catCell) { const catName = catCell.textContent.trim(); if (catName) categories.add(catName); }
+            var rows = tableBody.querySelectorAll('.transaction-row');
+            var categories = new Set();
+            rows.forEach(function (row) {
+                var catCell = row.querySelector('.col-category .category-text');
+                if (catCell) { var n = catCell.textContent.trim(); if (n) categories.add(n); }
             });
-            const currentVal = categoryFilter.value;
+            var currentVal = categoryFilter.value;
             categoryFilter.innerHTML = '<option value="">' + i18n.allCategories + '</option>';
-            Array.from(categories).sort().forEach(cat => {
-                const opt = document.createElement('option');
+            Array.from(categories).sort().forEach(function (cat) {
+                var opt = document.createElement('option');
                 opt.value = cat; opt.textContent = cat;
                 categoryFilter.appendChild(opt);
             });
@@ -1461,15 +1250,15 @@
         }
 
         function updateCards(rowsToShow) {
-            const wrappers = cardsContainer.querySelectorAll('.transaction-card-wrapper');
-            const rows = rowsToShow || visibleRows;
-            wrappers.forEach(wrapper => {
-                const id = wrapper.dataset.id;
-                const type = wrapper.dataset.type;
-                wrapper.style.display = rows.some(row => row.dataset.id === id && row.dataset.type === type) ? '' : 'none';
+            var wrappers = cardsContainer.querySelectorAll('.transaction-card-wrapper');
+            var rows = rowsToShow || visibleRows;
+            wrappers.forEach(function (wrapper) {
+                var id = wrapper.dataset.id;
+                var type = wrapper.dataset.type;
+                wrapper.style.display = rows.some(function (row) { return row.dataset.id === id && row.dataset.type === type; }) ? '' : 'none';
             });
             if (visibleRows.length === 0) {
-                let emptyMsg = cardsContainer.querySelector('.empty-cards-message');
+                var emptyMsg = cardsContainer.querySelector('.empty-cards-message');
                 if (!emptyMsg) {
                     emptyMsg = document.createElement('div');
                     emptyMsg.className = 'col-12 text-center text-muted py-3 empty-cards-message';
@@ -1477,14 +1266,14 @@
                     cardsContainer.appendChild(emptyMsg);
                 }
             } else {
-                const emptyMsg = cardsContainer.querySelector('.empty-cards-message');
-                if (emptyMsg) emptyMsg.remove();
+                var em = cardsContainer.querySelector('.empty-cards-message');
+                if (em) em.remove();
             }
         }
 
         function applyRowAnimation(rows) {
             if (!rows || rows.length === 0) return;
-            rows.forEach((row, index) => {
+            rows.forEach(function (row, index) {
                 row.classList.remove('row-animate');
                 void row.offsetWidth;
                 row.style.animationDelay = (index * 0.05) + 's';
@@ -1493,14 +1282,14 @@
         }
 
         function updateUI() {
-            const total = visibleRows.length;
+            var total = visibleRows.length;
             totalRowsSpan.textContent = total;
-            allRows.forEach(row => row.style.display = 'none');
+            allRows.forEach(function (row) { row.style.display = 'none'; });
 
             if (pageSize === 0) {
-                visibleRows.forEach((row, idx) => {
+                visibleRows.forEach(function (row, idx) {
                     row.style.display = '';
-                    const numCell = row.querySelector('td:first-child');
+                    var numCell = row.querySelector('td:first-child');
                     if (numCell) numCell.textContent = idx + 1;
                 });
                 loadMoreBtn.disabled = true;
@@ -1512,18 +1301,20 @@
                 return;
             }
 
-            const shown = Math.min(currentPage * pageSize, total);
-            const rowsToShow = visibleRows.slice(0, shown);
-            for (let i = 0; i < shown; i++) {
+            var shown = Math.min(currentPage * pageSize, total);
+            var rowsToShow = visibleRows.slice(0, shown);
+            for (var i = 0; i < shown; i++) {
                 if (visibleRows[i]) {
                     visibleRows[i].style.display = '';
-                    const numCell = visibleRows[i].querySelector('td:first-child');
+                    var numCell = visibleRows[i].querySelector('td:first-child');
                     if (numCell) numCell.textContent = i + 1;
                 }
             }
-            const allShown = (shown >= total);
+            var allShown = (shown >= total);
             loadMoreBtn.disabled = allShown;
-            loadMoreBtn.innerHTML = allShown ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
+            loadMoreBtn.innerHTML = allShown
+                ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
+                : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
             visibleInfo.textContent = fmt(i18n.showing, shown, total);
             applyRowAnimation(rowsToShow);
             updateCards(rowsToShow);
@@ -1531,16 +1322,14 @@
         }
 
         function getFilteredRows() {
-            return allRows.filter(row => {
-                const type = row.dataset.type;
-                const rowText = row.textContent.toLowerCase();
-                const catCell = row.querySelector('.col-category .category-text');
-                const rowCategory = catCell ? catCell.textContent.trim() : '';
-                let typeMatch = (filterType === 'all' || type === filterType);
-                let searchMatch = true;
-                if (searchText !== '') searchMatch = rowText.includes(searchText);
-                let categoryMatch = true;
-                if (filterCategory !== '') categoryMatch = (rowCategory === filterCategory);
+            return allRows.filter(function (row) {
+                var type = row.dataset.type;
+                var rowText = row.textContent.toLowerCase();
+                var catCell = row.querySelector('.col-category .category-text');
+                var rowCategory = catCell ? catCell.textContent.trim() : '';
+                var typeMatch = (filterType === 'all' || type === filterType);
+                var searchMatch = (searchText === '') || rowText.includes(searchText);
+                var categoryMatch = (filterCategory === '') || (rowCategory === filterCategory);
                 return typeMatch && searchMatch && categoryMatch;
             });
         }
@@ -1556,105 +1345,63 @@
 
         function loadMore() {
             if (pageSize === 0) return;
-            const total = visibleRows.length;
-            const shown = Math.min(currentPage * pageSize, total);
+            var total = visibleRows.length;
+            var shown = Math.min(currentPage * pageSize, total);
             if (shown >= total) { loadMoreBtn.disabled = true; return; }
             currentPage++;
             updateUI();
         }
 
-        function init() {
-            allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
-            const filtersRestored = restoreFilters();
-            pageSize = parseInt(pageSizeSelect.value) || 0;
-            filterType = typeFilter.value;
-            filterCategory = categoryFilter.value;
-            searchText = searchInput.value.toLowerCase().trim();
-            populateCategoryFilter();
-            applyStoredSort();
-            assignCategoryColors();
-
-            const chartVisible = localStorage.getItem(CHART_VISIBLE_KEY);
-            const chartBody = document.getElementById('chartBody');
-            const icon = document.getElementById('chartToggleIcon');
-            if (chartVisible === 'true' && chartBody) {
-                chartBody.style.display = 'none';
-                if (icon) icon.className = 'fas fa-chevron-down toggle-icon';
-            }
-
-            setTimeout(() => { restoreColumnWidths(); initColumnResize(); }, 50);
-            if (!filtersRestored) applyFiltersAndLoad();
-
-            setTimeout(function() {
-                if (typeof Chart !== 'undefined') renderAllCharts();
-                else setTimeout(function() { if (typeof Chart !== 'undefined') renderAllCharts(); }, 2000);
-            }, 300);
-        }
-
-        searchInput.addEventListener('input', function() { searchText = this.value.toLowerCase().trim(); applyFiltersAndLoad(); });
-        typeFilter.addEventListener('change', function() { filterType = this.value; applyFiltersAndLoad(); });
-        categoryFilter.addEventListener('change', function() { filterCategory = this.value; applyFiltersAndLoad(); });
-        pageSizeSelect.addEventListener('change', function() { pageSize = parseInt(this.value) || 0; applyFiltersAndLoad(); });
-        loadMoreBtn.addEventListener('click', loadMore);
-
         function saveFilters() {
             try {
-                const filters = { type: typeFilter.value, category: categoryFilter.value, search: searchInput.value, pageSize: pageSizeSelect.value };
+                var filters = { type: typeFilter.value, category: categoryFilter.value, search: searchInput.value, pageSize: pageSizeSelect.value };
                 localStorage.setItem(FILTERS_KEY, JSON.stringify(filters));
-            } catch(e) {}
+            } catch (e) {}
         }
 
         function restoreFilters() {
             try {
-                const stored = localStorage.getItem(FILTERS_KEY);
+                var stored = localStorage.getItem(FILTERS_KEY);
                 if (stored) {
-                    const filters = JSON.parse(stored);
-                    if (filters.type) typeFilter.value = filters.type;
-                    if (filters.category) categoryFilter.value = filters.category;
-                    if (filters.search) searchInput.value = filters.search;
-                    if (filters.pageSize) pageSizeSelect.value = filters.pageSize;
+                    var f = JSON.parse(stored);
+                    if (f.type) typeFilter.value = f.type;
+                    if (f.category) categoryFilter.value = f.category;
+                    if (f.search) searchInput.value = f.search;
+                    if (f.pageSize) pageSizeSelect.value = f.pageSize;
                     return true;
                 }
-            } catch(e) {}
+            } catch (e) {}
             return false;
         }
+
+        searchInput.addEventListener('input', function () { searchText = this.value.toLowerCase().trim(); applyFiltersAndLoad(); });
+        typeFilter.addEventListener('change', function () { filterType = this.value; applyFiltersAndLoad(); });
+        categoryFilter.addEventListener('change', function () { filterCategory = this.value; applyFiltersAndLoad(); });
+        pageSizeSelect.addEventListener('change', function () { pageSize = parseInt(this.value) || 0; applyFiltersAndLoad(); });
+        loadMoreBtn.addEventListener('click', loadMore);
 
         // ===== 13. СОРТУВАННЯ =====
         function saveSortState(column, direction) {
             if (!currentDate) return;
-            try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ column, direction })); } catch(e) {}
-        }
-
-        function applyStoredSort() {
-            if (!currentDate) { setTimeout(() => sortRowsBy('time', 'desc'), 50); return; }
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    const { column, direction } = JSON.parse(stored);
-                    const th = document.querySelector(`.sortable[data-sort="${column}"]`);
-                    if (th) { setTimeout(() => sortRowsBy(column, direction), 50); return; }
-                }
-            } catch(e) {}
-            setTimeout(() => sortRowsBy('time', 'desc'), 50);
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ column: column, direction: direction })); } catch (e) {}
         }
 
         function sortRowsBy(column, direction) {
             if (!allRows.length) return;
-            const rowsArray = Array.from(allRows);
-            const th = document.querySelector(`.sortable[data-sort="${column}"]`);
-            const dataType = th ? th.dataset.type : 'string';
-            const indexMap = { 'time': 2, 'name': 3, 'quantity': 4, 'amount': 5, 'buyer': 6, 'seller': 7, 'category': 9 };
-            const idx = indexMap[column];
+            var rowsArray = Array.from(allRows);
+            var th = document.querySelector('.sortable[data-sort="' + column + '"]');
+            var dataType = th ? th.dataset.type : 'string';
+            var indexMap = { 'time': 2, 'name': 3, 'quantity': 4, 'amount': 5, 'buyer': 6, 'seller': 7, 'category': 9 };
+            var idx = indexMap[column];
             if (idx === undefined) return;
-
-            rowsArray.sort((a, b) => {
-                const aCell = a.querySelector(`td:nth-child(${idx+1})`);
-                const bCell = b.querySelector(`td:nth-child(${idx+1})`);
-                let aVal = aCell ? aCell.textContent.trim() : '';
-                let bVal = bCell ? bCell.textContent.trim() : '';
+            rowsArray.sort(function (a, b) {
+                var aCell = a.querySelector('td:nth-child(' + (idx + 1) + ')');
+                var bCell = b.querySelector('td:nth-child(' + (idx + 1) + ')');
+                var aVal = aCell ? aCell.textContent.trim() : '';
+                var bVal = bCell ? bCell.textContent.trim() : '';
                 if (dataType === 'number') {
-                    const cleanA = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
-                    const cleanB = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
+                    var cleanA = parseFloat(aVal.replace(/[^0-9.-]/g, ''));
+                    var cleanB = parseFloat(bVal.replace(/[^0-9.-]/g, ''));
                     aVal = isNaN(cleanA) ? 0 : cleanA;
                     bVal = isNaN(cleanB) ? 0 : cleanB;
                     return direction === 'asc' ? aVal - bVal : bVal - aVal;
@@ -1663,28 +1410,40 @@
                     return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
                 }
             });
-
-            rowsArray.forEach(row => tableBody.appendChild(row));
+            rowsArray.forEach(function (row) { tableBody.appendChild(row); });
             allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
-            document.querySelectorAll('.sortable').forEach(t => {
+            document.querySelectorAll('.sortable').forEach(function (t) {
                 t.classList.remove('active-asc', 'active-desc');
-                const icon = t.querySelector('.sort-icon');
+                var icon = t.querySelector('.sort-icon');
                 if (icon) icon.className = 'fas fa-sort sort-icon';
             });
             if (th) {
                 th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
-                const icon = th.querySelector('.sort-icon');
+                var icon = th.querySelector('.sort-icon');
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
             saveSortState(column, direction);
             applyFiltersAndLoad();
         }
 
-        document.querySelectorAll('.sortable').forEach(th => {
-            th.addEventListener('click', function() {
-                const column = this.dataset.sort;
-                const currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
-                let direction = 'asc';
+        function applyStoredSort() {
+            if (!currentDate) { setTimeout(function () { sortRowsBy('time', 'desc'); }, 50); return; }
+            try {
+                var stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    var s = JSON.parse(stored);
+                    var th = document.querySelector('.sortable[data-sort="' + s.column + '"]');
+                    if (th) { setTimeout(function () { sortRowsBy(s.column, s.direction); }, 50); return; }
+                }
+            } catch (e) {}
+            setTimeout(function () { sortRowsBy('time', 'desc'); }, 50);
+        }
+
+        document.querySelectorAll('.sortable').forEach(function (th) {
+            th.addEventListener('click', function () {
+                var column = this.dataset.sort;
+                var currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
+                var direction = 'asc';
                 if (currentDir === 'asc') direction = 'desc';
                 else if (currentDir === 'desc') direction = 'asc';
                 sortRowsBy(column, direction);
@@ -1693,16 +1452,16 @@
 
         // ===== 14. РЕСАЙЗ КОЛОНОК =====
         function restoreColumnWidths() {
-            const table = document.getElementById('transactionsTable');
+            var table = document.getElementById('transactionsTable');
             if (!table) return;
-            const headers = table.querySelectorAll('thead th');
-            let widths = {};
-            try { const stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) widths = JSON.parse(stored); } catch(e) {}
-            headers.forEach((th, index) => {
+            var headers = table.querySelectorAll('thead th');
+            var widths = {};
+            try { var stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) widths = JSON.parse(stored); } catch (e) {}
+            headers.forEach(function (th, index) {
                 if (th.classList.contains('col-actions')) return;
-                const colKey = 'col-' + index;
+                var colKey = 'col-' + index;
                 if (widths[colKey]) {
-                    const w = Math.max(30, widths[colKey]);
+                    var w = Math.max(30, widths[colKey]);
                     th.style.width = w + 'px';
                     th.style.minWidth = w + 'px';
                     th.style.maxWidth = w + 'px';
@@ -1711,21 +1470,20 @@
         }
 
         function initColumnResize() {
-            const table = document.getElementById('transactionsTable');
+            var table = document.getElementById('transactionsTable');
             if (!table) return;
-            const headers = table.querySelectorAll('thead th');
-            let colWidths = {};
-            try { const stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) colWidths = JSON.parse(stored); } catch(e) {}
-
-            headers.forEach((th, index) => {
+            var headers = table.querySelectorAll('thead th');
+            var colWidths = {};
+            try { var stored = localStorage.getItem(COL_WIDTH_KEY); if (stored) colWidths = JSON.parse(stored); } catch (e) {}
+            headers.forEach(function (th, index) {
                 if (th.classList.contains('col-actions')) return;
                 if (th.querySelector('.resize-handle')) return;
-                const handle = document.createElement('div');
+                var handle = document.createElement('div');
                 handle.className = 'resize-handle';
                 handle.dataset.index = index;
                 th.appendChild(handle);
                 th.style.position = 'relative';
-                let startX, startWidth;
+                var startX, startWidth;
                 function onMouseDown(e) {
                     e.preventDefault(); e.stopPropagation();
                     startX = e.clientX;
@@ -1735,8 +1493,8 @@
                     handle.classList.add('active');
                 }
                 function onMouseMove(e) {
-                    const deltaX = e.clientX - startX;
-                    let newWidth = startWidth + deltaX;
+                    var deltaX = e.clientX - startX;
+                    var newWidth = startWidth + deltaX;
                     if (newWidth < 30) newWidth = 30;
                     th.style.width = newWidth + 'px';
                     th.style.minWidth = newWidth + 'px';
@@ -1747,27 +1505,48 @@
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                     handle.classList.remove('active');
-                    try { localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths)); } catch(e) {}
+                    try { localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths)); } catch (e) {}
                 }
                 handle.addEventListener('mousedown', onMouseDown);
             });
         }
 
-        // ===== 15. ЗАПУСК =====
-        init();
+        // ===== INIT =====
+        allRows = Array.from(tableBody.querySelectorAll('.transaction-row'));
+        var filtersRestored = restoreFilters();
+        pageSize = parseInt(pageSizeSelect.value) || 0;
+        filterType = typeFilter.value;
+        filterCategory = categoryFilter.value;
+        searchText = searchInput.value.toLowerCase().trim();
+        populateCategoryFilter();
+        applyStoredSort();
+        assignCategoryColors();
+
+        var chartVisible = localStorage.getItem(CHART_VISIBLE_KEY);
+        if (chartVisible === 'true' && chartBody) {
+            chartBody.style.display = 'none';
+            if (chartIcon) chartIcon.className = 'fas fa-chevron-down toggle-icon';
+        }
+
+        setTimeout(function () { restoreColumnWidths(); initColumnResize(); }, 50);
+        if (!filtersRestored) applyFiltersAndLoad();
+
+        setTimeout(function () {
+            if (typeof Chart !== 'undefined') renderAllCharts();
+            else setTimeout(function () { if (typeof Chart !== 'undefined') renderAllCharts(); }, 2000);
+        }, 300);
 
         // ===== 16. ДУБЛЮВАННЯ =====
-        const cloneModalEl = document.getElementById('cloneModal');
-        const cloneTypeInput = document.getElementById('cloneType');
+        var cloneModalEl = document.getElementById('cloneModal');
+        var cloneTypeInput = document.getElementById('cloneType');
 
-        document.querySelectorAll('.action-duplicate').forEach(item => {
-            item.addEventListener('click', function(e) {
+        document.querySelectorAll('.action-duplicate').forEach(function (item) {
+            item.addEventListener('click', function (e) {
                 e.preventDefault();
-                const type = this.dataset.type, category = this.dataset.category;
-                const description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
-                const time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-
+                var type = this.dataset.type, category = this.dataset.category;
+                var description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
+                var quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
+                var time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
                 document.getElementById('cloneCategory').value = category;
                 document.getElementById('cloneDescription').value = description;
                 document.getElementById('cloneAmount').value = amount.toFixed(2);
@@ -1777,52 +1556,50 @@
                 document.getElementById('cloneBuyer').value = buyer;
                 document.getElementById('cloneSeller').value = seller;
                 document.getElementById('cloneCharCount').textContent = details.length;
-
-                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
+                var initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
                 cloneTypeInput.value = initialType;
-                const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
-                const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
+                var expenseBtn = document.getElementById('cloneTypeExpenseBtn');
+                var incomeBtn = document.getElementById('cloneTypeIncomeBtn');
                 if (initialType === 'EXPENSE') {
                     expenseBtn.className = 'btn active-expense';
                     incomeBtn.className = 'btn btn-outline-success';
-                    window.fetchCategories('EXPENSE').then(cats => window.populateCategories(document.getElementById('cloneCategory'), cats));
+                    window.fetchCategories('EXPENSE').then(function (cats) { window.populateCategories(document.getElementById('cloneCategory'), cats); });
                     document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
                 } else {
                     incomeBtn.className = 'btn active-income';
                     expenseBtn.className = 'btn btn-outline-danger';
-                    window.fetchCategories('INCOME').then(cats => window.populateCategories(document.getElementById('cloneCategory'), cats));
+                    window.fetchCategories('INCOME').then(function (cats) { window.populateCategories(document.getElementById('cloneCategory'), cats); });
                     document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
                 }
                 if (cloneModalEl) bootstrap.Modal.getOrCreateInstance(cloneModalEl).show();
             });
         });
 
-        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
+        document.getElementById('cloneTypeExpenseBtn').addEventListener('click', function () {
             cloneTypeInput.value = 'EXPENSE';
             this.className = 'btn active-expense';
             document.getElementById('cloneTypeIncomeBtn').className = 'btn btn-outline-success';
-            window.fetchCategories('EXPENSE').then(cats => window.populateCategories(document.getElementById('cloneCategory'), cats));
+            window.fetchCategories('EXPENSE').then(function (cats) { window.populateCategories(document.getElementById('cloneCategory'), cats); });
             document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
         });
-        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
+        document.getElementById('cloneTypeIncomeBtn').addEventListener('click', function () {
             cloneTypeInput.value = 'INCOME';
             this.className = 'btn active-income';
             document.getElementById('cloneTypeExpenseBtn').className = 'btn btn-outline-danger';
-            window.fetchCategories('INCOME').then(cats => window.populateCategories(document.getElementById('cloneCategory'), cats));
+            window.fetchCategories('INCOME').then(function (cats) { window.populateCategories(document.getElementById('cloneCategory'), cats); });
             document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
         });
 
         // ===== 17. РЕДАГУВАННЯ =====
-        document.querySelectorAll('.action-edit').forEach(item => {
-            item.addEventListener('click', function(e) {
+        document.querySelectorAll('.action-edit').forEach(function (item) {
+            item.addEventListener('click', function (e) {
                 e.preventDefault();
-                const type = this.dataset.type, id = this.dataset.id, category = this.dataset.category;
-                const description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
-                const time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-
+                var type = this.dataset.type, id = this.dataset.id, category = this.dataset.category;
+                var description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
+                var quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
+                var time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
                 if (type === 'expense') {
-                    const modalEl = document.getElementById('editExpenseModal');
+                    var modalEl = document.getElementById('editExpenseModal');
                     if (modalEl) {
                         document.getElementById('editExpenseId').value = id;
                         document.getElementById('editExpenseCategory').value = category;
@@ -1838,8 +1615,8 @@
                         bootstrap.Modal.getOrCreateInstance(modalEl).show();
                     }
                 } else {
-                    const modalEl = document.getElementById('editIncomeModal');
-                    if (modalEl) {
+                    var modalEl2 = document.getElementById('editIncomeModal');
+                    if (modalEl2) {
                         document.getElementById('editIncomeId').value = id;
                         document.getElementById('editIncomeCategory').value = category;
                         document.getElementById('editIncomeDescription').value = description;
@@ -1851,25 +1628,23 @@
                         document.getElementById('editIncomeSeller').value = seller;
                         document.getElementById('editIncomeCharCount').textContent = details.length;
                         document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                        bootstrap.Modal.getOrCreateInstance(modalEl2).show();
                     }
                 }
             });
         });
 
         // ===== 18. ВИДАЛЕННЯ =====
-        document.querySelectorAll('.action-delete').forEach(item => {
-            item.addEventListener('click', function(e) {
+        document.querySelectorAll('.action-delete').forEach(function (item) {
+            item.addEventListener('click', function (e) {
                 e.preventDefault();
-                const id = this.dataset.id, type = this.dataset.type;
-                const description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                const category = this.dataset.category || '', details = this.dataset.details || '';
-                const time = this.dataset.time || '', quantity = this.dataset.quantity || '1';
-                const buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-
-                const deleteForm = document.getElementById('deleteForm');
+                var id = this.dataset.id, type = this.dataset.type;
+                var description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
+                var category = this.dataset.category || '', details = this.dataset.details || '';
+                var time = this.dataset.time || '', quantity = this.dataset.quantity || '1';
+                var buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
+                var deleteForm = document.getElementById('deleteForm');
                 deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
-
                 document.getElementById('deleteType').textContent = (type === 'expense') ? i18n.expense : i18n.income;
                 document.getElementById('deleteTime').textContent = time || '—';
                 document.getElementById('deleteDescription').textContent = description || '—';
@@ -1878,21 +1653,19 @@
                 document.getElementById('deleteBuyer').textContent = buyer || '—';
                 document.getElementById('deleteSeller').textContent = seller || '—';
                 document.getElementById('deleteCategory').textContent = category || '—';
-
-                const detailsRow = document.getElementById('deleteDetailsRow');
+                var detailsRow = document.getElementById('deleteDetailsRow');
                 if (details && details.trim().length > 0) {
                     document.getElementById('deleteDetails').textContent = details;
                     detailsRow.style.display = '';
                 } else detailsRow.style.display = 'none';
-
-                const modalEl = document.getElementById('deleteConfirmModal');
+                var modalEl = document.getElementById('deleteConfirmModal');
                 if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
             });
         });
 
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).forEach(function (el) { new bootstrap.Tooltip(el); });
 
-    })();
+    }); // end DOMContentLoaded
 </script>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>

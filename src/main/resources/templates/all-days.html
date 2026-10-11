@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
+    <script src="/js/transaction-common.js" defer></script>
     <style>
         /* ===== АНІМАЦІЇ ===== */
         @keyframes fadeIn {
@@ -628,9 +629,7 @@
 
 </div>
 
-<!-- ===== МОДАЛЬНІ ВІКНА ===== -->
-
-<!-- Додавання -->
+<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ТРАНЗАКЦІЇ ===== -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -734,205 +733,7 @@
     </div>
 </div>
 
-<!-- Підтвердження видалення транзакції -->
-<div class="modal fade no-print" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span th:text="#{delete.confirm}">Підтвердження видалення</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-center" th:text="#{delete.question}">Ви впевнені, що хочете видалити цю транзакцію?</p>
-                <p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
-                <hr>
-                <div class="delete-details">
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.type}">Тип:</div><div class="col-8 value" id="deleteType"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.time}">Час:</div><div class="col-8 value" id="deleteTime"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.name}">Найменування:</div><div class="col-8 value" id="deleteDescription"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.quantity}">Кількість:</div><div class="col-8 value" id="deleteQuantity"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.amount}">Сума:</div><div class="col-8 value" id="deleteAmount"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.buyer}">Покупець:</div><div class="col-8 value" id="deleteBuyer"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.seller}">Продавець:</div><div class="col-8 value" id="deleteSeller"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.category}">Категорія:</div><div class="col-8 value" id="deleteCategory"></div></div>
-                    <div class="row mb-2" id="deleteDetailsRow"><div class="col-4 label fw-bold" th:text="#{delete.details}">Деталі:</div><div class="col-8 value" id="deleteDetails"></div></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                <form id="deleteForm" method="post" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn-danger" th:text="#{delete.deleteBtn}">Видалити</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Редагування витрати -->
-<div class="modal fade no-print" id="editExpenseModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i><span th:text="#{modal.editExpense}">Редагувати витрату</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editExpenseForm" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="editExpenseId">
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <select name="categoryId" class="form-select" id="editExpenseCategory" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="editExpenseDescription" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="editExpenseBuyer">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="editExpenseSeller">
-                    </div>
-                    <div class="mb-3"><label class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="editExpenseTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Редагування доходу -->
-<div class="modal fade no-print" id="editIncomeModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i><span th:text="#{modal.editIncome}">Редагувати дохід</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="editIncomeForm" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-body">
-                    <input type="hidden" name="id" id="editIncomeId">
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <select name="categoryId" class="form-select" id="editIncomeCategory" required>
-                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="editIncomeDescription" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="editIncomeBuyer">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="editIncomeSeller">
-                    </div>
-                    <div class="mb-3"><label class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="editIncomeTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Дублювання -->
-<div class="modal fade no-print" id="cloneModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-copy me-2"></i><span th:text="#{modal.duplicate}">Дублювати транзакцію</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="cloneForm" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-body">
-                    <input type="hidden" name="type" id="cloneType" value="EXPENSE">
-
-                    <div class="mb-3">
-                        <label class="form-label" th:text="#{modal.type}">Тип</label>
-                        <div class="transaction-type-toggle">
-                            <button type="button" class="btn btn-outline-danger active-expense" id="cloneTypeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> <span th:text="#{modal.type.expense}">Витрата</span>
-                            </button>
-                            <button type="button" class="btn btn-outline-success" id="cloneTypeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> <span th:text="#{modal.type.income}">Дохід</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <select name="categoryId" class="form-select" id="cloneCategory" required>
-                            <option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" name="description" class="form-control" id="cloneDescription" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" name="buyer" class="form-control" id="cloneBuyer">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" name="seller" class="form-control" id="cloneSeller">
-                    </div>
-                    <div class="mb-3"><label class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required>
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="cloneTime" name="time" step="60">
-                    </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="cloneCharCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{modal.duplicateBtn}">Дублювати</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Підтвердження видалення дня -->
+<!-- Підтвердження видалення ДНЯ -->
 <div class="modal fade no-print" id="deleteDayConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -971,92 +772,95 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 
+<!--
+  P2.a: спільна логіка транзакцій винесена у /js/transaction-common.js.
+  Тут залишається ЛИШЕ специфічне для all-days:
+    • chart rendering (по днях, не по категоріях)
+    • analytics toggle + chart collapse
+    • фільтри ДНІВ: search, dayName, dates, pageSize
+    • view toggle (таблиця/картки) для ДНІВ
+    • sorting ДНІВ
+    • handleDeleteDay (модалка підтвердження видалення дня)
+
+  Видалено мертвий код (не використовується на цій сторінці):
+    • editExpenseModal, editIncomeModal, cloneModal, deleteConfirmModal
+    • обробники .action-edit, .action-duplicate, .action-delete
+    • showToast
+-->
 <script th:inline="javascript">
-    (function() {
+    document.addEventListener('DOMContentLoaded', function () {
         'use strict';
 
-        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent;
+        // ===== P2.a: init спільної логіки транзакцій =====
+        window.LazyCentTx.init({
+            currencySymbol: /*[[${currencySymbol}]]*/ '₴',
+            buildActionUrl: function (type, dateStr) {
+                if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
+                return type === 'EXPENSE'
+                    ? '/day/' + dateStr + '/expense'
+                    : '/day/' + dateStr + '/income';
+            },
+            i18n: {
+                noCategories: /*[[#{settings.categories.noExpenses}]]*/ 'Немає категорій'
+            }
+        });
 
-        // ===== i18n для JS =====
+        // ===== ЛОКАЛЬНИЙ КОД =====
+        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
+
         var i18n = {
-            toastSuccess: /*[[#{toast.success}]]*/ 'Успішно!',
-            toastError:   /*[[#{toast.error}]]*/   'Помилка!',
-            toastInfo:    /*[[#{toast.info}]]*/    'Інформація',
-            showing:      /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
-            allLoaded:    /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
-            loadMore:     /*[[#{common.loadMore}]]*/ 'Завантажити ще',
-            noData:       /*[[#{common.noData}]]*/ 'Немає даних',
+            showing:        /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
+            allLoaded:      /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
+            loadMore:       /*[[#{common.loadMore}]]*/ 'Завантажити ще',
             chartNotLoaded: /*[[#{common.noData}]]*/ 'Chart.js не завантажено.',
-            chartError:   /*[[#{toast.error}]]*/ 'Помилка діаграми.',
-            dayBalance:   /*[[#{common.balance}]]*/ 'Баланс',
-            typeExpense:  /*[[#{type.EXPENSE}]]*/ 'Витрата',
-            typeIncome:   /*[[#{type.INCOME}]]*/ 'Дохід',
-            noCategories: /*[[#{settings.categories.noExpenses}]]*/ 'Немає категорій',
-            confirmDeleteCategory: /*[[#{settings.categories.deleteConfirm}]]*/ 'Видалити категорію?'
+            chartError:     /*[[#{toast.error}]]*/ 'Помилка діаграми.',
+            dayBalance:     /*[[#{common.balance}]]*/ 'Баланс'
         };
 
-        function fmt(template, ...args) {
-            return template.replace(/\{(\d+)\}/g, (m, i) => args[i] !== undefined ? args[i] : m);
+        function fmt(template) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return template.replace(/\{(\d+)\}/g, function (m, i) {
+                return args[i] !== undefined ? args[i] : m;
+            });
         }
 
-        // 1. TOAST
-        function showToast(message, type) {
-            const toastElement = document.getElementById('liveToast');
-            if (!toastElement) return;
-            const toastTitle = document.getElementById('toastTitle');
-            const toastMessage = document.getElementById('toastMessage');
-            const toastIcon = document.getElementById('toastIcon');
-            toastElement.classList.remove('success', 'error');
-            if (type === 'success') {
-                toastElement.classList.add('success');
-                toastIcon.className = 'fas fa-check-circle me-2';
-                toastTitle.textContent = i18n.toastSuccess;
-            } else if (type === 'error') {
-                toastElement.classList.add('error');
-                toastIcon.className = 'fas fa-exclamation-circle me-2';
-                toastTitle.textContent = i18n.toastError;
-            } else {
-                toastIcon.className = 'fas fa-info-circle me-2';
-                toastTitle.textContent = i18n.toastInfo;
-            }
-            toastMessage.textContent = message;
-            new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 }).show();
-        }
+        // ===== ЗМІННІ =====
+        var allDayCards = [];
+        var allDayRows = [];
+        var totalRowsSpan = document.getElementById('totalRowsCount');
+        var searchInput = document.getElementById('searchInput');
+        var dateFrom = document.getElementById('dateFrom');
+        var dateTo = document.getElementById('dateTo');
+        var dayFilter = document.getElementById('dayFilter');
+        var clearDateBtn = document.getElementById('clearDateFilter');
+        var noResults = document.getElementById('noResults');
+        var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var loadMoreBtn = document.getElementById('loadMoreBtn');
+        var visibleInfo = document.getElementById('visibleInfo');
+        var viewToggle = document.getElementById('viewToggle');
+        var cardsView = document.getElementById('cardsView');
+        var tableView = document.getElementById('tableView');
+        var chartBody = document.getElementById('chartBody');
+        var chartIcon = document.getElementById('chartToggleIcon');
 
-        // 2. ЗМІННІ
-        let allDayCards = [];
-        let allDayRows = [];
-        const totalRowsSpan = document.getElementById('totalRowsCount');
-        const searchInput = document.getElementById('searchInput');
-        const dateFrom = document.getElementById('dateFrom');
-        const dateTo = document.getElementById('dateTo');
-        const dayFilter = document.getElementById('dayFilter');
-        const clearDateBtn = document.getElementById('clearDateFilter');
-        const noResults = document.getElementById('noResults');
-        const pageSizeSelect = document.getElementById('pageSizeSelect');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const visibleInfo = document.getElementById('visibleInfo');
-        const viewToggle = document.getElementById('viewToggle');
-        const cardsView = document.getElementById('cardsView');
-        const tableView = document.getElementById('tableView');
-
-        const CHART_PALETTE = ['#C9A227','#B5533C','#4F7942','#1B2430','#8C7A5B','#D4A373','#6D6875','#B5838D','#2A9D8F','#E76F51','#264653','#F4A261','#E9C46A','#A8DADC','#457B9D'];
+        var CHART_PALETTE = ['#C9A227','#B5533C','#4F7942','#1B2430','#8C7A5B','#D4A373','#6D6875','#B5838D','#2A9D8F','#E76F51','#264653','#F4A261','#E9C46A','#A8DADC','#457B9D'];
 
         function getCategoryColor(name, index) {
             if (!name) return '#6c757d';
             if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            var hash = 0;
+            for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
             return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
         }
 
+        // ===== ЗБІР ДАНИХ ДЛЯ ДІАГРАМ =====
         function getFilteredDayData() {
-            const isCardsMode = cardsView.classList.contains('show');
-            const items = isCardsMode ? document.querySelectorAll('.day-card') : document.querySelectorAll('#daysTableBody .day-row');
-            const dates = [], expenses = [], incomes = [], balances = [];
-            items.forEach(item => {
+            var isCardsMode = cardsView.classList.contains('show');
+            var items = isCardsMode ? document.querySelectorAll('.day-card') : document.querySelectorAll('#daysTableBody .day-row');
+            var dates = [], expenses = [], incomes = [], balances = [];
+            items.forEach(function (item) {
                 if (item.style.display === 'none') return;
-                const date = item.dataset.date || '';
+                var date = item.dataset.date || '';
                 if (date) {
                     dates.push(date);
                     expenses.push(parseFloat(item.dataset.expenses) || 0);
@@ -1064,34 +868,37 @@
                     balances.push(parseFloat(item.dataset.balance) || 0);
                 }
             });
-            return { dates, expenses, incomes, balances };
+            return { dates: dates, expenses: expenses, incomes: incomes, balances: balances };
         }
 
+        // ===== ДІАГРАМИ =====
         function renderExpenseChart() {
-            const canvas = document.getElementById('expenseChart');
+            var canvas = document.getElementById('expenseChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            const data = getFilteredDayData();
-            const filteredDates = [], filteredAmounts = [];
-            data.dates.forEach((date, idx) => { if (data.expenses[idx] > 0) { filteredDates.push(date); filteredAmounts.push(data.expenses[idx]); } });
-            const col = document.getElementById('expenseChartCol');
+            var data = getFilteredDayData();
+            var filteredDates = [], filteredAmounts = [];
+            data.dates.forEach(function (date, idx) {
+                if (data.expenses[idx] > 0) { filteredDates.push(date); filteredAmounts.push(data.expenses[idx]); }
+            });
+            var col = document.getElementById('expenseChartCol');
             if (filteredDates.length === 0) { if (col) col.style.display = 'none'; return; }
             if (col) col.style.display = '';
-            const colors = filteredDates.map((n, i) => getCategoryColor(n, i));
+            var colors = filteredDates.map(function (n, i) { return getCategoryColor(n, i); });
             if (window.expenseChartInstance) window.expenseChartInstance.destroy();
             window.expenseChartInstance = new Chart(canvas, {
                 type: 'doughnut',
                 data: { labels: filteredDates, datasets: [{ data: filteredAmounts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
                 options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
             });
-            const legendContainer = document.getElementById('expenseLegend');
+            var legendContainer = document.getElementById('expenseLegend');
             if (legendContainer) {
-                const total = filteredAmounts.reduce((a,b) => a+b, 0);
-                let html = '<table class="chart-legend-table"><tbody>';
-                filteredDates.forEach((name, idx) => {
-                    const amount = filteredAmounts[idx];
-                    const color = getCategoryColor(name, idx);
-                    const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                var total = filteredAmounts.reduce(function (a, b) { return a + b; }, 0);
+                var html = '<table class="chart-legend-table"><tbody>';
+                filteredDates.forEach(function (name, idx) {
+                    var amount = filteredAmounts[idx];
+                    var color = getCategoryColor(name, idx);
+                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
                     html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
                 });
                 legendContainer.innerHTML = html + '</tbody></table>';
@@ -1099,30 +906,32 @@
         }
 
         function renderIncomeChart() {
-            const canvas = document.getElementById('incomeChart');
+            var canvas = document.getElementById('incomeChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            const data = getFilteredDayData();
-            const filteredDates = [], filteredAmounts = [];
-            data.dates.forEach((date, idx) => { if (data.incomes[idx] > 0) { filteredDates.push(date); filteredAmounts.push(data.incomes[idx]); } });
-            const col = document.getElementById('incomeChartCol');
+            var data = getFilteredDayData();
+            var filteredDates = [], filteredAmounts = [];
+            data.dates.forEach(function (date, idx) {
+                if (data.incomes[idx] > 0) { filteredDates.push(date); filteredAmounts.push(data.incomes[idx]); }
+            });
+            var col = document.getElementById('incomeChartCol');
             if (filteredDates.length === 0) { if (col) col.style.display = 'none'; return; }
             if (col) col.style.display = '';
-            const colors = filteredDates.map((n, i) => getCategoryColor(n, i + 5));
+            var colors = filteredDates.map(function (n, i) { return getCategoryColor(n, i + 5); });
             if (window.incomeChartInstance) window.incomeChartInstance.destroy();
             window.incomeChartInstance = new Chart(canvas, {
                 type: 'doughnut',
                 data: { labels: filteredDates, datasets: [{ data: filteredAmounts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
                 options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
             });
-            const legendContainer = document.getElementById('incomeLegend');
+            var legendContainer = document.getElementById('incomeLegend');
             if (legendContainer) {
-                const total = filteredAmounts.reduce((a,b) => a+b, 0);
-                let html = '<table class="chart-legend-table"><tbody>';
-                filteredDates.forEach((name, idx) => {
-                    const amount = filteredAmounts[idx];
-                    const color = getCategoryColor(name, idx + 5);
-                    const percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
+                var total = filteredAmounts.reduce(function (a, b) { return a + b; }, 0);
+                var html = '<table class="chart-legend-table"><tbody>';
+                filteredDates.forEach(function (name, idx) {
+                    var amount = filteredAmounts[idx];
+                    var color = getCategoryColor(name, idx + 5);
+                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
                     html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
                 });
                 legendContainer.innerHTML = html + '</tbody></table>';
@@ -1130,18 +939,18 @@
         }
 
         function renderBarChart() {
-            const canvas = document.getElementById('barChart');
+            var canvas = document.getElementById('barChart');
             if (!canvas) return;
             if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            const savedMode = localStorage.getItem('alldays-analytics-mode') || 'both';
-            const shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
-            const data = getFilteredDayData();
-            const row = document.getElementById('barChartRow');
+            var savedMode = localStorage.getItem('alldays-analytics-mode') || 'both';
+            var shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
+            var data = getFilteredDayData();
+            var row = document.getElementById('barChartRow');
             if (!row) return;
             if (data.dates.length === 0 || !shouldShowBar) { row.style.display = 'none'; return; }
             row.style.display = '';
             if (window.barChartInstance) window.barChartInstance.destroy();
-            const barColors = data.balances.map(b => b >= 0 ? '#198754' : '#dc3545');
+            var barColors = data.balances.map(function (b) { return b >= 0 ? '#198754' : '#dc3545'; });
             window.barChartInstance = new Chart(canvas, {
                 type: 'bar',
                 data: { labels: data.dates, datasets: [{ label: i18n.dayBalance, data: data.balances, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }] },
@@ -1150,133 +959,109 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { display: true, ticks: { maxRotation: 45, minRotation: 30, autoSkip: true, maxTicksLimit: 15 } },
-                        y: { beginAtZero: true, ticks: { callback: v => v + ' ' + currencySymbol } }
+                        y: { beginAtZero: true, ticks: { callback: function (v) { return v + ' ' + currencySymbol; } } }
                     }
                 }
             });
         }
 
-        function renderAllCharts() { setTimeout(() => { renderExpenseChart(); renderIncomeChart(); renderBarChart(); }, 100); }
+        function renderAllCharts() {
+            setTimeout(function () { renderExpenseChart(); renderIncomeChart(); renderBarChart(); }, 100);
+        }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const analyticsToggle = document.getElementById('analyticsToggle');
-            const chartsContainer = document.getElementById('chartsContainer');
-            const barRow = document.getElementById('barChartRow');
-            if (!analyticsToggle) return;
+        // ===== ANALYTICS TOGGLE + CHART COLLAPSE =====
+        var analyticsToggle = document.getElementById('analyticsToggle');
+        var chartsContainer = document.getElementById('chartsContainer');
 
-            function setAnalyticsMode(mode) {
-                analyticsToggle.querySelectorAll('.btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
-                if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow.style.display = 'none'; }
-                else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow.style.display = ''; }
-                else { chartsContainer.style.display = 'flex'; barRow.style.display = ''; }
-                localStorage.setItem('alldays-analytics-mode', mode);
-                setTimeout(renderAllCharts, 100);
-            }
-            setAnalyticsMode(localStorage.getItem('alldays-analytics-mode') || 'both');
-            analyticsToggle.addEventListener('click', e => {
-                const btn = e.target.closest('.btn');
-                if (!btn || btn.classList.contains('active')) return;
-                setAnalyticsMode(btn.dataset.mode);
+        function setAnalyticsMode(mode) {
+            analyticsToggle.querySelectorAll('.btn').forEach(function (btn) {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
             });
+            if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow().style.display = 'none'; }
+            else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow().style.display = ''; }
+            else { chartsContainer.style.display = 'flex'; barRow().style.display = ''; }
+            localStorage.setItem('alldays-analytics-mode', mode);
+            setTimeout(renderAllCharts, 100);
+        }
+        function barRow() { return document.getElementById('barChartRow'); }
 
-            const toggleChartBtn = document.getElementById('toggleChartBtn');
-            const chartBody = document.getElementById('chartBody');
-            const chartIcon = document.getElementById('chartToggleIcon');
-            if (toggleChartBtn && chartBody) {
-                if (localStorage.getItem('alldays-chart-collapsed') === 'true') {
+        setAnalyticsMode(localStorage.getItem('alldays-analytics-mode') || 'both');
+        analyticsToggle.addEventListener('click', function (e) {
+            var btn = e.target.closest('.btn');
+            if (!btn || btn.classList.contains('active')) return;
+            setAnalyticsMode(btn.dataset.mode);
+        });
+
+        var toggleChartBtn = document.getElementById('toggleChartBtn');
+        if (toggleChartBtn && chartBody) {
+            if (localStorage.getItem('alldays-chart-collapsed') === 'true') {
+                chartBody.style.display = 'none';
+                chartIcon.className = 'fas fa-chevron-down toggle-icon';
+            }
+            toggleChartBtn.addEventListener('click', function () {
+                var isHidden = chartBody.style.display === 'none';
+                if (isHidden) {
+                    chartBody.style.display = '';
+                    chartIcon.className = 'fas fa-chevron-up toggle-icon';
+                    localStorage.setItem('alldays-chart-collapsed', 'false');
+                    setTimeout(renderAllCharts, 100);
+                } else {
                     chartBody.style.display = 'none';
                     chartIcon.className = 'fas fa-chevron-down toggle-icon';
+                    localStorage.setItem('alldays-chart-collapsed', 'true');
                 }
-                toggleChartBtn.addEventListener('click', function() {
-                    const isHidden = chartBody.style.display === 'none';
-                    if (isHidden) {
-                        chartBody.style.display = '';
-                        chartIcon.className = 'fas fa-chevron-up toggle-icon';
-                        localStorage.setItem('alldays-chart-collapsed', 'false');
-                        setTimeout(renderAllCharts, 100);
-                    } else {
-                        chartBody.style.display = 'none';
-                        chartIcon.className = 'fas fa-chevron-down toggle-icon';
-                        localStorage.setItem('alldays-chart-collapsed', 'true');
-                    }
-                });
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            allDayCards = document.querySelectorAll('.day-card');
-            allDayRows = document.querySelectorAll('.day-row');
-            if (!allDayCards.length && !allDayRows.length) return;
-
-            setViewMode('table');
-            searchInput.addEventListener('input', applyFiltersAndPaginate);
-            dateFrom.addEventListener('change', applyFiltersAndPaginate);
-            dateTo.addEventListener('change', applyFiltersAndPaginate);
-            dayFilter.addEventListener('change', applyFiltersAndPaginate);
-            clearDateBtn.addEventListener('click', () => { dateFrom.value = ''; dateTo.value = ''; applyFiltersAndPaginate(); });
-            pageSizeSelect.addEventListener('change', function() { pageSize = parseInt(this.value) || 0; currentPage = 1; updateUI(); });
-            loadMoreBtn.addEventListener('click', loadMore);
-
-            document.querySelectorAll('.sortable').forEach(th => {
-                th.addEventListener('click', function() {
-                    const column = this.dataset.sort;
-                    const currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
-                    let direction = 'asc';
-                    if (currentDir === 'asc') direction = 'desc';
-                    else if (currentDir === 'desc') direction = 'asc';
-                    sortRowsBy(column, direction);
-                });
             });
+        }
 
-            viewToggle.addEventListener('click', e => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                setViewMode(btn.dataset.view);
-                setTimeout(renderAllCharts, 200);
-            });
+        // ===== INIT DAY DATA =====
+        allDayCards = document.querySelectorAll('.day-card');
+        allDayRows = document.querySelectorAll('.day-row');
 
-            document.addEventListener('click', e => {
-                const deleteBtn = e.target.closest('.action-delete-day');
-                if (deleteBtn) handleDeleteDay(deleteBtn);
-            });
-
-            applyFiltersAndPaginate();
-            setTimeout(renderAllCharts, 300);
-        });
-
+        // ===== VIEW TOGGLE =====
         function setViewMode(mode) {
             if (mode === 'cards') {
-                cardsView.classList.add('show'); tableView.classList.add('hidden');
-                viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                cardsView.classList.add('show');
+                tableView.classList.add('hidden');
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="cards"]').classList.add('active');
             } else {
-                cardsView.classList.remove('show'); tableView.classList.remove('hidden');
-                viewToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                cardsView.classList.remove('show');
+                tableView.classList.remove('hidden');
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
             }
             applyFiltersAndPaginate();
         }
 
-        let currentPage = 1;
-        let pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
-        let filteredItems = [];
+        viewToggle.addEventListener('click', function (e) {
+            var btn = e.target.closest('button');
+            if (!btn) return;
+            setViewMode(btn.dataset.view);
+            setTimeout(renderAllCharts, 200);
+        });
+
+        // ===== ФІЛЬТРИ + ПАГІНАЦІЯ =====
+        var currentPage = 1;
+        var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
+        var filteredItems = [];
 
         function getFilteredItems() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            const fromVal = dateFrom.value, toVal = dateTo.value, dayVal = dayFilter.value.trim();
-            const isCardsMode = cardsView.classList.contains('show');
-            const items = isCardsMode ? allDayCards : allDayRows;
-            const result = [];
-            items.forEach(item => {
-                const dateStr = item.dataset.date || '';
-                const dayName = (item.dataset.dayname || '');
-                const expenseCount = parseInt(item.dataset.expenseCount) || 0;
-                const incomeCount = parseInt(item.dataset.incomeCount) || 0;
-                const count = expenseCount + incomeCount;
-                let match = true;
+            var searchTerm = searchInput.value.toLowerCase().trim();
+            var fromVal = dateFrom.value, toVal = dateTo.value, dayVal = dayFilter.value.trim();
+            var isCardsMode = cardsView.classList.contains('show');
+            var items = isCardsMode ? allDayCards : allDayRows;
+            var result = [];
+            items.forEach(function (item) {
+                var dateStr = item.dataset.date || '';
+                var dayName = (item.dataset.dayname || '');
+                var expenseCount = parseInt(item.dataset.expenseCount) || 0;
+                var incomeCount = parseInt(item.dataset.incomeCount) || 0;
+                var count = expenseCount + incomeCount;
+                var match = true;
                 if (searchTerm) {
-                    const fullText = (dayName + ' ' + dateStr + ' ' + (item.dataset.expenses||'0') + ' ' + (item.dataset.incomes||'0') + ' ' + (item.dataset.balance||'0') + ' ' + count).toLowerCase();
-                    match = fullText.includes(searchTerm);
+                    var fullText = (dayName + ' ' + dateStr + ' ' + (item.dataset.expenses || '0') + ' '
+                        + (item.dataset.incomes || '0') + ' ' + (item.dataset.balance || '0') + ' ' + count).toLowerCase();
+                    match = fullText.indexOf(searchTerm) !== -1;
                 }
                 if (match && fromVal && dateStr < fromVal) match = false;
                 if (match && toVal && dateStr > toVal) match = false;
@@ -1287,21 +1072,22 @@
         }
 
         function updateUI() {
-            const total = filteredItems.length;
+            var total = filteredItems.length;
             totalRowsSpan.textContent = total;
-            const isCardsMode = cardsView.classList.contains('show');
-            const items = isCardsMode ? allDayCards : allDayRows;
-            items.forEach(item => item.style.display = 'none');
+            var isCardsMode = cardsView.classList.contains('show');
+            var items = isCardsMode ? allDayCards : allDayRows;
+            items.forEach(function (item) { item.style.display = 'none'; });
 
             if (pageSize === 0) {
-                filteredItems.forEach(item => item.style.display = '');
+                filteredItems.forEach(function (item) { item.style.display = ''; });
                 visibleInfo.textContent = fmt(i18n.showing, total, total);
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
                 noResults.style.display = total === 0 ? 'block' : 'none';
                 if (!isCardsMode) {
-                    document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]').forEach((row, idx) => {
-                        const numCell = row.querySelector('.col-number');
+                    document.querySelectorAll('#daysTableBody .day-row').forEach(function (row, idx) {
+                        if (row.style.display === 'none') return;
+                        var numCell = row.querySelector('.col-number');
                         if (numCell) numCell.textContent = idx + 1;
                     });
                 }
@@ -1309,18 +1095,21 @@
                 return;
             }
 
-            const end = Math.min(currentPage * pageSize, total);
-            for (let i = 0; i < end; i++) filteredItems[i].style.display = '';
-            for (let i = end; i < total; i++) filteredItems[i].style.display = 'none';
+            var end = Math.min(currentPage * pageSize, total);
+            for (var i = 0; i < end; i++) filteredItems[i].style.display = '';
+            for (var j = end; j < total; j++) filteredItems[j].style.display = 'none';
 
-            const allShown = (end >= total);
+            var allShown = (end >= total);
             visibleInfo.textContent = fmt(i18n.showing, end, total);
             loadMoreBtn.disabled = allShown || total === 0;
-            loadMoreBtn.innerHTML = allShown && total > 0 ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
+            loadMoreBtn.innerHTML = allShown && total > 0
+                ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
+                : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
             noResults.style.display = total === 0 ? 'block' : 'none';
             if (!isCardsMode) {
-                document.querySelectorAll('#daysTableBody .day-row[style*="display: block"]').forEach((row, idx) => {
-                    const numCell = row.querySelector('.col-number');
+                document.querySelectorAll('#daysTableBody .day-row').forEach(function (row, idx) {
+                    if (row.style.display === 'none') return;
+                    var numCell = row.querySelector('.col-number');
                     if (numCell) numCell.textContent = idx + 1;
                 });
             }
@@ -1336,356 +1125,106 @@
 
         function loadMore() {
             if (pageSize === 0) return;
-            const total = filteredItems.length;
-            const shown = Math.min(currentPage * pageSize, total);
+            var total = filteredItems.length;
+            var shown = Math.min(currentPage * pageSize, total);
             if (shown >= total) { loadMoreBtn.disabled = true; return; }
             currentPage++;
             updateUI();
         }
 
+        searchInput.addEventListener('input', applyFiltersAndPaginate);
+        dateFrom.addEventListener('change', applyFiltersAndPaginate);
+        dateTo.addEventListener('change', applyFiltersAndPaginate);
+        dayFilter.addEventListener('change', applyFiltersAndPaginate);
+        clearDateBtn.addEventListener('click', function () {
+            dateFrom.value = '';
+            dateTo.value = '';
+            applyFiltersAndPaginate();
+        });
+        pageSizeSelect.addEventListener('change', function () {
+            pageSize = parseInt(this.value) || 0;
+            currentPage = 1;
+            updateUI();
+        });
+        loadMoreBtn.addEventListener('click', loadMore);
+
+        // ===== СОРТУВАННЯ =====
         function sortRowsBy(column, direction) {
             if (!allDayRows.length) return;
-            const th = document.querySelector(`.sortable[data-sort="${column}"]`);
-            const dataType = th ? th.dataset.type : 'string';
-            const rowsArray = Array.from(allDayRows);
-            rowsArray.sort((a, b) => {
-                let aVal = a.dataset[column] || '', bVal = b.dataset[column] || '';
+            var th = document.querySelector('.sortable[data-sort="' + column + '"]');
+            var dataType = th ? th.dataset.type : 'string';
+            var rowsArray = Array.from(allDayRows);
+            rowsArray.sort(function (a, b) {
+                var aVal = a.dataset[column] || '', bVal = b.dataset[column] || '';
                 if (dataType === 'number') {
-                    aVal = parseFloat(aVal) || 0; bVal = parseFloat(bVal) || 0;
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
                     return direction === 'asc' ? aVal - bVal : bVal - aVal;
                 }
-                aVal = aVal.toString().toLowerCase(); bVal = bVal.toString().toLowerCase();
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
                 return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
             });
-            const tbody = document.getElementById('daysTableBody');
-            rowsArray.forEach(row => tbody.appendChild(row));
-            document.querySelectorAll('.sortable').forEach(t => {
+            var tbody = document.getElementById('daysTableBody');
+            rowsArray.forEach(function (row) { tbody.appendChild(row); });
+            document.querySelectorAll('.sortable').forEach(function (t) {
                 t.classList.remove('active-asc', 'active-desc');
-                const icon = t.querySelector('.sort-icon');
+                var icon = t.querySelector('.sort-icon');
                 if (icon) icon.className = 'fas fa-sort sort-icon';
             });
             if (th) {
                 th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
-                const icon = th.querySelector('.sort-icon');
+                var icon = th.querySelector('.sort-icon');
                 if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
             applyFiltersAndPaginate();
         }
 
+        document.querySelectorAll('.sortable').forEach(function (th) {
+            th.addEventListener('click', function () {
+                var column = this.dataset.sort;
+                var currentDir = this.classList.contains('active-asc') ? 'asc'
+                    : (this.classList.contains('active-desc') ? 'desc' : null);
+                var direction = 'asc';
+                if (currentDir === 'asc') direction = 'desc';
+                else if (currentDir === 'desc') direction = 'asc';
+                sortRowsBy(column, direction);
+            });
+        });
+
+        // ===== ВИДАЛЕННЯ ДНЯ =====
+        document.addEventListener('click', function (e) {
+            var deleteBtn = e.target.closest('.action-delete-day');
+            if (!deleteBtn) return;
+            handleDeleteDay(deleteBtn);
+        });
+
         function handleDeleteDay(btn) {
-            const id = btn.dataset.id;
+            var id = btn.dataset.id;
             document.getElementById('deleteDate').textContent = btn.dataset.date || '—';
             document.getElementById('deleteDayName').textContent = btn.dataset.dayname || '—';
             document.getElementById('deleteStartingBalance').textContent = (parseFloat(btn.dataset.starting) || 0).toFixed(2) + ' ' + currencySymbol;
             document.getElementById('deleteExpenses').textContent = (parseFloat(btn.dataset.expenses) || 0).toFixed(2) + ' ' + currencySymbol;
             document.getElementById('deleteIncomes').textContent = (parseFloat(btn.dataset.incomes) || 0).toFixed(2) + ' ' + currencySymbol;
-            const balance = parseFloat(btn.dataset.balance) || 0;
-            const balanceEl = document.getElementById('deleteBalance');
+            var balance = parseFloat(btn.dataset.balance) || 0;
+            var balanceEl = document.getElementById('deleteBalance');
             balanceEl.textContent = balance.toFixed(2) + ' ' + currencySymbol;
             balanceEl.className = 'value';
             balanceEl.classList.add(balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
-            document.getElementById('deleteTotalTransactions').textContent = (parseInt(btn.dataset.expenseCount) || 0) + (parseInt(btn.dataset.incomeCount) || 0);
+            document.getElementById('deleteTotalTransactions').textContent =
+                (parseInt(btn.dataset.expenseCount) || 0) + (parseInt(btn.dataset.incomeCount) || 0);
             document.getElementById('deleteDayForm').action = '/day/delete/' + id;
             new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
         }
 
-        // ===== Категорії =====
-        function populateCategories(selectElement, categories) {
-            if (!selectElement) return;
-            selectElement.innerHTML = '';
-            if (!categories || categories.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = ''; opt.textContent = i18n.noCategories; opt.disabled = true;
-                selectElement.appendChild(opt); return;
-            }
-            categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id; opt.textContent = cat.name;
-                selectElement.appendChild(opt);
-            });
-        }
+        // ===== INIT =====
+        setViewMode('table');
+        applyFiltersAndPaginate();
+        setTimeout(renderAllCharts, 300);
 
-        async function fetchCategories(type) {
-            try { return await (await fetch(type === 'EXPENSE' ? '/categories/expense' : '/categories/income')).json(); }
-            catch (err) { console.warn(err); return []; }
-        }
-
-        const typeExpenseBtn = document.getElementById('typeExpenseBtn');
-        const typeIncomeBtn = document.getElementById('typeIncomeBtn');
-        const transactionType = document.getElementById('transactionType');
-        const transactionForm = document.getElementById('transactionForm');
-        const categorySelect = document.getElementById('categorySelect');
-        const dateInput = document.getElementById('transactionDate');
-        let expenseCategories = [];
-        let incomeCategories = [];
-
-        async function setTransactionType(type) {
-            if (!transactionType || !transactionForm) return;
-            if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
-            if (type === 'EXPENSE') {
-                if (expenseCategories.length === 0) expenseCategories = await fetchCategories('EXPENSE');
-                populateCategories(categorySelect, expenseCategories);
-                transactionType.value = 'EXPENSE';
-                typeExpenseBtn.className = 'btn active-expense';
-                typeIncomeBtn.className = 'btn btn-outline-success';
-                transactionForm.action = '/day/' + dateInput.value + '/expense';
-            } else {
-                if (incomeCategories.length === 0) incomeCategories = await fetchCategories('INCOME');
-                populateCategories(categorySelect, incomeCategories);
-                transactionType.value = 'INCOME';
-                typeIncomeBtn.className = 'btn active-income';
-                typeExpenseBtn.className = 'btn btn-outline-danger';
-                transactionForm.action = '/day/' + dateInput.value + '/income';
-            }
-        }
-
-        function updateFormAction() {
-            const dateVal = dateInput ? dateInput.value : '';
-            if (!dateVal) return;
-            const type = transactionType ? transactionType.value : 'EXPENSE';
-            transactionForm.action = type === 'EXPENSE' ? '/day/' + dateVal + '/expense' : '/day/' + dateVal + '/income';
-        }
-
-        if (typeExpenseBtn && typeIncomeBtn) {
-            setTransactionType('EXPENSE');
-            typeExpenseBtn.addEventListener('click', e => { e.preventDefault(); setTransactionType('EXPENSE'); });
-            typeIncomeBtn.addEventListener('click', e => { e.preventDefault(); setTransactionType('INCOME'); });
-            if (dateInput) dateInput.addEventListener('change', updateFormAction);
-        }
-
-        const amountInput = document.getElementById('transactionAmount');
-        if (amountInput) {
-            document.getElementById('amountMinus')?.addEventListener('click', () => {
-                let val = parseFloat(amountInput.value) || 0;
-                if (val > 0) { val = Math.round((val - 0.01) * 100) / 100; amountInput.value = val.toFixed(2); }
-            });
-            document.getElementById('amountPlus')?.addEventListener('click', () => {
-                let val = parseFloat(amountInput.value) || 0;
-                val = Math.round((val + 0.01) * 100) / 100;
-                amountInput.value = val.toFixed(2);
-            });
-            amountInput.addEventListener('blur', () => { amountInput.value = (parseFloat(amountInput.value) || 0).toFixed(2); });
-        }
-
-        const quantityInput = document.getElementById('transactionQuantity');
-        if (quantityInput) {
-            document.getElementById('quantityMinus')?.addEventListener('click', () => {
-                let val = parseInt(quantityInput.value) || 1;
-                if (val > 1) quantityInput.value = val - 1;
-            });
-            document.getElementById('quantityPlus')?.addEventListener('click', () => {
-                let val = parseInt(quantityInput.value) || 1;
-                quantityInput.value = val + 1;
-            });
-        }
-
-        const detailsTextarea = document.getElementById('transactionDetails');
-        const charCount = document.getElementById('charCount');
-        if (detailsTextarea && charCount) {
-            detailsTextarea.addEventListener('input', function() {
-                charCount.textContent = this.value.length;
-                charCount.style.color = this.value.length >= 250 ? '#dc3545' : '';
-            });
-            charCount.textContent = detailsTextarea.value.length;
-        }
-
-        const modal = document.getElementById('transactionModal');
-        if (modal) {
-            modal.addEventListener('show.bs.modal', () => {
-                const timeInput = document.getElementById('transactionTime');
-                if (timeInput && !timeInput.value) {
-                    const now = new Date();
-                    timeInput.value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-                }
-                if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-                updateFormAction();
-            });
-            modal.addEventListener('hidden.bs.modal', () => {
-                document.getElementById('transactionForm').reset();
-                setTransactionType('EXPENSE');
-                if (quantityInput) quantityInput.value = 1;
-                if (charCount) charCount.textContent = 0;
-                if (amountInput) amountInput.value = '0.00';
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            });
-        }
-
-        if (transactionForm) {
-            transactionForm.addEventListener('submit', function(e) {
-                let valid = true;
-                const name = document.getElementById('transactionName');
-                if (!name.value.trim()) { name.classList.add('is-invalid'); valid = false; } else name.classList.remove('is-invalid');
-                const amount = document.getElementById('transactionAmount');
-                if (parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; } else amount.classList.remove('is-invalid');
-                const category = document.getElementById('categorySelect');
-                if (!category.value) { category.classList.add('is-invalid'); valid = false; } else category.classList.remove('is-invalid');
-                if (!valid) { e.preventDefault(); document.querySelector('.is-invalid')?.focus(); }
-            });
-        }
-
-        // ===== Редагування =====
-        document.querySelectorAll('.action-edit').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const type = this.dataset.type, id = this.dataset.id, category = this.dataset.category;
-                const description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
-                const time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-                if (type === 'expense') {
-                    const modalEl = document.getElementById('editExpenseModal');
-                    if (modalEl) {
-                        document.getElementById('editExpenseId').value = id;
-                        document.getElementById('editExpenseCategory').value = category;
-                        document.getElementById('editExpenseDescription').value = description;
-                        document.getElementById('editExpenseAmount').value = amount.toFixed(2);
-                        document.getElementById('editExpenseQuantity').value = quantity;
-                        document.getElementById('editExpenseTime').value = time;
-                        document.getElementById('editExpenseDetails').value = details;
-                        document.getElementById('editExpenseBuyer').value = buyer;
-                        document.getElementById('editExpenseSeller').value = seller;
-                        document.getElementById('editExpenseCharCount').textContent = details.length;
-                        document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    }
-                } else {
-                    const modalEl = document.getElementById('editIncomeModal');
-                    if (modalEl) {
-                        document.getElementById('editIncomeId').value = id;
-                        document.getElementById('editIncomeCategory').value = category;
-                        document.getElementById('editIncomeDescription').value = description;
-                        document.getElementById('editIncomeAmount').value = amount.toFixed(2);
-                        document.getElementById('editIncomeQuantity').value = quantity;
-                        document.getElementById('editIncomeTime').value = time;
-                        document.getElementById('editIncomeDetails').value = details;
-                        document.getElementById('editIncomeBuyer').value = buyer;
-                        document.getElementById('editIncomeSeller').value = seller;
-                        document.getElementById('editIncomeCharCount').textContent = details.length;
-                        document.getElementById('editIncomeForm').action = '/income/edit/' + id;
-                        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-                    }
-                }
-            });
-        });
-
-        // ===== Дублювання =====
-        const cloneModalEl = document.getElementById('cloneModal');
-        let cloneTypeInput = document.getElementById('cloneType');
-
-        document.querySelectorAll('.action-duplicate').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const type = this.dataset.type, category = this.dataset.category;
-                const description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                const quantity = this.dataset.quantity || 1, details = this.dataset.details || '';
-                const time = this.dataset.time || '', buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-                document.getElementById('cloneCategory').value = category;
-                document.getElementById('cloneDescription').value = description;
-                document.getElementById('cloneAmount').value = amount.toFixed(2);
-                document.getElementById('cloneQuantity').value = quantity;
-                document.getElementById('cloneTime').value = time;
-                document.getElementById('cloneDetails').value = details;
-                document.getElementById('cloneBuyer').value = buyer;
-                document.getElementById('cloneSeller').value = seller;
-                document.getElementById('cloneCharCount').textContent = details.length;
-                const initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
-                cloneTypeInput.value = initialType;
-                const expenseBtn = document.getElementById('cloneTypeExpenseBtn');
-                const incomeBtn = document.getElementById('cloneTypeIncomeBtn');
-                if (initialType === 'EXPENSE') {
-                    expenseBtn.className = 'btn active-expense';
-                    incomeBtn.className = 'btn btn-outline-success';
-                    fetchCategories('EXPENSE').then(cats => populateCategories(document.getElementById('cloneCategory'), cats));
-                } else {
-                    incomeBtn.className = 'btn active-income';
-                    expenseBtn.className = 'btn btn-outline-danger';
-                    fetchCategories('INCOME').then(cats => populateCategories(document.getElementById('cloneCategory'), cats));
-                }
-                if (cloneModalEl) bootstrap.Modal.getOrCreateInstance(cloneModalEl).show();
-            });
-        });
-
-        document.getElementById('cloneTypeExpenseBtn')?.addEventListener('click', function() {
-            cloneTypeInput.value = 'EXPENSE';
-            this.className = 'btn active-expense';
-            document.getElementById('cloneTypeIncomeBtn').className = 'btn btn-outline-success';
-            fetchCategories('EXPENSE').then(cats => populateCategories(document.getElementById('cloneCategory'), cats));
-        });
-        document.getElementById('cloneTypeIncomeBtn')?.addEventListener('click', function() {
-            cloneTypeInput.value = 'INCOME';
-            this.className = 'btn active-income';
-            document.getElementById('cloneTypeExpenseBtn').className = 'btn btn-outline-danger';
-            fetchCategories('INCOME').then(cats => populateCategories(document.getElementById('cloneCategory'), cats));
-        });
-
-        // ===== Видалення транзакцій =====
-        document.querySelectorAll('.action-delete').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const id = this.dataset.id, type = this.dataset.type;
-                const description = this.dataset.description || '', amount = parseFloat(this.dataset.amount) || 0;
-                const category = this.dataset.category || '', details = this.dataset.details || '';
-                const time = this.dataset.time || '', quantity = this.dataset.quantity || '1';
-                const buyer = this.dataset.buyer || '', seller = this.dataset.seller || '';
-                const deleteForm = document.getElementById('deleteForm');
-                deleteForm.action = (type === 'expense') ? '/expense/delete/' + id : '/income/delete/' + id;
-                document.getElementById('deleteType').textContent = (type === 'expense') ? i18n.typeExpense : i18n.typeIncome;
-                document.getElementById('deleteTime').textContent = time || '—';
-                document.getElementById('deleteDescription').textContent = description || '—';
-                document.getElementById('deleteQuantity').textContent = quantity || '1';
-                document.getElementById('deleteAmount').textContent = amount.toFixed(2) + ' ' + currencySymbol;
-                document.getElementById('deleteBuyer').textContent = buyer || '—';
-                document.getElementById('deleteSeller').textContent = seller || '—';
-                document.getElementById('deleteCategory').textContent = category || '—';
-                const detailsRow = document.getElementById('deleteDetailsRow');
-                if (details && details.trim().length > 0) {
-                    document.getElementById('deleteDetails').textContent = details;
-                    detailsRow.style.display = '';
-                } else detailsRow.style.display = 'none';
-                const modalEl = document.getElementById('deleteConfirmModal');
-                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
-            });
-        });
-
-        // ===== Теплі клавіші =====
-        document.addEventListener('keydown', function(e) {
-            const openModals = document.querySelectorAll('.modal.show');
-            if (openModals.length === 0) return;
-            if (e.key === 'Escape') {
-                openModals.forEach(m => { const i = bootstrap.Modal.getInstance(m); if (i) i.hide(); });
-                e.preventDefault();
-                return;
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                for (const modal of openModals) {
-                    const form = modal.querySelector('form:not(#deleteForm):not(#deleteDayForm)');
-                    if (form) {
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
-                        else { form.submit(); e.preventDefault(); break; }
-                    }
-                }
-            }
-        });
-
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]')).map(el => new bootstrap.Tooltip(el));
-
-        window.openCategorySettings = function() {
-            const modalEl = document.getElementById('transactionModal');
-            if (modalEl) { const m = bootstrap.Modal.getInstance(modalEl); if (m) m.hide(); }
-            setTimeout(function() {
-                const drawer = document.getElementById('settingsDrawer');
-                const overlay = document.getElementById('settingsOverlay');
-                if (drawer && overlay) {
-                    drawer.classList.add('open');
-                    overlay.classList.add('open');
-                    document.body.style.overflow = 'hidden';
-                    document.querySelector('#drawerMenu .menu-item[data-section="categories"]')?.click();
-                }
-            }, 350);
-        };
-
-    })();
+        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            .forEach(function (el) { new bootstrap.Tooltip(el); });
+    });
 </script>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
