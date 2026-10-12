@@ -145,6 +145,7 @@ public class SettingsController extends BaseController {
 
     @PostMapping("/settings/language")
     public String updateLanguage(@RequestParam String lang,
+                                 Authentication authentication,
                                  HttpServletRequest request,
                                  HttpSession session,
                                  RedirectAttributes redirectAttributes) {
@@ -152,11 +153,23 @@ public class SettingsController extends BaseController {
         switch (lang) {
             case "en" -> locale = Locale.ENGLISH;
             case "uk" -> locale = Locale.forLanguageTag("uk-UA");
-            default -> locale = Locale.ENGLISH;
+            default -> locale = Locale.forLanguageTag("uk-UA");
         }
 
+        // 1. У сесію — щоб LocaleChangeInterceptor / SessionLocaleResolver бачили одразу
         session.setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
-        log.info("Мову змінено на {}", locale);
+
+        // 2. У БД — щоб вибір зберігся після logout і на інших пристроях
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser != null) {
+            try {
+                userRepository.updatePreferredLanguage(currentUser.getId(), locale.getLanguage());
+                log.info("Мову користувача {} змінено на {}", currentUser.getUsername(), locale.getLanguage());
+            } catch (Exception e) {
+                log.warn("Не вдалось зберегти preferredLanguage для {}: {}",
+                        currentUser.getUsername(), e.getMessage());
+            }
+        }
 
         String message = msg("toast.language.changed." + lang);
         redirectAttributes.addFlashAttribute("successMessage", message);

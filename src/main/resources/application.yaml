@@ -15,8 +15,8 @@ spring:
     driver-class-name: org.h2.Driver
     # Дефолти для локального запуску без env-змінних:
     #   H2 створює БД з user=sa і порожнім паролем.
-    username: ${DB_USER}
-    password: ${DB_PASS}
+    username: ${DB_USER:sa}
+    password: ${DB_PASS:}
 
   # ===================== FLYWAY =====================
   flyway:

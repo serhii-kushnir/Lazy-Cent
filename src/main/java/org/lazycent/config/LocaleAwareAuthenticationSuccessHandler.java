@@ -25,19 +25,17 @@ public class LocaleAwareAuthenticationSuccessHandler implements AuthenticationSu
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
-
+                                        Authentication authentication) throws IOException {
         User user = extractUser(authentication);
         String lang = (user != null) ? user.getPreferredLanguage() : null;
 
         if (lang != null && !lang.isBlank()) {
             localeResolver.setLocale(request, response, Locale.forLanguageTag(lang));
-            log.debug("Locale restored for {}: {}", authentication.getName(), lang);
-        } else {
-            log.debug("No preferredLanguage for {}, keeping default", authentication.getName());
+            log.debug("Restored locale for {}: {}", authentication.getName(), lang);
         }
+        // Якщо lang == null — LocaleResolver сам підбере з Accept-Language
+        // або fallback на uk-UA.
 
-        // ← Редірект на дашборд
         response.sendRedirect(request.getContextPath() + "/home");
     }
 
