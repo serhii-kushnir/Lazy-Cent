@@ -468,6 +468,7 @@ public class BudgetService {
         return expense.getDayBudget().getDate();
     }
 
+    @Transactional(readOnly = true)
     public LocalDate getDateByIncome(Long incomeId, User user) {
         Income income = incomeRepository.findById(incomeId)
                 .orElseThrow(() -> new EntityNotFoundException("Дохід", incomeId));
