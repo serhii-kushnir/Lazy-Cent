@@ -2,6 +2,7 @@ package org.lazycent.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.lazycent.model.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,23 +36,6 @@ public class WebConfig implements WebMvcConfigurer {
             Locale.ENGLISH
     );
 
-    /**
-     * Резолвер локалі з наступним пріоритетом:
-     * <ol>
-     *   <li><b>Сесія</b> — якщо користувач явно перемкнув мову через
-     *       {@code ?lang=uk} або POST {@code /settings/language}.
-     *       Це той самий атрибут, який пише {@link SessionLocaleResolver},
-     *       тому {@code LocaleChangeInterceptor} продовжує працювати без змін.</li>
-     *   <li><b>User.preferredLanguage</b> — для автентифікованих, якщо
-     *       сесія втрачена (наприклад, після рестарту застосунку або
-     *       після логіну з іншого браузера). Це важливо: людина вибрала
-     *       англійську — вона має бачити англійську одразу після логіну,
-     *       а не тільки після першого перемикання в цій сесії.</li>
-     *   <li><b>Accept-Language</b> — для нових відвідувачів. Якщо браузер
-     *       явно просить англійську — показуємо англійську.</li>
-     *   <li><b>Fallback</b> — {@link #DEFAULT_LOCALE} (uk-UA).</li>
-     * </ol>
-     */
     @Bean
     public LocaleResolver localeResolver() {
         return new LazyCentLocaleResolver();
@@ -80,18 +64,18 @@ public class WebConfig implements WebMvcConfigurer {
 
     private static class LazyCentLocaleResolver implements LocaleResolver {
 
-        private final SessionLocaleResolver sessionDelegate = new SessionLocaleResolver();
-
-        LazyCentLocaleResolver() {
-            sessionDelegate.setDefaultLocale(DEFAULT_LOCALE);
-        }
-
         @Override
         public Locale resolveLocale(HttpServletRequest request) {
             // 1. Сесія (пишеться LocaleChangeInterceptor або /settings/language)
-            Locale sessionLocale = sessionDelegate.resolveLocale(request);
-            if (isSupported(sessionLocale)) {
-                return sessionLocale;
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                Object attr = session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
+                if (attr instanceof Locale) {
+                    Locale sessionLocale = (Locale) attr;
+                    if (isSupported(sessionLocale)) {
+                        return sessionLocale;
+                    }
+                }
             }
 
             // 2. User.preferredLanguage
@@ -114,7 +98,10 @@ public class WebConfig implements WebMvcConfigurer {
         public void setLocale(HttpServletRequest request,
                               HttpServletResponse response,
                               Locale locale) {
-            sessionDelegate.setLocale(request, response, locale);
+            // Зберігаємо локаль у сесії під стандартним ключем.
+            // LocaleChangeInterceptor викликає цей метод, коли бачить ?lang=...
+            request.getSession().setAttribute(
+                    SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
         }
 
         private boolean isSupported(Locale locale) {
@@ -135,8 +122,17 @@ public class WebConfig implements WebMvcConfigurer {
         }
 
         private Locale matchBrowserLocale(HttpServletRequest request) {
+            // Перевіряємо наявність заголовка. Якщо його немає,
+            // request.getLocale() поверне системну локаль JVM (зазвичай en),
+            // що зламає наш fallback на uk-UA.
+            String acceptLanguage = request.getHeader("Accept-Language");
+            if (acceptLanguage == null || acceptLanguage.isBlank()) {
+                return null;
+            }
+
             Locale browserLocale = request.getLocale();
             if (browserLocale == null) return null;
+
             for (Locale supported : SUPPORTED) {
                 if (supported.getLanguage().equals(browserLocale.getLanguage())) {
                     return supported;
@@ -144,5 +140,6 @@ public class WebConfig implements WebMvcConfigurer {
             }
             return null;
         }
+
     }
 }
