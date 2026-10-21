@@ -1563,12 +1563,18 @@
                 if (initialType === 'EXPENSE') {
                     expenseBtn.className = 'btn active-expense';
                     incomeBtn.className = 'btn btn-outline-success';
-                    window.fetchCategories('EXPENSE').then(function (cats) { window.populateCategories(document.getElementById('cloneCategory'), cats); });
+                    window.fetchCategories('EXPENSE').then(function (cats) {
+                        window.populateCategories(document.getElementById('cloneCategory'), cats);
+                        document.getElementById('cloneCategory').value = category; // <-- ПОВЕРТАЄМО ВИБІР
+                    });
                     document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/expense';
                 } else {
                     incomeBtn.className = 'btn active-income';
                     expenseBtn.className = 'btn btn-outline-danger';
-                    window.fetchCategories('INCOME').then(function (cats) { window.populateCategories(document.getElementById('cloneCategory'), cats); });
+                    window.fetchCategories('INCOME').then(function (cats) {
+                        window.populateCategories(document.getElementById('cloneCategory'), cats);
+                        document.getElementById('cloneCategory').value = category; // <-- ПОВЕРТАЄМО ВИБІР
+                    });
                     document.getElementById('cloneForm').action = '/day/' + dateInput.value + '/income';
                 }
                 if (cloneModalEl) bootstrap.Modal.getOrCreateInstance(cloneModalEl).show();

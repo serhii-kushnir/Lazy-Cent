@@ -480,7 +480,7 @@
                         <thead>
                         <tr>
                             <th class="col-number">№</th>
-                            <th class="col-date sortable" data-sort="date" data-type="string"><span th:text="#{allDays.col.date}">Дата</span> <i class="fas fa-sort sort-icon"></i></th>
+                            <th class="col-date sortable active-desc" data-sort="date" data-type="string"><span th:text="#{allDays.col.date}">Дата</span> <i class="fas fa-sort-down sort-icon"></i></th>
                             <th class="col-day sortable" data-sort="day" data-type="string"><span th:text="#{allDays.col.day}">День</span> <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-amount sortable" data-sort="expenses" data-type="number"><span th:text="#{allDays.col.expenses}">Витрати</span> <i class="fas fa-sort sort-icon"></i></th>
                             <th class="col-amount sortable" data-sort="incomes" data-type="number"><span th:text="#{allDays.col.incomes}">Доходи</span> <i class="fas fa-sort sort-icon"></i></th>
@@ -1219,7 +1219,10 @@
 
         // ===== INIT =====
         setViewMode('table');
-        applyFiltersAndPaginate();
+
+        // Сортуємо за датою (від новіших до старіших) при завантаженні
+        sortRowsBy('date', 'desc');
+
         setTimeout(renderAllCharts, 300);
 
         [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

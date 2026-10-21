@@ -22,6 +22,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class BudgetService {
 
     private final DayBudgetRepository dayBudgetRepository;
@@ -192,7 +193,7 @@ public class BudgetService {
     }
 
     // ==================== ОТРИМАННЯ ДАНИХ ====================
-
+    @Transactional(readOnly = true)
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate, User user) {
         List<DayBudget> budgets = dayBudgetRepository.findByOwnerAndDateBetween(user, startDate, endDate);
 
@@ -255,6 +256,7 @@ public class BudgetService {
      * у view (див. fix P0). Тепер — обидві проблеми (lazy + in-memory
      * pagination) вирішені одночасно.
      */
+    @Transactional(readOnly = true)
     public List<DayBudget> getAllBudgets(User user) {
         if (user == null) {
             log.warn("getAllBudgets: user is null");
@@ -459,6 +461,7 @@ public class BudgetService {
         return getTotalBudget(startOfMonth, today, user);
     }
 
+    @Transactional(readOnly = true)
     public LocalDate getDateByExpense(Long expenseId, User user) {
         Expense expense = expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new EntityNotFoundException("Витрату", expenseId));
