@@ -36,7 +36,7 @@ public class SecurityConfig {
                                 "/favicon.ico", "/logo.png",
                                 "/privacy", "/terms", "/error", "/error/**",
                                 "/forgot-password", "/reset-password",
-                                "/actuator/health", "/actuator/health/**"
+                                "/actuator/health", "/robots.txt", "/sitemap.xml", "/actuator/health/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+
+Disallow: /home
+Disallow: /budget
+Disallow: /totals
+Disallow: /all-days
+Disallow: /notes
+Disallow: /settings
+Disallow: /day/
+
+Sitemap: https://lazycent.com/sitemap.xml
