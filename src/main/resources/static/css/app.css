@@ -83,9 +83,10 @@
 
 /* ===================== NAVBAR ACTION BUTTONS & TOGGLES ===================== */
 
-/* Спільні правила для кнопок та перемикача мови */
+/* Спільні правила (без зайвих margin, бо в HTML є gap-2) */
 .wm-navbar .nav-btn,
-.wm-navbar .lang-switch {
+.wm-navbar .lang-switch,
+.wm-navbar .theme-toggle-btn {
     height: 40px;
     display: inline-flex;
     align-items: center;
@@ -151,13 +152,79 @@
     color: var(--bs-secondary-color);
     transition: all 0.2s ease;
 }
-.wm-navbar .lang-switch a:hover { color: var(--bs-primary); }
+.wm-navbar .lang-switch a:hover {
+    color: var(--bs-primary);
+}
 .wm-navbar .lang-switch a.active {
     background: var(--bs-primary);
     color: #fff !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Кнопка теми (ВИПРАВЛЕНО: додано фон і правильні розміри) */
+.wm-navbar .theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 8px;
+    background: var(--bs-secondary-bg); /* Тепер фон такий самий, як у мови */
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.wm-navbar .theme-toggle-btn i {
+    font-size: 1rem;
+}
+.wm-navbar .theme-toggle-btn:hover {
+    border-color: var(--bs-primary);
+    color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), 0.1);
+}
+
+/* ===================== МОБІЛЬНА ВЕРСІЯ (МЕНШЕ 992px) ===================== */
+@media (max-width: 991.98px) {
+    .wm-navbar .navbar-nav > li {
+        width: 100%;
+    }
+
+    .wm-navbar .nav-btn {
+        display: flex;
+        width: 100%;
+        margin: 4px 0;
+        height: 44px;
+        justify-content: center;
+    }
+
+    /* Блок з мовою та темою */
+    .wm-navbar .nav-item.d-flex {
+        display: flex !important;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        margin-bottom: 8px;
+    }
+
+    .wm-navbar .lang-switch {
+        display: flex;
+        flex: 1;
+        height: 44px;
+        margin: 0;
+    }
+
+    .wm-navbar .lang-switch a {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .wm-navbar .theme-toggle-btn {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        margin: 0;
+    }
+}
 
 /* ===================== МОБІЛЬНА ВЕРСІЯ (МЕНШЕ 992px) ===================== */
 @media (max-width: 991.98px) {

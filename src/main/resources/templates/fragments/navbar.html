@@ -4,9 +4,16 @@
 
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/">
+        <!-- Логотип для АВТОРИЗОВАНИХ (веде на дашборд) -->
+        <a sec:authorize="isAuthenticated()" class="navbar-brand" th:href="@{/home}">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
+
+        <!-- Логотип для НЕАВТОРИЗОВАНИХ (веде на головну/лендінг) -->
+        <a sec:authorize="!isAuthenticated()" class="navbar-brand" th:href="@{/}">
+            <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
+        </a>
+
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -41,11 +48,10 @@
                     </a>
                 </li>
 
-                <!-- Аватар та налаштування -->
+                <!-- Аватар та налаштування (Шестерня) -->
                 <li class="nav-item ms-lg-2" sec:authorize="isAuthenticated()">
                     <button class="user-avatar" id="openSettingsBtn" type="button" th:title="#{settings.title}">
                         <span class="avatar-placeholder" sec:authentication="name"></span>
-                        <!-- Прибрано класи d-none d-sm-inline, тепер ім'я видно завжди -->
                         <span class="ms-1" sec:authentication="name"></span>
                     </button>
                 </li>
@@ -60,21 +66,47 @@
                     <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
                 </li>
 
-                <!-- ==================== СПІЛЬНІ ЕЛЕМЕНТИ ==================== -->
-                <!-- Перемикач мови (ТІЛЬКИ ДЛЯ НЕАВТОРИЗОВАНИХ) -->
-                <li class="nav-item ms-lg-3 mt-2 mt-lg-0 w-100 w-lg-auto" sec:authorize="!isAuthenticated()">
-                    <div class="lang-switch">
+                <!-- ==================== ПЕРЕМИКАЧІ (МОВА + ТЕМА) ==================== -->
+                <li class="nav-item ms-lg-3 mt-2 mt-lg-0 d-flex flex-row align-items-center gap-2 w-100 w-lg-auto" sec:authorize="!isAuthenticated()">
+                    <!-- Мова -->
+                    <div class="lang-switch flex-grow-1 flex-lg-grow-0">
                         <a th:href="@{''(lang='uk')}" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
                         <a th:href="@{''(lang='en')}" th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
                     </div>
-                </li>
 
+                    <!-- Тема -->
+                    <button id="themeToggle" class="theme-toggle-btn" type="button" th:title="#{settings.theme}">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </li>
             </ul>
         </div>
     </div>
 
     <script>
         (function() {
+            // Ініціалізація іконки теми
+            const themeBtn = document.getElementById('themeToggle');
+            if (themeBtn) {
+                const icon = themeBtn.querySelector('i');
+                const root = document.documentElement;
+
+                function updateIcon() {
+                    const theme = root.getAttribute('data-bs-theme') || 'light';
+                    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+
+                updateIcon();
+
+                themeBtn.addEventListener('click', function() {
+                    const current = root.getAttribute('data-bs-theme') || 'light';
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    root.setAttribute('data-bs-theme', next);
+                    localStorage.setItem('lazycent-theme', next);
+                    updateIcon();
+                });
+            }
+
             // Ініціали аватара
             function setAvatarInitials() {
                 const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
