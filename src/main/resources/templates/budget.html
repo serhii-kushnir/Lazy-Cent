@@ -137,8 +137,10 @@
     </div>
 
     <!-- ===== 2. НАВІГАЦІЯ ===== -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 month-nav no-print animate-fade-down">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center mb-3 month-nav no-print animate-fade-down gap-3">
+
+        <!-- Ліва частина: Перемикання місяців (притиснута до лівого краю на ПК) -->
+        <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 flex-wrap w-100 w-lg-auto">
             <a th:href="@{/budget(month=${month - 1}, year=${month == 1 ? year - 1 : year})}" class="btn btn-outline-secondary">
                 <i class="fas fa-chevron-left"></i>
             </a>
@@ -174,7 +176,8 @@
             </a>
         </div>
 
-        <div class="d-flex gap-2 flex-wrap action-buttons no-print">
+        <!-- Права частина: Кнопки дій (притиснута до правого краю на ПК) -->
+        <div class="d-flex gap-2 flex-wrap action-buttons no-print w-100 w-lg-auto justify-content-center justify-content-lg-end">
             <button class="btn btn-warning" onclick="window.print()">
                 <i class="fas fa-print"></i> <span th:text="#{btn.print}">Друк</span>
             </button>
@@ -182,6 +185,7 @@
                 <i class="fas fa-edit me-1"></i> <span th:text="#{budget.setBudget}">Встановити бюджет</span>
             </button>
         </div>
+
     </div>
 
     <!-- ===== 3. КАРТКИ ===== -->
