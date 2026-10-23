@@ -9,14 +9,14 @@
     <div th:replace="~{fragments/head :: themeAssets}"></div>
     <style>
         .auth-page {
-            min-height: 100vh; display: flex; align-items: center;
-            justify-content: center; background: var(--bs-body-bg); padding: 2rem 0;
+            display: flex; align-items: center;
+            justify-content: center; background: var(--bs-body-bg); padding: 1rem 0;
         }
         .auth-container { width: 100%; max-width: 640px; padding: 0 1.5rem; }
         .auth-card {
             border: none; border-radius: 1.5rem;
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
-            background: var(--bs-card-bg); padding: 2.5rem 2.5rem;
+            background: var(--bs-card-bg); padding: 1rem 1rem;
         }
         [data-bs-theme="dark"] .auth-card { box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3); }
         .auth-card .auth-header { text-align: center; margin-bottom: 2rem; }

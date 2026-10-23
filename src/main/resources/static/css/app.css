@@ -1,11 +1,6 @@
 /* =====================================================================
    LazyCent — глобальні стилі
-   =====================================================================
-   Перенесено з fragments/head.html (P1.d).
-   Винесено в окремий файл, щоб браузер кешував один раз,
-   а не отримував ~600 рядків інлайну в кожному HTML.
    ===================================================================== */
-
 
 /* ===================== CSS VARIABLES ===================== */
 :root {
@@ -47,9 +42,17 @@
 }
 .wm-navbar .navbar-brand,
 .wm-navbar .nav-link { color: var(--wm-navbar-color) !important; }
+
+/* Виправлення перенесення тексту (напр. All Days) */
 .wm-navbar .nav-link {
-    position: relative; padding-left: 1rem; padding-right: 1rem;
-    border-radius: 0.5rem; transition: all 0.3s ease;
+    position: relative;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
 }
 .wm-navbar .nav-link::after {
     content: ''; position: absolute; left: 50%; bottom: 0;
@@ -62,52 +65,6 @@
 }
 .wm-navbar .nav-link:hover::after { width: 100%; left: 0; }
 .wm-navbar .nav-link.active::after { width: 100%; left: 0; }
-
-.wm-navbar .theme-toggle-btn {
-    color: var(--wm-navbar-color) !important;
-    border: 1px solid var(--wm-navbar-color) !important;
-    background: transparent; border-radius: 0.5rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.wm-navbar .theme-toggle-btn.dropdown-toggle::after {
-    display: none !important;
-}
-.wm-navbar .dropdown-menu {
-    border-radius: 0.75rem;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-    border: 1px solid var(--bs-border-color);
-    min-width: 160px;
-    z-index: 1060;
-}
-[data-bs-theme="dark"] .wm-navbar .dropdown-menu {
-    background: #1d2027;
-    border-color: #2a2e37;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-}
-.wm-navbar .dropdown-item.active,
-.wm-navbar .dropdown-item:active {
-    background-color: var(--bs-primary);
-    color: #fff;
-}
-.wm-navbar .dropdown-item {
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-}
-.wm-navbar .dropdown-item span:first-child { font-size: 1.1rem; }
-.wm-navbar .theme-toggle-btn:hover {
-    background: rgba(var(--bs-primary-rgb), 0.12);
-    color: var(--bs-primary) !important;
-    border-color: var(--bs-primary) !important;
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-.wm-navbar .theme-toggle-btn:active {
-    transform: translateY(0) scale(0.95);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.wm-navbar .theme-toggle-btn i { transition: transform 0.3s ease; }
-.wm-navbar .theme-toggle-btn:hover i { transform: rotate(180deg); }
 
 .wm-navbar .user-avatar {
     cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
@@ -124,6 +81,121 @@
 }
 
 
+/* ===================== NAVBAR ACTION BUTTONS & TOGGLES ===================== */
+
+/* Спільні правила для кнопок та перемикача мови */
+.wm-navbar .nav-btn,
+.wm-navbar .lang-switch {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    line-height: 1;
+}
+
+/* Основна кнопка (Реєстрація / Sign up) */
+.wm-navbar .nav-btn-primary {
+    padding: 0 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    background-color: var(--bs-primary);
+    color: #fff !important;
+    border: 2px solid var(--bs-primary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.wm-navbar .nav-btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
+}
+
+/* Прозора кнопка (Увійти / Log in) */
+.wm-navbar .nav-btn-ghost {
+    padding: 0 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    background-color: transparent;
+    color: var(--bs-primary) !important;
+    border: 2px solid var(--bs-primary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.wm-navbar .nav-btn-ghost:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    transform: translateY(-1px);
+}
+
+/* Перемикач мови */
+.wm-navbar .lang-switch {
+    padding: 3px;
+    background: var(--bs-secondary-bg);
+    border-radius: 8px;
+    border: 1px solid var(--bs-border-color);
+    gap: 2px;
+}
+.wm-navbar .lang-switch a {
+    padding: 0 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--bs-secondary-color);
+    transition: all 0.2s ease;
+}
+.wm-navbar .lang-switch a:hover { color: var(--bs-primary); }
+.wm-navbar .lang-switch a.active {
+    background: var(--bs-primary);
+    color: #fff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ===================== МОБІЛЬНА ВЕРСІЯ (МЕНШЕ 992px) ===================== */
+@media (max-width: 991.98px) {
+    /* Робимо всі пункти меню на всю ширину */
+    .wm-navbar .navbar-nav > li {
+        width: 100%;
+    }
+
+    /* Кнопки входу та реєстрації */
+    .wm-navbar .nav-btn {
+        display: flex;
+        width: 100%;
+        margin: 4px 0;
+        height: 44px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    /* Перемикач мови розтягується на всю ширину */
+    .wm-navbar .lang-switch {
+        display: flex;
+        width: 100%;
+        height: 44px;
+        margin: 8px 0 12px 0;
+        justify-content: center;
+    }
+
+    .wm-navbar .lang-switch a {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.95rem;
+    }
+}
+
+
 /* ===================== FOOTER ===================== */
 .wm-footer {
     width: 100%;
@@ -131,7 +203,6 @@
     color: var(--wm-footer-color) !important;
     border-top: 1px solid var(--wm-footer-border);
 }
-
 
 /* ===================== PASSWORD REQUIREMENTS ===================== */
 .requirement-list {
