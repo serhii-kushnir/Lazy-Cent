@@ -15,19 +15,38 @@
 <!-- ==================== БЕЗ Chart.js ==================== -->
 <th:block th:fragment="themeAssets">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.png">
+    <meta name="theme-color" content="#0d6efd">
+
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/app.css">
+
     <th:block th:insert="~{fragments/head :: themeInit}"></th:block>
 </th:block>
 
 <!-- ==================== З Chart.js ==================== -->
 <th:block th:fragment="themeAssetsWithCharts">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/img/icons/icon-192x192.png">
+    <meta name="theme-color" content="#0d6efd">
+
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/css/app.css">
+
     <script src="/lib/chart.js/chart.umd.min.js"></script>
+
     <th:block th:insert="~{fragments/head :: themeInit}"></th:block>
 </th:block>
 

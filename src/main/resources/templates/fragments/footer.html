@@ -10,6 +10,21 @@
             <a href="/terms" class="text-muted text-decoration-none" th:text="#{footer.terms}">Умови використання</a>
         </p>
     </div>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker успішно зареєстровано. Scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Помилка реєстрації ServiceWorker:', error);
+                    });
+            });
+        }
+    </script>
 </footer>
 
 </body>
