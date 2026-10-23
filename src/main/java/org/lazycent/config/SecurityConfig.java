@@ -40,20 +40,20 @@ public class SecurityConfig {
                                 "/manifest.json",
                                 "/sw.js"
                         ).permitAll()
+                        .requestMatchers("/h2-console/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
+
+                // 👇 ДОДАЙТЕ ЦІ ДВА БЛОКИ ДЛЯ H2 CONSOLE 👇
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+                // 👆 ------------------------------------ 👆
 
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jsonAwareAuthenticationEntryPoint)
                 )
 
                 // ===== SESSION MANAGEMENT =====
-                // ВАЖЛИВО: порядок методів має значення.
-                // - sessionCreationPolicy, sessionFixation — прямі методи
-                //   SessionManagementConfigurer.
-                // - maximumSessions(...) повертає ConcurrencyControlConfigurer,
-                //   який НЕ повертає нас назад через `.and()` (deprecated).
-                //   Тому maximumSessions завжди має бути ОСТАННІМ.
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation(fixation -> fixation.migrateSession())
@@ -86,7 +86,6 @@ public class SecurityConfig {
 
         return http.build();
     }
-
     /**
      * Реєстр сесій для {@code maximumSessions(3)}.
      */
