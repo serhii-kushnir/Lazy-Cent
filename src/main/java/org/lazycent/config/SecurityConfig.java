@@ -38,7 +38,8 @@ public class SecurityConfig {
                                 "/forgot-password", "/reset-password",
                                 "/actuator/health", "/robots.txt", "/sitemap.xml", "/actuator/health/**",
                                 "/manifest.json",
-                                "/sw.js"
+                                "/sw.js",
+                                "/video/**"
                         ).permitAll()
                         .requestMatchers("/h2-console/**").hasRole("ADMIN")
                         .anyRequest().authenticated()

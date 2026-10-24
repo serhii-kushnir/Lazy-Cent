@@ -78,19 +78,19 @@ public class WebConfig implements WebMvcConfigurer {
                 }
             }
 
-            // 2. User.preferredLanguage
+            // 2. User.preferredLanguage (якщо користувач залогінений і вибрав мову в налаштуваннях)
             Locale userLocale = resolveUserLocale();
             if (userLocale != null) {
                 return userLocale;
             }
 
-            // 3. Accept-Language
-            Locale browserLocale = matchBrowserLocale(request);
-            if (browserLocale != null) {
-                return browserLocale;
-            }
+            // 3. Мова браузера (ВИМКНЕНО, щоб за замовчуванням завжди була українська)
+            // Locale browserLocale = matchBrowserLocale(request);
+            // if (browserLocale != null) {
+            //     return browserLocale;
+            // }
 
-            // 4. Fallback
+            // 4. Fallback — завжди українська для нових відвідувачів
             return DEFAULT_LOCALE;
         }
 
@@ -102,6 +102,10 @@ public class WebConfig implements WebMvcConfigurer {
             // LocaleChangeInterceptor викликає цей метод, коли бачить ?lang=...
             request.getSession().setAttribute(
                     SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
+
+            // КРИТИЧНО: оновлюємо поточний контекст, щоб зміни застосувалися
+            // одразу на цьому запиті, а не з наступного.
+            org.springframework.context.i18n.LocaleContextHolder.setLocale(locale);
         }
 
         private boolean isSupported(Locale locale) {
