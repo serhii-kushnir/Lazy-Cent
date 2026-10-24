@@ -186,8 +186,10 @@
                 <!-- ІМ'Я КОРИСТУВАЧА -->
                 <div class="mb-3 field-1">
                     <label for="username" class="form-label fw-semibold" th:text="#{auth.register.username}">Ім'я користувача</label>
+                    <!-- Додано динамічний клас is-invalid -->
                     <input type="text"
                            class="form-control"
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('username')} ? 'is-invalid'"
                            id="username"
                            th:field="*{username}"
                            th:placeholder="#{auth.register.usernamePlaceholder}"
@@ -200,6 +202,7 @@
                         <i class="fas fa-info-circle me-1"></i>
                         <span th:text="#{settings.profile.usernameHint}">Від 6 до 30 символів. Дозволено: літери (a-z, A-Z), цифри (0-9), підкреслення (_).</span>
                     </div>
+                    <!-- Відображення помилки з сервера -->
                     <div th:if="${fieldErrors != null and fieldErrors.containsKey('username')}" class="invalid-feedback" th:text="${fieldErrors.username}"></div>
                 </div>
 
@@ -208,6 +211,7 @@
                     <label for="email" class="form-label fw-semibold" th:text="#{auth.register.email}">Електронна пошта</label>
                     <input type="email"
                            class="form-control"
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('email')} ? 'is-invalid'"
                            id="email"
                            th:field="*{email}"
                            th:placeholder="#{auth.register.emailPlaceholder}"
@@ -225,6 +229,7 @@
                     <div class="password-toggle-group">
                         <input type="password"
                                class="form-control"
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('password')} ? 'is-invalid'"
                                id="password"
                                th:field="*{password}"
                                th:placeholder="#{auth.register.passwordPlaceholder}"
@@ -252,7 +257,7 @@
                     </div>
                     <div class="password-strength-text" id="strengthText" th:text="#{pwd.strength.enter}">Введіть пароль</div>
 
-                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('password')}" class="invalid-feedback" th:text="${fieldErrors.password}"></div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('password')}" class="invalid-feedback d-block" th:text="${fieldErrors.password}"></div>
                 </div>
 
                 <!-- ПІДТВЕРДЖЕННЯ ПАРОЛЯ -->
@@ -261,6 +266,7 @@
                     <div class="password-toggle-group">
                         <input type="password"
                                class="form-control"
+                               th:classappend="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')} ? 'is-invalid'"
                                id="passwordConfirm"
                                th:field="*{passwordConfirm}"
                                th:placeholder="#{auth.register.passwordConfirmPlaceholder}"
@@ -269,27 +275,32 @@
                             <i class="fas fa-eye" id="togglePasswordConfirmIcon"></i>
                         </button>
                     </div>
-                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')}" class="invalid-feedback" th:text="${fieldErrors.passwordConfirm}"></div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('passwordConfirm')}" class="invalid-feedback d-block" th:text="${fieldErrors.passwordConfirm}"></div>
                 </div>
 
                 <!-- ЧЕКБОКСИ ЗГОДИ -->
                 <div class="mb-2 form-check field-5">
-                    <input type="checkbox" class="form-check-input" id="privacyConsent" th:field="*{privacyConsent}" required>
+                    <input type="checkbox" class="form-check-input"
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('privacyConsent')} ? 'is-invalid'"
+                           id="privacyConsent" th:field="*{privacyConsent}" required>
                     <label class="form-check-label" for="privacyConsent">
                         <span th:text="#{auth.register.privacyPrefix}">Я погоджуюсь з</span>
                         <a href="/privacy" target="_blank" th:text="#{footer.privacy}">Політикою конфіденційності</a>
                     </label>
-                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('privacyConsent')}" class="invalid-feedback" th:text="${fieldErrors.privacyConsent}"></div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('privacyConsent')}" class="invalid-feedback d-block" th:text="${fieldErrors.privacyConsent}"></div>
                 </div>
 
                 <div class="mb-3 form-check field-6">
-                    <input type="checkbox" class="form-check-input" id="termsConsent" th:field="*{termsConsent}" required>
+                    <input type="checkbox" class="form-check-input"
+                           th:classappend="${fieldErrors != null and fieldErrors.containsKey('termsConsent')} ? 'is-invalid'"
+                           id="termsConsent" th:field="*{termsConsent}" required>
                     <label class="form-check-label" for="termsConsent">
                         <span th:text="#{auth.register.termsPrefix}">Я погоджуюсь з</span>
                         <a href="/terms" target="_blank" th:text="#{footer.terms}">Умовами використання</a>
                     </label>
-                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('termsConsent')}" class="invalid-feedback" th:text="${fieldErrors.termsConsent}"></div>
+                    <div th:if="${fieldErrors != null and fieldErrors.containsKey('termsConsent')}" class="invalid-feedback d-block" th:text="${fieldErrors.termsConsent}"></div>
                 </div>
+
                 <div th:if="${param.ratelimited}" class="alert alert-warning" role="alert">
                     <i class="fas fa-clock me-2"></i>
                     <span th:text="#{auth.register.rateLimited}">Забагато спроб реєстрації. Спробуйте через хвилину.</span>
@@ -300,9 +311,7 @@
                     <i class="fas fa-user-plus me-2"></i><span th:text="#{auth.register.submit}">Зареєструватися</span>
                 </button>
             </form>
-            </form>
 
-            <!-- 👇 ДОДАЙТЕ ЦЕЙ БЛОК 👇 -->
             <div class="divider">
                 <span th:text="#{auth.login.or}">або</span>
             </div>
@@ -310,7 +319,6 @@
             <a th:href="@{/oauth2/authorization/google}" class="btn btn-google w-100">
                 <i class="fab fa-google me-2"></i> <span th:text="#{auth.register.google}">Зареєструватися через Google</span>
             </a>
-            <!-- 👆 КІНЕЦЬ БЛОКУ 👆 -->
 
             <div class="auth-footer">
                 <span th:text="#{auth.register.haveAccount}">Вже маєте акаунт?</span>
@@ -341,6 +349,10 @@
                 veryStrong: /*[[#{pwd.strength.veryStrong}]]*/ 'Дуже сильний'
             }
         };
+
+        // Отримуємо прапорці помилок з сервера (чи була помилка при останній відправці)
+        var serverErrUsername = /*[[${fieldErrors != null and fieldErrors.containsKey('username')}]]*/ false;
+        var serverErrEmail    = /*[[${fieldErrors != null and fieldErrors.containsKey('email')}]]*/ false;
 
         const form = document.getElementById('registerForm');
         const usernameInput = document.getElementById('username');
@@ -397,16 +409,29 @@
         function validateUsername() {
             const pattern = /^[a-zA-Z0-9_]{6,30}$/;
             const valid = pattern.test(usernameInput.value);
-            usernameInput.classList.toggle('is-valid', valid);
-            usernameInput.classList.toggle('is-invalid', !valid && usernameInput.value.length > 0);
+
+            // Якщо сервер повернув помилку і користувач не змінював поле, не ставимо зелену галочку
+            if (valid && !serverErrUsername) {
+                usernameInput.classList.add('is-valid');
+                usernameInput.classList.remove('is-invalid');
+            } else if (!valid && usernameInput.value.length > 0) {
+                usernameInput.classList.add('is-invalid');
+                usernameInput.classList.remove('is-valid');
+            }
             return valid;
         }
 
         function validateEmail() {
             const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const valid = pattern.test(emailInput.value);
-            emailInput.classList.toggle('is-valid', valid);
-            emailInput.classList.toggle('is-invalid', !valid && emailInput.value.length > 0);
+
+            if (valid && !serverErrEmail) {
+                emailInput.classList.add('is-valid');
+                emailInput.classList.remove('is-invalid');
+            } else if (!valid && emailInput.value.length > 0) {
+                emailInput.classList.add('is-invalid');
+                emailInput.classList.remove('is-valid');
+            }
             return valid;
         }
 
@@ -424,7 +449,7 @@
                 lowercase: /[a-z]/.test(password),
                 uppercase: /[A-Z]/.test(password),
                 digit: /\d/.test(password),
-                special: /[@$!%*?&]/.test(password)
+                special: /[@$!%*?&]/.test(password) // або [^a-zA-Z0-9] для будь-якого спецсимволу
             };
 
             applyReq(reqLength, 'reqLength', checks.length);
@@ -489,8 +514,14 @@
             return match;
         }
 
-        usernameInput.addEventListener('input', validateUsername);
-        emailInput.addEventListener('input', validateEmail);
+        usernameInput.addEventListener('input', function() {
+            serverErrUsername = false; // Скидаємо прапорець помилки сервера при редагуванні
+            validateUsername();
+        });
+        emailInput.addEventListener('input', function() {
+            serverErrEmail = false;
+            validateEmail();
+        });
 
         passwordInput.addEventListener('input', function() {
             const checks = checkPasswordStrength(this.value);
@@ -555,7 +586,8 @@
             if (this.checked) this.classList.remove('is-invalid');
         });
 
-        if (passwordInput.value) {
+        // Ініціалізація при завантаженні сторінки
+        if (passwordInput.value && !/*[[${fieldErrors != null and fieldErrors.containsKey('password')}]]*/ false) {
             checkPasswordStrength(passwordInput.value);
         }
     });
