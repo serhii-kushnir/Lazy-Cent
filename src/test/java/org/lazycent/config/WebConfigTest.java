@@ -43,7 +43,7 @@ class WebConfigTest {
     }
 
     @Test
-    void localeResolver_usesAcceptLanguage_whenSupported() {
+    void localeResolver_ignoresAcceptLanguage_andFallsBackToUkrainian() {
         LocaleResolver resolver = config.localeResolver();
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -51,8 +51,11 @@ class WebConfigTest {
         request.addHeader("Accept-Language", "en-US,en;q=0.9");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
+        // Оскільки в WebConfig ми навмисно вимкнули matchBrowserLocale,
+        // система має проігнорувати англійську і повернути українську (fallback)
         assertThat(resolver.resolveLocale(request))
-                .isEqualTo(Locale.ENGLISH);
+                .as("Мова браузера ігнорується, fallback — українська")
+                .isEqualTo(Locale.forLanguageTag("uk-UA"));
     }
 
     @Test
