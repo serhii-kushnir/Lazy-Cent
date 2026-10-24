@@ -27,6 +27,44 @@
             border: 1.5px solid var(--bs-border-color); font-size: 1rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
+        /* ===== GOOGLE BUTTON & DIVIDER ===== */
+        .auth-card .btn-google {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1rem;
+            border: 1.5px solid #DB4437;
+            background-color: #DB4437;
+            color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .auth-card .btn-google:hover {
+            background-color: #C53030;
+            border-color: #C53030;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(219, 68, 55, 0.3);
+        }
+        .auth-card .btn-google:focus {
+            box-shadow: 0 0 0 3px rgba(219, 68, 55, 0.25);
+        }
+
+        .auth-card .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--bs-secondary-color);
+            font-size: 0.85rem;
+        }
+        .auth-card .divider::before,
+        .auth-card .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .auth-card .divider span {
+            padding: 0 1rem;
+        }
         .auth-card .form-control:focus {
             border-color: var(--bs-primary);
             box-shadow: 0 0 0 3px rgba(var(--bs-primary-rgb), 0.15);
@@ -262,6 +300,18 @@
                     <i class="fas fa-user-plus me-2"></i><span th:text="#{auth.register.submit}">Зареєструватися</span>
                 </button>
             </form>
+            </form>
+
+            <!-- 👇 ДОДАЙТЕ ЦЕЙ БЛОК 👇 -->
+            <div class="divider">
+                <span th:text="#{auth.login.or}">або</span>
+            </div>
+
+            <a th:href="@{/oauth2/authorization/google}" class="btn btn-google w-100">
+                <i class="fab fa-google me-2"></i> <span th:text="#{auth.register.google}">Зареєструватися через Google</span>
+            </a>
+            <!-- 👆 КІНЕЦЬ БЛОКУ 👆 -->
+
             <div class="auth-footer">
                 <span th:text="#{auth.register.haveAccount}">Вже маєте акаунт?</span>
                 <a href="/login" th:text="#{auth.register.login}">Увійдіть</a>

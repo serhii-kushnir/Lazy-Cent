@@ -282,6 +282,20 @@
             .js .reveal.is-visible, header, #cookie:not([hidden]) { animation: none; }
         }
 
+
+        /* =====================================================================
+           МОНЕТИ, ЩО ПАДАЮТЬ (hero та фінальний блок)
+           Малюються на <canvas> скриптом внизу сторінки (працює стабільно на iOS).
+           ===================================================================== */
+        main { position: relative; }
+        .hero { position: relative; z-index: 1; }
+        .final { position: relative; overflow: hidden; }
+        .final > .wrap { position: relative; z-index: 1; }
+
+        canvas.coins { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; z-index: 0; }
+
+        @media (prefers-reduced-motion: reduce) { canvas.coins { display: none; } }
+
         /* =====================================================================
            МОБІЛЬНА АДАПТАЦІЯ (ВИПРАВЛЕНО)
            ===================================================================== */
@@ -690,6 +704,143 @@
         }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
 
         els.forEach(function (el) { io.observe(el); });
+    })();
+</script>
+<!-- ===================== МОНЕТИ, ЩО ПАДАЮТЬ ===================== -->
+<script>
+    (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        const rnd = (a, b) => a + Math.random() * (b - a);
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const mobile = window.innerWidth < 820;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        // Спрайт монети малюється один раз
+        const S = Math.round(48 * dpr), r = S / 2;
+        const sprite = document.createElement('canvas');
+        sprite.width = sprite.height = S;
+        (function () {
+            const c = sprite.getContext('2d');
+            const g = c.createRadialGradient(r * .7, r * .62, r * .05, r, r, r);
+            g.addColorStop(0, '#fff3c4'); g.addColorStop(.3, '#f6cf63');
+            g.addColorStop(.62, '#e9a93b'); g.addColorStop(1, '#b9791a');
+            c.beginPath(); c.arc(r, r, r - 1, 0, Math.PI * 2); c.fillStyle = g; c.fill();
+            c.lineWidth = S * .07; c.strokeStyle = '#d39a2c';
+            c.beginPath(); c.arc(r, r, r - S * .06, 0, Math.PI * 2); c.stroke();
+            c.lineWidth = S * .025; c.strokeStyle = 'rgba(255,255,255,.35)';
+            c.beginPath(); c.arc(r, r, r - S * .12, 0, Math.PI * 2); c.stroke();
+            c.fillStyle = '#8a5a0f'; c.textAlign = 'center'; c.textBaseline = 'middle';
+            c.font = '800 ' + Math.round(S * .5) + 'px Manrope, system-ui, sans-serif';
+            c.fillText('\u00A2', r, r + S * .03);
+        })();
+
+        const layers = [];
+
+        function Layer(canvas, count) {
+            const ctx = canvas.getContext('2d');
+            const L = { canvas: canvas, visible: true, coins: [], w: 0, h: 0 };
+
+            function spawn(c, initial) {
+                c.x0 = Math.random();
+                c.size = rnd(22, 44);
+                c.y = initial ? rnd(-c.size, L.h) : -c.size;
+                c.vy = rnd(55, 105) * (mobile ? .9 : 1);
+                c.amp = rnd(10, 40); c.freq = rnd(.5, 1.2); c.ph = rnd(0, 6.28);
+                c.a = rnd(0, 6.28); c.spin = rnd(2, 5) * (Math.random() < .5 ? -1 : 1);
+                c.tilt = rnd(-.4, .4);
+            }
+
+            L.resize = function () {
+                const w = canvas.clientWidth, h = canvas.clientHeight;
+                if (!w || !h) return;
+                L.w = w; L.h = h;
+                canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+                if (!L.coins.length) {
+                    for (let i = 0; i < count; i++) {
+                        const c = {}; spawn(c, true);
+                        c.x0 = (i + Math.random()) / count;      // рівномірно по ширині
+                        L.coins.push(c);
+                    }
+                }
+            };
+
+            L.step = function (dt, t) {
+                if (!L.w) return;
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < L.coins.length; i++) {
+                    const c = L.coins[i];
+                    c.y += c.vy * dt; c.a += c.spin * dt;
+                    if (c.y > L.h + c.size) spawn(c, false);
+                    const x = c.x0 * L.w + Math.sin(t * c.freq + c.ph) * c.amp;
+                    const al = .95 * Math.min(clamp((c.y + c.size) / 100, 0, 1), clamp((L.h + 20 - c.y) / 110, 0, 1));
+                    if (al <= 0.01) continue;
+                    const sc = Math.max(Math.abs(Math.cos(c.a)), .1);   // імітація обертання навколо вертикальної осі
+                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    ctx.globalAlpha = al;
+                    ctx.translate(x, c.y);
+                    ctx.rotate(c.tilt);
+                    ctx.scale(sc, 1);
+                    ctx.drawImage(sprite, -c.size / 2, -c.size / 2, c.size, c.size);
+                }
+                ctx.globalAlpha = 1;
+            };
+
+            if ('ResizeObserver' in window) new ResizeObserver(L.resize).observe(canvas);
+            else window.addEventListener('resize', L.resize);
+            L.resize();
+            layers.push(L);
+            return L;
+        }
+
+        // Пауза, коли полотно поза екраном (за замовчуванням — працює)
+        const io = 'IntersectionObserver' in window
+            ? new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    layers.forEach(function (L) { if (L.canvas === e.target) L.visible = e.isIntersecting; });
+                });
+            })
+            : null;
+
+        function mount(parent, count, before) {
+            const cv = document.createElement('canvas');
+            cv.className = 'coins';
+            cv.setAttribute('aria-hidden', 'true');
+            parent.insertBefore(cv, before || parent.firstChild);
+            return { cv: cv, layer: null, count: count };
+        }
+
+        // 1) Hero
+        const hero = document.querySelector('.hero'), main = document.querySelector('main');
+        if (hero && main) {
+            const m = mount(main, mobile ? 8 : 14);
+            const fit = function () { m.cv.style.height = hero.offsetHeight + 'px'; if (m.layer) m.layer.resize(); };
+            fit();
+            m.layer = Layer(m.cv, m.count);
+            if ('ResizeObserver' in window) new ResizeObserver(fit).observe(hero);
+            if (io) io.observe(m.cv);
+        }
+
+        // 2) Фінальний блок
+        const fin = document.querySelector('.final');
+        if (fin) {
+            const m = mount(fin, mobile ? 6 : 10);
+            m.layer = Layer(m.cv, m.count);
+            if (io) io.observe(m.cv);
+        }
+
+        // Єдиний цикл requestAnimationFrame — на iOS працює постійно, а не лише під час скролу
+        let last = 0;
+        function frame(ts) {
+            requestAnimationFrame(frame);
+            const dt = Math.min((ts - last) / 1000 || 0, .05);
+            last = ts;
+            if (document.hidden) return;
+            for (let i = 0; i < layers.length; i++) if (layers[i].visible) layers[i].step(dt, ts / 1000);
+        }
+        requestAnimationFrame(frame);
+        window.addEventListener('load', function () { layers.forEach(function (L) { L.resize(); }); });
     })();
 </script>
 </body>
