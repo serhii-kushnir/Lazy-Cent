@@ -1,18 +1,19 @@
 package org.lazycent.config;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.lazycent.model.User;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
@@ -49,28 +50,25 @@ public class WebConfig implements WebMvcConfigurer {
                 .resourceChain(false);
     }
 
-    // ==================== КАСТОМНИЙ РЕЗОЛВЕР З COOKIE ====================
-
     public static class LazyCentLocaleResolver implements LocaleResolver {
-
-        // Використовуємо CookieLocaleResolver для збереження в браузері на 1 рік
-        private final CookieLocaleResolver cookieResolver = new CookieLocaleResolver("LAZYCENT_LANG");
-
-        public LazyCentLocaleResolver() {
-            cookieResolver.setDefaultLocale(DEFAULT_LOCALE);
-            cookieResolver.setCookieMaxAge(60 * 60 * 24 * 365); // 1 рік
-            cookieResolver.setCookiePath("/");
-        }
+        private static final String COOKIE_NAME = "LAZYCENT_LANG";
 
         @Override
         public Locale resolveLocale(HttpServletRequest request) {
-            // 1. Перевіряємо Cookie (найвищий пріоритет, бо це явний вибір користувача)
-            Locale cookieLocale = cookieResolver.resolveLocale(request);
-            if (isSupported(cookieLocale)) {
-                return cookieLocale;
+            // 1. Cookie (найвищий пріоритет, бо це явний вибір)
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if (COOKIE_NAME.equals(cookie.getName())) {
+                        Locale cookieLocale = Locale.forLanguageTag(cookie.getValue());
+                        if (isSupported(cookieLocale)) {
+                            return cookieLocale;
+                        }
+                    }
+                }
             }
 
-            // 2. Перевіряємо Сесію
+            // 2. Сесія (використовується в тестах та при першому виборі мови)
             HttpSession session = request.getSession(false);
             if (session != null) {
                 Object attr = session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
@@ -79,7 +77,7 @@ public class WebConfig implements WebMvcConfigurer {
                 }
             }
 
-            // 3. Перевіряємо БД (якщо користувач залогінений)
+            // 3. БД (якщо користувач залогінений і вибрав мову в профілі)
             Locale userLocale = resolveUserLocale();
             if (userLocale != null) {
                 return userLocale;
@@ -91,10 +89,18 @@ public class WebConfig implements WebMvcConfigurer {
 
         @Override
         public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
-            // Зберігаємо в Cookie, Сесію та оновлюємо поточний контекст
-            cookieResolver.setLocale(request, response, locale);
+            // Зберігаємо в Cookie (терміном на 1 рік)
+            Cookie cookie = new Cookie(COOKIE_NAME, locale.toLanguageTag());
+            cookie.setMaxAge(60 * 60 * 24 * 365);
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            response.addCookie(cookie);
+
+            // Зберігаємо в Сесію
             request.getSession().setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
-            org.springframework.context.i18n.LocaleContextHolder.setLocale(locale);
+
+            // Оновлюємо поточний контекст
+            LocaleContextHolder.setLocale(locale);
         }
 
         private boolean isSupported(Locale locale) {

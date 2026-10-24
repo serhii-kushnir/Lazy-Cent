@@ -9,24 +9,17 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.web.servlet.LocaleResolver;
-
-import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 class LocaleAwareAuthenticationSuccessHandlerTest {
 
-    private LocaleResolver localeResolver;
     private LocaleAwareAuthenticationSuccessHandler handler;
 
     @BeforeEach
     void setUp() {
-        localeResolver = mock(LocaleResolver.class);
-        handler = new LocaleAwareAuthenticationSuccessHandler(localeResolver);
+        handler = new LocaleAwareAuthenticationSuccessHandler();
     }
 
     @Test
@@ -38,28 +31,6 @@ class LocaleAwareAuthenticationSuccessHandlerTest {
         handler.onAuthenticationSuccess(request, response, auth);
 
         assertThat(response.getRedirectedUrl()).isEqualTo("/home");
-    }
-
-    @Test
-    void onAuthenticationSuccess_setsLocale_whenPreferredLanguageSet() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        Authentication auth = authFor(userWithLang("uk-UA"));
-
-        handler.onAuthenticationSuccess(request, response, auth);
-
-        verify(localeResolver).setLocale(eq(request), eq(response), eq(Locale.forLanguageTag("uk-UA")));
-    }
-
-    @Test
-    void onAuthenticationSuccess_doesNotSetLocale_whenLanguageNull() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        Authentication auth = authFor(userWithLang(null));
-
-        handler.onAuthenticationSuccess(request, response, auth);
-
-        verify(localeResolver, never()).setLocale(any(), any(), any());
     }
 
     @Test
@@ -77,10 +48,7 @@ class LocaleAwareAuthenticationSuccessHandlerTest {
         handler.onAuthenticationSuccess(request, response, auth);
 
         assertThat(response.getRedirectedUrl()).isEqualTo("/home");
-        verify(localeResolver).setLocale(eq(request), eq(response), eq(Locale.ENGLISH));
     }
-
-    // ==================== ДОПОМІЖНІ ====================
 
     private User userWithLang(String lang) {
         User user = new User();

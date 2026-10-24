@@ -1,7 +1,7 @@
 package org.lazycent.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse; // Додано імпорт
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.User;
@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.LocaleResolver; // Додано імпорт
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Locale;
@@ -28,11 +28,7 @@ public class SettingsController extends BaseController {
     private final UserRepository userRepository;
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
-
-    // ✅ ДОДАЙТЕ ЦЕ ПОЛЕ:
     private final LocaleResolver localeResolver;
-
-    // ==================== ВАЛЮТА ====================
 
     @PostMapping("/settings/currency")
     public String updateCurrency(@RequestParam String currency,
@@ -55,8 +51,6 @@ public class SettingsController extends BaseController {
         }
         return redirectUtils.redirectToReferer(request);
     }
-
-    // ==================== ПРОФІЛЬ ====================
 
     @PostMapping("/settings/profile")
     public String updateProfile(@RequestParam String username,
@@ -81,8 +75,6 @@ public class SettingsController extends BaseController {
         return redirectUtils.redirectToReferer(request);
     }
 
-    // ==================== ОЧИЩЕННЯ ДАНИХ ====================
-
     @PostMapping("/settings/clear-data")
     public String clearData(Authentication authentication,
                             RedirectAttributes redirectAttributes,
@@ -100,8 +92,6 @@ public class SettingsController extends BaseController {
         }
         return redirectUtils.redirectToReferer(request);
     }
-
-    // ==================== ВИДАЛЕННЯ АКАУНТА ====================
 
     @PostMapping("/settings/delete-account")
     public String deleteAccount(Authentication authentication,
@@ -124,8 +114,6 @@ public class SettingsController extends BaseController {
         }
     }
 
-    // ==================== ДЕМО-ДАНІ ====================
-
     @PostMapping("/generate-demo")
     public String generateDemo(Authentication authentication,
                                RedirectAttributes redirectAttributes,
@@ -144,13 +132,11 @@ public class SettingsController extends BaseController {
         return redirectUtils.redirectToReferer(request);
     }
 
-    // ==================== МОВА ====================
-
     @PostMapping("/settings/language")
     public String updateLanguage(@RequestParam String lang,
                                  Authentication authentication,
                                  HttpServletRequest request,
-                                 HttpServletResponse response, // ✅ Додано параметр
+                                 HttpServletResponse response,
                                  RedirectAttributes redirectAttributes) {
         Locale locale;
         switch (lang) {
@@ -159,7 +145,7 @@ public class SettingsController extends BaseController {
             default -> locale = Locale.forLanguageTag("uk-UA");
         }
 
-        // ✅ Зберігаємо мову через LocaleResolver (запише в Cookie та Session)
+        // Зберігаємо локаль через наш LocaleResolver (Cookie + Session)
         localeResolver.setLocale(request, response, locale);
 
         // Оновлюємо БД для залогіненого користувача
