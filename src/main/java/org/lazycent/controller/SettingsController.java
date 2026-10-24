@@ -1,7 +1,7 @@
 package org.lazycent.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse; // Додано імпорт
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.User;
@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.LocaleResolver; // Додано імпорт
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Locale;
@@ -28,6 +28,9 @@ public class SettingsController extends BaseController {
     private final UserRepository userRepository;
     private final DemoDataService demoDataService;
     private final BudgetService budgetService;
+
+    // ✅ ДОДАЙТЕ ЦЕ ПОЛЕ:
+    private final LocaleResolver localeResolver;
 
     // ==================== ВАЛЮТА ====================
 
@@ -147,7 +150,7 @@ public class SettingsController extends BaseController {
     public String updateLanguage(@RequestParam String lang,
                                  Authentication authentication,
                                  HttpServletRequest request,
-                                 HttpSession session,
+                                 HttpServletResponse response, // ✅ Додано параметр
                                  RedirectAttributes redirectAttributes) {
         Locale locale;
         switch (lang) {
@@ -156,10 +159,10 @@ public class SettingsController extends BaseController {
             default -> locale = Locale.forLanguageTag("uk-UA");
         }
 
-        // 1. У сесію — щоб LocaleChangeInterceptor / SessionLocaleResolver бачили одразу
-        session.setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
+        // ✅ Зберігаємо мову через LocaleResolver (запише в Cookie та Session)
+        localeResolver.setLocale(request, response, locale);
 
-        // 2. У БД — щоб вибір зберігся після logout і на інших пристроях
+        // Оновлюємо БД для залогіненого користувача
         User currentUser = getCurrentUser(authentication);
         if (currentUser != null) {
             try {

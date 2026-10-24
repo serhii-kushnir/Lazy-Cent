@@ -12,6 +12,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
@@ -21,20 +22,8 @@ import java.util.Locale;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    /**
-     * Українська — цільова аудиторія застосунку. Fallback для тих,
-     * хто не передав нічого і не має збережених налаштувань.
-     */
     private static final Locale DEFAULT_LOCALE = Locale.forLanguageTag("uk-UA");
-
-    /**
-     * Підтримувані мови. Порядок не критичний, але тримаємо тут,
-     * щоб було легко додати польську в майбутньому.
-     */
-    private static final List<Locale> SUPPORTED = List.of(
-            DEFAULT_LOCALE,
-            Locale.ENGLISH
-    );
+    private static final List<Locale> SUPPORTED = List.of(DEFAULT_LOCALE, Locale.ENGLISH);
 
     @Bean
     public LocaleResolver localeResolver() {
@@ -60,51 +49,51 @@ public class WebConfig implements WebMvcConfigurer {
                 .resourceChain(false);
     }
 
-    // ==================== КАСТОМНИЙ РЕЗОЛВЕР ====================
+    // ==================== КАСТОМНИЙ РЕЗОЛВЕР З COOKIE ====================
 
-    private static class LazyCentLocaleResolver implements LocaleResolver {
+    public static class LazyCentLocaleResolver implements LocaleResolver {
+
+        // Використовуємо CookieLocaleResolver для збереження в браузері на 1 рік
+        private final CookieLocaleResolver cookieResolver = new CookieLocaleResolver("LAZYCENT_LANG");
+
+        public LazyCentLocaleResolver() {
+            cookieResolver.setDefaultLocale(DEFAULT_LOCALE);
+            cookieResolver.setCookieMaxAge(60 * 60 * 24 * 365); // 1 рік
+            cookieResolver.setCookiePath("/");
+        }
 
         @Override
         public Locale resolveLocale(HttpServletRequest request) {
-            // 1. Сесія (пишеться LocaleChangeInterceptor або /settings/language)
+            // 1. Перевіряємо Cookie (найвищий пріоритет, бо це явний вибір користувача)
+            Locale cookieLocale = cookieResolver.resolveLocale(request);
+            if (isSupported(cookieLocale)) {
+                return cookieLocale;
+            }
+
+            // 2. Перевіряємо Сесію
             HttpSession session = request.getSession(false);
             if (session != null) {
                 Object attr = session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
-                if (attr instanceof Locale) {
-                    Locale sessionLocale = (Locale) attr;
-                    if (isSupported(sessionLocale)) {
-                        return sessionLocale;
-                    }
+                if (attr instanceof Locale sessionLocale && isSupported(sessionLocale)) {
+                    return sessionLocale;
                 }
             }
 
-            // 2. User.preferredLanguage (якщо користувач залогінений і вибрав мову в налаштуваннях)
+            // 3. Перевіряємо БД (якщо користувач залогінений)
             Locale userLocale = resolveUserLocale();
             if (userLocale != null) {
                 return userLocale;
             }
 
-            // 3. Мова браузера (ВИМКНЕНО, щоб за замовчуванням завжди була українська)
-            // Locale browserLocale = matchBrowserLocale(request);
-            // if (browserLocale != null) {
-            //     return browserLocale;
-            // }
-
-            // 4. Fallback — завжди українська для нових відвідувачів
+            // 4. Fallback
             return DEFAULT_LOCALE;
         }
 
         @Override
-        public void setLocale(HttpServletRequest request,
-                              HttpServletResponse response,
-                              Locale locale) {
-            // Зберігаємо локаль у сесії під стандартним ключем.
-            // LocaleChangeInterceptor викликає цей метод, коли бачить ?lang=...
-            request.getSession().setAttribute(
-                    SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
-
-            // КРИТИЧНО: оновлюємо поточний контекст, щоб зміни застосувалися
-            // одразу на цьому запиті, а не з наступного.
+        public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
+            // Зберігаємо в Cookie, Сесію та оновлюємо поточний контекст
+            cookieResolver.setLocale(request, response, locale);
+            request.getSession().setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
             org.springframework.context.i18n.LocaleContextHolder.setLocale(locale);
         }
 
@@ -120,30 +109,10 @@ public class WebConfig implements WebMvcConfigurer {
             User user = null;
             if (principal instanceof User u) user = u;
             else if (principal instanceof org.lazycent.model.CustomOAuth2User o) user = o.getUser();
+
             if (user == null || user.getPreferredLanguage() == null) return null;
             Locale locale = Locale.forLanguageTag(user.getPreferredLanguage());
             return isSupported(locale) ? locale : null;
         }
-
-        private Locale matchBrowserLocale(HttpServletRequest request) {
-            // Перевіряємо наявність заголовка. Якщо його немає,
-            // request.getLocale() поверне системну локаль JVM (зазвичай en),
-            // що зламає наш fallback на uk-UA.
-            String acceptLanguage = request.getHeader("Accept-Language");
-            if (acceptLanguage == null || acceptLanguage.isBlank()) {
-                return null;
-            }
-
-            Locale browserLocale = request.getLocale();
-            if (browserLocale == null) return null;
-
-            for (Locale supported : SUPPORTED) {
-                if (supported.getLanguage().equals(browserLocale.getLanguage())) {
-                    return supported;
-                }
-            }
-            return null;
-        }
-
     }
 }
