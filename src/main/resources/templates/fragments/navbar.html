@@ -4,13 +4,13 @@
 
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
-        <!-- Логотип для АВТОРИЗОВАНИХ (веде на дашборд) -->
-        <a sec:authorize="isAuthenticated()" class="navbar-brand" th:href="@{/home}">
+        <!-- Логотип для АВТОРИЗОВАНИХ -->
+        <a sec:authorize="isAuthenticated()" class="navbar-brand" th:href="@{/home(lang=${#locale.language})}">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
 
-        <!-- Логотип для НЕАВТОРИЗОВАНИХ (веде на головну/лендінг) -->
-        <a sec:authorize="!isAuthenticated()" class="navbar-brand" th:href="@{/}">
+        <!-- Логотип для НЕАВТОРИЗОВАНИХ -->
+        <a sec:authorize="!isAuthenticated()" class="navbar-brand" th:href="@{/(lang=${#locale.language})}">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
 
@@ -23,27 +23,27 @@
 
                 <!-- ==================== АВТОРИЗОВАНИЙ КОРИСТУВАЧ ==================== -->
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" href="/home">
+                    <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" th:href="@{/home(lang=${#locale.language})}">
                         <i class="fas fa-home me-1"></i><span th:text="#{nav.home}">Головна</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" href="/budget">
+                    <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" th:href="@{/budget(lang=${#locale.language})}">
                         <i class="fas fa-chart-line me-1"></i><span th:text="#{nav.budget}">Бюджет</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" href="/totals">
+                    <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" th:href="@{/totals(lang=${#locale.language})}">
                         <i class="fas fa-chart-pie me-1"></i><span th:text="#{nav.totals}">Підсумки</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" href="/all-days">
+                    <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" th:href="@{/all-days(lang=${#locale.language})}">
                         <i class="fas fa-calendar-alt me-1"></i><span th:text="#{nav.allDays}">Всі дні</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" href="/notes">
+                    <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" th:href="@{/notes(lang=${#locale.language})}">
                         <i class="fas fa-sticky-note me-1"></i><span th:text="#{nav.notes}">Нотатки</span>
                     </a>
                 </li>
@@ -59,14 +59,15 @@
 
                 <!-- ==================== НЕАВТОРИЗОВАНИЙ КОРИСТУВАЧ ==================== -->
                 <li class="nav-item mt-2 mt-lg-0" sec:authorize="!isAuthenticated()">
-                    <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{nav.login}">Увійти</a>
+                    <a class="nav-btn nav-btn-ghost" th:href="@{/login(lang=${#locale.language})}" th:text="#{nav.login}">Увійти</a>
                 </li>
 
                 <li class="nav-item mt-2 mt-lg-0 ms-lg-2" sec:authorize="!isAuthenticated()">
-                    <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
+                    <a class="nav-btn nav-btn-primary" th:href="@{/register(lang=${#locale.language})}" th:text="#{nav.register}">Реєстрація</a>
                 </li>
 
-                <!-- ==================== ПЕРЕМИКАЧІ (МОВА + ТЕМА) ==================== -->
+                <!-- ==================== ПЕРЕМИКАЧІ (МОВА + ТЕМА) - ЛИШЕ ДЛЯ АНОНІМІВ ==================== -->
+                <!-- ✅ ДОДАНО sec:authorize="!isAuthenticated()" -->
                 <li class="nav-item ms-lg-3 mt-2 mt-lg-0 d-flex flex-row align-items-center gap-2 w-100 w-lg-auto" sec:authorize="!isAuthenticated()">
                     <!-- Мова -->
                     <div class="lang-switch flex-grow-1 flex-lg-grow-0">

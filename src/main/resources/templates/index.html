@@ -252,7 +252,7 @@
 
 <header>
     <div class="wrap bar">
-        <a class="brand" th:href="@{/}">
+        <a class="brand" th:href="@{/(lang=${#locale.language})}">
             <img th:src="@{/logo.png}" alt="Lazy Cent" width="32" height="32">
             Lazy Cent
         </a>
@@ -261,8 +261,8 @@
             <a href="#screenshots" th:text="#{landing.nav.screenshots}">Скриншоти</a>
             <a href="#faq" th:text="#{landing.nav.faq}">Запитання</a>
             <div class="d-flex align-items-center gap-2 ms-3">
-                <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{nav.login}">Увійти</a>
-                <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
+                <a class="nav-btn nav-btn-ghost" th:href="@{/login(lang=${#locale.language})}" th:text="#{nav.login}">Увійти</a>
+                <a class="nav-btn nav-btn-primary" th:href="@{/register(lang=${#locale.language})}" th:text="#{nav.register}">Реєстрація</a>
                 <button class="theme-toggle-btn" id="themeToggle" title="Theme" aria-label="Theme"><i class="fas fa-moon" aria-hidden="true"></i></button>
                 <div class="lang-switch">
                     <a th:href="@{''(lang='uk')}" hreflang="uk" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>

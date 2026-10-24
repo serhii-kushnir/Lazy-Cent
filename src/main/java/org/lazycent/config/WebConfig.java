@@ -55,7 +55,16 @@ public class WebConfig implements WebMvcConfigurer {
 
         @Override
         public Locale resolveLocale(HttpServletRequest request) {
-            // 1. Cookie (найвищий пріоритет, бо це явний вибір)
+            // 1. Параметр ?lang=... (найвищий пріоритет для миттєвого перемикання)
+            String langParam = request.getParameter("lang");
+            if (langParam != null) {
+                Locale paramLocale = Locale.forLanguageTag(langParam);
+                if (isSupported(paramLocale)) {
+                    return paramLocale;
+                }
+            }
+
+            // 2. Cookie
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
@@ -68,7 +77,7 @@ public class WebConfig implements WebMvcConfigurer {
                 }
             }
 
-            // 2. Сесія (використовується в тестах та при першому виборі мови)
+            // 3. Сесія
             HttpSession session = request.getSession(false);
             if (session != null) {
                 Object attr = session.getAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME);
@@ -77,13 +86,13 @@ public class WebConfig implements WebMvcConfigurer {
                 }
             }
 
-            // 3. БД (якщо користувач залогінений і вибрав мову в профілі)
+            // 4. БД (якщо користувач залогінений)
             Locale userLocale = resolveUserLocale();
             if (userLocale != null) {
                 return userLocale;
             }
 
-            // 4. Fallback
+            // 5. Fallback
             return DEFAULT_LOCALE;
         }
 
