@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{editorial.meta.title}">Редакційна політика - Lazy Cent</title>
+    <meta name="description" th:content="#{editorial.meta.desc}">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
+    <style>
+        .page-container { max-width: 800px; margin: 4rem auto; padding: 0 1.5rem; }
+        .page-container h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .page-container h2 { font-size: 1.5rem; font-weight: 600; margin-top: 2rem; color: var(--bs-primary); }
+        .page-container p { line-height: 1.8; font-size: 1.1rem; color: var(--bs-secondary-color); }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbar('none')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+<div class="container page-container">
+    <h1 th:text="#{editorial.title}">Редакційна політика</h1>
+    <p th:text="#{editorial.updated}">Останнє оновлення...</p>
+
+    <p th:text="#{editorial.intro}">У Lazy Cent ми прагнемо...</p>
+
+    <h2 th:text="#{editorial.h1}">1. Точність та перевірка фактів</h2>
+    <p th:text="#{editorial.p1}">Ми докладаємо всіх зусиль...</p>
+
+    <h2 th:text="#{editorial.h2}">2. Незалежність та відсутність реклами</h2>
+    <p th:text="#{editorial.p2}">Lazy Cent є незалежним проєктом...</p>
+
+    <h2 th:text="#{editorial.h3}">3. Прозорість авторства</h2>
+    <p th:text="#{editorial.p3}">Весь контент на сайті...</p>
+
+    <h2 th:text="#{editorial.h4}">4. Зворотний зв'язок та виправлення помилок</h2>
+    <p th:text="#{editorial.p4}">Якщо ви помітили неточність...</p>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+</body>
+</html>

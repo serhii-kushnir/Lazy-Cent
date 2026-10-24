@@ -4,9 +4,18 @@
 
 <footer th:fragment="footer" class="wm-footer text-center py-3 mt-5">
     <div class="container">
+        <!-- Соцмережі (Plerdy хоче бачити sameAs) -->
+        <div class="mb-2">
+            <a href="https://github.com/ваш-профіль" target="_blank" class="text-muted mx-2"><i class="fab fa-github fa-lg"></i></a>
+            <a href="https://linkedin.com/in/ваш-профіль" target="_blank" class="text-muted mx-2"><i class="fab fa-linkedin fa-lg"></i></a>
+            <a href="https://t.me/ваш-телеграм" target="_blank" class="text-muted mx-2"><i class="fab fa-telegram fa-lg"></i></a>
+        </div>
+
         <p class="small mt-1">
             <a href="/privacy" class="text-muted text-decoration-none me-3" th:text="#{footer.privacy}">Політика конфіденціальності</a>
             <a href="/terms" class="text-muted text-decoration-none" th:text="#{footer.terms}">Умови використання</a>
+            <!-- Можна додати Contact -->
+            <a href="mailto:lazycent.com@gmail.com" class="text-muted text-decoration-none ms-3">Контакти</a>
         </p>
         <p class="mb-0" th:text="#{footer.copyright}">© 2026 Lazy Cent — Ваш фінансовий помічник by SERHII KUSHNIR</p>
     </div>

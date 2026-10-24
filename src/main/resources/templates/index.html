@@ -1,208 +1,154 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
-<head>
+<head th:with="isEn=${#locale.language == 'en'},
+               pageUrl=${#locale.language == 'en'} ? 'https://lazycent.com/?lang=en' : 'https://lazycent.com/',
+               ogImg=${#locale.language == 'en'} ? 'https://lazycent.com/img/og-en.png' : 'https://lazycent.com/img/og-uk.png'">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#14161a">
 
-    <!-- SEO та Meta -->
-    <title th:text="#{landing.meta.title}">Lazy Cent — безкоштовний облік витрат і місячний бюджет</title>
+    <!-- SEO: тексти беруться з messages_*.properties (див. seo-messages.txt) -->
+    <title th:text="#{landing.meta.title}">Lazy Cent — облік витрат і бюджет на місяць | Безкоштовно</title>
     <meta name="description" th:content="#{landing.meta.description}">
-    <link rel="canonical" th:href="@{https://lazycent.com/}">
-    <link rel="alternate" hreflang="uk" th:href="@{https://lazycent.com/(lang='uk')}">
-    <link rel="alternate" hreflang="en" th:href="@{https://lazycent.com/(lang='en')}">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 
-    <!-- Open Graph -->
+    <!-- Canonical окремий для кожної мови + hreflang -->
+    <link rel="canonical" th:href="${pageUrl}">
+    <link rel="alternate" hreflang="uk" href="https://lazycent.com/">
+    <link rel="alternate" hreflang="en" href="https://lazycent.com/?lang=en">
+    <link rel="alternate" hreflang="x-default" href="https://lazycent.com/">
+
+    <meta property="article:published_time" content="2026-01-15T08:00:00+00:00">
+    <meta property="article:modified_time" content="2026-10-24T12:00:00+00:00">
+
+    <!-- Open Graph (зображення 1200x630) -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Lazy Cent">
+    <meta property="og:locale" th:content="${isEn} ? 'en_US' : 'uk_UA'">
+    <meta property="og:locale:alternate" th:content="${isEn} ? 'uk_UA' : 'en_US'">
     <meta property="og:title" th:content="#{landing.og.title}">
     <meta property="og:description" th:content="#{landing.og.description}">
-    <meta property="og:url" th:content="@{https://lazycent.com/}">
-    <meta property="og:image" th:content="@{/img/screenshots/home.png}">
-    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:url" th:content="${pageUrl}">
+    <meta property="og:image" th:content="${ogImg}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" th:content="#{landing.og.title}">
 
-    <!-- Підключення Bootstrap для змінних кольорів -->
-    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <!-- Twitter / X (додайте twitter:site і twitter:creator, лише якщо акаунти існують) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" th:content="#{landing.og.title}">
+    <meta name="twitter:description" th:content="#{landing.og.description}">
+    <meta name="twitter:image" th:content="${ogImg}">
 
     <link rel="icon" href="/logo.png">
+    <!-- Постер героя — LCP-елемент -->
+    <link rel="preload" as="image" th:href="@{/img/screenshots/index.jpeg}" fetchpriority="high">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
 
+    <!-- Structured data. TODO: додайте "sameAs" для Person з РЕАЛЬНИМИ посиланнями (LinkedIn, GitHub) -->
+    <script type="application/ld+json" th:inline="javascript">
+        {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "WebSite",
+                    "@id": "https://lazycent.com/#website",
+                    "url": "https://lazycent.com/",
+                    "name": "Lazy Cent",
+                    "inLanguage": ["uk", "en"]
+                },
+                {
+                    "@type": "SoftwareApplication",
+                    "@id": "https://lazycent.com/#app",
+                    "name": "Lazy Cent",
+                    "url": "https://lazycent.com/",
+                    "description": /*[[#{landing.meta.description}]]*/ "Lazy Cent",
+                    "inLanguage": /*[[${#locale.language}]]*/ "uk",
+                    "operatingSystem": "Web",
+                    "applicationCategory": "FinanceApplication",
+                    "image": /*[[${ogImg}]]*/ "https://lazycent.com/img/og-uk.png",
+                    "screenshot": [
+                        "https://lazycent.com/img/screenshots/budget.png",
+                        "https://lazycent.com/img/screenshots/totals.png",
+                        "https://lazycent.com/img/screenshots/all-day.png"
+                    ],
+                    "datePublished": "2026-01-15",
+                    "dateModified": "2026-10-24",
+                    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "UAH" },
+                    "author": { "@id": "https://lazycent.com/#author" }
+                },
+                {
+                    "@type": "Person",
+                    "@id": "https://lazycent.com/#author",
+                    "name": "Serhii Kushnir",
+                    "url": "https://lazycent.com/about"
+                }
+            ]
+        }
+    </script>
+
     <style>
-        :root, [data-bs-theme="light"] {
-            --bg: #f2f5f3;
-            --surface: #ffffff;
-            --ink: #13211c;
-            --muted: #4d5f58;
-            --line: #d3ddd8;
-            --coin: #e9a93b;
-            --font: "Manrope", system-ui, -apple-system, sans-serif;
-        }
-
-        [data-bs-theme="dark"] {
-            --bg: #14161a;
-            --surface: #1d2027;
-            --ink: #e6e6e6;
-            --muted: #9aa3b2;
-            --line: #2a2e37;
-            --coin: #f0b94f;
-        }
-
+        :root, [data-bs-theme="light"] { --bg: #f2f5f3; --surface: #ffffff; --ink: #13211c; --muted: #4d5f58; --line: #d3ddd8; --coin: #e9a93b; --font: "Manrope", system-ui, -apple-system, sans-serif; }
+        [data-bs-theme="dark"] { --bg: #14161a; --surface: #1d2027; --ink: #e6e6e6; --muted: #9aa3b2; --line: #2a2e37; --coin: #f0b94f; }
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; scroll-padding-top: 80px; }
-        body {
-            margin: 0; background: var(--bg); color: var(--ink);
-            font: 400 1.0625rem/1.65 var(--font);
-            transition: background-color 0.3s ease, color 0.3s ease;
-            overflow-x: hidden;
-        }
+        body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.0625rem/1.65 var(--font); transition: background-color 0.3s ease, color 0.3s ease; overflow-x: hidden; }
         img { max-width: 100%; height: auto; display: block; }
-
         a { color: var(--bs-primary, #0d6efd); text-decoration: none; transition: color 0.2s; }
         a:hover { filter: brightness(1.2); }
         :focus-visible { outline: 3px solid var(--coin); outline-offset: 3px; border-radius: 4px; }
-
         .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
         .text-center { text-align: center; }
-
-        .nav-btn, .theme-toggle-btn, .lang-switch {
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-            line-height: 1;
-        }
-
-        .nav-btn {
-            padding: 0 16px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .nav-btn-primary {
-            background-color: var(--bs-primary);
-            color: #fff !important;
-            border: 2px solid var(--bs-primary);
-        }
-        .nav-btn-primary:hover {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3);
-        }
-
-        .nav-btn-ghost {
-            background-color: transparent;
-            color: var(--bs-primary) !important;
-            border: 2px solid var(--bs-primary);
-        }
-        .nav-btn-ghost:hover {
-            background-color: rgba(var(--bs-primary-rgb), 0.1);
-            transform: translateY(-1px);
-        }
-
-        .theme-toggle-btn {
-            width: 40px;
-            padding: 0;
-            border-radius: 8px;
-            background: transparent;
-            color: var(--bs-body-color);
-            border: 1px solid var(--bs-border-color);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .theme-toggle-btn:hover {
-            border-color: var(--bs-primary);
-            color: var(--bs-primary);
-            background: rgba(var(--bs-primary-rgb), 0.05);
-        }
-
-        .lang-switch {
-            padding: 3px;
-            background: var(--bs-secondary-bg);
-            border-radius: 8px;
-            border: 1px solid var(--bs-border-color);
-            gap: 2px;
-        }
-        .lang-switch a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: 0 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--bs-secondary-color);
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-        .lang-switch a:hover {
-            color: var(--bs-primary);
-        }
-        .lang-switch a.active {
-            background: var(--bs-primary);
-            color: #fff !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        header {
-            position: sticky; top: 0; z-index: 20; background: var(--bg);
-            border-bottom: 1px solid var(--line); transition: background-color 0.3s ease;
-        }
+        .nav-btn, .theme-toggle-btn, .lang-switch { height: 40px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; }
+        .nav-btn { padding: 0 16px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; text-decoration: none; transition: all 0.2s ease; white-space: nowrap; }
+        .nav-btn-primary { background-color: var(--bs-primary); color: #fff !important; border: 2px solid var(--bs-primary); }
+        .nav-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 8px rgba(var(--bs-primary-rgb), 0.3); }
+        .nav-btn-ghost { background-color: transparent; color: var(--bs-primary) !important; border: 2px solid var(--bs-primary); }
+        .nav-btn-ghost:hover { background-color: rgba(var(--bs-primary-rgb), 0.1); transform: translateY(-1px); }
+        .theme-toggle-btn { width: 40px; padding: 0; border-radius: 8px; background: transparent; color: var(--bs-body-color); border: 1px solid var(--bs-border-color); cursor: pointer; transition: all 0.2s ease; }
+        .theme-toggle-btn:hover { border-color: var(--bs-primary); color: var(--bs-primary); background: rgba(var(--bs-primary-rgb), 0.05); }
+        .lang-switch { padding: 3px; background: var(--bs-secondary-bg); border-radius: 8px; border: 1px solid var(--bs-border-color); gap: 2px; }
+        .lang-switch a { display: flex; align-items: center; justify-content: center; height: 100%; padding: 0 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; color: var(--bs-secondary-color); text-decoration: none; transition: all 0.2s ease; }
+        .lang-switch a:hover { color: var(--bs-primary); }
+        .lang-switch a.active { background: var(--bs-primary); color: #fff !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+        header { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); transition: background-color 0.3s ease; }
         .bar { display: flex; align-items: center; justify-content: space-between; height: 64px; }
         .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; color: var(--ink); }
         .brand img { width: 32px; height: 32px; }
-
         .nav-links { display: flex; align-items: center; gap: 6px; }
         .nav-links > a { padding: 8px 12px; color: var(--ink); font-weight: 500; border-radius: 8px; transition: background 0.2s; }
         .nav-links > a:hover { background: var(--line); }
-
         .mobile-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--ink); cursor: pointer; padding: 8px; }
-
         .mobile-menu { display: none; flex-direction: column; padding: 10px 20px 20px; background: var(--bg); border-bottom: 1px solid var(--line); }
         .mobile-menu.active { display: flex; }
         .mobile-menu > a { padding: 12px 0; border-bottom: 1px solid var(--line); color: var(--ink); font-weight: 600; }
         .mobile-menu > a:last-child { border-bottom: none; }
-
-        .hero { padding: 40px 0 60px; }
+        .hero { padding: 40px 0 60px; min-height: 500px; }
         .hero-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; }
         .hero .tag { margin: 0 0 16px; font-weight: 700; color: var(--muted); }
         h1 { margin: 0 0 18px; font-size: clamp(2.4rem, 5.5vw, 4rem); line-height: 1.05; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
         .hero p.lead { margin: 0 0 28px; font-size: 1.2rem; color: var(--muted); }
         .hero .cta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
-
         .shot { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px; box-shadow: 12px 12px 0 var(--coin); transition: transform 0.3s; overflow: hidden; }
         .shot:hover { transform: translateY(-5px); }
-        .shot img, .shot video {
-            border-radius: 8px;
-            width: 100%;
-            height: auto;
-            display: block;
-            object-fit: cover;
-        }
-
+        .shot img, .shot video { border-radius: 8px; width: 100%; height: auto; display: block; object-fit: cover; }
         section { padding: 64px 0; }
         h2 { margin: 0 0 10px; font-size: clamp(1.7rem, 3.5vw, 2.4rem); line-height: 1.15; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
         .sub { margin: 0 0 36px; color: var(--muted); }
-
         .features { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); }
         .feature { padding: 24px 28px 24px 0; border-bottom: 1px solid var(--line); }
         .feature:nth-child(even) { padding-left: 28px; padding-right: 0; border-left: 1px solid var(--line); }
         .feature h3 { margin: 0 0 6px; font-size: 1.2rem; color: var(--ink); }
         .feature p { margin: 0; color: var(--muted); }
-
         .band { background: var(--surface); border-block: 1px solid var(--line); transition: background-color 0.3s ease; }
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
         .gallery figure { margin: 0; }
         .gallery img { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
         .gallery figcaption { margin-top: 10px; font-size: .95rem; color: var(--muted); }
-
         .faq { max-width: 800px; margin: 0 auto; text-align: left; }
         details { border-bottom: 1px solid var(--line); }
         summary { cursor: pointer; padding: 18px 0; font-weight: 700; font-size: 1.1rem; list-style: none; display: flex; justify-content: space-between; gap: 16px; color: var(--ink); }
@@ -210,71 +156,57 @@
         summary::after { content: "+"; font-weight: 500; font-size: 1.4rem; line-height: 1; color: var(--bs-primary); }
         details[open] summary::after { content: "–"; }
         details p { margin: 0 0 18px; color: var(--muted); }
-
         .final { text-align: center; }
         .final p { margin: 0 auto 28px; color: var(--muted); }
-
-        footer {
-            border-top: 1px solid var(--line);
-            padding: 60px 0 30px;
-            color: var(--muted);
-            font-size: .95rem;
-            background: var(--surface);
-        }
+        .author-box { display: flex; align-items: center; gap: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 1rem; padding: 1.5rem; max-width: 800px; margin: 0 auto; text-align: left; }
+        .author-box img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; }
+        .author-box h3 { margin: 0 0 0.5rem; font-size: 1.25rem; color: var(--ink); }
+        .author-box p { margin: 0; font-size: 0.95rem; color: var(--muted); line-height: 1.6; }
+        .comparison-table { width: 100%; max-width: 800px; margin: 0 auto; border-collapse: collapse; text-align: left; background: var(--surface); border-radius: 1rem; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .comparison-table th, .comparison-table td { padding: 1rem; border-bottom: 1px solid var(--line); }
+        .comparison-table thead th { background: var(--bs-primary); color: #fff; font-weight: 600; }
+        .comparison-table tbody th { font-weight: 400; color: var(--ink); background: transparent; }
+        .comparison-table tr:last-child td, .comparison-table tr:last-child th { border-bottom: none; }
+        .comparison-table i.fa-check { color: #198754; }
+        .comparison-table i.fa-times { color: #dc3545; }
+        footer { border-top: 1px solid var(--line); padding: 60px 0 30px; color: var(--muted); font-size: .95rem; background: var(--surface); }
         .foot { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
-
         .foot-brand { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 800; color: var(--ink); margin-bottom: 15px; }
         .foot-brand img { width: 40px; height: 40px; }
-
-        footer h4 { margin: 0 0 20px; color: var(--ink); font-size: 1.1rem; font-weight: 700; position: relative; }
-        footer h4::after { content: ''; position: absolute; left: 0; bottom: -6px; width: 30px; height: 2px; background: var(--bs-primary); border-radius: 2px; }
-
+        footer h3 { margin: 0 0 20px; color: var(--ink); font-size: 1.1rem; font-weight: 700; position: relative; }
+        footer h3::after { content: ''; position: absolute; left: 0; bottom: -6px; width: 30px; height: 2px; background: var(--bs-primary); border-radius: 2px; }
         footer ul { list-style: none; margin: 0; padding: 0; }
         footer li { margin-bottom: 12px; }
         footer a { color: var(--muted); display: inline-flex; align-items: center; gap: 8px; }
         footer a i { font-size: 0.8rem; color: var(--bs-primary); transition: transform 0.2s; }
         footer a:hover { color: var(--bs-primary); }
         footer a:hover i { transform: translateX(3px); }
-
         .copy { text-align: center; padding-top: 20px; border-top: 1px solid var(--line); margin-top: 0; font-size: 0.85rem; }
-
-        /* Cookie Banner */
         #cookie { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 30; max-width: 560px; margin-inline: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; box-shadow: 0 8px 30px rgba(0,0,0,.18); text-align: left; }
         #cookie[hidden] { display: none; }
         #cookie strong { display: block; margin-bottom: 4px; color: var(--ink); }
         #cookie p { margin: 0 0 14px; font-size: .95rem; color: var(--muted); }
         #cookie .row { display: flex; flex-wrap: wrap; gap: 10px; }
         #cookie .nav-btn { height: auto; padding: 10px 18px; font-size: 0.9rem; }
-
         @keyframes rise  { from { opacity: 0; translate: 0 28px; }  to { opacity: 1; translate: 0 0; } }
         @keyframes pop   { from { opacity: 0; translate: 0 24px; scale: .93; } to { opacity: 1; translate: 0 0; scale: 1; } }
         @keyframes fromL { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
         @keyframes fromR { from { opacity: 0; translate: 40px 0; scale: .96; } to { opacity: 1; translate: 0 0; scale: 1; } }
         @keyframes dropIn { from { opacity: 0; translate: 0 -16px; } to { opacity: 1; translate: 0 0; } }
-
         .js .reveal { opacity: 0; }
         .js .reveal.is-visible { animation: rise .7s cubic-bezier(.22, .7, .2, 1) var(--d, 0ms) both; }
         .js .reveal[data-anim="pop"].is-visible   { animation-name: pop; }
         .js .reveal[data-anim="left"].is-visible  { animation-name: fromL; }
         .js .reveal[data-anim="right"].is-visible { animation-name: fromR; }
-
         header { animation: dropIn .6s ease backwards; }
         #cookie:not([hidden]) { animation: rise .5s ease .5s backwards; }
-
-        @media (prefers-reduced-motion: reduce) {
-            .js .reveal { opacity: 1; }
-            .js .reveal.is-visible, header, #cookie:not([hidden]) { animation: none; }
-        }
-
+        @media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; } .js .reveal.is-visible, header, #cookie:not([hidden]) { animation: none; } }
         main { position: relative; }
         .hero { position: relative; z-index: 1; }
         .final { position: relative; overflow: hidden; }
         .final > .wrap { position: relative; z-index: 1; }
-
         canvas.coins { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; pointer-events: none; z-index: 0; }
-
         @media (prefers-reduced-motion: reduce) { canvas.coins { display: none; } }
-
         @media (max-width: 820px) {
             .nav-links { display: none; }
             .mobile-toggle { display: block; }
@@ -282,43 +214,37 @@
             .mobile-menu .lang-switch { display: flex; width: 100%; margin: 0; }
             .mobile-menu .lang-switch a { flex: 1; justify-content: center; padding: 6px 0; height: 100%; }
             .mobile-menu .theme-toggle-btn { width: 40px; height: 40px; flex-shrink: 0; margin: 0; }
-
             .hero-grid { grid-template-columns: 1fr; text-align: center; }
             .shot { margin: 0 auto; max-width: 90%; box-shadow: 8px 8px 0 var(--coin); }
             section { padding: 40px 0; }
             .features { grid-template-columns: 1fr; }
             .feature, .feature:nth-child(even) { padding: 22px 0; border-left: 0; text-align: center; }
             .gallery { grid-template-columns: 1fr 1fr; }
-
+            .author-box { flex-direction: column; text-align: center; }
+            .comparison-table th, .comparison-table td { padding: 0.75rem; font-size: 0.9rem; }
             .foot { grid-template-columns: 1fr 1fr; gap: 30px; }
             .foot > div:first-child { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; text-align: center; }
-            footer h4::after { left: 50%; transform: translateX(-50%); }
+            footer h3::after { left: 50%; transform: translateX(-50%); }
             footer ul { display: flex; flex-direction: column; align-items: center; }
         }
-
         @media (max-width: 520px) {
             .gallery { grid-template-columns: 1fr; }
             .hero .cta { padding: 0 10px; }
             .hero .cta .nav-btn { width: 100%; }
             h1 { font-size: 2.2rem; }
             .foot { grid-template-columns: 1fr; gap: 30px; text-align: center; }
-            footer h4 { margin-top: 10px; }
+            footer h3 { margin-top: 10px; }
             footer a { justify-content: center; width: 100%; }
         }
     </style>
 
-    <!-- Ініціалізація теми та позначка, що JS доступний -->
     <script>
         (function () {
             document.documentElement.classList.add('js');
             let saved = null;
             try { saved = localStorage.getItem('lazycent-theme'); } catch (e) {}
-            if (saved) {
-                document.documentElement.setAttribute('data-bs-theme', saved);
-            } else {
-                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light');
-            }
+            if (saved) { document.documentElement.setAttribute('data-bs-theme', saved); }
+            else { const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches; document.documentElement.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light'); }
         })();
     </script>
 </head>
@@ -327,55 +253,38 @@
 <header>
     <div class="wrap bar">
         <a class="brand" th:href="@{/}">
-            <img th:src="@{/logo.png}" alt="Lazy Cent">
+            <img th:src="@{/logo.png}" alt="Lazy Cent" width="32" height="32">
             Lazy Cent
         </a>
-
-        <!-- Десктопне меню -->
         <nav class="nav-links">
             <a href="#features" th:text="#{landing.nav.features}">Функції</a>
             <a href="#screenshots" th:text="#{landing.nav.screenshots}">Скриншоти</a>
             <a href="#faq" th:text="#{landing.nav.faq}">Запитання</a>
-
             <div class="d-flex align-items-center gap-2 ms-3">
                 <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{nav.login}">Увійти</a>
                 <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
-
-                <button class="theme-toggle-btn" id="themeToggle" title="Змінити тему">
-                    <i class="fas fa-moon"></i>
-                </button>
-
+                <button class="theme-toggle-btn" id="themeToggle" title="Theme" aria-label="Theme"><i class="fas fa-moon" aria-hidden="true"></i></button>
                 <div class="lang-switch">
-                    <a th:href="@{''(lang='uk')}" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
-                    <a th:href="@{''(lang='en')}" th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
+                    <a th:href="@{''(lang='uk')}" hreflang="uk" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
+                    <a th:href="@{''(lang='en')}" hreflang="en" th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
                 </div>
             </div>
         </nav>
-
-        <!-- Кнопка бургер для мобільних -->
-        <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
-            <i class="fas fa-bars"></i>
-        </button>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Menu"><i class="fas fa-bars" aria-hidden="true"></i></button>
     </div>
-
-    <!-- Мобільне випадаюче меню -->
     <div class="mobile-menu" id="mobileMenu">
         <a href="#features" th:text="#{landing.nav.features}">Функції</a>
         <a href="#screenshots" th:text="#{landing.nav.screenshots}">Скриншоти</a>
         <a href="#faq" th:text="#{landing.nav.faq}">Запитання</a>
         <hr style="width:100%; border-color: var(--line); margin: 8px 0;">
-
         <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{nav.login}">Увійти</a>
         <a class="nav-btn nav-btn-primary mt-2" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
-
         <div class="d-flex flex-row align-items-center gap-2 mt-3 w-100">
             <div class="lang-switch flex-grow-1">
-                <a th:href="@{''(lang='uk')}" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
-                <a th:href="@{''(lang='en')}" th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
+                <a th:href="@{''(lang='uk')}" hreflang="uk" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
+                <a th:href="@{''(lang='en')}" hreflang="en" th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
             </div>
-            <button class="theme-toggle-btn" id="mobileThemeToggle" title="Змінити тему">
-                <i class="fas fa-moon"></i>
-            </button>
+            <button class="theme-toggle-btn" id="mobileThemeToggle" title="Theme" aria-label="Theme"><i class="fas fa-moon" aria-hidden="true"></i></button>
         </div>
     </div>
 </header>
@@ -385,22 +294,18 @@
         <div class="hero-grid">
             <div class="text-center">
                 <p class="tag" th:text="#{landing.hero.tag}">Безкоштовно. Без реклами.</p>
-                <h1 th:text="#{landing.hero.title}">Кожна копійка під контролем</h1>
+                <h1 th:text="#{landing.hero.title.full}">Lazy Cent: облік витрат, бюджет і аналітика фінансів</h1>
                 <p class="lead" th:text="#{landing.hero.lead}">Записуйте витрати, плануйте бюджет на місяць і бачте, куди йдуть гроші.</p>
                 <div class="cta">
                     <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{landing.hero.cta.primary}">Створити акаунт</a>
                 </div>
             </div>
             <div class="shot">
-                <!--
-                  Thymeleaf автоматично перевіряє мову (#locale.language).
-                  Якщо мова 'en' — показує англійське відео, інакше — українське.
-                -->
-                <video autoplay loop muted playsinline
+                <video autoplay loop muted playsinline preload="metadata" width="600" height="338"
+                       th:poster="@{/img/screenshots/index.jpeg}" th:attr="aria-label=#{landing.hero.img.alt}"
                        th:src="${#locale.language == 'en' ? '/video/lazycent-en.mp4' : '/video/lazycent-ua.mp4'}"
                        style="border-radius: 8px; width: 100%; display: block; object-fit: cover; aspect-ratio: 16 / 9; background: #000;">
-                    <!-- Фолбек для дуже старих браузерів -->
-                    <img th:src="@{/img/screenshots/index.jpeg}" th:alt="#{landing.hero.img.alt}">
+                    <img th:src="@{/img/screenshots/index.jpeg}" th:alt="#{landing.hero.img.alt}" width="600" height="338">
                 </video>
             </div>
         </div>
@@ -408,15 +313,18 @@
 
     <section id="features">
         <div class="wrap text-center">
-            <h2 th:text="#{landing.features.title}">Що вміє Lazy Cent</h2>
+            <h2 th:text="#{landing.features.title}">Функції Lazy Cent для обліку витрат</h2>
             <p class="sub" th:text="#{landing.features.subtitle}">Тільки те, що потрібно для щоденного обліку грошей.</p>
+            <p class="mb-4 text-start mx-auto" style="max-width: 800px; color: var(--muted);" th:utext="#{landing.features.intro}">
+                Lazy Cent створений для того, щоб облік грошей не забирав час.
+            </p>
             <div class="features" style="text-align: left;">
                 <div class="feature"><h3 th:text="#{landing.features.budget.title}">Місячний бюджет</h3><p th:text="#{landing.features.budget.desc}">Ліміти за категоріями...</p></div>
                 <div class="feature"><h3 th:text="#{landing.features.analytics.title}">Наочна аналітика</h3><p th:text="#{landing.features.analytics.desc}">Кругові діаграми...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.history.title}">Історія за днями</h3><p th:text="#{landing.features.history.desc}">Кожен день — окрема сторінка...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.categories.title}">Власні категорії</h3><p th:text="#{landing.features.categories.desc}">Створюйте й редагуйте категорії...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.notes.title}">Нотатки</h3><p th:text="#{landing.features.notes.desc}">Швидкі нотатки з кольорами...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.security.title}">Захист акаунта</h3><p th:text="#{landing.features.security.desc}">Паролі зберігаються у вигляді хешів...</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.history.title}">Історія за днями</h3><p th:text="#{landing.features.history.desc}">Кожен день...</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.categories.title}">Власні категорії</h3><p th:text="#{landing.features.categories.desc}">Створюйте...</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.notes.title}">Нотатки</h3><p th:text="#{landing.features.notes.desc}">Швидкі...</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.security.title}">Захист акаунта</h3><p th:text="#{landing.features.security.desc}">Паролі...</p></div>
             </div>
         </div>
     </section>
@@ -425,54 +333,141 @@
         <div class="wrap text-center">
             <h2 th:text="#{landing.screenshots.title}">Як це виглядає</h2>
             <p class="sub" th:text="#{landing.screenshots.subtitle}">Екрани застосунку.</p>
+            <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 2rem;" th:utext="#{landing.screenshots.intro}">
+                Інтерфейс Lazy Cent розроблений так, щоб усе потрібне було під рукою.
+            </p>
             <div class="gallery" style="text-align: left;">
-                <figure>
-                    <img loading="lazy" th:src="@{/img/screenshots/budget.png}" th:alt="#{landing.screenshots.budget.alt}">
-                    <figcaption th:text="#{landing.screenshots.budget.desc}">Місячний бюджет...</figcaption>
-                </figure>
-                <figure>
-                    <img loading="lazy" th:src="@{/img/screenshots/all-day.png}" th:alt="#{landing.screenshots.alldays.alt}">
-                    <figcaption th:text="#{landing.screenshots.alldays.desc}">Усі дні місяця...</figcaption>
-                </figure>
-                <figure>
-                    <img loading="lazy" th:src="@{/img/screenshots/totals.png}" th:alt="#{landing.screenshots.totals.alt}">
-                    <figcaption th:text="#{landing.screenshots.totals.desc}">Аналітика...</figcaption>
-                </figure>
-                <figure>
-                    <img loading="lazy" th:src="@{/img/screenshots/notes.png}" th:alt="#{landing.screenshots.notes.alt}">
-                    <figcaption th:text="#{landing.screenshots.notes.desc}">Нотатки...</figcaption>
-                </figure>
-                <figure>
-                    <img loading="lazy" th:src="@{/img/screenshots/day.png}" th:alt="#{landing.screenshots.day.alt}">
-                    <figcaption th:text="#{landing.screenshots.day.desc}">Транзакції...</figcaption>
-                </figure>
-                <figure>
-                    <img loading="lazy" th:src="@{/img/screenshots/home.png}" th:alt="#{landing.screenshots.home.caption}">
-                    <figcaption th:text="#{landing.screenshots.home.caption}">Дашборд із швидким додаванням транзакцій</figcaption>
-                </figure>
+                <!-- width/height задають співвідношення сторін скриншота (≈1827×970), щоб не було стрибка макета (CLS).
+                     Якщо ваші файли мають інші пропорції — підставте їхні справжні розміри. -->
+                <figure><img loading="lazy" th:src="@{/img/screenshots/budget.png}" th:alt="#{landing.screenshots.budget.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.budget.desc}">Місячний бюджет...</figcaption></figure>
+                <figure><img loading="lazy" th:src="@{/img/screenshots/all-day.png}" th:alt="#{landing.screenshots.alldays.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.alldays.desc}">Усі дні...</figcaption></figure>
+                <figure><img loading="lazy" th:src="@{/img/screenshots/totals.png}" th:alt="#{landing.screenshots.totals.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.totals.desc}">Аналітика...</figcaption></figure>
+                <figure><img loading="lazy" th:src="@{/img/screenshots/notes.png}" th:alt="#{landing.screenshots.notes.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.notes.desc}">Нотатки...</figcaption></figure>
+                <figure><img loading="lazy" th:src="@{/img/screenshots/day.png}" th:alt="#{landing.screenshots.day.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.day.desc}">Транзакції...</figcaption></figure>
+                <figure><img loading="lazy" th:src="@{/img/screenshots/home.png}" th:alt="#{landing.screenshots.home.caption}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.home.caption}">Дашборд</figcaption></figure>
             </div>
         </div>
     </section>
 
-    <section id="faq">
+    <section class="wrap text-center">
+        <h2 th:text="#{landing.comparison.title}">Чому обрати Lazy Cent?</h2>
+        <p class="sub" th:text="#{landing.comparison.sub}">Порівняння з традиційними...</p>
+        <table class="comparison-table">
+            <caption class="visually-hidden" th:text="#{landing.comparison.title}">Чому обрати Lazy Cent?</caption>
+            <thead>
+            <tr>
+                <th scope="col" th:text="#{landing.comparison.col1}">Функція</th>
+                <th scope="col" th:text="#{landing.comparison.col2}">Lazy Cent</th>
+                <th scope="col" th:text="#{landing.comparison.col3}">Excel / Google Sheets</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th scope="row" th:text="#{landing.comparison.r1.f}">Швидке додавання</th>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r1.c2}">Так</span></td>
+                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r1.c3}">Налаштування</span></td>
+            </tr>
+            <tr>
+                <th scope="row" th:text="#{landing.comparison.r2.f}">Автоматична аналітика</th>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r2.c2}">Вбудована</span></td>
+                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r2.c3}">Формули</span></td>
+            </tr>
+            <!-- УВАГА: у цьому рядку (landing.comparison.r3.c2) сказано «PWA». Лишайте, лише якщо в застосунку справді є manifest і service worker -->
+            <tr>
+                <th scope="row" th:text="#{landing.comparison.r3.f}">Доступ з пристроїв</th>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r3.c2}">Так (PWA)</span></td>
+                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r3.c3}">Залежить від хмари</span></td>
+            </tr>
+            <tr>
+                <th scope="row" th:text="#{landing.comparison.r4.f}">Безкоштовно</th>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r4.c2}">Назавжди</span></td>
+                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r4.c3}">Можуть бути ліміти</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="wrap text-center my-5">
+        <h2 th:text="#{landing.steps.title}">Як почати користуватися?</h2>
+        <div class="text-start mx-auto" style="max-width: 800px; color: var(--muted);">
+            <p th:text="#{landing.steps.intro}">Почати роботу з Lazy Cent дуже просто. Вам не потрібно витрачати багато часу на налаштування. Просто виконайте кілька простих кроків, щоб взяти свої фінанси під контроль вже сьогодні.</p>
+            <ol class="fs-5 mt-3 mb-3">
+                <li class="mb-2" th:text="#{landing.steps.1}">Зареєструйтеся...</li>
+                <li class="mb-2" th:text="#{landing.steps.2}">Додайте...</li>
+                <li class="mb-2" th:text="#{landing.steps.3}">Встановіть ліміт...</li>
+                <li th:text="#{landing.steps.4}">Слідкуйте...</li>
+            </ol>
+            <p th:text="#{landing.steps.outro}">Після цих кроків ви отримаєте повну картину своїх фінансів. Система автоматично почне рахувати баланс, а ви зможете переглядати детальну аналітику за кожен день або місяць.</p>
+        </div>
+    </section>
+
+    <section class="wrap text-center my-5">
+        <h2 th:text="#{landing.glossary.title}">Корисні терміни</h2>
+        <p class="sub" th:text="#{landing.glossary.sub}">Короткий глосарій...</p>
+        <dl class="text-start mx-auto" style="max-width: 800px; font-size: 1.1rem;">
+            <dt class="fw-bold mt-3" th:text="#{landing.glossary.term1}">Бюджет</dt>
+            <dd class="text-muted mb-2" th:text="#{landing.glossary.def1}">План доходів і витрат...</dd>
+            <dt class="fw-bold mt-3" th:text="#{landing.glossary.term2}">Транзакція</dt>
+            <dd class="text-muted mb-2" th:text="#{landing.glossary.def2}">Будь-яка фінансова операція...</dd>
+            <dt class="fw-bold mt-3" th:text="#{landing.glossary.term3}">Ліміт категорії</dt>
+            <dd class="text-muted mb-2" th:text="#{landing.glossary.def3}">Максимальна сума...</dd>
+        </dl>
+    </section>
+
+    <section id="faq" class="band">
         <div class="wrap text-center">
             <h2 th:text="#{landing.faq.title}">Часті запитання</h2>
             <p class="sub"><span th:text="#{landing.faq.subtitle}">Не знайшли відповідь?</span> <a href="mailto:lazycent.com@gmail.com" th:text="#{landing.footer.contact}">Напишіть нам</a>.</p>
-
+            <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 2rem;" th:utext="#{landing.faq.intro}">
+                Ми зібрали найпопулярніші запитання про Lazy Cent.
+            </p>
             <div class="faq">
-                <details><summary th:text="#{landing.faq.q1}">Lazy Cent справді безкоштовний?</summary><p th:text="#{landing.faq.a1}">Так...</p></details>
-                <details><summary th:text="#{landing.faq.q2}">Як працює облік за днями?</summary><p th:text="#{landing.faq.a2}">Кожен день...</p></details>
-                <details><summary th:text="#{landing.faq.q3}">Чи захищені мої дані?</summary><p th:text="#{landing.faq.a3}">Паролі...</p></details>
-                <details><summary th:text="#{landing.faq.q4}">Чи можна з кількох пристроїв?</summary><p th:text="#{landing.faq.a4}">Так...</p></details>
-                <details><summary th:text="#{landing.faq.q5}">Як видалити акаунт?</summary><p th:text="#{landing.faq.a5}">У налаштуваннях...</p></details>
+                <details><summary th:text="#{landing.faq.q1}">...</summary><p th:text="#{landing.faq.a1}">...</p></details>
+                <details><summary th:text="#{landing.faq.q2}">...</summary><p th:text="#{landing.faq.a2}">...</p></details>
+                <details><summary th:text="#{landing.faq.q3}">...</summary><p th:text="#{landing.faq.a3}">...</p></details>
+                <details><summary th:text="#{landing.faq.q4}">...</summary><p th:text="#{landing.faq.a4}">...</p></details>
+                <details><summary th:text="#{landing.faq.q5}">...</summary><p th:text="#{landing.faq.a5}">...</p></details>
             </div>
         </div>
     </section>
 
-    <section class="band final">
+    <section class="wrap text-center">
+        <h2 th:text="#{landing.author.title}">Про автора</h2>
+        <p class="sub" th:text="#{landing.author.sub}">Людина, яка створила Lazy Cent</p>
+        <div class="author-box">
+            <!-- Порада для E-E-A-T: замініть логотип на справжнє фото автора -->
+            <img th:src="@{/logo.png}" alt="Serhii Kushnir" width="80" height="80">
+            <div>
+                <h3>Serhii Kushnir</h3>
+                <p class="mb-2" th:text="#{landing.author.bio}">Розробник та засновник...</p>
+                <p class="mb-0" style="font-size: 0.85rem; color: #888;">
+                    <i class="far fa-calendar-alt" aria-hidden="true"></i> <span th:text="#{landing.author.updated}">Оновлено: 24 жовтня 2026</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="wrap text-center">
+            <h2 th:text="#{landing.features.related.title}">Читайте також</h2>
+            <p class="sub" th:text="#{landing.features.related.sub}">Корисні посилання для подальшого читання</p>
+            <div class="text-start mx-auto" style="max-width: 800px; font-size: 1.1rem;">
+                <ul style="line-height: 2;">
+                    <li><a th:href="@{/about}" th:text="#{landing.features.related.about_link}">Дізнатися більше про проєкт</a></li>
+                    <li><a th:href="@{/privacy}" th:text="#{landing.features.related.privacy_link}">Політика конфіденційності</a></li>
+                    <li><a th:href="@{/terms}" th:text="#{landing.features.related.terms_link}">Умови використання</a></li>
+                    <li><a href="https://bank.gov.ua/" target="_blank" rel="noopener" th:text="#{landing.features.related.nbu_link}">Національний банк України (курси валют)</a></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section class="final">
         <div class="wrap">
             <h2 th:text="#{landing.cta.title}">Готові взяти фінанси під контроль?</h2>
-            <p th:text="#{landing.cta.subtitle}">Створіть безкоштовний акаунт...</p>
+            <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 1.5rem;" th:text="#{landing.cta.intro}">
+                Lazy Cent допоможе вам не лише фіксувати витрати, а й планувати майбутнє. Створіть акаунт зараз і переконайтеся, наскільки простішим може бути фінансовий облік.
+            </p>
             <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{landing.cta.button}">Створити акаунт</a>
         </div>
     </section>
@@ -483,30 +478,31 @@
         <div class="foot">
             <div>
                 <div class="foot-brand">
-                    <img th:src="@{/logo.png}" alt="Lazy Cent Logo">
+                    <img th:src="@{/logo.png}" alt="Lazy Cent Logo" width="40" height="40">
                     <span>Lazy Cent</span>
                 </div>
-                <p style="margin:0; max-width: 320px; line-height: 1.6;" th:text="#{landing.footer.description}">
-                    Простий застосунок для ведення бюджету — для окремих людей, пар і сімей.
+                <p style="margin:0; max-width: 320px; line-height: 1.6;" th:text="#{landing.footer.description}">Простий застосунок...</p>
+                <p class="mt-3 mb-0" style="font-size: 0.85rem; color: var(--muted);">
+                    <i class="fas fa-shield-alt" aria-hidden="true"></i> <span th:text="#{footer.ads.disclaimer}">Реклама та партнерські посилання: на сайті немає реклами, спонсорського контенту й affiliate-програм.</span>
                 </p>
             </div>
-
             <div>
-                <h4 th:text="#{landing.footer.product}">Продукт</h4>
+                <h3 th:text="#{landing.footer.product}">Продукт</h3>
                 <ul>
-                    <li><a href="#features"><i class="fas fa-chevron-right"></i> <span th:text="#{landing.nav.features}">Функції</span></a></li>
-                    <li><a href="#screenshots"><i class="fas fa-chevron-right"></i> <span th:text="#{landing.nav.screenshots}">Скриншоти</span></a></li>
-                    <li><a href="#faq"><i class="fas fa-chevron-right"></i> <span th:text="#{landing.nav.faq}">Запитання</span></a></li>
-                    <li><a th:href="@{/register}"><i class="fas fa-chevron-right"></i> <span th:text="#{nav.register}">Реєстрація</span></a></li>
+                    <li><a href="#features"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{landing.nav.features}">Функції</span></a></li>
+                    <li><a href="#screenshots"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{landing.nav.screenshots}">Скриншоти</span></a></li>
+                    <li><a href="#faq"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{landing.nav.faq}">Запитання</span></a></li>
+                    <li><a th:href="@{/register}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{nav.register}">Реєстрація</span></a></li>
                 </ul>
             </div>
-
             <div>
-                <h4 th:text="#{landing.footer.legal}">Правова інформація</h4>
+                <h3 th:text="#{landing.footer.legal}">Правова інформація</h3>
                 <ul>
-                    <li><a th:href="@{/terms}"><i class="fas fa-chevron-right"></i> <span th:text="#{footer.terms}">Умови використання</span></a></li>
-                    <li><a th:href="@{/privacy}"><i class="fas fa-chevron-right"></i> <span th:text="#{footer.privacy}">Політика конфіденційності</span></a></li>
-                    <li><a href="mailto:lazycent.com@gmail.com"><i class="fas fa-envelope"></i> <span th:text="#{landing.footer.contact}">Зв’язатися з нами</span></a></li>
+                    <li><a th:href="@{/about}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{footer.about}">Про проєкт</span></a></li>
+                    <li><a th:href="@{/terms}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{footer.terms}">Умови використання</span></a></li>
+                    <li><a th:href="@{/privacy}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{footer.privacy}">Політика конфіденційності</span></a></li>
+                    <li><a th:href="@{/editorial-policy}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{footer.editorial}">Редакційна політика</span></a></li>
+                    <li><a th:href="@{/contact}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{footer.contact}">Контакти</span></a></li>
                 </ul>
             </div>
         </div>
@@ -526,22 +522,15 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const themeToggles = [document.getElementById('themeToggle'), document.getElementById('mobileThemeToggle')];
-
         function updateThemeIcons() {
             const currentTheme = document.documentElement.getAttribute('data-bs-theme');
             themeToggles.forEach(btn => {
                 if (!btn) return;
                 const icon = btn.querySelector('i');
-                if (currentTheme === 'dark') {
-                    icon.className = 'fas fa-sun';
-                } else {
-                    icon.className = 'fas fa-moon';
-                }
+                if (currentTheme === 'dark') { icon.className = 'fas fa-sun'; } else { icon.className = 'fas fa-moon'; }
             });
         }
-
         updateThemeIcons();
-
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-bs-theme') || 'light';
             const next = current === 'dark' ? 'light' : 'dark';
@@ -549,40 +538,25 @@
             try { localStorage.setItem('lazycent-theme', next); } catch (e) {}
             updateThemeIcons();
         }
-
-        themeToggles.forEach(btn => {
-            if (btn) btn.addEventListener('click', toggleTheme);
-        });
-
+        themeToggles.forEach(btn => { if (btn) btn.addEventListener('click', toggleTheme); });
         const mobileToggle = document.getElementById('mobileToggle');
         const mobileMenu = document.getElementById('mobileMenu');
-
         if (mobileToggle && mobileMenu) {
             mobileToggle.addEventListener('click', function() {
                 mobileMenu.classList.toggle('active');
                 const icon = this.querySelector('i');
-                if (mobileMenu.classList.contains('active')) {
-                    icon.className = 'fas fa-times';
-                } else {
-                    icon.className = 'fas fa-bars';
-                }
+                if (mobileMenu.classList.contains('active')) { icon.className = 'fas fa-times'; } else { icon.className = 'fas fa-bars'; }
             });
-
             mobileMenu.querySelectorAll('a').forEach(link => {
                 link.addEventListener('click', () => {
-                    if(!link.classList.contains('nav-btn')) {
-                        mobileMenu.classList.remove('active');
-                        mobileToggle.querySelector('i').className = 'fas fa-bars';
-                    }
+                    if(!link.classList.contains('nav-btn')) { mobileMenu.classList.remove('active'); mobileToggle.querySelector('i').className = 'fas fa-bars'; }
                 });
             });
         }
-
         const box = document.getElementById('cookie');
         const KEY = 'lc_cookie_consent';
         if (box) {
             try { if (!localStorage.getItem(KEY)) box.hidden = false; } catch(e) { box.hidden = false; }
-
             box.addEventListener('click', function(e) {
                 const b = e.target.closest('button[data-c]');
                 if (!b) return;
@@ -592,11 +566,9 @@
         }
     });
 </script>
-
 <script>
     (function () {
         const els = [];
-
         function add(selector, anim, opts) {
             const o = opts || {};
             document.querySelectorAll(selector).forEach(function (el, i) {
@@ -607,174 +579,94 @@
                 els.push(el);
             });
         }
-
         add('.hero .tag, .hero h1, .hero .lead, .hero .cta', 'rise', { step: 120 });
         add('.hero .shot', 'right', { base: 250 });
-
         add('section h2', 'rise');
         add('section .sub', 'rise', { base: 90 });
-
         add('.feature h3', 'rise', { cols: 2, step: 90 });
         add('.feature p', 'rise', { cols: 2, step: 90, base: 100 });
-
         add('.gallery figure', 'pop', { cols: 3, step: 100 });
-
         add('details', 'rise', { cols: 5, step: 70 });
-
+        add('.author-box', 'rise', { base: 100 });
+        add('.comparison-table', 'rise', { base: 100 });
         add('.final p', 'rise', { base: 90 });
         add('.final .nav-btn', 'pop', { base: 180 });
-
         add('footer .foot > div', 'rise', { cols: 3, step: 120 });
         add('footer .copy', 'rise', { base: 150 });
-
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reduce || !('IntersectionObserver' in window)) {
-            els.forEach(function (el) { el.classList.add('is-visible'); });
-            return;
-        }
-
+        if (reduce || !('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('is-visible'); }); return; }
         const io = new IntersectionObserver(function (entries) {
-            entries.forEach(function (en) {
-                if (en.isIntersecting) {
-                    en.target.classList.add('is-visible');
-                    io.unobserve(en.target);
-                }
-            });
+            entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-visible'); io.unobserve(en.target); } });
         }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
-
         els.forEach(function (el) { io.observe(el); });
     })();
 </script>
-
 <script>
     (function () {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
         const rnd = (a, b) => a + Math.random() * (b - a);
         const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
         const mobile = window.innerWidth < 820;
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
         const S = Math.round(48 * dpr), r = S / 2;
         const sprite = document.createElement('canvas');
         sprite.width = sprite.height = S;
         (function () {
             const c = sprite.getContext('2d');
             const g = c.createRadialGradient(r * .7, r * .62, r * .05, r, r, r);
-            g.addColorStop(0, '#fff3c4'); g.addColorStop(.3, '#f6cf63');
-            g.addColorStop(.62, '#e9a93b'); g.addColorStop(1, '#b9791a');
+            g.addColorStop(0, '#fff3c4'); g.addColorStop(.3, '#f6cf63'); g.addColorStop(.62, '#e9a93b'); g.addColorStop(1, '#b9791a');
             c.beginPath(); c.arc(r, r, r - 1, 0, Math.PI * 2); c.fillStyle = g; c.fill();
-            c.lineWidth = S * .07; c.strokeStyle = '#d39a2c';
-            c.beginPath(); c.arc(r, r, r - S * .06, 0, Math.PI * 2); c.stroke();
-            c.lineWidth = S * .025; c.strokeStyle = 'rgba(255,255,255,.35)';
-            c.beginPath(); c.arc(r, r, r - S * .12, 0, Math.PI * 2); c.stroke();
-            c.fillStyle = '#8a5a0f'; c.textAlign = 'center'; c.textBaseline = 'middle';
-            c.font = '800 ' + Math.round(S * .5) + 'px Manrope, system-ui, sans-serif';
-            c.fillText('\u00A2', r, r + S * .03);
+            c.lineWidth = S * .07; c.strokeStyle = '#d39a2c'; c.beginPath(); c.arc(r, r, r - S * .06, 0, Math.PI * 2); c.stroke();
+            c.lineWidth = S * .025; c.strokeStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.arc(r, r, r - S * .12, 0, Math.PI * 2); c.stroke();
+            c.fillStyle = '#8a5a0f'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '800 ' + Math.round(S * .5) + 'px Manrope, system-ui, sans-serif'; c.fillText('\u00A2', r, r + S * .03);
         })();
-
         const layers = [];
-
         function Layer(canvas, count) {
             const ctx = canvas.getContext('2d');
             const L = { canvas: canvas, visible: true, coins: [], w: 0, h: 0 };
-
             function spawn(c, initial) {
-                c.x0 = Math.random();
-                c.size = rnd(22, 44);
-                c.y = initial ? rnd(-c.size, L.h) : -c.size;
-                c.vy = rnd(55, 105) * (mobile ? .9 : 1);
-                c.amp = rnd(10, 40); c.freq = rnd(.5, 1.2); c.ph = rnd(0, 6.28);
-                c.a = rnd(0, 6.28); c.spin = rnd(2, 5) * (Math.random() < .5 ? -1 : 1);
-                c.tilt = rnd(-.4, .4);
+                c.x0 = Math.random(); c.size = rnd(22, 44); c.y = initial ? rnd(-c.size, L.h) : -c.size; c.vy = rnd(55, 105) * (mobile ? .9 : 1);
+                c.amp = rnd(10, 40); c.freq = rnd(.5, 1.2); c.ph = rnd(0, 6.28); c.a = rnd(0, 6.28); c.spin = rnd(2, 5) * (Math.random() < .5 ? -1 : 1); c.tilt = rnd(-.4, .4);
             }
-
             L.resize = function () {
                 const w = canvas.clientWidth, h = canvas.clientHeight;
                 if (!w || !h) return;
-                L.w = w; L.h = h;
-                canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
-                if (!L.coins.length) {
-                    for (let i = 0; i < count; i++) {
-                        const c = {}; spawn(c, true);
-                        c.x0 = (i + Math.random()) / count;
-                        L.coins.push(c);
-                    }
-                }
+                L.w = w; L.h = h; canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+                if (!L.coins.length) { for (let i = 0; i < count; i++) { const c = {}; spawn(c, true); c.x0 = (i + Math.random()) / count; L.coins.push(c); } }
             };
-
             L.step = function (dt, t) {
-                if (!L.w) return;
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (!L.w) return; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height);
                 for (let i = 0; i < L.coins.length; i++) {
-                    const c = L.coins[i];
-                    c.y += c.vy * dt; c.a += c.spin * dt;
-                    if (c.y > L.h + c.size) spawn(c, false);
-                    const x = c.x0 * L.w + Math.sin(t * c.freq + c.ph) * c.amp;
-                    const al = .95 * Math.min(clamp((c.y + c.size) / 100, 0, 1), clamp((L.h + 20 - c.y) / 110, 0, 1));
-                    if (al <= 0.01) continue;
-                    const sc = Math.max(Math.abs(Math.cos(c.a)), .1);
-                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                    ctx.globalAlpha = al;
-                    ctx.translate(x, c.y);
-                    ctx.rotate(c.tilt);
-                    ctx.scale(sc, 1);
-                    ctx.drawImage(sprite, -c.size / 2, -c.size / 2, c.size, c.size);
+                    const c = L.coins[i]; c.y += c.vy * dt; c.a += c.spin * dt; if (c.y > L.h + c.size) spawn(c, false);
+                    const x = c.x0 * L.w + Math.sin(t * c.freq + c.ph) * c.amp; const al = .95 * Math.min(clamp((c.y + c.size) / 100, 0, 1), clamp((L.h + 20 - c.y) / 110, 0, 1));
+                    if (al <= 0.01) continue; const sc = Math.max(Math.abs(Math.cos(c.a)), .1); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = al;
+                    ctx.translate(x, c.y); ctx.rotate(c.tilt); ctx.scale(sc, 1); ctx.drawImage(sprite, -c.size / 2, -c.size / 2, c.size, c.size);
                 }
                 ctx.globalAlpha = 1;
             };
-
-            if ('ResizeObserver' in window) new ResizeObserver(L.resize).observe(canvas);
-            else window.addEventListener('resize', L.resize);
-            L.resize();
-            layers.push(L);
-            return L;
+            if ('ResizeObserver' in window) new ResizeObserver(L.resize).observe(canvas); else window.addEventListener('resize', L.resize);
+            L.resize(); layers.push(L); return L;
         }
-
-        const io = 'IntersectionObserver' in window
-            ? new IntersectionObserver(function (entries) {
-                entries.forEach(function (e) {
-                    layers.forEach(function (L) { if (L.canvas === e.target) L.visible = e.isIntersecting; });
-                });
-            })
-            : null;
-
+        const io = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { layers.forEach(function (L) { if (L.canvas === e.target) L.visible = e.isIntersecting; }); });
+        }) : null;
         function mount(parent, count, before) {
-            const cv = document.createElement('canvas');
-            cv.className = 'coins';
-            cv.setAttribute('aria-hidden', 'true');
-            parent.insertBefore(cv, before || parent.firstChild);
-            return { cv: cv, layer: null, count: count };
+            const cv = document.createElement('canvas'); cv.className = 'coins'; cv.setAttribute('aria-hidden', 'true'); parent.insertBefore(cv, before || parent.firstChild); return { cv: cv, layer: null, count: count };
         }
-
         const hero = document.querySelector('.hero'), main = document.querySelector('main');
         if (hero && main) {
             const m = mount(main, mobile ? 8 : 14);
             const fit = function () { m.cv.style.height = hero.offsetHeight + 'px'; if (m.layer) m.layer.resize(); };
-            fit();
-            m.layer = Layer(m.cv, m.count);
-            if ('ResizeObserver' in window) new ResizeObserver(fit).observe(hero);
-            if (io) io.observe(m.cv);
+            fit(); m.layer = Layer(m.cv, m.count); if ('ResizeObserver' in window) new ResizeObserver(fit).observe(hero); if (io) io.observe(m.cv);
         }
-
         const fin = document.querySelector('.final');
-        if (fin) {
-            const m = mount(fin, mobile ? 6 : 10);
-            m.layer = Layer(m.cv, m.count);
-            if (io) io.observe(m.cv);
-        }
-
+        if (fin) { const m = mount(fin, mobile ? 6 : 10); m.layer = Layer(m.cv, m.count); if (io) io.observe(m.cv); }
         let last = 0;
         function frame(ts) {
-            requestAnimationFrame(frame);
-            const dt = Math.min((ts - last) / 1000 || 0, .05);
-            last = ts;
-            if (document.hidden) return;
-            for (let i = 0; i < layers.length; i++) if (layers[i].visible) layers[i].step(dt, ts / 1000);
+            requestAnimationFrame(frame); const dt = Math.min((ts - last) / 1000 || 0, .05); last = ts;
+            if (document.hidden) return; for (let i = 0; i < layers.length; i++) if (layers[i].visible) layers[i].step(dt, ts / 1000);
         }
-        requestAnimationFrame(frame);
-        window.addEventListener('load', function () { layers.forEach(function (L) { L.resize(); }); });
+        requestAnimationFrame(frame); window.addEventListener('load', function () { layers.forEach(function (L) { L.resize(); }); });
     })();
 </script>
 </body>

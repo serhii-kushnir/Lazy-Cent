@@ -31,4 +31,19 @@ public class PageController {
         }
         return baseName;
     }
+
+    @GetMapping("/about")
+    public String about() {
+        return "about"; // створіть шаблон about.html за зразком privacy.html
+    }
+
+    @GetMapping("/contact")
+    public String contact() {
+        return "contact";
+    }
+
+    @GetMapping("/editorial-policy")
+    public String editorialPolicy() {
+        return "editorial-policy";
+    }
 }

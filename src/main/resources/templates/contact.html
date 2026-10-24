@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{contact.meta.title}">Контакти - Lazy Cent</title>
+    <meta name="description" th:content="#{contact.meta.desc}">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
+    <style>
+        .page-container { max-width: 800px; margin: 4rem auto; padding: 0 1.5rem; }
+        .page-container h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .page-container p { line-height: 1.8; font-size: 1.1rem; color: var(--bs-secondary-color); }
+        .contact-card { background: var(--bs-secondary-bg); border-radius: 1rem; padding: 2rem; margin-top: 2rem; text-align: center; }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbar('none')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+<div class="container page-container">
+    <h1 th:text="#{contact.title}">Зв'яжіться з нами</h1>
+    <p th:text="#{contact.desc}">Ми завжди раді почути ваші відгуки...</p>
+
+    <div class="contact-card">
+        <i class="fas fa-envelope fa-3x mb-3 text-primary"></i>
+        <h3 class="mb-3" th:text="#{contact.email.title}">Електронна пошта</h3>
+        <p class="mb-4" th:text="#{contact.email.desc}">Напишіть нам...</p>
+        <a href="mailto:lazycent.com@gmail.com" class="btn btn-primary btn-lg">lazycent.com@gmail.com</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+</body>
+</html>

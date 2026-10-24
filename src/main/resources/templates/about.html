@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Про проєкт Lazy Cent - Lazy Cent</title>
+    <meta name="description" content="Дізнайтеся більше про Lazy Cent — безкоштовний сервіс для ведення бюджету, створений для зручного контролю за фінансами.">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments/head :: themeAssets}"></div>
+    <style>
+        .about-container { max-width: 800px; margin: 4rem auto; padding: 0 1.5rem; }
+        .about-container h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .about-container h2 { font-size: 1.8rem; font-weight: 600; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
+        .about-container p { line-height: 1.8; font-size: 1.1rem; color: var(--bs-secondary-color); }
+        .author-card { background: var(--bs-secondary-bg); border-radius: 1rem; padding: 2rem; margin-top: 2rem; }
+        .author-card h3 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbar('about')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+<div class="container about-container">
+    <h1>Про Lazy Cent</h1>
+    <p>Lazy Cent — це безкоштовний веб-застосунок для ведення бюджету, створений з метою допомогти людям, парам та сім'ям легко відстежувати свої витрати та досягати фінансових цілей без зайвої складності.</p>
+
+    <h2>Наша мета</h2>
+    <p>Ми віримо, що фінансовий облік не повинен бути нудним або перевантаженим. Lazy Cent поєднує в собі простоту використання, наочну аналітику та надійний захист даних, щоб ви могли зосередитися на своїх фінансах, а не на боротьбі з інтерфейсом.</p>
+
+    <h2>Автор проєкту</h2>
+    <div class="author-card">
+        <h3>SERHII KUSHNIR</h3>
+        <p class="mb-0">Розробник та засновник Lazy Cent. Я створив цей сервіс, щоб допомогти людям краще розуміти свої фінанси та приймати зважені рішення.</p>
+    </div>
+
+    <div class="text-center mt-5">
+        <a href="/register" class="btn btn-primary btn-lg">Спробувати Lazy Cent</a>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+</body>
+</html>
