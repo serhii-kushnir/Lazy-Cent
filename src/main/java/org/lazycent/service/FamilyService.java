@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Family;
+import org.lazycent.model.FamilyJoinRequest;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.*;
@@ -29,6 +30,7 @@ public class FamilyService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final FamilyRepository familyRepository;
+    private final FamilyJoinRequestRepository joinRequestRepository;
     private final UserRepository userRepository;
     private final ExpenseRepository expenseRepository;
     private final IncomeRepository incomeRepository;
@@ -39,17 +41,26 @@ public class FamilyService {
     @Transactional
     public Family createFamily(User user, String name) {
         User managed = userRepository.findById(user.getId())
-                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
+                .orElseThrow(() -> new ValidationException(msg("error.user.notFound", "Користувача не знайдено")));
         if (managed.getFamily() != null) {
             throw new ValidationException(msg("error.family.alreadyInFamily", "Ви вже є учасником сім'ї"));
         }
+        if (joinRequestRepository.findByUser(managed).isPresent()) {
+            throw new ValidationException(msg("error.family.hasPendingRequest", "У вас є активна заявка на вступ до іншої сім'ї."));
+        }
+
         String trimmed = name == null ? "" : name.trim();
-        if (trimmed.isEmpty()) {
-            throw new ValidationException(msg("error.family.nameEmpty", "Назва сім'ї не може бути порожньою"));
+
+        if (trimmed.length() < 2) {
+            throw new ValidationException(msg("error.family.nameMinLength", "Мінімум 2 символи"));
         }
-        if (trimmed.length() > 100) {
-            throw new ValidationException("Назва сім'ї не може перевищувати 100 символів");
+        if (trimmed.length() > 20) {
+            throw new ValidationException(msg("error.family.nameMaxLength", "Максимум 20 символів"));
         }
+        if (!trimmed.matches("^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\\s\\-\\_\\'\\.]+$")) {
+            throw new ValidationException(msg("error.family.nameInvalidChars", "Недійсні символи"));
+        }
+
         if (familyRepository.existsByNameIgnoreCase(trimmed)) {
             throw new ValidationException(msg("error.family.nameExists", "Сім'я з такою назвою вже існує"));
         }
@@ -69,23 +80,80 @@ public class FamilyService {
     }
 
     @Transactional
-    public Family joinFamily(User user, String inviteCode) {
+    public void updateFamilyName(User owner, String newName) {
+        User managed = userRepository.findById(owner.getId())
+                .orElseThrow(() -> new ValidationException(msg("error.user.notFound", "Користувача не знайдено")));
+        Family family = managed.getFamily();
+
+        if (family == null) {
+            throw new ValidationException(msg("error.family.notInFamily", "Ви не є учасником сім'ї"));
+        }
+        if (!family.getOwner().getId().equals(managed.getId())) {
+            throw new AccessDeniedException(msg("error.family.notOwner", "Тільки власник може змінювати назву"));
+        }
+
+        String trimmed = newName == null ? "" : newName.trim();
+
+        if (trimmed.length() < 2) {
+            throw new ValidationException(msg("error.family.nameMinLength", "Мінімум 2 символи"));
+        }
+        if (trimmed.length() > 20) {
+            throw new ValidationException(msg("error.family.nameMaxLength", "Максимум 20 символів"));
+        }
+        if (!trimmed.matches("^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\\s\\-\\_\\'\\.]+$")) {
+            throw new ValidationException(msg("error.family.nameInvalidChars", "Недійсні символи"));
+        }
+
+        if (!family.getName().equalsIgnoreCase(trimmed) && familyRepository.existsByNameIgnoreCase(trimmed)) {
+            throw new ValidationException(msg("error.family.nameExists", "Сім'я з такою назвою вже існує"));
+        }
+
+        family.setName(trimmed);
+        familyRepository.save(family);
+        log.info("Family name updated to '{}' by owner {}", trimmed, managed.getUsername());
+    }
+
+    @Transactional
+    public void joinFamily(User user, String inviteCode) {
         User managed = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
         if (managed.getFamily() != null) {
-            throw new ValidationException(msg("error.family.alreadyInFamily", "Ви вже є учасником сім'ї"));
+            throw new ValidationException("Ви вже є учасником сім'ї");
         }
+        if (joinRequestRepository.findByUserAndRejectedFalse(managed).isPresent()) {
+            throw new ValidationException("Ви вже маєте активну заявку на вступ до сім'ї. Дочекайтеся підтвердження або відізвіть її.");
+        }
+
         String code = inviteCode == null ? "" : inviteCode.trim().toUpperCase();
         if (code.isEmpty()) {
-            throw new ValidationException(msg("error.family.inviteCodeEmpty", "Введіть код-запрошення"));
+            throw new ValidationException("Введіть код-запрошення");
         }
-        Family family = familyRepository.findByInviteCode(code)
-                .orElseThrow(() -> new ValidationException(msg("error.family.inviteCodeInvalid", "Невірний код-запрошення")));
 
-        managed.setFamily(family);
-        userRepository.save(managed);
-        log.info("{} joined family '{}'", managed.getUsername(), family.getName());
-        return family;
+        Family family = familyRepository.findByInviteCode(code)
+                .orElseThrow(() -> new ValidationException("Невірний код-запрошення"));
+
+        // Видаляємо стару відхилену заявку до цієї ж сім'ї, якщо є
+        joinRequestRepository.findByFamilyAndUser(family, managed)
+                .ifPresent(joinRequestRepository::delete);
+
+        FamilyJoinRequest request = new FamilyJoinRequest();
+        request.setFamily(family);
+        request.setUser(managed);
+        request.setRejected(false);
+        joinRequestRepository.save(request);
+
+        log.info("{} requested to join family '{}'", managed.getUsername(), family.getName());
+    }
+
+    @Transactional
+    public void cancelJoinRequest(User user) {
+        User managed = userRepository.findById(user.getId())
+                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
+
+        joinRequestRepository.findByUser(managed).ifPresent(request -> {
+            joinRequestRepository.delete(request);
+            log.info("{} cancelled join request", managed.getUsername());
+        });
     }
 
     @Transactional
@@ -94,10 +162,10 @@ public class FamilyService {
                 .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
         Family family = managed.getFamily();
         if (family == null) {
-            throw new ValidationException(msg("error.family.notInFamily", "Ви не є учасником сім'ї"));
+            throw new ValidationException("Ви не є учасником сім'ї");
         }
         if (family.getOwner().getId().equals(managed.getId())) {
-            throw new ValidationException(msg("error.family.ownerCannotLeave", "Власник не може покинути сім'ю"));
+            throw new ValidationException("Власник не може покинути сім'ю. Видаліть сім'ю або передайте права.");
         }
         managed.setFamily(null);
         userRepository.save(managed);
@@ -134,6 +202,9 @@ public class FamilyService {
         if (family == null) throw new ValidationException("Ви не є учасником сім'ї");
         if (!family.getOwner().getId().equals(managed.getId()))
             throw new AccessDeniedException("Тільки власник може видалити сім'ю");
+
+        List<FamilyJoinRequest> requests = joinRequestRepository.findByFamily(family);
+        joinRequestRepository.deleteAll(requests);
 
         List<User> members = userRepository.findByFamily(family);
         for (User m : members) m.setFamily(null);
@@ -193,6 +264,75 @@ public class FamilyService {
                 familyId, currentUser.getId(), start, end));
         all.sort(Comparator.comparing(SharedTransactionDto::date).reversed());
         return all;
+    }
+
+    // ==================== JOIN REQUESTS ====================
+
+    @Transactional(readOnly = true)
+    public List<FamilyJoinRequest> getPendingRequests(User owner) {
+        Family family = getFamily(owner);
+        if (family == null || !isOwner(owner)) return List.of();
+        return joinRequestRepository.findByFamilyAndRejectedFalse(family);
+    }
+
+    @Transactional(readOnly = true)
+    public FamilyJoinRequest getUserPendingRequest(User user) {
+        if (user.getFamilyId() != null) return null;
+        return joinRequestRepository.findByUserAndRejectedFalse(user).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public FamilyJoinRequest getUserRejectedRequest(User user) {
+        if (user.getFamilyId() != null) return null;
+        return joinRequestRepository.findByUserAndRejectedTrue(user).orElse(null);
+    }
+
+    @Transactional
+    public void clearRejectedRequest(User user) {
+        joinRequestRepository.findByUserAndRejectedTrue(user)
+                .ifPresent(joinRequestRepository::delete);
+    }
+
+    @Transactional
+    public void approveRequest(User owner, Long requestId) {
+        User managedOwner = userRepository.findById(owner.getId()).orElseThrow();
+        Family family = managedOwner.getFamily();
+        if (family == null || !family.getOwner().getId().equals(managedOwner.getId())) {
+            throw new AccessDeniedException("Тільки власник може підтверджувати запити");
+        }
+
+        FamilyJoinRequest request = joinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ValidationException("Запит не знайдено"));
+
+        if (!request.getFamily().getId().equals(family.getId())) {
+            throw new AccessDeniedException("Цей запит належить іншій сім'ї");
+        }
+
+        User newMember = request.getUser();
+        newMember.setFamily(family);
+        userRepository.save(newMember);
+        joinRequestRepository.delete(request);
+        log.info("Owner {} approved {} to join family '{}'", managedOwner.getUsername(), newMember.getUsername(), family.getName());
+    }
+
+    @Transactional
+    public void rejectRequest(User owner, Long requestId) {
+        User managedOwner = userRepository.findById(owner.getId()).orElseThrow();
+        Family family = managedOwner.getFamily();
+        if (family == null || !family.getOwner().getId().equals(managedOwner.getId())) {
+            throw new AccessDeniedException("Тільки власник може відхиляти запити");
+        }
+
+        FamilyJoinRequest request = joinRequestRepository.findById(requestId)
+                .orElseThrow(() -> new ValidationException("Запит не знайдено"));
+
+        if (!request.getFamily().getId().equals(family.getId())) {
+            throw new AccessDeniedException("Цей запит належить іншій сім'ї");
+        }
+
+        request.setRejected(true);
+        joinRequestRepository.save(request);
+        log.info("Owner {} rejected join request", managedOwner.getUsername());
     }
 
     // ==================== HELPERS ====================

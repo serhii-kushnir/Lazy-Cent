@@ -27,22 +27,28 @@ public class FamilyController extends BaseController {
         User user = getCurrentUser(authentication);
         if (user == null) return "redirect:/login";
 
-        // 👇 ГОЛОВНИЙ ФІКС: Беремо свіжі дані з БД, ігноруючи стару сесію
         User freshUser = userRepository.findById(user.getId()).orElse(user);
 
         Family family = familyService.getFamily(freshUser);
         model.addAttribute("family", family);
         model.addAttribute("currentUser", freshUser);
+        model.addAttribute("myRejectedRequest", familyService.getUserRejectedRequest(freshUser));
         model.addAttribute("isOwner", family != null && familyService.isOwner(freshUser));
+
         if (family != null) {
             model.addAttribute("members", familyService.getFamilyMembers(freshUser));
+            if (familyService.isOwner(freshUser)) {
+                model.addAttribute("pendingRequests", familyService.getPendingRequests(freshUser));
+            }
+        } else {
+            model.addAttribute("myPendingRequest", familyService.getUserPendingRequest(freshUser));
         }
+
         return "family";
     }
 
     @PostMapping("/create")
-    public String create(@RequestParam String name,
-                         Authentication auth, RedirectAttributes ra) {
+    public String create(@RequestParam String name, Authentication auth, RedirectAttributes ra) {
         User user = getCurrentUser(auth);
         if (user == null) return "redirect:/login";
         try {
@@ -55,13 +61,38 @@ public class FamilyController extends BaseController {
     }
 
     @PostMapping("/join")
-    public String join(@RequestParam String inviteCode,
-                       Authentication auth, RedirectAttributes ra) {
+    public String join(@RequestParam String inviteCode, Authentication auth, RedirectAttributes ra) {
         User user = getCurrentUser(auth);
         if (user == null) return "redirect:/login";
         try {
             familyService.joinFamily(user, inviteCode);
-            ra.addFlashAttribute("successMessage", msg("toast.family.joined"));
+            ra.addFlashAttribute("successMessage", "Запит надіслано! Очікуйте, поки власник сім'ї вас підтвердить.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/family";
+    }
+
+    @PostMapping("/cancel-request")
+    public String cancelRequest(Authentication auth, RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        if (user == null) return "redirect:/login";
+        try {
+            familyService.cancelJoinRequest(user);
+            ra.addFlashAttribute("successMessage", "Заявку скасовано. Ви можете створити власну сім'ю або подати нову заявку.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/family";
+    }
+
+    @PostMapping("/acknowledge-rejection")
+    public String acknowledgeRejection(Authentication auth, RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        if (user == null) return "redirect:/login";
+        try {
+            familyService.clearRejectedRequest(user);
+            ra.addFlashAttribute("successMessage", "Ви можете подати нову заявку.");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
         }
@@ -82,8 +113,7 @@ public class FamilyController extends BaseController {
     }
 
     @PostMapping("/remove/{memberId}")
-    public String remove(@PathVariable Long memberId,
-                         Authentication auth, RedirectAttributes ra) {
+    public String remove(@PathVariable Long memberId, Authentication auth, RedirectAttributes ra) {
         User user = getCurrentUser(auth);
         if (user == null) return "redirect:/login";
         try {
@@ -121,17 +151,40 @@ public class FamilyController extends BaseController {
         return "redirect:/family";
     }
 
+    @PostMapping("/approve/{id}")
+    public String approve(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        if (user == null) return "redirect:/login";
+        try {
+            familyService.approveRequest(user, id);
+            ra.addFlashAttribute("successMessage", "Учасника додано до сім'ї!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/family";
+    }
+
+    @PostMapping("/reject/{id}")
+    public String reject(@PathVariable Long id, Authentication auth, RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        if (user == null) return "redirect:/login";
+        try {
+            familyService.rejectRequest(user, id);
+            ra.addFlashAttribute("successMessage", "Запит відхилено.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/family";
+    }
+
     @GetMapping("/shared")
     public String viewShared(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Authentication authentication, Model model) {
         User user = getCurrentUser(authentication);
         if (user == null) return "redirect:/login";
 
-        // 👇 Беремо свіжі дані з БД
         User freshUser = userRepository.findById(user.getId()).orElse(user);
         if (freshUser.getFamilyId() == null) return "redirect:/family";
 
@@ -140,8 +193,22 @@ public class FamilyController extends BaseController {
 
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
-        model.addAttribute("transactions",
-                familyService.getSharedTransactions(freshUser, startDate, endDate));
+        model.addAttribute("transactions", familyService.getSharedTransactions(freshUser, startDate, endDate));
         return "family-shared";
+    }
+
+    @PostMapping("/update-name")
+    public String updateFamilyName(@RequestParam String name,
+                                   Authentication auth,
+                                   RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        if (user == null) return "redirect:/login";
+        try {
+            familyService.updateFamilyName(user, name);
+            ra.addFlashAttribute("successMessage", msg("toast.family.updated"));
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/family";
     }
 }
