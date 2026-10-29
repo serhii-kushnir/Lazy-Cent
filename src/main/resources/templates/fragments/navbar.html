@@ -47,6 +47,12 @@
                         <i class="fas fa-sticky-note me-1"></i><span th:text="#{nav.notes}">Нотатки</span>
                     </a>
                 </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:classappend="${active == 'family'} ? ' active'"
+                       th:href="@{/family(lang=${#locale.language})}">
+                        <i class="fas fa-users me-1"></i><span th:text="#{nav.family}">Сім'я</span>
+                    </a>
+                </li>
 
                 <!-- Аватар та налаштування (Шестерня) -->
                 <li class="nav-item ms-lg-2" sec:authorize="isAuthenticated()">

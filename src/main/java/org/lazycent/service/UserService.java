@@ -29,6 +29,7 @@ public class UserService {
     private final BudgetService budgetService;
     private final NoteService noteService;
     private final MessageSource messageSource;
+    private final FamilyService familyService;
 
     @Value("${app.demo.random-days:14}")
     private int demoDays;
@@ -261,6 +262,20 @@ public class UserService {
 
         // 3. Нотатки
         noteService.deleteAllNotes(managedUser);
+
+        // 0. Family — власник → видалити сім'ю; член → просто вийти
+        if (managedUser.getFamilyId() != null) {
+            try {
+                if (familyService.isOwner(managedUser)) {
+                    familyService.deleteFamily(managedUser);
+                } else {
+                    familyService.leaveFamily(managedUser);
+                }
+            } catch (Exception e) {
+                log.warn("Не вдалося очистити family для {}: {}",
+                        managedUser.getUsername(), e.getMessage());
+            }
+        }
 
         // 4. Сам користувач
         userRepository.delete(managedUser);

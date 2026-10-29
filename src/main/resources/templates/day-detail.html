@@ -550,7 +550,12 @@
                             <td class="col-num"></td>
                             <td class="col-type"><span class="type-text expense" th:text="#{type.EXPENSE}">Витрата</span></td>
                             <td class="col-center"><span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span><span th:unless="${expense.time != null}" class="text-muted">—</span></td>
-                            <td class="col-name" th:text="${expense.description}"></td>
+                            <td class="col-name">
+    <span th:text="${expense.description}"></span>
+    <span th:if="${expense.shareWithFamily}" class="badge bg-info text-dark ms-1" th:title="#{badge.shared.tooltip}">
+        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+    </span>
+</td>
                             <td class="col-center" th:text="${expense.quantity ?: 1}"></td>
                             <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-buyer-seller" th:text="${expense.buyer}"></td>
@@ -558,8 +563,8 @@
                             <td class="col-details"><span th:if="${expense.details != null and expense.details.length() > 0}" th:text="${expense.details}" th:title="${expense.details}"></span><span th:unless="${expense.details != null and expense.details.length() > 0}" class="text-muted">—</span></td>
                             <td class="col-category"><span class="category-text" th:text="${expense.category.name}" data-category="${expense.category.name}"></span></td>
                             <td class="col-actions no-print">
-                                <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
-                                <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
+                                <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" th:data-share-with-family="${expense.shareWithFamily != null and expense.shareWithFamily} ? 'true' : 'false'" data-type="expense" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
+                                <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" th:data-share-with-family="${expense.shareWithFamily != null and expense.shareWithFamily} ? 'true' : 'false'" data-type="expense" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
                                 <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${expense.id}" data-type="expense" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-category="${expense.category.name}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-quantity="${expense.quantity}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:title="#{btn.delete}"><i class="fas fa-trash"></i></a>
                             </td>
                         </tr>
@@ -568,7 +573,12 @@
                             <td class="col-num"></td>
                             <td class="col-type"><span class="type-text income" th:text="#{type.INCOME}">Дохід</span></td>
                             <td class="col-center"><span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span><span th:unless="${income.time != null}" class="text-muted">—</span></td>
-                            <td class="col-name" th:text="${income.description}"></td>
+                            <td class="col-name">
+    <span th:text="${income.description}"></span>
+    <span th:if="${income.shareWithFamily}" class="badge bg-info text-dark ms-1" th:title="#{badge.shared.tooltip}">
+        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+    </span>
+</td>
                             <td class="col-center" th:text="${income.quantity ?: 1}"></td>
                             <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                             <td class="col-buyer-seller" th:text="${income.buyer}"></td>
@@ -576,8 +586,8 @@
                             <td class="col-details"><span th:if="${income.details != null and income.details.length() > 0}" th:text="${income.details}" th:title="${income.details}"></span><span th:unless="${income.details != null and income.details.length() > 0}" class="text-muted">—</span></td>
                             <td class="col-category"><span class="category-text" th:text="${income.category.name}" data-category="${income.category.name}"></span></td>
                             <td class="col-actions no-print">
-                                <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
-                                <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
+                                <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" th:data-share-with-family="${income.shareWithFamily != null and income.shareWithFamily} ? 'true' : 'false'" data-type="income" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
+                                <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" th:data-share-with-family="${income.shareWithFamily != null and income.shareWithFamily} ? 'true' : 'false'" data-type="income" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
                                 <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${income.id}" data-type="income" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-category="${income.category.name}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-quantity="${income.quantity}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:title="#{btn.delete}"><i class="fas fa-trash"></i></a>
                             </td>
                         </tr>
@@ -598,6 +608,9 @@
                                 <div class="card-header">
                                     <span class="type-badge expense"><i class="fas fa-arrow-down me-1"></i><span th:text="#{type.EXPENSE}">Витрата</span></span>
                                     <span class="card-number">№ <span th:text="${status.index + 1}"></span></span>
+                                    <span th:if="${expense.shareWithFamily}" class="badge bg-info text-dark" th:title="#{badge.shared.tooltip}">
+                                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                                    </span>
                                     <span class="card-time" th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span>
                                     <span class="card-time" th:unless="${expense.time != null}">—</span>
                                 </div>
@@ -611,8 +624,8 @@
                                     <div class="row"><span class="label"><i class="fas fa-folder me-1"></i><span th:text="#{common.category}">Категорія</span></span><span class="value category-text" th:text="${expense.category.name}" style="color: #dc3545;"></span></div>
                                 </div>
                                 <div class="card-footer">
-                                    <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
-                                    <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" data-type="expense" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" th:data-share-with-family="${expense.shareWithFamily != null and expense.shareWithFamily} ? 'true' : 'false'" data-type="expense" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
+                                    <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${expense.id}" th:data-category="${expense.category.id}" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-quantity="${expense.quantity}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:data-category-name="${expense.category.name}" th:data-share-with-family="${expense.shareWithFamily != null and expense.shareWithFamily} ? 'true' : 'false'" data-type="expense" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
                                     <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${expense.id}" data-type="expense" th:data-description="${expense.description}" th:data-amount="${expense.amount}" th:data-category="${expense.category.name}" th:data-details="${expense.details}" th:data-time="${expense.time}" th:data-quantity="${expense.quantity}" th:data-buyer="${expense.buyer}" th:data-seller="${expense.seller}" th:title="#{btn.delete}"><i class="fas fa-trash"></i></a>
                                 </div>
                             </div>
@@ -624,6 +637,9 @@
                                 <div class="card-header">
                                     <span class="type-badge income"><i class="fas fa-arrow-up me-1"></i><span th:text="#{type.INCOME}">Дохід</span></span>
                                     <span class="card-number">№ <span th:text="${status.index + 1}"></span></span>
+                                    <span th:if="${income.shareWithFamily}" class="badge bg-info text-dark" th:title="#{badge.shared.tooltip}">
+                                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                                    </span>
                                     <span class="card-time" th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span>
                                     <span class="card-time" th:unless="${income.time != null}">—</span>
                                 </div>
@@ -637,8 +653,8 @@
                                     <div class="row"><span class="label"><i class="fas fa-folder me-1"></i><span th:text="#{common.category}">Категорія</span></span><span class="value category-text" th:text="${income.category.name}" style="color: #198754;"></span></div>
                                 </div>
                                 <div class="card-footer">
-                                    <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
-                                    <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" data-type="income" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-action action-edit" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" th:data-share-with-family="${income.shareWithFamily != null and income.shareWithFamily} ? 'true' : 'false'" data-type="income" th:title="#{btn.edit}"><i class="fas fa-edit"></i></a>
+                                    <a class="btn btn-sm btn-outline-success btn-action action-duplicate" href="#" th:data-id="${income.id}" th:data-category="${income.category.id}" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-quantity="${income.quantity}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:data-category-name="${income.category.name}" th:data-share-with-family="${income.shareWithFamily != null and income.shareWithFamily} ? 'true' : 'false'" data-type="income" th:title="#{btn.duplicate}"><i class="fas fa-copy"></i></a>
                                     <a class="btn btn-sm btn-outline-danger btn-action action-delete" href="#" th:data-id="${income.id}" data-type="income" th:data-description="${income.description}" th:data-amount="${income.amount}" th:data-category="${income.category.name}" th:data-details="${income.details}" th:data-time="${income.time}" th:data-quantity="${income.quantity}" th:data-buyer="${income.buyer}" th:data-seller="${income.seller}" th:title="#{btn.delete}"><i class="fas fa-trash"></i></a>
                                 </div>
                             </div>
@@ -751,6 +767,18 @@
                                   th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
                         <div class="char-counter"><span id="charCount">0</span> / 250</div>
                     </div>
+
+                    <div class="mb-3" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="transactionShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="transactionShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
@@ -817,7 +845,19 @@
                     <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label><input type="time" class="form-control" id="editExpenseTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label><textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div></div>
+                    <div class="mb-3" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="editExpenseShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="editExpenseShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
@@ -848,6 +888,17 @@
                     <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label><input type="time" class="form-control" id="editIncomeTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label><textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div></div>
+                    <div class="mb-3" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="editIncomeShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="editIncomeShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
@@ -896,6 +947,18 @@
                     <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label><input type="time" class="form-control" id="cloneTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label><textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneCharCount">0</span> / 250</div></div>
+
+                    <div class="mb-3" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="cloneShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="cloneShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
@@ -1557,6 +1620,8 @@
                 document.getElementById('cloneDetails').value = details;
                 document.getElementById('cloneBuyer').value = buyer;
                 document.getElementById('cloneSeller').value = seller;
+                var shareInput = document.getElementById('cloneShareWithFamily');
+                if (shareInput) shareInput.checked = this.dataset.shareWithFamily === 'true';
                 document.getElementById('cloneCharCount').textContent = details.length;
                 var initialType = type === 'expense' ? 'EXPENSE' : 'INCOME';
                 cloneTypeInput.value = initialType;
@@ -1618,6 +1683,8 @@
                         document.getElementById('editExpenseDetails').value = details;
                         document.getElementById('editExpenseBuyer').value = buyer;
                         document.getElementById('editExpenseSeller').value = seller;
+                        document.getElementById('editExpenseShareWithFamily').checked =
+                            this.dataset.shareWithFamily === 'true';
                         document.getElementById('editExpenseCharCount').textContent = details.length;
                         document.getElementById('editExpenseForm').action = '/expense/edit/' + id;
                         bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -1634,6 +1701,7 @@
                         document.getElementById('editIncomeDetails').value = details;
                         document.getElementById('editIncomeBuyer').value = buyer;
                         document.getElementById('editIncomeSeller').value = seller;
+                        document.getElementById('editIncomeShareWithFamily').checked = this.dataset.shareWithFamily === 'true';
                         document.getElementById('editIncomeCharCount').textContent = details.length;
                         document.getElementById('editIncomeForm').action = '/income/edit/' + id;
                         bootstrap.Modal.getOrCreateInstance(modalEl2).show();

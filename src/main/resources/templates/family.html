@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{family.title} + ' - ' + #{app.title}">Сім'я — Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
+    <style>
+        .family-container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .invite-code { font-family: ui-monospace, monospace; font-size: 1.5rem;
+            letter-spacing: 4px; font-weight: 700; color: var(--bs-primary); }
+        .member-row { display: flex; justify-content: space-between; align-items: center;
+            padding: 0.75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
+        .member-row:last-child { border-bottom: none; }
+        .member-avatar { width: 40px; height: 40px; border-radius: 50%;
+            background: var(--bs-primary); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; }
+    </style>
+</head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbar('family')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+<div class="container family-container">
+
+    <!-- ===== НЕ В СІМ'Ї ===== -->
+    <div th:if="${family == null}">
+        <h1 class="mb-3"><i class="fas fa-users me-2"></i><span th:text="#{family.title}">Сім'я</span></h1>
+        <p class="text-muted" th:text="#{family.notInFamily.desc}">Створіть сімейний простір...</p>
+
+        <div class="row g-4 mt-2">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="mb-3">
+                            <i class="fas fa-plus-circle me-2 text-primary"></i>
+                            <span th:text="#{family.create.title}">Створити сім'ю</span>
+                        </h5>
+                        <form th:action="@{/family/create}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <div class="mb-3">
+                                <label class="form-label" th:text="#{family.create.name}">Назва сім'ї</label>
+                                <input type="text" name="name" class="form-control" maxlength="100" required
+                                       th:placeholder="#{family.create.namePlaceholder}">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100"
+                                    th:text="#{family.create.submit}">Створити</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="mb-3">
+                            <i class="fas fa-sign-in-alt me-2 text-success"></i>
+                            <span th:text="#{family.join.title}">Або приєднайтеся</span>
+                        </h5>
+                        <form th:action="@{/family/join}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <div class="mb-3">
+                                <label class="form-label" th:text="#{family.join.code}">Код-запрошення</label>
+                                <input type="text" name="inviteCode" class="form-control text-uppercase"
+                                       maxlength="12" required autocomplete="off"
+                                       th:placeholder="#{family.join.codePlaceholder}">
+                            </div>
+                            <button type="submit" class="btn btn-success w-100"
+                                    th:text="#{family.join.submit}">Приєднатися</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== В СІМ'Ї ===== -->
+    <div th:if="${family != null}">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+            <h1 class="mb-0">
+                <i class="fas fa-users me-2"></i>
+                <span th:text="${family.name}">Сім'я</span>
+            </h1>
+            <a th:href="@{/family/shared}" class="btn btn-primary">
+                <i class="fas fa-list me-1"></i>
+                <span th:text="#{family.shared.viewAll}">Спільні транзакції</span>
+            </a>
+        </div>
+
+        <!-- Invite code -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>
+                    <span th:text="#{family.inviteCode}">Код-запрошення</span></h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-3 align-items-center flex-wrap">
+                    <code class="invite-code" id="inviteCode" th:text="${family.inviteCode}">ABCD1234</code>
+                    <button type="button" class="btn btn-outline-secondary" id="copyCodeBtn">
+                        <i class="fas fa-copy me-1"></i>
+                        <span th:text="#{family.copy}">Копіювати</span>
+                    </button>
+                    <form th:if="${isOwner}" th:action="@{/family/regenerate-code}"
+                          method="post" class="js-confirm-regenerate">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-outline-warning">
+                            <i class="fas fa-sync me-1"></i>
+                            <span th:text="#{family.regenerate}">Оновити код</span>
+                        </button>
+                    </form>
+                </div>
+                <p class="text-muted small mt-2 mb-0"
+                   th:text="#{family.inviteCode.hint}">Поділіться цим кодом...</p>
+            </div>
+        </div>
+
+        <!-- Members -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-friends me-2"></i>
+                    <span th:text="#{family.info.members}">Учасники</span>
+                    <span class="badge bg-secondary ms-2" th:text="${members.size()}">0</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="member-row" th:each="m : ${members}">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="member-avatar"
+                             th:text="${#strings.toUpperCase(#strings.substring(m.username, 0, 1))}">A</div>
+                        <div>
+                            <div class="fw-bold" th:text="${m.username}">username</div>
+                            <small class="text-muted" th:text="${m.email}">email</small>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="badge bg-primary"
+                              th:if="${m.id == family.owner.id}"
+                              th:text="#{family.member.owner}">Власник</span>
+                        <span class="badge bg-secondary"
+                              th:if="${m.id == currentUser.id}"
+                              th:text="#{family.member.you}">(ви)</span>
+                        <form th:if="${isOwner and m.id != currentUser.id}"
+                              th:action="@{/family/remove/{id}(id=${m.id})}"
+                              method="post" class="js-confirm-remove"
+                              th:data-username="${m.username}">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                    th:title="#{family.member.remove}">
+                                <i class="fas fa-user-minus"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leave / Delete -->
+        <div class="d-flex gap-2 flex-wrap">
+            <form th:if="${!isOwner}" th:action="@{/family/leave}"
+                  method="post" class="js-confirm-leave">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    <span th:text="#{family.leave}">Покинути сім'ю</span>
+                </button>
+            </form>
+            <form th:if="${isOwner}" th:action="@{/family/delete}"
+                  method="post" class="js-confirm-delete">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash me-1"></i>
+                    <span th:text="#{family.delete}">Видалити сім'ю</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+
+<script th:inline="javascript">
+    const i18n = {
+        copied:          /*[[#{family.copied}]]*/           'Скопійовано!',
+        regenConfirm:    /*[[#{family.regenerate.confirm}]]*/'Згенерувати новий код?',
+        removeConfirm:   /*[[#{family.member.removeConfirm}]]*/'Видалити учасника {0}?',
+        leaveConfirm:    /*[[#{family.leave.confirm}]]*/    'Ви впевнені, що хочете покинути сім\'ю?',
+        deleteConfirm:   /*[[#{family.delete.confirm}]]*/   'Видалити сім\'ю назавжди?'
+    };
+
+    document.getElementById('copyCodeBtn')?.addEventListener('click', function () {
+        const code = document.getElementById('inviteCode')?.textContent?.trim();
+        if (!code) return;
+        navigator.clipboard.writeText(code).then(() => {
+            const original = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-check me-1"></i>' + i18n.copied;
+            setTimeout(() => this.innerHTML = original, 1500);
+        });
+    });
+
+    document.querySelector('.js-confirm-regenerate')?.addEventListener('submit', e => {
+        if (!confirm(i18n.regenConfirm)) e.preventDefault();
+    });
+    document.querySelectorAll('.js-confirm-remove').forEach(f => {
+        f.addEventListener('submit', e => {
+            const msg = i18n.removeConfirm.replace('{0}', f.dataset.username);
+            if (!confirm(msg)) e.preventDefault();
+        });
+    });
+    document.querySelector('.js-confirm-leave')?.addEventListener('submit', e => {
+        if (!confirm(i18n.leaveConfirm)) e.preventDefault();
+    });
+    document.querySelector('.js-confirm-delete')?.addEventListener('submit', e => {
+        if (!confirm(i18n.deleteConfirm)) e.preventDefault();
+    });
+</script>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+</body>
+</html>

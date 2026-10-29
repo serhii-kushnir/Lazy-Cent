@@ -300,6 +300,7 @@ public class BudgetService {
         duplicate.setTime(original.getTime());
         duplicate.setBuyer(original.getBuyer());
         duplicate.setSeller(original.getSeller());
+        duplicate.setShareWithFamily(original.getShareWithFamily());
         expenseRepository.save(duplicate);
         original.getDayBudget().getExpenses().add(duplicate);
         updateDayBudgetBalance(original.getDayBudget());
@@ -323,6 +324,7 @@ public class BudgetService {
         duplicate.setTime(original.getTime());
         duplicate.setBuyer(original.getBuyer());
         duplicate.setSeller(original.getSeller());
+        duplicate.setShareWithFamily(original.getShareWithFamily());
         incomeRepository.save(duplicate);
         original.getDayBudget().getIncomes().add(duplicate);
         updateDayBudgetBalance(original.getDayBudget());

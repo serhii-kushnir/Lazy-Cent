@@ -9,7 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import org.lazycent.model.dto.SharedTransactionDto;
+import java.time.LocalDate;
+import java.util.List;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -92,4 +94,19 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             "WHERE e.category = :category AND e.dayBudget.owner = :user")
     long countByCategoryAndOwner(@Param("category") Category category,
                                  @Param("user") User user);
+
+    @Query("SELECT new org.lazycent.model.dto.SharedTransactionDto(" +
+            "e.dayBudget.date, e.dayBudget.owner.username, e.category.name, " +
+            "e.description, e.amount, 'EXPENSE', e.time) " +
+            "FROM Expense e " +
+            "WHERE e.dayBudget.owner.family.id = :familyId " +
+            "  AND e.dayBudget.owner.id <> :currentUserId " +
+            "  AND e.shareWithFamily = true " +
+            "  AND e.dayBudget.date BETWEEN :start AND :end " +
+            "ORDER BY e.dayBudget.date DESC, e.time DESC")
+    List<SharedTransactionDto> findSharedExpensesByFamily(
+            @Param("familyId") Long familyId,
+            @Param("currentUserId") Long currentUserId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end);
 }

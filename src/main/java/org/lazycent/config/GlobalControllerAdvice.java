@@ -5,6 +5,7 @@ import org.lazycent.model.Category;
 import org.lazycent.model.Currency;
 import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
+import org.lazycent.repository.UserRepository;
 import org.lazycent.service.CategoryService;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -24,6 +25,7 @@ public class GlobalControllerAdvice {
 
     private final CategoryService categoryService;
     private final MessageSource messageSource;
+    private final UserRepository userRepository;
 
     // ==================== ВАЛЮТА ====================
 
@@ -98,8 +100,6 @@ public class GlobalControllerAdvice {
 
     /**
      * Мапа: українська назва дня з БД → локалізована назва для поточного locale.
-     * Використовується в шаблонах:
-     *   th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"
      */
     @ModelAttribute("dayNames")
     public Map<String, String> populateDayNames() {
@@ -112,6 +112,18 @@ public class GlobalControllerAdvice {
         map.put("Субота",    msg("day.saturday"));
         map.put("Неділя",    msg("day.sunday"));
         return map;
+    }
+
+    // ==================== СІМ'Я ====================
+
+    @ModelAttribute("hasFamily")
+    public boolean hasFamily() {
+        User user = getCurrentUser();
+        if (user == null) return false;
+        // Беремо свіжі дані з БД, ігноруючи кеш сесії
+        return userRepository.findById(user.getId())
+                .map(u -> u.getFamilyId() != null)
+                .orElse(false);
     }
 
     // ==================== ДОПОМІЖНІ ====================

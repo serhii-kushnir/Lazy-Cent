@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.lazycent.model.Family;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -41,4 +42,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Transactional
     @Query("UPDATE User u SET u.preferredLanguage = :language WHERE u.id = :id")
     int updatePreferredLanguage(@Param("id") Long id, @Param("language") String language);
+
+    List<User> findByFamily(Family family);
+    List<User> findByFamilyAndIdNot(Family family, Long userId);
 }

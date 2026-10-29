@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{family.shared.title} + ' - ' + #{app.title}">Спільні транзакції</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
+</head>
+<body>
+<nav th:replace="~{fragments/navbar :: navbar('family')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 class="mb-0"><i class="fas fa-list me-2"></i>
+            <span th:text="#{family.shared.heading}">Спільні транзакції сім'ї</span>
+        </h2>
+        <a th:href="@{/family}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Назад</span>
+        </a>
+    </div>
+    <p class="text-muted" th:text="#{family.shared.subtitle}">Транзакції членів сім'ї, які вони позначили як спільні.</p>
+
+    <form method="get" th:action="@{/family/shared}" class="row g-2 mb-4 align-items-end">
+        <div class="col-auto">
+            <label class="form-label small" th:text="#{common.from}">від</label>
+            <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+        </div>
+        <div class="col-auto">
+            <label class="form-label small" th:text="#{common.to}">до</label>
+            <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary"
+                    th:text="#{family.shared.applyDate}">Застосувати</button>
+        </div>
+    </form>
+
+    <div th:if="${transactions.isEmpty()}" class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        <span th:text="#{family.shared.empty}">Поки що ніхто не поділився транзакціями.</span>
+    </div>
+
+    <div th:if="${!transactions.isEmpty()}" class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th th:text="#{family.shared.col.date}">Дата</th>
+                    <th th:text="#{family.shared.col.member}">Учасник</th>
+                    <th th:text="#{family.shared.col.type}">Тип</th>
+                    <th th:text="#{family.shared.col.category}">Категорія</th>
+                    <th th:text="#{family.shared.col.description}">Опис</th>
+                    <th class="text-end" th:text="#{family.shared.col.amount}">Сума</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="t : ${transactions}">
+                    <td th:text="${t.date()}">2026-10-05</td>
+                    <td th:text="${t.memberUsername()}">olena</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${t.expense()} ? 'bg-danger' : 'bg-success'"
+                              th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
+                    </td>
+                    <td th:text="${t.categoryName()}">Їжа</td>
+                    <td th:text="${t.description()}">Продукти</td>
+                    <td class="text-end fw-bold"
+                        th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
+                        th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">
+                        150.00 ₴
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+</body>
+</html>

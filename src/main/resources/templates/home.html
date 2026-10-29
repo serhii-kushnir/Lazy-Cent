@@ -427,6 +427,25 @@
                             <span id="charCount">0</span> / 250
                         </div>
                     </div>
+
+                    <div class="mb-3" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="transactionShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="transactionShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                        <div class="form-text text-muted"
+                             th:text="#{modal.shareWithFamily.hint}">Члени сім'ї побачать цю транзакцію</div>
+                    </div>
+                    <div class="alert alert-info small py-2 mb-3" th:unless="${hasFamily}">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span th:text="#{modal.shareWithFamily.noFamily}">Спочатку приєднайтеся до сім'ї...</span>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint" th:utext="#{modal.keyboardHint}">

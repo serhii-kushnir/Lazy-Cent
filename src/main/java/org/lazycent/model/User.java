@@ -73,6 +73,15 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role));
     }
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "family_id")
+    private Family family;
+
+    @Transient
+    public Long getFamilyId() {
+        return family == null ? null : family.getId();
+    }
+
     @Override
     public boolean isAccountNonExpired() { return true; }
     @Override
