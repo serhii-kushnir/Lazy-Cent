@@ -105,13 +105,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             "e.description, e.amount, 'EXPENSE', e.time) " +
             "FROM Expense e " +
             "WHERE e.dayBudget.owner.family.id = :familyId " +
-            "  AND e.dayBudget.owner.id <> :currentUserId " +
             "  AND e.shareWithFamily = true " +
             "  AND e.dayBudget.date BETWEEN :start AND :end " +
             "ORDER BY e.dayBudget.date DESC, e.time DESC")
     List<SharedTransactionDto> findSharedExpensesByFamily(
             @Param("familyId") Long familyId,
-            @Param("currentUserId") Long currentUserId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
 

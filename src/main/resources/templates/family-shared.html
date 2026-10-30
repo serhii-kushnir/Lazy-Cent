@@ -27,8 +27,13 @@
 
     <form method="get" th:action="@{/family/shared}" class="row g-2 mb-4 align-items-end">
         <div class="col-auto">
-            <label class="form-label small" th:text="#{common.from}">від</label>
-            <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+            <label class="form-label small" th:text="#{family.shared.member}">Учасник</label>
+            <select name="member" id="memberFilter" class="form-select">
+                <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
+                <option th:each="m : ${familyMembers}"
+                        th:value="${m.username}"
+                        th:text="${m.username}">username</option>
+            </select>
         </div>
         <div class="col-auto">
             <label class="form-label small" th:text="#{common.to}">до</label>
@@ -59,13 +64,15 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="t : ${transactions}">
+                <tr th:each="t : ${transactions}" th:data-member="${t.memberUsername()}">
                     <td th:text="${t.date()}">2026-10-05</td>
-                    <td th:text="${t.memberUsername()}">olena</td>
                     <td>
-                        <span class="badge"
-                              th:classappend="${t.expense()} ? 'bg-danger' : 'bg-success'"
-                              th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
+                        <span th:text="${t.memberUsername()}">olena</span>
+                        <!-- 👇 Додаємо бейдж "(ви)" навпроти свого імені 👇 -->
+                        <span th:if="${t.memberUsername() == currentUser?.username}"
+                              class="badge bg-secondary ms-1"
+                              th:text="#{family.member.you}">(ви)
+                        </span>
                     </td>
                     <td th:text="${t.categoryName()}">Їжа</td>
                     <td th:text="${t.description()}">Продукти</td>
@@ -85,5 +92,42 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+<script>
+    // ===== ФІЛЬТР ЗА УЧАСНИКОМ =====
+    const memberFilter = document.getElementById('memberFilter');
+    const tableRows = document.querySelectorAll('table tbody tr[data-member]');
+
+    if (memberFilter) {
+        // Зберігаємо вибраного учасника при перезавантаженні
+        const urlParams = new URLSearchParams(window.location.search);
+        const selectedMember = urlParams.get('member');
+        if (selectedMember) {
+            memberFilter.value = selectedMember;
+        }
+
+        memberFilter.addEventListener('change', function() {
+            const selected = this.value;
+            let visibleCount = 0;
+
+            tableRows.forEach(row => {
+                if (selected === 'all' || row.dataset.member === selected) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Якщо нічого не знайдено, можна показати повідомлення
+            const noDataMsg = document.getElementById('noMemberData');
+            if (noDataMsg) {
+                noDataMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        });
+
+        // Викликаємо подію одразу при завантаженні (якщо в URL був параметр)
+        memberFilter.dispatchEvent(new Event('change'));
+    }
+</script>
 </body>
 </html>

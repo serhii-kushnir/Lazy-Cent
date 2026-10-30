@@ -104,13 +104,11 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             "i.description, i.amount, 'INCOME', i.time) " +
             "FROM Income i " +
             "WHERE i.dayBudget.owner.family.id = :familyId " +
-            "  AND i.dayBudget.owner.id <> :currentUserId " +
             "  AND i.shareWithFamily = true " +
             "  AND i.dayBudget.date BETWEEN :start AND :end " +
             "ORDER BY i.dayBudget.date DESC, i.time DESC")
     List<SharedTransactionDto> findSharedIncomesByFamily(
             @Param("familyId") Long familyId,
-            @Param("currentUserId") Long currentUserId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
 }

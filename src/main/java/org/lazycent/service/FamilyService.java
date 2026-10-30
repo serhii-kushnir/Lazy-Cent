@@ -287,14 +287,14 @@ public class FamilyService {
         if (familyId == null) return List.of();
 
         List<SharedTransactionDto> all = new ArrayList<>();
-        all.addAll(expenseRepository.findSharedExpensesByFamily(
-                familyId, currentUser.getId(), start, end));
-        all.addAll(incomeRepository.findSharedIncomesByFamily(
-                familyId, currentUser.getId(), start, end));
+
+        // 👇 Оновлені виклики без currentUser.getId() 👇
+        all.addAll(expenseRepository.findSharedExpensesByFamily(familyId, start, end));
+        all.addAll(incomeRepository.findSharedIncomesByFamily(familyId, start, end));
+
         all.sort(Comparator.comparing(SharedTransactionDto::date).reversed());
         return all;
     }
-
     // ==================== JOIN REQUESTS ====================
 
     @Transactional(readOnly = true)
