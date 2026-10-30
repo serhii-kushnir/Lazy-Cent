@@ -234,7 +234,18 @@ public class FamilyService {
         if (familyId == null) return List.of();
         Family f = familyRepository.findById(familyId).orElse(null);
         if (f == null) return List.of();
-        return userRepository.findByFamily(f);
+
+        // 👇 Сортуємо: власник завжди перший, інші - за алфавітом 👇
+        return userRepository.findByFamily(f).stream()
+                .filter(java.util.Objects::nonNull)
+                .sorted((u1, u2) -> {
+                    boolean isU1Owner = u1.getId().equals(f.getOwner().getId());
+                    boolean isU2Owner = u2.getId().equals(f.getOwner().getId());
+                    if (isU1Owner) return -1; // u1 йде першим
+                    if (isU2Owner) return 1;  // u2 йде першим
+                    return u1.getUsername().compareToIgnoreCase(u2.getUsername()); // інші за алфавітом
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -358,5 +369,34 @@ public class FamilyService {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    @Transactional
+    public void transferOwnership(User currentOwner, Long newOwnerId) {
+        User managedOwner = userRepository.findById(currentOwner.getId())
+                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
+        Family family = managedOwner.getFamily();
+
+        if (family == null) {
+            throw new ValidationException("Ви не є учасником сім'ї");
+        }
+        if (!family.getOwner().getId().equals(managedOwner.getId())) {
+            throw new AccessDeniedException("Тільки власник може передати права");
+        }
+
+        User newOwner = userRepository.findById(newOwnerId)
+                .orElseThrow(() -> new ValidationException("Нового власника не знайдено"));
+
+        if (newOwner.getFamily() == null || !newOwner.getFamily().getId().equals(family.getId())) {
+            throw new ValidationException("Цей користувач не є членом вашої сім'ї");
+        }
+        if (newOwner.getId().equals(managedOwner.getId())) {
+            throw new ValidationException("Ви вже є власником");
+        }
+
+        family.setOwner(newOwner);
+        familyRepository.save(family);
+        log.info("Ownership of family '{}' transferred from {} to {}",
+                family.getName(), managedOwner.getUsername(), newOwner.getUsername());
     }
 }

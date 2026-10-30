@@ -36,7 +36,7 @@
             background-color: var(--bs-tertiary-bg);
         }
         .member-row {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
             padding: 1rem 1.25rem; border-bottom: 1px solid var(--bs-border-color);
         }
         .member-row:last-child { border-bottom: none; }
@@ -47,7 +47,7 @@
             font-weight: 700; font-size: 1.1rem;
             flex-shrink: 0;
         }
-        .btn-rounded { border-radius: 50px !important; }
+        .btn-rounded { border-radius: 0.75rem !important; } /* Змінено з 50px на 0.75rem */
         .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -72,13 +72,12 @@
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
 
-<div class="container-fluid custom-container mt-4 mb-5">
+<div class="container mt-4 mb-5" style="max-width: 900px;">
 
     <!-- ==================== НЕ В СІМ'Ї ==================== -->
     <div th:if="${family == null}">
         <h2 class="mb-4 animate-fade-up text-center text-sm-start"><i class="fas fa-users me-2 text-primary"></i><span th:text="#{family.title}">Сім'я</span></h2>
 
-        <!-- БЛОК 3: Заявку відхилено -->
         <div th:if="${myRejectedRequest != null}" class="alert alert-contrast-danger shadow-sm mb-4 animate-fade-up" role="alert">
             <div class="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start gap-3">
                 <i class="fas fa-times-circle fa-3x text-danger"></i>
@@ -98,7 +97,6 @@
             </div>
         </div>
 
-        <!-- БЛОК 1: Є активна заявка -->
         <div th:if="${myPendingRequest != null}" class="alert alert-contrast-info text-center shadow-sm mb-4 animate-fade-up">
             <i class="fas fa-clock fa-3x mb-3 d-block text-info"></i>
             <h4>
@@ -116,7 +114,6 @@
             </form>
         </div>
 
-        <!-- БЛОК 2: Форми створення/вступу -->
         <div th:if="${myPendingRequest == null and myRejectedRequest == null}">
             <p class="text-muted mb-4 animate-fade-up text-center text-sm-start" th:text="#{family.notInFamily.desc}">Створіть сімейний простір або приєднайтеся до існуючого за кодом-запрошенням.</p>
 
@@ -134,13 +131,11 @@
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold" th:text="#{family.create.name}">Назва сім'ї</label>
-
                                     <input type="text" name="name" id="familyNameInput"
                                            class="form-control form-control-lg"
                                            maxlength="20" required
                                            pattern="^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-\_\'\.]+$"
                                            th:placeholder="#{family.create.namePlaceholder}">
-
                                     <div class="d-flex justify-content-between mt-1">
                                         <small class="text-muted" style="font-size: 0.75rem;" th:text="#{family.name.allowed}">
                                             Дозволено: літери, цифри, пробіл, - _ ' .
@@ -169,8 +164,10 @@
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold" th:text="#{family.join.code}">Код-запрошення</label>
+                                    <!-- 👇 Підставляємо prefilledCode, якщо він є 👇 -->
                                     <input type="text" name="inviteCode" class="form-control form-control-lg text-uppercase text-center"
                                            maxlength="12" required autocomplete="off"
+                                           th:value="${prefilledCode}"
                                            th:placeholder="#{family.join.codePlaceholder}">
                                 </div>
                                 <button type="submit" class="btn btn-success w-100 btn-rounded py-2" th:text="#{family.join.submit}">Приєднатися</button>
@@ -184,7 +181,6 @@
 
     <!-- ==================== В СІМ'Ї ==================== -->
     <div th:if="${family != null}">
-        <!-- Заголовок -->
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 mb-4 animate-fade-up">
             <div class="d-flex align-items-center gap-2">
                 <h2 class="mb-0 text-center text-sm-start"><i class="fas fa-users me-2 text-primary"></i><span th:text="${family.name}">Сім'я</span></h2>
@@ -206,28 +202,39 @@
                     <span th:text="#{family.inviteCode}">Код-запрошення</span></h5>
             </div>
             <div class="card-body p-4">
-                <div class="d-flex flex-column flex-sm-row gap-3 align-items-center flex-wrap">
-                    <code class="invite-code px-4 py-2 rounded" id="inviteCode" th:text="${family.inviteCode}">ABCD1234</code>
 
-                    <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-sm-auto">
+                <!-- 👇 Використовуємо justify-content-between для ПК 👇 -->
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-center gap-3">
+
+                    <!-- Ліва частина: Код -->
+                    <div class="text-center text-lg-start w-100 w-lg-auto">
+                        <code class="invite-code px-4 py-2 rounded d-inline-block" id="inviteCode" th:text="${family.inviteCode}">ABCD1234</code>
+                    </div>
+
+                    <!-- Права частина: Кнопки -->
+                    <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-lg-auto justify-content-center justify-content-lg-end">
                         <button type="button" class="btn btn-outline-secondary btn-rounded w-100" id="copyCodeBtn">
                             <i class="fas fa-copy me-1"></i>
                             <span th:text="#{family.copy}">Копіювати</span>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-rounded w-100" id="shareLinkBtn">
+                            <i class="fas fa-share-alt me-1"></i>
+                            <span th:text="#{family.shareLink}">Поділитися</span>
                         </button>
                         <form th:if="${isOwner}" th:action="@{/family/regenerate-code}" method="post" class="js-confirm-regenerate m-0 w-100">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button type="submit" class="btn btn-outline-warning btn-rounded w-100">
                                 <i class="fas fa-sync me-1"></i>
-                                <span th:text="#{family.regenerate}">Оновити код</span>
+                                <span th:text="#{family.regenerate}">Оновити</span>
                             </button>
                         </form>
                     </div>
                 </div>
-                <p class="text-muted small mt-3 mb-0 text-center text-sm-start"
+
+                <p class="text-muted small mt-3 mb-0 text-center text-lg-start"
                    th:text="#{family.inviteCode.hint}">Поділіться цим кодом...</p>
             </div>
         </div>
-
         <!-- Запити на вступ -->
         <div class="card mb-4 border-warning shadow-sm animate-fade-up" th:if="${isOwner and pendingRequests != null and !pendingRequests.isEmpty()}" style="animation-delay: 0.2s;">
             <div class="card-header bg-warning-subtle text-warning-emphasis border-bottom border-warning">
@@ -248,16 +255,19 @@
                         </div>
                     </div>
                     <div class="d-flex gap-2 mt-2 mt-sm-0 w-100 w-sm-auto justify-content-start justify-content-sm-end">
-                        <form th:action="@{/family/approve/{id}(id=${req.id})}" method="post" class="m-0 flex-fill flex-sm-grow-0">
+                        <!-- 👇 Додано клас js-submit-spinner для обробки завантаження 👇 -->
+                        <form th:action="@{/family/approve/{id}(id=${req.id})}" method="post" class="m-0 flex-fill flex-sm-grow-0 js-submit-spinner">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button type="submit" class="btn btn-sm btn-success btn-rounded px-3 w-100">
-                                <i class="fas fa-check me-1"></i> <span th:text="#{family.approve}">Прийняти</span>
+                                <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-check me-1 btn-icon"></i> <span class="btn-text" th:text="#{family.approve}">Прийняти</span>
                             </button>
                         </form>
-                        <form th:action="@{/family/reject/{id}(id=${req.id})}" method="post" class="m-0 flex-fill flex-sm-grow-0">
+                        <form th:action="@{/family/reject/{id}(id=${req.id})}" method="post" class="m-0 flex-fill flex-sm-grow-0 js-submit-spinner">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button type="submit" class="btn btn-sm btn-outline-danger btn-rounded px-3 w-100">
-                                <i class="fas fa-times me-1"></i> <span th:text="#{family.reject}">Відхилити</span>
+                                <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-times me-1 btn-icon"></i> <span class="btn-text" th:text="#{family.reject}">Відхилити</span>
                             </button>
                         </form>
                     </div>
@@ -276,67 +286,77 @@
             </div>
             <div class="card-body p-0">
                 <div class="member-row" th:each="m : ${members}">
-                    <div class="d-flex align-items-center gap-3 w-100">
-                        <div class="member-avatar"
-                             th:text="${m != null ? #strings.toUpperCase(#strings.substring(m.username, 0, 1)) : '?'}">K</div>
+                    <div class="w-100">
 
-                        <div class="flex-grow-1 d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-center w-100 gap-2">
-                                <div class="d-flex align-items-center gap-2 flex-wrap text-break">
-                                    <span class="fw-bold" th:text="${m.username}">kushnir</span>
-                                    <span class="badge bg-primary"
-                                          th:if="${m.id == family.owner.id}"
-                                          th:text="#{family.member.owner}">Власник</span>
-                                    <span class="badge bg-secondary"
-                                          th:if="${m.id == currentUser.id}"
-                                          th:text="#{family.member.you}">(ви)</span>
-                                </div>
-
-                                <form th:if="${isOwner and m.id != currentUser.id}"
-                                      th:action="@{/family/remove/{id}(id=${m.id})}"
-                                      method="post" class="js-confirm-remove m-0 flex-shrink-0"
-                                      th:data-username="${m.username}">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger btn-rounded p-0 d-flex align-items-center justify-content-center"
-                                            style="width: 28px; height: 28px;"
-                                            th:title="#{family.member.remove}">
-                                        <i class="fas fa-user-minus" style="font-size: 0.8rem; color: inherit !important;"></i>
-                                    </button>
-                                </form>
+                        <!-- РЯДОК 1: Аватар, Ім'я, Бейджі та Пошта -->
+                        <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2 gap-sm-3 mb-3">
+                            <!-- Аватар + Ім'я + Бейджі -->
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="member-avatar flex-shrink-0"
+                                     th:text="${m != null ? #strings.toUpperCase(#strings.substring(m.username, 0, 1)) : '?'}">K</div>
+                                <span class="fw-bold text-break" th:text="${m.username}">kushnir</span>
+                                <span class="badge bg-primary"
+                                      th:if="${m.id == family.owner.id}"
+                                      th:text="#{family.member.owner}">Власник</span>
+                                <span class="badge bg-secondary"
+                                      th:if="${m.id == currentUser.id}"
+                                      th:text="#{family.member.you}">(ви)</span>
                             </div>
-                            <div>
-                                <small class="text-muted" th:text="${m.email}">kushnir@gmail.com</small>
+
+                            <!-- Пошта -->
+                            <div class="text-muted small text-break">
+                                <i class="far fa-envelope me-1"></i>
+                                <span th:text="${m.email}">kushnir@gmail.com</span>
                             </div>
                         </div>
+
+                        <!-- 👇 РЯДОК 2: Кнопки дій (додано класи центрування/вирівнювання) 👇 -->
+                        <div class="d-flex gap-2 flex-wrap justify-content-center justify-content-sm-end" th:if="${isOwner and m.id != currentUser.id}">
+
+                            <!-- Кнопка передачі прав -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary js-transfer-owner"
+                                    th:data-id="${m.id}"
+                                    th:data-username="${m.username}">
+                                <i class="fas fa-crown me-1"></i>
+                                <span th:text="#{family.member.transfer}">Передати права</span>
+                            </button>
+
+                            <!-- Кнопка видалення -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger js-remove-member"
+                                    th:data-id="${m.id}"
+                                    th:data-username="${m.username}">
+                                <i class="fas fa-user-minus me-1"></i>
+                                <span th:text="#{family.member.remove}">Видалити</span>
+                            </button>
+
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-
         <!-- Дії -->
         <div class="d-flex flex-column flex-sm-row gap-3 mb-5 animate-fade-up" style="animation-delay: 0.4s;">
-            <form th:if="${!isOwner}" th:action="@{/family/leave}"
-                  method="post" class="js-confirm-leave w-100 w-sm-auto">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button type="submit" class="btn btn-outline-danger btn-rounded px-4 w-100">
-                    <i class="fas fa-sign-out-alt me-2"></i>
-                    <span th:text="#{family.leave}">Покинути сім'ю</span>
-                </button>
-            </form>
-            <form th:if="${isOwner}" th:action="@{/family/delete}"
-                  method="post" class="js-confirm-delete w-100 w-sm-auto">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                <button type="submit" class="btn btn-danger btn-rounded px-4 w-100">
-                    <i class="fas fa-trash me-2"></i>
-                    <span th:text="#{family.delete}">Видалити сім'ю</span>
-                </button>
-            </form>
+            <!-- Кнопка виходу відкриває модалку -->
+            <button th:if="${!isOwner}" type="button" class="btn btn-outline-danger btn-rounded px-4 w-100 w-sm-auto js-leave-family">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span th:text="#{family.leave}">Покинути сім'ю</span>
+            </button>
+
+            <!-- Кнопка видалення відкриває модалку -->
+            <button th:if="${isOwner}" type="button" class="btn btn-danger btn-rounded px-4 w-100 w-sm-auto js-delete-family">
+                <i class="fas fa-trash me-2"></i>
+                <span th:text="#{family.delete}">Видалити сім'ю</span>
+            </button>
         </div>
     </div>
 </div>
 
 <!-- ===== МОДАЛЬНЕ ВІКНО РЕДАГУВАННЯ НАЗВИ СІМ'Ї ===== -->
-<div class="modal fade" id="editFamilyNameModal" tabindex="-1" aria-hidden="true">
+<!-- 👇 ДОДАНО th:if="${family != null}" 👇 -->
+<div th:if="${family != null}" class="modal fade" id="editFamilyNameModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -351,14 +371,15 @@
                         <input type="text" name="name" id="editFamilyNameInput"
                                class="form-control form-control-lg"
                                maxlength="20" required
-                               th:value="${family.name}"
+                               th:value="${family?.name}"
                                th:placeholder="#{family.create.namePlaceholder}">
                         <div class="d-flex justify-content-between mt-1">
                             <small class="text-muted" style="font-size: 0.75rem;" th:text="#{family.name.allowed}">
                                 Дозволено...
                             </small>
                             <small class="text-muted" style="font-size: 0.75rem;">
-                                <span id="editCharCount" th:text="${#strings.length(family.name)}">0</span> / 20
+                                <!-- 👇 ДОДАНО ?. 👇 -->
+                                <span id="editCharCount" th:text="${#strings.length(family?.name)}">0</span> / 20
                             </small>
                         </div>
                     </div>
@@ -372,50 +393,198 @@
     </div>
 </div>
 
+<!-- 2. Модалка підтвердження оновлення коду -->
+<div class="modal fade" id="regenerateCodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-sync text-warning me-2"></i><span th:text="#{family.modal.regenTitle}">Оновити код?</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" th:text="#{family.modal.regenDesc}">Старий код перестане працювати...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <form th:action="@{/family/regenerate-code}" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-warning" th:text="#{family.regenerate}">Оновити код</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Модалка видалення учасника -->
+<div class="modal fade" id="removeMemberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-user-minus text-danger me-2"></i><span th:text="#{family.modal.removeTitle}">Видалити учасника?</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" id="removeMemberText" th:text="#{family.modal.removeDesc(${''})}">Ви впевнені?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <form id="removeMemberForm" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger" th:text="#{btn.delete}">Видалити</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Модалка виходу з сім'ї -->
+<div class="modal fade" id="leaveFamilyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-sign-out-alt text-danger me-2"></i><span th:text="#{family.modal.leaveTitle}">Покинути сім'ю?</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" th:text="#{family.modal.leaveDesc}">Ви впевнені?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <form th:action="@{/family/leave}" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger" th:text="#{family.leave}">Покинути</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Модалка видалення сім'ї -->
+<div class="modal fade" id="deleteFamilyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-trash text-danger me-2"></i><span th:text="#{family.modal.deleteTitle}">Видалити сім'ю?</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" th:text="#{family.modal.deleteDesc}">Цю дію не можна скасувати...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <form th:action="@{/family/delete}" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger" th:text="#{btn.delete}">Видалити</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. Модалка передачі прав -->
+<div class="modal fade" id="transferOwnerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-crown text-primary me-2"></i><span th:text="#{family.modal.transferTitle}">Передати права?</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0" id="transferOwnerText" th:text="#{family.modal.transferDesc(${''})}">Ви впевнені?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <form id="transferOwnerForm" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-primary" th:text="#{family.member.transfer}">Передати</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <script th:inline="javascript">
-    // ===== БАЗОВІ ПОВІДОМЛЕННЯ =====
     const i18n = {
         copied:          /*[[#{family.copied}]]*/           'Скопійовано!',
-        regenConfirm:    /*[[#{family.regenerate.confirm}]]*/'Згенерувати новий код? Старий код перестане працювати.',
-        removeConfirm:   /*[[#{family.member.removeConfirm}]]*/'Видалити учасника {0} з сім\'ї?',
-        leaveConfirm:    /*[[#{family.leave.confirm}]]*/    'Ви впевнені, що хочете покинути сім\'ю?',
-        deleteConfirm:   /*[[#{family.delete.confirm}]]*/   'Видалити сім\'ю назавжди? Всі учасники будуть від\'єднані.',
-        invalidChars:    /*[[#{error.family.nameInvalidChars}]]*/ 'Недійсні символи'
+        invalidChars:    /*[[#{error.family.nameInvalidChars}]]*/ 'Недійсні символи',
+        removeConfirm:   /*[[#{family.modal.removeDesc}]]*/ '{0}'
     };
 
-    // ===== КОПІЮВАННЯ КОДУ =====
+    // ===== 1. КОПІЮВАННЯ КОДУ ТА ПОСИЛАННЯ =====
+    const inviteCode = document.getElementById('inviteCode')?.textContent?.trim();
+
+    function showCopied(btn, originalHtml) {
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>' + i18n.copied;
+        setTimeout(() => btn.innerHTML = originalHtml, 1500);
+    }
+
     document.getElementById('copyCodeBtn')?.addEventListener('click', function () {
-        const code = document.getElementById('inviteCode')?.textContent?.trim();
-        if (!code) return;
-        navigator.clipboard.writeText(code).then(() => {
-            const original = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-check me-1"></i>' + i18n.copied;
-            setTimeout(() => this.innerHTML = original, 1500);
+        if (!inviteCode) return;
+        navigator.clipboard.writeText(inviteCode).then(() => {
+            showCopied(this, this.innerHTML);
         });
     });
 
-    // ===== ПІДТВЕРДЖЕННЯ ДІЙ =====
-    document.querySelector('.js-confirm-regenerate')?.addEventListener('submit', e => {
-        if (!confirm(i18n.regenConfirm)) e.preventDefault();
-    });
-    document.querySelectorAll('.js-confirm-remove').forEach(f => {
-        f.addEventListener('submit', e => {
-            const msg = i18n.removeConfirm.replace('{0}', f.dataset.username);
-            if (!confirm(msg)) e.preventDefault();
+    document.getElementById('shareLinkBtn')?.addEventListener('click', function () {
+        if (!inviteCode) return;
+        const shareUrl = window.location.origin + '/family?inviteCode=' + inviteCode;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showCopied(this, this.innerHTML);
         });
     });
-    document.querySelector('.js-confirm-leave')?.addEventListener('submit', e => {
-        if (!confirm(i18n.leaveConfirm)) e.preventDefault();
-    });
-    document.querySelector('.js-confirm-delete')?.addEventListener('submit', e => {
-        if (!confirm(i18n.deleteConfirm)) e.preventDefault();
+
+    // ===== 2. МОДАЛЬНІ ВІКНА =====
+    // Оновлення коду
+    document.querySelector('.js-confirm-regenerate')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('regenerateCodeModal')).show();
     });
 
-    // ===== ВАЛІДАЦІЯ НАЗВИ СІМ'Ї (УНІВЕРСАЛЬНА ФУНКЦІЯ) =====
+    // Видалення учасника
+    document.querySelectorAll('.js-remove-member').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const username = this.dataset.username;
+
+            // Підставляємо ім'я в текст
+            const textEl = document.getElementById('removeMemberText');
+            textEl.textContent = i18n.removeConfirm.replace('{0}', username);
+
+            // Встановлюємо екшен форми
+            document.getElementById('removeMemberForm').action = '/family/remove/' + id;
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('removeMemberModal')).show();
+        });
+    });
+
+    // Вихід з сім'ї
+    document.querySelector('.js-leave-family')?.addEventListener('click', () => {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('leaveFamilyModal')).show();
+    });
+
+    // Видалення сім'ї
+    document.querySelector('.js-delete-family')?.addEventListener('click', () => {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteFamilyModal')).show();
+    });
+
+    // ===== 3. СПІНЕРИ НА КНОПКАХ =====
+    document.querySelectorAll('.js-submit-spinner').forEach(form => {
+        form.addEventListener('submit', function() {
+            const btn = this.querySelector('button[type="submit"]');
+            const spinner = btn.querySelector('.spinner-border');
+            const icon = btn.querySelector('.btn-icon');
+
+            if (spinner) spinner.classList.remove('d-none');
+            if (icon) icon.classList.add('d-none');
+            btn.disabled = true;
+        });
+    });
+
+    // ===== 4. ВАЛІДАЦІЯ НАЗВИ СІМ'Ї =====
     const allowedCharsRegex = /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-\_\'\.]+$/;
 
     function setupFamilyNameValidation(inputId, counterId, errorId) {
@@ -425,22 +594,16 @@
 
         if (!input) return;
 
-        // Встановлюємо початкове значення лічильника
         if (counter && input.value) {
             counter.textContent = input.value.length;
         }
 
         input.addEventListener('input', function() {
-            if (counter) {
-                counter.textContent = this.value.length;
-            }
+            if (counter) counter.textContent = this.value.length;
 
             if (this.value.length > 0 && !allowedCharsRegex.test(this.value)) {
                 this.setCustomValidity(i18n.invalidChars);
-                if (error) {
-                    error.textContent = i18n.invalidChars;
-                    error.style.display = 'block';
-                }
+                if (error) { error.textContent = i18n.invalidChars; error.style.display = 'block'; }
                 this.classList.add('is-invalid');
             } else {
                 this.setCustomValidity('');
@@ -450,7 +613,25 @@
         });
     }
 
-    // Застосовуємо валідацію до обох полів
+    // Передача прав власника
+    document.querySelectorAll('.js-transfer-owner').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const username = this.dataset.username;
+
+            // Підставляємо ім'я в текст
+            const textEl = document.getElementById('transferOwnerText');
+            // Використовуємо i18n шаблон
+            const template = /*[[#{family.modal.transferDesc}]]*/ 'Ви впевнені...';
+            textEl.textContent = template.replace('{0}', username);
+
+            // Встановлюємо екшен форми
+            document.getElementById('transferOwnerForm').action = '/family/transfer/' + id;
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('transferOwnerModal')).show();
+        });
+    });
+
     setupFamilyNameValidation('familyNameInput', 'charCount', 'nameError');
     setupFamilyNameValidation('editFamilyNameInput', 'editCharCount', null);
 </script>

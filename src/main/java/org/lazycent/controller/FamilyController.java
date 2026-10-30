@@ -23,7 +23,8 @@ public class FamilyController extends BaseController {
     private final FamilyService familyService;
 
     @GetMapping
-    public String viewFamily(Authentication authentication, Model model) {
+    public String viewFamily(@RequestParam(value = "inviteCode", required = false) String inviteCode,
+                             Authentication authentication, Model model) {
         User user = getCurrentUser(authentication);
         if (user == null) return "redirect:/login";
 
@@ -32,8 +33,12 @@ public class FamilyController extends BaseController {
         Family family = familyService.getFamily(freshUser);
         model.addAttribute("family", family);
         model.addAttribute("currentUser", freshUser);
-        model.addAttribute("myRejectedRequest", familyService.getUserRejectedRequest(freshUser));
         model.addAttribute("isOwner", family != null && familyService.isOwner(freshUser));
+
+        // 👇 Передаємо код з URL у модель
+        if (inviteCode != null && !inviteCode.isBlank()) {
+            model.addAttribute("prefilledCode", inviteCode.trim().toUpperCase());
+        }
 
         if (family != null) {
             model.addAttribute("members", familyService.getFamilyMembers(freshUser));
@@ -42,8 +47,8 @@ public class FamilyController extends BaseController {
             }
         } else {
             model.addAttribute("myPendingRequest", familyService.getUserPendingRequest(freshUser));
+            model.addAttribute("myRejectedRequest", familyService.getUserRejectedRequest(freshUser));
         }
-
         return "family";
     }
 
@@ -206,6 +211,21 @@ public class FamilyController extends BaseController {
         try {
             familyService.updateFamilyName(user, name);
             ra.addFlashAttribute("successMessage", msg("toast.family.updated"));
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/family";
+    }
+
+    @PostMapping("/transfer/{id}")
+    public String transferOwnership(@PathVariable Long id,
+                                    Authentication auth,
+                                    RedirectAttributes ra) {
+        User user = getCurrentUser(auth);
+        if (user == null) return "redirect:/login";
+        try {
+            familyService.transferOwnership(user, id);
+            ra.addFlashAttribute("successMessage", msg("toast.family.transferred"));
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
         }
