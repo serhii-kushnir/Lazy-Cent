@@ -74,10 +74,16 @@
 
 <div class="container mt-4 mb-5" style="max-width: 900px;">
 
+    <div th:if="${systemMessage}" class="alert alert-warning shadow-sm mb-4 animate-fade-up" role="alert">
+        <i class="fas fa-info-circle me-2"></i> <span th:text="${systemMessage}">Повідомлення...</span>
+    </div>
+
     <!-- ==================== НЕ В СІМ'Ї ==================== -->
     <div th:if="${family == null}">
         <h2 class="mb-4 animate-fade-up text-center text-sm-start"><i class="fas fa-users me-2 text-primary"></i><span th:text="#{family.title}">Сім'я</span></h2>
-
+        <div th:if="${systemMessage}" class="alert alert-warning shadow-sm mb-4 animate-fade-up" role="alert">
+            <i class="fas fa-info-circle me-2"></i> <span th:text="${systemMessage}">Власник видалив сім'ю.</span>
+        </div>
         <div th:if="${myRejectedRequest != null}" class="alert alert-contrast-danger shadow-sm mb-4 animate-fade-up" role="alert">
             <div class="d-flex flex-column flex-sm-row align-items-center text-center text-sm-start gap-3">
                 <i class="fas fa-times-circle fa-3x text-danger"></i>
@@ -164,11 +170,13 @@
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold" th:text="#{family.join.code}">Код-запрошення</label>
-                                    <!-- 👇 Підставляємо prefilledCode, якщо він є 👇 -->
                                     <input type="text" name="inviteCode" class="form-control form-control-lg text-uppercase text-center"
                                            maxlength="12" required autocomplete="off"
                                            th:value="${prefilledCode}"
                                            th:placeholder="#{family.join.codePlaceholder}">
+                                    <div class="form-text text-muted text-center mt-1" th:utext="#{family.join.example}">
+                                        Приклад: <code>ABCD1234</code>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100 btn-rounded py-2" th:text="#{family.join.submit}">Приєднатися</button>
                             </form>
@@ -276,6 +284,13 @@
         </div>
 
         <!-- Учасники -->
+        <!-- Якщо учасників менше 2-х (тільки власник) -->
+        <div class="alert alert-info text-center mb-4" th:if="${members.size() == 1}">
+            <i class="fas fa-users fa-2x mb-2 text-primary"></i>
+            <h5>Ви поки що самі в сім'ї</h5>
+            <p class="mb-0">Скопіюйте код-запрошення вище та надішліть його своїй половинці або рідним, щоб разом вести бюджет!</p>
+        </div>
+
         <div class="card shadow-sm mb-4 border-0 animate-fade-up" style="animation-delay: 0.3s;">
             <div class="card-header card-header-custom">
                 <h5 class="mb-0">

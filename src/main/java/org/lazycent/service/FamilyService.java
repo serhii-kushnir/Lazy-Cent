@@ -165,10 +165,22 @@ public class FamilyService {
             throw new ValidationException("Ви не є учасником сім'ї");
         }
         if (family.getOwner().getId().equals(managed.getId())) {
-            throw new ValidationException("Власник не може покинути сім'ю. Видаліть сім'ю або передайте права.");
+            throw new ValidationException("Власник не може покинути сім'ю.");
         }
+
+        // 👇 Витягуємо власника свіжим з бази 👇
+        User owner = userRepository.findById(family.getOwner().getId())
+                .orElseThrow(() -> new ValidationException("Власника не знайдено"));
+        owner.setNotificationMessage("Учасник " + managed.getUsername() + " покинув вашу сім'ю.");
+        userRepository.save(owner);
+
         managed.setFamily(null);
         userRepository.save(managed);
+
+        // Очищаємо спільні транзакції (якщо ви це вже додали)
+        expenseRepository.clearSharedFlagForUser(managed);
+        incomeRepository.clearSharedFlagForUser(managed);
+
         log.info("{} left family '{}'", managed.getUsername(), family.getName());
     }
 
@@ -191,6 +203,9 @@ public class FamilyService {
 
         member.setFamily(null);
         userRepository.save(member);
+        expenseRepository.clearSharedFlagForUser(member); // 👈 Очищаємо
+        incomeRepository.clearSharedFlagForUser(member);  // 👈 Очищаємо
+        userRepository.save(member);
         log.info("Removed {} from family '{}'", member.getUsername(), family.getName());
     }
 
@@ -207,7 +222,10 @@ public class FamilyService {
         joinRequestRepository.deleteAll(requests);
 
         List<User> members = userRepository.findByFamily(family);
-        for (User m : members) m.setFamily(null);
+        for (User m : members) {
+            m.setFamily(null);
+            m.setNotificationMessage("Власник видалив сім'ю. Ви більше не є її учасником.");
+        }
         userRepository.saveAll(members);
         familyRepository.delete(family);
         log.info("Family '{}' deleted by owner {}", family.getName(), managed.getUsername());

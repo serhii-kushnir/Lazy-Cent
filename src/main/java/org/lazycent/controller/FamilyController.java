@@ -30,6 +30,13 @@ public class FamilyController extends BaseController {
 
         User freshUser = userRepository.findById(user.getId()).orElse(user);
 
+        // 👇 Перевіряємо наявність повідомлення та додаємо в модель 👇
+        if (freshUser.getNotificationMessage() != null) {
+            model.addAttribute("systemMessage", freshUser.getNotificationMessage());
+            freshUser.setNotificationMessage(null);
+            userRepository.save(freshUser);
+        }
+
         Family family = familyService.getFamily(freshUser);
         model.addAttribute("family", family);
         model.addAttribute("currentUser", freshUser);

@@ -90,4 +90,7 @@ public class User implements UserDetails {
     public boolean isCredentialsNonExpired() { return true; }
     @Override
     public boolean isEnabled() { return true; }
+
+    @Column(name = "notification_message")
+    private String notificationMessage;
 }
