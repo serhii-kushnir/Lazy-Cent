@@ -1,18 +1,265 @@
 /* =====================================================================
    LazyCent — settings panel (drawer + modals + timers + validation)
-   =====================================================================
-   Перенесено з fragments/settings-panel.html (P1.e).
-
-   Отримує i18n-рядки через window.LazyCentSettingsI18n, який
-   встановлює інлайн-фрагмент settingsPanelScript перед завантаженням
-   цього файлу.
-
-   Завантажується з defer: не блокує парсинг HTML, виконується
-   ПЕРЕД DOMContentLoaded, тому listener нижче спрацює завжди.
    ===================================================================== */
+
+window.openSettingsDrawer = function(section) {
+    const overlay = document.getElementById('settingsOverlay');
+    const drawer = document.getElementById('settingsDrawer');
+    if (!overlay || !drawer) return;
+
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+
+    const menuItem = document.querySelector('#drawerMenu .menu-item[data-section="' + section + '"]');
+    if (menuItem) {
+        menuItem.click();
+    }
+};
 
 (function () {
     'use strict';
+
+    // ==================== FAMILY PANEL LOGIC ====================
+    window.FamilyPanel = {
+        data: null,
+        pendingActionId: null,
+
+        init: function() { this.loadData(); },
+        loadData: function() {
+            var loading = document.getElementById('familyLoading');
+            var content = document.getElementById('familyContent');
+            if (!loading || !content) return;
+
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            fetch('/api/family/data')
+                .then(res => res.json())
+                .then(data => {
+                    this.data = data;
+                    this.render();
+                })
+                .catch(err => {
+                    console.error(err);
+                    loading.innerHTML = '<p class="text-danger small">Помилка завантаження</p>';
+                });
+        },
+        render: function() {
+            document.getElementById('familyLoading').style.display = 'none';
+            document.getElementById('familyContent').style.display = 'block';
+
+            const sysMsgBlock = document.getElementById('familySystemMessage');
+            const sysMsgText = document.getElementById('familySystemMessageText');
+            if (this.data.systemMessage) {
+                sysMsgText.textContent = this.data.systemMessage;
+                sysMsgBlock.style.display = 'block';
+                this.showToast(this.data.systemMessage, false);
+            } else {
+                sysMsgBlock.style.display = 'none';
+            }
+
+            if (!this.data.inFamily) {
+                document.getElementById('familyIn').style.display = 'none';
+                document.getElementById('familyNotIn').style.display = 'block';
+
+                const rej = document.getElementById('familyRejectedAlert');
+                const pen = document.getElementById('familyPendingAlert');
+                const forms = document.getElementById('familyForms');
+
+                if (this.data.rejectedRequest) {
+                    rej.style.display = 'block';
+                    document.getElementById('rejectedFamilyName').textContent = this.data.rejectedRequest.familyName;
+                    forms.style.display = 'none';
+                } else { rej.style.display = 'none'; }
+
+                if (this.data.pendingRequest) {
+                    pen.style.display = 'block';
+                    document.getElementById('pendingFamilyName').textContent = this.data.pendingRequest.familyName;
+                    forms.style.display = 'none';
+                } else { pen.style.display = 'none'; }
+
+                if (!this.data.rejectedRequest && !this.data.pendingRequest) {
+                    forms.style.display = 'block';
+                }
+            } else {
+                document.getElementById('familyNotIn').style.display = 'none';
+                document.getElementById('familyIn').style.display = 'block';
+
+                document.getElementById('familyName').textContent = this.data.familyName;
+                document.getElementById('familyInviteCode').textContent = this.data.inviteCode;
+
+                const isOwner = this.data.isOwner;
+                document.getElementById('editFamilyNameBtn').style.display = isOwner ? 'inline-block' : 'none';
+                document.getElementById('regenCodeBtn').style.display = isOwner ? 'inline-block' : 'none';
+                document.getElementById('deleteFamilyBtn').style.display = isOwner ? 'block' : 'none';
+                document.getElementById('leaveFamilyBtn').style.display = isOwner ? 'none' : 'block';
+
+                // --- РЕНДЕР УЧАСНИКІВ ---
+                const list = document.getElementById('familyMembersList');
+                list.innerHTML = '';
+                this.data.members.forEach(m => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center px-2 py-2 mb-1 border-0 rounded bg-body-tertiary';
+
+                    let badges = '';
+                    if (m.isOwner) badges += '<span class="badge bg-primary ms-1" style="font-size:0.55rem;">Власник</span>';
+                    if (m.id === this.data.currentUserId) badges += '<span class="badge bg-secondary ms-1" style="font-size:0.55rem;">(ви)</span>';
+
+                    let html = `
+                        <div class="flex-grow-1 text-truncate" style="min-width: 0;">
+                            <div class="d-flex align-items-center">
+                                <span class="fw-bold text-truncate" style="font-size:0.85rem;">${m.username}</span>
+                                ${badges}
+                            </div>
+                            <div class="text-muted text-truncate" style="font-size:0.65rem;">${m.email}</div>
+                        </div>
+                    `;
+
+                    if (isOwner && !m.isOwner) {
+                        html += `
+                            <div class="btn-group btn-group-sm ms-2 flex-shrink-0">
+                                <button class="btn btn-outline-primary btn-sm py-1 px-3" onclick="FamilyPanel.openTransferModal(${m.id}, '${m.username}')" title="Передати права"><i class="fas fa-crown" style="font-size:0.75rem;"></i></button>
+                                <button class="btn btn-outline-danger btn-sm py-1 px-3" onclick="FamilyPanel.openRemoveModal(${m.id}, '${m.username}')" title="Видалити"><i class="fas fa-user-minus" style="font-size:0.75rem;"></i></button>
+                            </div>
+                        `;
+                    }
+                    li.innerHTML = html;
+                    list.appendChild(li);
+                });
+
+                // --- РЕНДЕР ЗАПИТІВ ---
+                const reqBlock = document.getElementById('pendingRequestsBlock');
+                if (isOwner && this.data.pendingRequests && this.data.pendingRequests.length > 0) {
+                    reqBlock.style.display = 'block';
+                    const reqList = document.getElementById('pendingRequestsList');
+                    reqList.innerHTML = '';
+                    this.data.pendingRequests.forEach(r => {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center px-2 py-2 mb-1 border-0 rounded bg-warning-subtle';
+
+                        li.innerHTML = `
+                            <div class="flex-grow-1 text-truncate" style="min-width: 0;">
+                                <div class="fw-bold text-truncate" style="font-size:0.85rem;">${r.username}</div>
+                                <div class="text-muted text-truncate" style="font-size:0.65rem;">${r.email}</div>
+                            </div>
+                            <div class="btn-group btn-group-sm ms-2 flex-shrink-0">
+                                <button class="btn btn-success btn-sm py-1 px-3" onclick="FamilyPanel.approveReq(${r.id})" title="Прийняти"><i class="fas fa-check" style="font-size:0.75rem;"></i></button>
+                                <button class="btn btn-outline-danger btn-sm py-1 px-3" onclick="FamilyPanel.rejectReq(${r.id})" title="Відхилити"><i class="fas fa-times" style="font-size:0.75rem;"></i></button>
+                            </div>
+                        `;
+                        reqList.appendChild(li);
+                    });
+                } else {
+                    reqBlock.style.display = 'none';
+                }
+            }
+        },
+        post: function(url, body) {
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            if (window.csrfToken) {
+                headers[window.csrfHeader || 'X-CSRF-TOKEN'] = window.csrfToken;
+            }
+            return fetch(url, { method: 'POST', headers: headers, body: new URLSearchParams(body) })
+                .then(res => res.json().then(data => {
+                    if (!res.ok) throw new Error(data.error || 'Помилка');
+                    return data;
+                }));
+        },
+        showToast: function(msg, isError) {
+            const toastEl = document.getElementById('liveToast');
+            if (toastEl && typeof bootstrap !== 'undefined') {
+                const toastTitle = document.getElementById('toastTitle');
+                const toastMsg = document.getElementById('toastMessage');
+                const toastIcon = document.getElementById('toastIcon');
+
+                toastEl.classList.remove('success', 'error');
+                if (isError) {
+                    toastEl.classList.add('error');
+                    toastIcon.className = 'fas fa-exclamation-circle me-2';
+                    toastTitle.textContent = 'Помилка';
+                } else {
+                    toastEl.classList.add('success');
+                    toastIcon.className = 'fas fa-check-circle me-2';
+                    toastTitle.textContent = 'Успіх';
+                }
+                toastMsg.textContent = msg;
+                new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 }).show();
+            } else {
+                alert(msg);
+            }
+        },
+
+        // --- ACTIONS ---
+        clearRejected: function() { this.post('/api/family/clear-rejected', {}).then(() => this.loadData()).catch(e => this.showToast(e.message, true)); },
+        cancelRequest: function() { this.post('/api/family/cancel-request', {}).then(() => this.loadData()).catch(e => this.showToast(e.message, true)); },
+        copyCode: function() {
+            navigator.clipboard.writeText(this.data.inviteCode).then(() => this.showToast('Код скопійовано!', false));
+        },
+
+        // --- MODALS TRIGGERING ---
+        openEditNameModal: function() {
+            document.getElementById('editFamilyNameInput').value = this.data.familyName;
+            document.getElementById('editFamilyNameInput').classList.remove('is-invalid');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editFamilyNameModal')).show();
+        },
+        openRegenModal: function() { bootstrap.Modal.getOrCreateInstance(document.getElementById('regenCodeModal')).show(); },
+        openLeaveModal: function() { bootstrap.Modal.getOrCreateInstance(document.getElementById('leaveFamilyModal')).show(); },
+        openDeleteModal: function() { bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteFamilyModal')).show(); },
+
+        openTransferModal: function(id, username) {
+            this.pendingActionId = id;
+            document.getElementById('transferOwnerName').textContent = username;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('transferOwnerModal')).show();
+        },
+        openRemoveModal: function(id, username) {
+            this.pendingActionId = id;
+            document.getElementById('removeMemberName').textContent = username;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('removeMemberModal')).show();
+        },
+
+        // --- API CALLS FROM MODALS ---
+        confirmEditName: function() {
+            const input = document.getElementById('editFamilyNameInput');
+            const name = input.value.trim();
+            // ВИПРАВЛЕНО: регулярний вираз без зайвих екрануючих слешів
+            const pattern = /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-_'.]+$/;
+
+            if (name.length < 2 || name.length > 20 || !pattern.test(name)) {
+                input.classList.add('is-invalid');
+                return;
+            }
+            input.classList.remove('is-invalid');
+
+            this.post('/api/family/update-name', { name: name })
+                .then(() => {
+                    this.loadData();
+                    bootstrap.Modal.getInstance(document.getElementById('editFamilyNameModal')).hide();
+                })
+                .catch(e => this.showToast(e.message, true));
+        },
+        confirmRegen: function() {
+            this.post('/api/family/regenerate-code', {}).then(() => { this.loadData(); bootstrap.Modal.getInstance(document.getElementById('regenCodeModal')).hide(); }).catch(e => this.showToast(e.message, true));
+        },
+        confirmLeave: function() {
+            this.post('/api/family/leave', {}).then(() => { this.loadData(); bootstrap.Modal.getInstance(document.getElementById('leaveFamilyModal')).hide(); }).catch(e => this.showToast(e.message, true));
+        },
+        confirmDelete: function() {
+            this.post('/api/family/delete', {}).then(() => { this.loadData(); bootstrap.Modal.getInstance(document.getElementById('deleteFamilyModal')).hide(); }).catch(e => this.showToast(e.message, true));
+        },
+        confirmTransfer: function() {
+            if (!this.pendingActionId) return;
+            this.post('/api/family/transfer/' + this.pendingActionId, {}).then(() => { this.loadData(); bootstrap.Modal.getInstance(document.getElementById('transferOwnerModal')).hide(); }).catch(e => this.showToast(e.message, true));
+        },
+        confirmRemove: function() {
+            if (!this.pendingActionId) return;
+            this.post('/api/family/remove/' + this.pendingActionId, {}).then(() => { this.loadData(); bootstrap.Modal.getInstance(document.getElementById('removeMemberModal')).hide(); }).catch(e => this.showToast(e.message, true));
+        },
+
+        approveReq: function(id) { this.post('/api/family/approve/' + id, {}).then(() => this.loadData()).catch(e => this.showToast(e.message, true)); },
+        rejectReq: function(id) { this.post('/api/family/reject/' + id, {}).then(() => this.loadData()).catch(e => this.showToast(e.message, true)); }
+    };
+    // ==============================================================
 
     function init() {
         const i18n = window.LazyCentSettingsI18n || {};
@@ -23,13 +270,10 @@
         const closeBtn = document.getElementById('closeSettingsBtn');
 
         if (!openBtn || !overlay || !drawer || !closeBtn) {
-            // Сторінка без settings panel (наприклад, error/403 без
-            // автентифікації) — тихо виходимо.
             return;
         }
 
         // ==================== ВІДКРИТТЯ / ЗАКРИТТЯ ====================
-
         function openPanel() {
             drawer.classList.add('open');
             overlay.classList.add('open');
@@ -53,11 +297,11 @@
         });
 
         // ==================== ПЕРЕМИКАННЯ РОЗДІЛІВ ====================
-
         const menuItems = document.querySelectorAll('#drawerMenu .menu-item[data-section]');
         const sections = {
             profile: document.getElementById('d-section-profile'),
             categories: document.getElementById('d-section-categories'),
+            family: document.getElementById('d-section-family'),
             currency: document.getElementById('d-section-currency'),
             language: document.getElementById('d-section-language'),
             theme: document.getElementById('d-section-theme'),
@@ -67,8 +311,7 @@
 
         function switchSection(sectionId) {
             menuItems.forEach(m => m.classList.remove('active'));
-            const targetMenuItem = document.querySelector(
-                '#drawerMenu .menu-item[data-section="' + sectionId + '"]');
+            const targetMenuItem = document.querySelector('#drawerMenu .menu-item[data-section="' + sectionId + '"]');
             if (targetMenuItem) targetMenuItem.classList.add('active');
 
             Object.keys(sections).forEach(key => {
@@ -79,6 +322,10 @@
             if (targetSection) targetSection.classList.add('active');
 
             localStorage.setItem('settings-drawer-tab', sectionId);
+
+            if (sectionId === 'family' && window.FamilyPanel) {
+                window.FamilyPanel.loadData();
+            }
         }
 
         const savedDrawerTab = localStorage.getItem('settings-drawer-tab') || 'profile';
@@ -93,8 +340,103 @@
             });
         });
 
-        // ==================== ВАЛЮТА ====================
+        // ==================== FAMILY FORMS & VALIDATION ====================
+        const createForm = document.getElementById('createFamilyForm');
+        const createInput = document.getElementById('createFamilyNameInput');
+        const createCharCount = document.getElementById('createFamilyCharCount');
 
+        if (createInput && createCharCount) {
+            createInput.addEventListener('input', function() {
+                createCharCount.textContent = this.value.length;
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        if (createForm) {
+            createForm.onsubmit = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // ВИПРАВЛЕНО: регулярний вираз без зайвих екрануючих слешів
+                const namePattern = /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-_'.]+$/;
+                const name = createInput.value.trim();
+                let isValid = true;
+
+                if (name.length < 2 || name.length > 20 || !namePattern.test(name)) {
+                    createInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    createInput.classList.remove('is-invalid');
+                }
+
+                if (!isValid) return;
+
+                FamilyPanel.post('/api/family/create', { name: name })
+                    .then(() => {
+                        FamilyPanel.showToast('Сім\'ю створено!', false);
+                        this.reset();
+                        if(createCharCount) createCharCount.textContent = '0';
+                        FamilyPanel.loadData();
+                    })
+                    .catch(e => FamilyPanel.showToast(e.message, true));
+            };
+        }
+
+        const joinForm = document.getElementById('joinFamilyForm');
+        const joinInput = document.getElementById('joinFamilyCodeInput');
+
+        if (joinForm) {
+            joinForm.onsubmit = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const code = joinInput.value.trim();
+                let isValid = true;
+
+                if (code.length === 0) {
+                    joinInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    joinInput.classList.remove('is-invalid');
+                }
+
+                if (!isValid) return;
+
+                FamilyPanel.post('/api/family/join', { inviteCode: code })
+                    .then(() => {
+                        FamilyPanel.showToast('Запит надіслано!', false);
+                        this.reset();
+                        FamilyPanel.loadData();
+                    })
+                    .catch(e => FamilyPanel.showToast(e.message, true));
+            };
+
+            joinInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        // --- Прив'язка кнопок модальних вікон ---
+        const bindBtn = (id, fn) => {
+            const btn = document.getElementById(id);
+            if (btn) btn.addEventListener('click', fn);
+        };
+
+        bindBtn('confirmEditNameBtn', () => FamilyPanel.confirmEditName());
+        bindBtn('confirmRegenCodeBtn', () => FamilyPanel.confirmRegen());
+        bindBtn('confirmLeaveFamilyBtn', () => FamilyPanel.confirmLeave());
+        bindBtn('confirmDeleteFamilyBtn', () => FamilyPanel.confirmDelete());
+        bindBtn('confirmTransferOwnerBtn', () => FamilyPanel.confirmTransfer());
+        bindBtn('confirmRemoveMemberBtn', () => FamilyPanel.confirmRemove());
+
+        const editNameInput = document.getElementById('editFamilyNameInput');
+        if (editNameInput) {
+            editNameInput.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        // ==================== ВАЛЮТА ====================
         const currencyOptions = document.querySelectorAll('#drawerCurrencyGrid .currency-option');
         const selectedCurrencyInput = document.getElementById('drawerSelectedCurrency');
 
@@ -112,7 +454,6 @@
         }
 
         // ==================== ТЕМА ====================
-
         const themeBtns = document.querySelectorAll('#d-section-theme .theme-btn');
         const currentThemeLabel = document.getElementById('drawerCurrentTheme');
         const root = document.documentElement;
@@ -162,7 +503,6 @@
         });
 
         // ==================== ВИДАЛЕННЯ КАТЕГОРІЇ ====================
-
         const deleteCategoryModal = document.getElementById('deleteCategoryConfirmModal');
         const deleteCategoryForm = document.getElementById('deleteCategoryForm');
         const deleteCategoryName = document.getElementById('deleteCategoryName');
@@ -184,7 +524,6 @@
         });
 
         // ==================== РЕДАГУВАННЯ КАТЕГОРІЇ ====================
-
         const editModal = document.getElementById('editCategoryModal');
         const editCategoryForm = document.getElementById('editCategoryForm');
         const editCategoryName = document.getElementById('editCategoryName');
@@ -201,8 +540,7 @@
             });
         }
 
-        // ==================== ТАЙМЕРИ (clear data / delete account) ====================
-
+        // ==================== ТАЙМЕРИ ====================
         function startTimer(secondsId, circleId, btnId, duration) {
             const secondsEl = document.getElementById(secondsId);
             const circleEl = document.getElementById(circleId);
@@ -263,7 +601,6 @@
         }
 
         // ==================== ВАЛІДАЦІЯ ПРОФІЛЮ ====================
-
         const profileForm = document.getElementById('profileForm');
         if (!profileForm) return;
 
@@ -271,7 +608,6 @@
         const emailInput = document.getElementById('profileEmail');
         const passwordInput = document.getElementById('profileNewPassword');
 
-        // --- Username ---
         if (usernameInput && !usernameInput.disabled) {
             usernameInput.addEventListener('input', function () {
                 const pattern = /^[a-zA-Z0-9_]{6,30}$/;
@@ -279,12 +615,10 @@
                 this.classList.toggle('is-valid', valid);
                 this.classList.toggle('is-invalid', !valid && this.value.length > 0);
                 const error = document.getElementById('profileUsernameError');
-                if (error) error.style.display =
-                    !valid && this.value.length > 0 ? 'block' : 'none';
+                if (error) error.style.display = !valid && this.value.length > 0 ? 'block' : 'none';
             });
         }
 
-        // --- Email ---
         if (emailInput && !emailInput.disabled) {
             emailInput.addEventListener('input', function () {
                 const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -292,12 +626,10 @@
                 this.classList.toggle('is-valid', valid);
                 this.classList.toggle('is-invalid', !valid && this.value.length > 0);
                 const error = document.getElementById('profileEmailError');
-                if (error) error.style.display =
-                    !valid && this.value.length > 0 ? 'block' : 'none';
+                if (error) error.style.display = !valid && this.value.length > 0 ? 'block' : 'none';
             });
         }
 
-        // --- Password requirements ---
         if (passwordInput) {
             const reqLength = document.getElementById('profileReqLength');
             const reqLowercase = document.getElementById('profileReqLowercase');
@@ -326,10 +658,7 @@
                 function applyReq(el, key, ok) {
                     if (!el) return;
                     el.className = ok ? 'text-success' : 'text-danger';
-                    el.innerHTML = (ok
-                            ? '<i class="fas fa-check-circle"></i>'
-                            : '<i class="fas fa-circle"></i>')
-                        + ' ' + REQ_TEXTS[key];
+                    el.innerHTML = (ok ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-circle"></i>') + ' ' + REQ_TEXTS[key];
                 }
 
                 applyReq(reqLength, 'length', checks.length);
@@ -342,12 +671,10 @@
                 this.classList.toggle('is-valid', allValid && value.length > 0);
                 this.classList.toggle('is-invalid', !allValid && value.length > 0);
                 const error = document.getElementById('profilePasswordError');
-                if (error) error.style.display =
-                    !allValid && value.length > 0 ? 'block' : 'none';
+                if (error) error.style.display = !allValid && value.length > 0 ? 'block' : 'none';
             });
         }
 
-        // --- Submit ---
         profileForm.addEventListener('submit', function (e) {
             let valid = true;
 
@@ -396,9 +723,6 @@
         });
     }
 
-    // defer гарантує, що DOM уже розібрано, але listener для
-    // DOMContentLoaded все одно зареєструємо — на випадок, якщо
-    // хтось перемістить цей скрипт у <head> без defer.
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

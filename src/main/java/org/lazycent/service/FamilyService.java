@@ -79,39 +79,6 @@ public class FamilyService {
         return saved;
     }
 
-    @Transactional
-    public void updateFamilyName(User owner, String newName) {
-        User managed = userRepository.findById(owner.getId())
-                .orElseThrow(() -> new ValidationException(msg("error.user.notFound", "Користувача не знайдено")));
-        Family family = managed.getFamily();
-
-        if (family == null) {
-            throw new ValidationException(msg("error.family.notInFamily", "Ви не є учасником сім'ї"));
-        }
-        if (!family.getOwner().getId().equals(managed.getId())) {
-            throw new AccessDeniedException(msg("error.family.notOwner", "Тільки власник може змінювати назву"));
-        }
-
-        String trimmed = newName == null ? "" : newName.trim();
-
-        if (trimmed.length() < 2) {
-            throw new ValidationException(msg("error.family.nameMinLength", "Мінімум 2 символи"));
-        }
-        if (trimmed.length() > 20) {
-            throw new ValidationException(msg("error.family.nameMaxLength", "Максимум 20 символів"));
-        }
-        if (!trimmed.matches("^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\\s\\-\\_\\'\\.]+$")) {
-            throw new ValidationException(msg("error.family.nameInvalidChars", "Недійсні символи"));
-        }
-
-        if (!family.getName().equalsIgnoreCase(trimmed) && familyRepository.existsByNameIgnoreCase(trimmed)) {
-            throw new ValidationException(msg("error.family.nameExists", "Сім'я з такою назвою вже існує"));
-        }
-
-        family.setName(trimmed);
-        familyRepository.save(family);
-        log.info("Family name updated to '{}' by owner {}", trimmed, managed.getUsername());
-    }
 
     @Transactional
     public void joinFamily(User user, String inviteCode) {
@@ -156,64 +123,7 @@ public class FamilyService {
         });
     }
 
-    @Transactional
-    public void leaveFamily(User user) {
-        User managed = userRepository.findById(user.getId())
-                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
-        Family family = managed.getFamily();
-        if (family == null) {
-            throw new ValidationException("Ви не є учасником сім'ї");
-        }
-        if (family.getOwner().getId().equals(managed.getId())) {
-            throw new ValidationException("Власник не може покинути сім'ю.");
-        }
 
-        // 👇 Витягуємо власника свіжим з бази 👇
-        User owner = userRepository.findById(family.getOwner().getId())
-                .orElseThrow(() -> new ValidationException("Власника не знайдено"));
-        owner.setNotificationMessage("Учасник " + managed.getUsername() + " покинув вашу сім'ю.");
-        userRepository.save(owner);
-
-        expenseRepository.clearSharedFlagForUser(managed);
-        incomeRepository.clearSharedFlagForUser(managed);
-
-        managed.setFamily(null);
-        userRepository.save(managed);
-
-        // Очищаємо спільні транзакції (якщо ви це вже додали)
-        expenseRepository.clearSharedFlagForUser(managed);
-        incomeRepository.clearSharedFlagForUser(managed);
-
-        log.info("{} left family '{}'", managed.getUsername(), family.getName());
-    }
-
-    @Transactional
-    public void removeMember(User owner, Long memberId) {
-        User managed = userRepository.findById(owner.getId())
-                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
-        Family family = managed.getFamily();
-        if (family == null) throw new ValidationException("Ви не є учасником сім'ї");
-        if (!family.getOwner().getId().equals(managed.getId()))
-            throw new AccessDeniedException("Тільки власник може виконати цю дію");
-        if (memberId.equals(managed.getId()))
-            throw new ValidationException("Не можна видалити власника");
-
-        User member = userRepository.findById(memberId)
-                .orElseThrow(() -> new ValidationException("Учасника не знайдено"));
-        if (member.getFamily() == null
-                || !member.getFamily().getId().equals(family.getId()))
-            throw new ValidationException("Цей учасник не є членом вашої сім'ї");
-
-        expenseRepository.clearSharedFlagForUser(member);
-        incomeRepository.clearSharedFlagForUser(member);
-
-        member.setFamily(null);
-        userRepository.save(member);
-        expenseRepository.clearSharedFlagForUser(member); // 👈 Очищаємо
-        incomeRepository.clearSharedFlagForUser(member);  // 👈 Очищаємо
-        userRepository.save(member);
-        log.info("Removed {} from family '{}'", member.getUsername(), family.getName());
-    }
 
     @Transactional
     public void deleteFamily(User owner) {
@@ -331,6 +241,125 @@ public class FamilyService {
     }
 
     @Transactional
+    public void updateFamilyName(User owner, String newName) {
+        User managed = userRepository.findById(owner.getId())
+                .orElseThrow(() -> new ValidationException(msg("error.user.notFound", "Користувача не знайдено")));
+        Family family = managed.getFamily();
+
+        if (family == null) throw new ValidationException(msg("error.family.notInFamily", "Ви не є учасником сім'ї"));
+        if (!family.getOwner().getId().equals(managed.getId())) throw new AccessDeniedException(msg("error.family.notOwner", "Тільки власник може змінювати назву"));
+
+        String trimmed = newName == null ? "" : newName.trim();
+        if (trimmed.length() < 2) throw new ValidationException(msg("error.family.nameMinLength", "Мінімум 2 символи"));
+        if (trimmed.length() > 20) throw new ValidationException(msg("error.family.nameMaxLength", "Максимум 20 символів"));
+        if (!trimmed.matches("^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\\s\\-\\_\\'\\.]+$")) throw new ValidationException(msg("error.family.nameInvalidChars", "Недійсні символи"));
+        if (!family.getName().equalsIgnoreCase(trimmed) && familyRepository.existsByNameIgnoreCase(trimmed)) {
+            throw new ValidationException(msg("error.family.nameExists", "Сім'я з такою назвою вже існує"));
+        }
+
+        family.setName(trimmed);
+        familyRepository.save(family);
+
+        // Сповіщаємо інших учасників
+        List<User> members = userRepository.findByFamily(family);
+        for (User m : members) {
+            if (!m.getId().equals(managed.getId())) {
+                m.setNotificationMessage("Власник змінив назву сім'ї на '" + trimmed + "'.");
+            }
+        }
+        userRepository.saveAll(members);
+        log.info("Family name updated to '{}' by owner {}", trimmed, managed.getUsername());
+    }
+
+    @Transactional
+    public void removeMember(User owner, Long memberId) {
+        User managed = userRepository.findById(owner.getId()).orElseThrow(() -> new ValidationException("Користувача не знайдено"));
+        Family family = managed.getFamily();
+        if (family == null) throw new ValidationException("Ви не є учасником сім'ї");
+        if (!family.getOwner().getId().equals(managed.getId())) throw new AccessDeniedException("Тільки власник може виконати цю дію");
+        if (memberId.equals(managed.getId())) throw new ValidationException("Не можна видалити власника");
+
+        User member = userRepository.findById(memberId).orElseThrow(() -> new ValidationException("Учасника не знайдено"));
+        if (member.getFamily() == null || !member.getFamily().getId().equals(family.getId()))
+            throw new ValidationException("Цей учасник не є членом вашої сім'ї");
+
+        expenseRepository.clearSharedFlagForUser(member);
+        incomeRepository.clearSharedFlagForUser(member);
+
+        member.setFamily(null);
+        member.setNotificationMessage("Власник сім'ї видалив вас зі списку учасників."); // Сповіщення видаленому
+        userRepository.save(member);
+
+        // Сповіщаємо тих, хто залишився
+        List<User> remainingMembers = userRepository.findByFamily(family);
+        for (User m : remainingMembers) {
+            m.setNotificationMessage("Учасника " + member.getUsername() + " було видалено з сім'ї.");
+        }
+        userRepository.saveAll(remainingMembers);
+
+        log.info("Removed {} from family '{}'", member.getUsername(), family.getName());
+    }
+
+    @Transactional
+    public void leaveFamily(User user) {
+        User managed = userRepository.findById(user.getId()).orElseThrow(() -> new ValidationException("Користувача не знайдено"));
+        Family family = managed.getFamily();
+        if (family == null) throw new ValidationException("Ви не є учасником сім'ї");
+        if (family.getOwner().getId().equals(managed.getId())) throw new ValidationException("Власник не може покинути сім'ю.");
+
+        expenseRepository.clearSharedFlagForUser(managed);
+        incomeRepository.clearSharedFlagForUser(managed);
+
+        managed.setFamily(null);
+        userRepository.save(managed);
+
+        // Сповіщаємо всіх, хто залишився (включаючи власника)
+        List<User> remainingMembers = userRepository.findByFamily(family);
+        for (User m : remainingMembers) {
+            m.setNotificationMessage("Учасник " + managed.getUsername() + " покинув вашу сім'ю.");
+        }
+        userRepository.saveAll(remainingMembers);
+
+        log.info("{} left family '{}'", managed.getUsername(), family.getName());
+    }
+
+    @Transactional
+    public void transferOwnership(User currentOwner, Long newOwnerId) {
+        User managedOwner = userRepository.findById(currentOwner.getId())
+                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
+        Family family = managedOwner.getFamily();
+
+        if (family == null) throw new ValidationException("Ви не є учасником сім'ї");
+        if (!family.getOwner().getId().equals(managedOwner.getId())) throw new AccessDeniedException("Тільки власник може передати права");
+
+        User newOwner = userRepository.findById(newOwnerId)
+                .orElseThrow(() -> new ValidationException("Нового власника не знайдено"));
+
+        if (newOwner.getFamily() == null || !newOwner.getFamily().getId().equals(family.getId())) {
+            throw new ValidationException("Цей користувач не є членом вашої сім'ї");
+        }
+        if (newOwner.getId().equals(managedOwner.getId())) throw new ValidationException("Ви вже є власником");
+
+        family.setOwner(newOwner);
+        familyRepository.save(family);
+
+        // Сповіщаємо всіх учасників
+        List<User> members = userRepository.findByFamily(family);
+        for (User m : members) {
+            if (m.getId().equals(managedOwner.getId())) {
+                m.setNotificationMessage("Ви передали права власника учаснику " + newOwner.getUsername() + ".");
+            } else if (m.getId().equals(newOwner.getId())) {
+                m.setNotificationMessage("Вам передано права власника сім'ї.");
+            } else {
+                m.setNotificationMessage("Учасник " + newOwner.getUsername() + " тепер є новим власником сім'ї.");
+            }
+        }
+        userRepository.saveAll(members);
+
+        log.info("Ownership of family '{}' transferred from {} to {}", family.getName(), managedOwner.getUsername(), newOwner.getUsername());
+    }
+
+    @Transactional
     public void approveRequest(User owner, Long requestId) {
         User managedOwner = userRepository.findById(owner.getId()).orElseThrow();
         Family family = managedOwner.getFamily();
@@ -349,6 +378,16 @@ public class FamilyService {
         newMember.setFamily(family);
         userRepository.save(newMember);
         joinRequestRepository.delete(request);
+
+        // Сповіщаємо всіх, хто вже в сім'ї
+        List<User> members = userRepository.findByFamily(family);
+        for (User m : members) {
+            if (!m.getId().equals(newMember.getId())) {
+                m.setNotificationMessage("До сім'ї приєднався новий учасник: " + newMember.getUsername() + ".");
+            }
+        }
+        userRepository.saveAll(members);
+
         log.info("Owner {} approved {} to join family '{}'", managedOwner.getUsername(), newMember.getUsername(), family.getName());
     }
 
@@ -397,32 +436,4 @@ public class FamilyService {
         }
     }
 
-    @Transactional
-    public void transferOwnership(User currentOwner, Long newOwnerId) {
-        User managedOwner = userRepository.findById(currentOwner.getId())
-                .orElseThrow(() -> new ValidationException("Користувача не знайдено"));
-        Family family = managedOwner.getFamily();
-
-        if (family == null) {
-            throw new ValidationException("Ви не є учасником сім'ї");
-        }
-        if (!family.getOwner().getId().equals(managedOwner.getId())) {
-            throw new AccessDeniedException("Тільки власник може передати права");
-        }
-
-        User newOwner = userRepository.findById(newOwnerId)
-                .orElseThrow(() -> new ValidationException("Нового власника не знайдено"));
-
-        if (newOwner.getFamily() == null || !newOwner.getFamily().getId().equals(family.getId())) {
-            throw new ValidationException("Цей користувач не є членом вашої сім'ї");
-        }
-        if (newOwner.getId().equals(managedOwner.getId())) {
-            throw new ValidationException("Ви вже є власником");
-        }
-
-        family.setOwner(newOwner);
-        familyRepository.save(family);
-        log.info("Ownership of family '{}' transferred from {} to {}",
-                family.getName(), managedOwner.getUsername(), newOwner.getUsername());
-    }
 }

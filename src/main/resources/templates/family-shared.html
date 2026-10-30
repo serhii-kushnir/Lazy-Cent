@@ -14,7 +14,6 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Анімації для великих блоків */
         .anim-fade-up {
             animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             opacity: 0;
@@ -24,7 +23,6 @@
         .delay-3 { animation-delay: 0.3s; }
         .delay-4 { animation-delay: 0.4s; }
 
-        /* Анімації для рядків та карток при рендері/фільтрації */
         .row-animate {
             animation: fadeInUp 0.3s ease forwards;
             opacity: 0;
@@ -235,7 +233,7 @@
 
 <div class="container-fluid custom-container mt-4">
 
-    <!-- Заголовок сторінки (без кнопки Назад) -->
+    <!-- Заголовок сторінки -->
     <div class="mb-4 anim-fade-up delay-1">
         <h2 class="mb-0 text-center text-sm-start">
             <i class="fas fa-list me-2 text-primary"></i>
@@ -243,289 +241,304 @@
         </h2>
     </div>
 
-    <!-- Порожній стан -->
-    <div th:if="${transactions.isEmpty()}" class="card shadow mt-4 anim-fade-up delay-2">
+    <!-- ===== ЯКЩО НЕ В СІМ'Ї ===== -->
+    <div th:if="${!inFamily}" class="card shadow mt-4 anim-fade-up delay-2">
         <div class="card-body text-center py-5">
-            <i class="fas fa-search fa-4x mb-3 text-muted" style="opacity: 0.3;"></i>
-            <h4 th:text="#{family.shared.empty}">Поки що ніхто не поділився транзакціями.</h4>
-            <p class="text-muted">Позначте свої транзакції як "Спільні" на сторінці дня, і вони з'являться тут.</p>
+            <i class="fas fa-users-slash fa-5x mb-4 text-muted" style="opacity: 0.2;"></i>
+            <h4>Ви ще не є учасником сім'ї</h4>
+            <p class="text-muted mb-4">Щоб переглядати спільні транзакції, вам потрібно створити сім'ю або приєднатися до існуючої.</p>
+            <button class="btn btn-primary btn-lg rounded-pill px-4" onclick="window.openSettingsDrawer('family')">
+                <i class="fas fa-cog me-2"></i> Перейти до налаштувань сім'ї
+            </button>
         </div>
     </div>
 
-    <!-- Основна картка -->
-    <div th:if="${!transactions.isEmpty()}" class="card shadow mt-4 anim-fade-up delay-2">
-
-        <!-- Хедер картки -->
-        <div class="card-header py-3 anim-fade-up delay-3">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                <!-- Назва та бейдж -->
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <h5 class="mb-0 text-truncate me-2"><i class="fas fa-list-ul me-2"></i><span th:text="#{family.shared.heading}">Транзакції</span></h5>
-                    <span class="badge bg-light text-dark flex-shrink-0" style="font-size: 0.95rem; padding: 0.4rem 0.6rem;">
-                        <span th:text="#{common.total}">Всього</span>: <span id="totalRowsCount" th:text="${transactions.size()}">0</span>
-                    </span>
-                </div>
-                <!-- Перемикач вигляду -->
-                <div class="view-toggle mt-1 mt-lg-0" id="viewToggle">
-                    <button class="btn active" data-view="table" th:title="#{family.shared.table}">
-                        <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{family.shared.table}">Таблиця</span>
-                    </button>
-                    <button class="btn" data-view="cards" th:title="#{family.shared.cards}">
-                        <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{family.shared.cards}">Картки</span>
-                    </button>
-                </div>
+    <!-- ===== ЯКЩО В СІМ'Ї ===== -->
+    <div th:if="${inFamily}">
+        <!-- Порожній стан (якщо в сім'ї, але транзакцій немає) -->
+        <div th:if="${transactions.isEmpty()}" class="card shadow mt-4 anim-fade-up delay-2">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-search fa-4x mb-3 text-muted" style="opacity: 0.3;"></i>
+                <h4 th:text="#{family.shared.empty}">Поки що ніхто не поділився транзакціями.</h4>
+                <p class="text-muted">Позначте свої транзакції як "Спільні" на сторінці дня, і вони з'являться тут.</p>
             </div>
         </div>
 
-        <div class="card-body">
+        <!-- Основна картка з транзакціями -->
+        <div th:if="${!transactions.isEmpty()}" class="card shadow mt-4 anim-fade-up delay-2">
 
-            <!-- Панель інструментів -->
-            <div class="table-toolbar no-print anim-fade-up delay-3">
-                <!-- Форма з датами -->
-                <form method="get" th:action="@{/family/shared}" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-md-auto mb-2 mb-md-0">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                        <input type="date" name="startDate" class="form-control" th:value="${startDate}" th:title="#{common.from}">
+            <!-- Хедер картки -->
+            <div class="card-header py-3 anim-fade-up delay-3">
+                <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+                    <!-- Назва та бейдж -->
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <h5 class="mb-0 text-truncate me-2"><i class="fas fa-list-ul me-2"></i><span th:text="#{family.shared.heading}">Транзакції</span></h5>
+                        <span class="badge bg-light text-dark flex-shrink-0" style="font-size: 0.95rem; padding: 0.4rem 0.6rem;">
+                            <span th:text="#{common.total}">Всього</span>: <span id="totalRowsCount" th:text="${transactions.size()}">0</span>
+                        </span>
                     </div>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="fas fa-calendar"></i></span>
-                        <input type="date" name="endDate" class="form-control" th:value="${endDate}" th:title="#{common.to}">
+                    <!-- Перемикач вигляду -->
+                    <div class="view-toggle mt-1 mt-lg-0" id="viewToggle">
+                        <button class="btn active" data-view="table" th:title="#{family.shared.table}">
+                            <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{family.shared.table}">Таблиця</span>
+                        </button>
+                        <button class="btn" data-view="cards" th:title="#{family.shared.cards}">
+                            <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{family.shared.cards}">Картки</span>
+                        </button>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm w-100 w-sm-auto">
-                        <i class="fas fa-check"></i> <span th:text="#{btn.apply}">Застосувати</span>
-                    </button>
-                </form>
-
-                <!-- Пошук -->
-                <div class="search-input flex-grow-1 w-100 w-md-auto">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control" th:placeholder="#{common.search}">
-                    </div>
-                </div>
-
-                <!-- Фільтри -->
-                <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
-                    <select id="typeFilter" class="form-select form-select-sm flex-grow-1">
-                        <option value="all" th:text="#{common.all}">Всі</option>
-                        <option value="expense" th:text="#{type.expenseFilter}">Витрати</option>
-                        <option value="income" th:text="#{type.incomeFilter}">Доходи</option>
-                    </select>
-
-                    <select id="categoryFilter" class="form-select form-select-sm flex-grow-1">
-                        <option value="" th:text="#{totals.allCategories}">Всі категорії</option>
-                    </select>
-
-                    <select id="memberFilter" class="form-select form-select-sm flex-grow-1">
-                        <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
-                        <option th:each="m : ${familyMembers}" th:value="${m.username}" th:text="${m.username}"></option>
-                    </select>
-                </div>
-
-                <!-- Пагінація та інфо -->
-                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-md-auto mt-2 mt-md-0">
-                    <select id="pageSizeSelect" class="form-select form-select-sm" style="width: 100px;">
-                        <option value="0" th:text="#{common.all}">Всі</option>
-                        <option value="20" selected>20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-
-                    <button id="loadMoreBtn" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus-circle me-1"></i> <span th:text="#{common.loadMore}">Завантажити</span>
-                    </button>
-
-                    <span class="info-text" id="visibleInfo">—</span>
                 </div>
             </div>
 
-            <!-- ===== ТАБЛИЦЯ ===== -->
-            <div id="tableView" class="table-view-container anim-fade-up delay-4">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 table-transactions" id="sharedTable">
-                        <thead>
-                        <tr>
-                            <th class="col-num">№</th>
-                            <th class="col-date sortable active-desc" data-sort="date" data-type="string">
-                                <span th:text="#{family.shared.col.date}">Дата</span> <i class="fas fa-sort-down sort-icon"></i>
-                            </th>
-                            <th class="col-time sortable" data-sort="time" data-type="string">
-                                <span th:text="#{common.time}">Час</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-type sortable" data-sort="type" data-type="string">
-                                <span th:text="#{family.shared.col.type}">Тип</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-member sortable" data-sort="member" data-type="string">
-                                <span th:text="#{family.shared.col.member}">Учасник</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-name sortable" data-sort="description" data-type="string">
-                                <span th:text="#{common.description}">Найменування</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-quantity sortable" data-sort="quantity" data-type="number">
-                                <span th:text="#{common.quantity}">Кількість</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-amount sortable" data-sort="amount" data-type="number">
-                                <span th:text="#{family.shared.col.amount}">Сума</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-buyer sortable" data-sort="buyer" data-type="string">
-                                <span th:text="#{common.buyer}">Покупець</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-seller sortable" data-sort="seller" data-type="string">
-                                <span th:text="#{common.seller}">Продавець</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-details">
-                                <span th:text="#{common.details}">Деталі</span>
-                            </th>
-                            <th class="col-category sortable" data-sort="category" data-type="string">
-                                <span th:text="#{family.shared.col.category}">Категорія</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-actions no-print" th:text="#{common.actions}">Дії</th>
-                        </tr>
-                        </thead>
-                        <tbody id="sharedTableBody">
-                        <tr th:each="t, stat : ${transactions}" class="transaction-row"
-                            th:data-type="${t.expense()} ? 'expense' : 'income'"
-                            th:data-date="${t.date()}"
-                            th:data-time="${t.time() != null ? #temporals.format(t.time(), 'HH:mm') : ''}"
-                            th:data-member="${t.memberUsername()}"
-                            th:data-category="${t.categoryName()}"
-                            th:data-description="${t.description()}"
-                            th:data-amount="${t.amount()}"
-                            th:data-quantity="${t.quantity() != null ? t.quantity() : 1}"
-                            th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
-                            th:data-seller="${t.seller() != null ? t.seller() : ''}"
-                            th:data-details="${t.details() != null ? t.details() : ''}">
-                            <td class="col-num" th:text="${stat.index + 1}"></td>
-                            <td class="col-date" th:text="${t.date() != null ? #temporals.format(t.date(), 'dd/MM/yyyy') : '—'}"></td>
-                            <td class="col-time">
-                                <span th:if="${t.time() != null}" th:text="${#temporals.format(t.time(), 'HH:mm')}"></span>
-                                <span th:unless="${t.time() != null}" class="text-muted">—</span>
-                            </td>
-                            <td class="col-type">
-                                <span class="type-text"
-                                      th:classappend="${t.expense()} ? 'expense' : 'income'"
-                                      th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
-                            </td>
-                            <td class="col-member">
-                                <span th:text="${t.memberUsername()}">olena</span>
-                                <span th:if="${t.memberUsername() == currentUser?.username}"
-                                      class="badge bg-secondary ms-1"
-                                      th:text="#{family.member.you}">(ви)</span>
-                            </td>
-                            <td class="col-name">
-                                <span class="fw-semibold" th:text="${t.description()}">Продукти</span>
-                            </td>
-                            <td class="col-quantity" th:text="${t.quantity() != null ? t.quantity() : 1}">1</td>
-                            <td class="col-amount fw-bold"
-                                th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
-                                th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150.00 ₴</td>
-                            <td class="col-buyer" th:text="${t.buyer()} ?: '—'">—</td>
-                            <td class="col-seller" th:text="${t.seller()} ?: '—'">—</td>
-                            <td class="col-details">
-                                <span th:if="${t.details() != null and !t.details().isEmpty()}"
-                                      th:text="${t.details()}" th:title="${t.details()}"></span>
-                                <span th:if="${t.details() == null or t.details().isEmpty()}" class="text-muted">—</span>
-                            </td>
-                            <td class="col-category">
-                                <span class="category-text" th:text="${t.categoryName()}">Їжа</span>
-                            </td>
-                            <td class="col-actions no-print">
-                                <th:block th:if="${t.memberUsername() == currentUser?.username}">
+            <div class="card-body">
+
+                <!-- Панель інструментів -->
+                <div class="table-toolbar no-print anim-fade-up delay-3">
+                    <!-- Форма з датами -->
+                    <form method="get" th:action="@{/family/shared}" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-md-auto mb-2 mb-md-0">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <input type="date" name="startDate" class="form-control" th:value="${startDate}" th:title="#{common.from}">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                            <input type="date" name="endDate" class="form-control" th:value="${endDate}" th:title="#{common.to}">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100 w-sm-auto">
+                            <i class="fas fa-check"></i> <span th:text="#{btn.apply}">Застосувати</span>
+                        </button>
+                    </form>
+
+                    <!-- Пошук -->
+                    <div class="search-input flex-grow-1 w-100 w-md-auto">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text" id="searchInput" class="form-control" th:placeholder="#{common.search}">
+                        </div>
+                    </div>
+
+                    <!-- Фільтри -->
+                    <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
+                        <select id="typeFilter" class="form-select form-select-sm flex-grow-1">
+                            <option value="all" th:text="#{common.all}">Всі</option>
+                            <option value="expense" th:text="#{type.expenseFilter}">Витрати</option>
+                            <option value="income" th:text="#{type.incomeFilter}">Доходи</option>
+                        </select>
+
+                        <select id="categoryFilter" class="form-select form-select-sm flex-grow-1">
+                            <option value="" th:text="#{totals.allCategories}">Всі категорії</option>
+                        </select>
+
+                        <select id="memberFilter" class="form-select form-select-sm flex-grow-1">
+                            <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
+                            <option th:each="m : ${familyMembers}" th:value="${m.username}" th:text="${m.username}"></option>
+                        </select>
+                    </div>
+
+                    <!-- Пагінація та інфо -->
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-md-auto mt-2 mt-md-0">
+                        <select id="pageSizeSelect" class="form-select form-select-sm" style="width: 100px;">
+                            <option value="0" th:text="#{common.all}">Всі</option>
+                            <option value="20" selected>20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+
+                        <button id="loadMoreBtn" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus-circle me-1"></i> <span th:text="#{common.loadMore}">Завантажити</span>
+                        </button>
+
+                        <span class="info-text" id="visibleInfo">—</span>
+                    </div>
+                </div>
+
+                <!-- ===== ТАБЛИЦЯ ===== -->
+                <div id="tableView" class="table-view-container anim-fade-up delay-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 table-transactions" id="sharedTable">
+                            <thead>
+                            <tr>
+                                <th class="col-num">№</th>
+                                <th class="col-date sortable active-desc" data-sort="date" data-type="string">
+                                    <span th:text="#{family.shared.col.date}">Дата</span> <i class="fas fa-sort-down sort-icon"></i>
+                                </th>
+                                <th class="col-time sortable" data-sort="time" data-type="string">
+                                    <span th:text="#{common.time}">Час</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-type sortable" data-sort="type" data-type="string">
+                                    <span th:text="#{family.shared.col.type}">Тип</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-member sortable" data-sort="member" data-type="string">
+                                    <span th:text="#{family.shared.col.member}">Учасник</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-name sortable" data-sort="description" data-type="string">
+                                    <span th:text="#{common.description}">Найменування</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-quantity sortable" data-sort="quantity" data-type="number">
+                                    <span th:text="#{common.quantity}">Кількість</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-amount sortable" data-sort="amount" data-type="number">
+                                    <span th:text="#{family.shared.col.amount}">Сума</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-buyer sortable" data-sort="buyer" data-type="string">
+                                    <span th:text="#{common.buyer}">Покупець</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-seller sortable" data-sort="seller" data-type="string">
+                                    <span th:text="#{common.seller}">Продавець</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-details">
+                                    <span th:text="#{common.details}">Деталі</span>
+                                </th>
+                                <th class="col-category sortable" data-sort="category" data-type="string">
+                                    <span th:text="#{family.shared.col.category}">Категорія</span> <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th class="col-actions no-print" th:text="#{common.actions}">Дії</th>
+                            </tr>
+                            </thead>
+                            <tbody id="sharedTableBody">
+                            <tr th:each="t, stat : ${transactions}" class="transaction-row"
+                                th:data-type="${t.expense()} ? 'expense' : 'income'"
+                                th:data-date="${t.date()}"
+                                th:data-time="${t.time() != null ? #temporals.format(t.time(), 'HH:mm') : ''}"
+                                th:data-member="${t.memberUsername()}"
+                                th:data-category="${t.categoryName()}"
+                                th:data-description="${t.description()}"
+                                th:data-amount="${t.amount()}"
+                                th:data-quantity="${t.quantity() != null ? t.quantity() : 1}"
+                                th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
+                                th:data-seller="${t.seller() != null ? t.seller() : ''}"
+                                th:data-details="${t.details() != null ? t.details() : ''}">
+                                <td class="col-num" th:text="${stat.index + 1}"></td>
+                                <td class="col-date" th:text="${t.date() != null ? #temporals.format(t.date(), 'dd/MM/yyyy') : '—'}"></td>
+                                <td class="col-time">
+                                    <span th:if="${t.time() != null}" th:text="${#temporals.format(t.time(), 'HH:mm')}"></span>
+                                    <span th:unless="${t.time() != null}" class="text-muted">—</span>
+                                </td>
+                                <td class="col-type">
+                                    <span class="type-text"
+                                          th:classappend="${t.expense()} ? 'expense' : 'income'"
+                                          th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
+                                </td>
+                                <td class="col-member">
+                                    <span th:text="${t.memberUsername()}">olena</span>
+                                    <span th:if="${t.memberUsername() == currentUser?.username}"
+                                          class="badge bg-secondary ms-1"
+                                          th:text="#{family.member.you}">(ви)</span>
+                                </td>
+                                <td class="col-name">
+                                    <span class="fw-semibold" th:text="${t.description()}">Продукти</span>
+                                </td>
+                                <td class="col-quantity" th:text="${t.quantity() != null ? t.quantity() : 1}">1</td>
+                                <td class="col-amount fw-bold"
+                                    th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
+                                    th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150.00 ₴</td>
+                                <td class="col-buyer" th:text="${t.buyer()} ?: '—'">—</td>
+                                <td class="col-seller" th:text="${t.seller()} ?: '—'">—</td>
+                                <td class="col-details">
+                                    <span th:if="${t.details() != null and !t.details().isEmpty()}"
+                                          th:text="${t.details()}" th:title="${t.details()}"></span>
+                                    <span th:if="${t.details() == null or t.details().isEmpty()}" class="text-muted">—</span>
+                                </td>
+                                <td class="col-category">
+                                    <span class="category-text" th:text="${t.categoryName()}">Їжа</span>
+                                </td>
+                                <td class="col-actions no-print">
+                                    <th:block th:if="${t.memberUsername() == currentUser?.username}">
+                                        <a th:href="@{/day/{d}(d=${t.date()}, edit=${(t.expense() ? 'expense' : 'income') + '-' + t.id()}, returnTo='/family/shared')}"
+                                           class="btn btn-sm btn-outline-primary action-edit" th:title="#{btn.edit}">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-outline-danger js-delete-shared"
+                                                th:data-id="${t.id()}" th:data-type="${t.expense()} ? 'expense' : 'income'"
+                                                th:data-date="${t.date()}" th:data-description="${t.description()}"
+                                                th:data-amount="${t.amount()}" th:data-category="${t.categoryName()}"
+                                                th:title="#{btn.delete}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </th:block>
+                                    <span th:unless="${t.memberUsername() == currentUser?.username}" class="text-muted small">—</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ===== КАРТКИ ===== -->
+                <div id="cardsView" class="cards-view-container anim-fade-up delay-4">
+                    <div class="row g-3" id="cardsContainer">
+                        <div th:each="t : ${transactions}" class="col-12 col-md-6 col-lg-4 transaction-card-wrapper"
+                             th:data-type="${t.expense()} ? 'expense' : 'income'" th:data-date="${t.date()}"
+                             th:data-time="${t.time() != null ? #temporals.format(t.time(), 'HH:mm') : ''}"
+                             th:data-member="${t.memberUsername()}" th:data-category="${t.categoryName()}"
+                             th:data-description="${t.description()}" th:data-amount="${t.amount()}"
+                             th:data-quantity="${t.quantity() != null ? t.quantity() : 1}"
+                             th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
+                             th:data-seller="${t.seller() != null ? t.seller() : ''}"
+                             th:data-details="${t.details() != null ? t.details() : ''}">
+                            <div class="transaction-card">
+                                <div class="card-header">
+                                    <span class="type-badge" th:classappend="${t.expense()} ? 'expense' : 'income'"
+                                          th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
+                                    <span class="card-meta"><i class="far fa-user me-1"></i><span th:text="${t.memberUsername()}">olena</span></span>
+                                    <span class="card-meta">
+                                        <i class="far fa-calendar me-1"></i><span th:text="${t.date() != null ? #temporals.format(t.date(), 'dd/MM/yyyy') : '—'}"></span>
+                                        <span th:if="${t.time() != null}"> <i class="far fa-clock ms-1 me-1"></i><span th:text="${#temporals.format(t.time(), 'HH:mm')}"></span></span>
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-tag me-1"></i><span th:text="#{common.description}">Найменування</span></span>
+                                        <span class="value" th:text="${t.description()}">Продукти</span>
+                                    </div>
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-hashtag me-1"></i><span th:text="#{common.quantity}">Кількість</span></span>
+                                        <span class="value" th:text="${t.quantity() != null ? t.quantity() : 1}">1</span>
+                                    </div>
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-coins me-1"></i><span th:text="#{family.shared.col.amount}">Сума</span></span>
+                                        <span class="value" th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
+                                              th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150.00 ₴</span>
+                                    </div>
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-user me-1"></i><span th:text="#{common.buyer}">Покупець</span></span>
+                                        <span class="value" th:text="${t.buyer()} ?: '—'">—</span>
+                                    </div>
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-store me-1"></i><span th:text="#{common.seller}">Продавець</span></span>
+                                        <span class="value" th:text="${t.seller()} ?: '—'">—</span>
+                                    </div>
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-file-alt me-1"></i><span th:text="#{common.details}">Деталі</span></span>
+                                        <span class="value" th:text="${t.details()} ?: '—'">—</span>
+                                    </div>
+                                    <div class="row">
+                                        <span class="label"><i class="fas fa-folder me-1"></i><span th:text="#{family.shared.col.category}">Категорія</span></span>
+                                        <span class="value" th:text="${t.categoryName()}">Їжа</span>
+                                    </div>
+                                </div>
+                                <div class="card-footer" th:if="${t.memberUsername() == currentUser?.username}">
                                     <a th:href="@{/day/{d}(d=${t.date()}, edit=${(t.expense() ? 'expense' : 'income') + '-' + t.id()}, returnTo='/family/shared')}"
-                                       class="btn btn-sm btn-outline-primary action-edit" th:title="#{btn.edit}">
-                                        <i class="fas fa-edit"></i>
+                                       class="btn btn-sm btn-outline-primary action-edit">
+                                        <i class="fas fa-edit me-1"></i><span th:text="#{btn.edit}">Редагувати</span>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-outline-danger js-delete-shared"
                                             th:data-id="${t.id()}" th:data-type="${t.expense()} ? 'expense' : 'income'"
                                             th:data-date="${t.date()}" th:data-description="${t.description()}"
-                                            th:data-amount="${t.amount()}" th:data-category="${t.categoryName()}"
-                                            th:title="#{btn.delete}">
-                                        <i class="fas fa-trash"></i>
+                                            th:data-amount="${t.amount()}" th:data-category="${t.categoryName()}">
+                                        <i class="fas fa-trash me-1"></i><span th:text="#{btn.delete}">Видалити</span>
                                     </button>
-                                </th:block>
-                                <span th:unless="${t.memberUsername() == currentUser?.username}" class="text-muted small">—</span>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- ===== КАРТКИ ===== -->
-            <div id="cardsView" class="cards-view-container anim-fade-up delay-4">
-                <div class="row g-3" id="cardsContainer">
-                    <div th:each="t : ${transactions}" class="col-12 col-md-6 col-lg-4 transaction-card-wrapper"
-                         th:data-type="${t.expense()} ? 'expense' : 'income'" th:data-date="${t.date()}"
-                         th:data-time="${t.time() != null ? #temporals.format(t.time(), 'HH:mm') : ''}"
-                         th:data-member="${t.memberUsername()}" th:data-category="${t.categoryName()}"
-                         th:data-description="${t.description()}" th:data-amount="${t.amount()}"
-                         th:data-quantity="${t.quantity() != null ? t.quantity() : 1}"
-                         th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
-                         th:data-seller="${t.seller() != null ? t.seller() : ''}"
-                         th:data-details="${t.details() != null ? t.details() : ''}">
-                        <div class="transaction-card">
-                            <div class="card-header">
-                                <span class="type-badge" th:classappend="${t.expense()} ? 'expense' : 'income'"
-                                      th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
-                                <span class="card-meta"><i class="far fa-user me-1"></i><span th:text="${t.memberUsername()}">olena</span></span>
-                                <span class="card-meta">
-                                    <i class="far fa-calendar me-1"></i><span th:text="${t.date() != null ? #temporals.format(t.date(), 'dd/MM/yyyy') : '—'}"></span>
-                                    <span th:if="${t.time() != null}"> <i class="far fa-clock ms-1 me-1"></i><span th:text="${#temporals.format(t.time(), 'HH:mm')}"></span></span>
-                                </span>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-tag me-1"></i><span th:text="#{common.description}">Найменування</span></span>
-                                    <span class="value" th:text="${t.description()}">Продукти</span>
                                 </div>
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-hashtag me-1"></i><span th:text="#{common.quantity}">Кількість</span></span>
-                                    <span class="value" th:text="${t.quantity() != null ? t.quantity() : 1}">1</span>
-                                </div>
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-coins me-1"></i><span th:text="#{family.shared.col.amount}">Сума</span></span>
-                                    <span class="value" th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
-                                          th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150.00 ₴</span>
-                                </div>
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-user me-1"></i><span th:text="#{common.buyer}">Покупець</span></span>
-                                    <span class="value" th:text="${t.buyer()} ?: '—'">—</span>
-                                </div>
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-store me-1"></i><span th:text="#{common.seller}">Продавець</span></span>
-                                    <span class="value" th:text="${t.seller()} ?: '—'">—</span>
-                                </div>
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-file-alt me-1"></i><span th:text="#{common.details}">Деталі</span></span>
-                                    <span class="value" th:text="${t.details()} ?: '—'">—</span>
-                                </div>
-                                <div class="row">
-                                    <span class="label"><i class="fas fa-folder me-1"></i><span th:text="#{family.shared.col.category}">Категорія</span></span>
-                                    <span class="value" th:text="${t.categoryName()}">Їжа</span>
-                                </div>
-                            </div>
-                            <div class="card-footer" th:if="${t.memberUsername() == currentUser?.username}">
-                                <a th:href="@{/day/{d}(d=${t.date()}, edit=${(t.expense() ? 'expense' : 'income') + '-' + t.id()}, returnTo='/family/shared')}"
-                                   class="btn btn-sm btn-outline-primary action-edit">
-                                    <i class="fas fa-edit me-1"></i><span th:text="#{btn.edit}">Редагувати</span>
-                                </a>
-                                <button type="button" class="btn btn-sm btn-outline-danger js-delete-shared"
-                                        th:data-id="${t.id()}" th:data-type="${t.expense()} ? 'expense' : 'income'"
-                                        th:data-date="${t.date()}" th:data-description="${t.description()}"
-                                        th:data-amount="${t.amount()}" th:data-category="${t.categoryName()}">
-                                    <i class="fas fa-trash me-1"></i><span th:text="#{btn.delete}">Видалити</span>
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="noResults" class="text-center py-5" style="display: none;">
-                <i class="fas fa-search fa-3x mb-3 text-muted" style="opacity: 0.4;"></i>
-                <h5 th:text="#{common.noData}">Нічого не знайдено</h5>
-            </div>
+                <div id="noResults" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-search fa-3x mb-3 text-muted" style="opacity: 0.4;"></i>
+                    <h5 th:text="#{common.noData}">Нічого не знайдено</h5>
+                </div>
 
+            </div>
         </div>
     </div>
 </div>
@@ -579,7 +592,7 @@
         var i18nTypeIncome  = /*[[#{type.INCOME}]]*/  'Дохід';
 
         var viewToggle = document.getElementById('viewToggle');
-        if (!viewToggle) return;
+        if (!viewToggle) return; // якщо не в сім'ї, JS не потрібен
 
         var i18n = {
             showing:   /*[[#{common.showing}]]*/   'Показано: {0} з {1}',

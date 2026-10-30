@@ -3,9 +3,6 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     SETTINGS DRAWER + MODALS
-     ═══════════════════════════════════════════════════════════════════ -->
 <div th:fragment="settingsPanel" sec:authorize="isAuthenticated()">
 
     <!-- ========== OVERLAY ========== -->
@@ -27,9 +24,9 @@
             <button class="menu-item" data-section="categories">
                 <i class="fas fa-tags me-1"></i><span th:text="#{settings.categories}">Категорії</span>
             </button>
-            <a href="/family" class="menu-item">
+            <button class="menu-item" data-section="family">
                 <i class="fas fa-users me-1"></i><span th:text="#{nav.family}">Сім'я</span>
-            </a>
+            </button>
             <button class="menu-item" data-section="currency">
                 <i class="fas fa-money-bill-wave me-1"></i><span th:text="#{settings.currency}">Валюта</span>
             </button>
@@ -127,9 +124,6 @@
                     <button type="submit" class="btn btn-primary w-100" th:disabled="${isOAuth2User}">
                         <i class="fas fa-save me-1"></i> <span th:text="#{settings.profile.save}">Зберегти</span>
                     </button>
-                    <span th:if="${isOAuth2User}" class="text-muted ms-2 small">
-                        <i class="fas fa-lock me-1"></i> <span th:text="#{settings.profile.oauthLocked}">Збереження недоступне для OAuth2</span>
-                    </span>
                 </form>
             </div>
 
@@ -160,11 +154,8 @@
                             <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger js-delete-category"
-                                    th:data-id="${cat.id}"
-                                    th:data-name="${cat.name}"
-                                    th:data-type="#{type.EXPENSE}"
+                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-category"
+                                    th:data-id="${cat.id}" th:data-name="${cat.name}" th:data-type="#{type.EXPENSE}"
                                     th:title="#{settings.categories.deleteConfirm}">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -182,11 +173,8 @@
                             <button class="btn btn-sm btn-outline-primary edit-category" th:data-id="${cat.id}" th:data-name="${cat.name}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger js-delete-category"
-                                    th:data-id="${cat.id}"
-                                    th:data-name="${cat.name}"
-                                    th:data-type="#{type.INCOME}"
+                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-category"
+                                    th:data-id="${cat.id}" th:data-name="${cat.name}" th:data-type="#{type.INCOME}"
                                     th:title="#{settings.categories.deleteConfirm}">
                                 <i class="fas fa-trash"></i>
                             </button>
@@ -194,6 +182,93 @@
                     </div>
                     <div th:if="${incomeCategories == null or incomeCategories.empty}" class="text-muted text-center py-2"
                          th:text="#{settings.categories.noIncomes}">Немає категорій доходів</div>
+                </div>
+            </div>
+
+            <!-- ═══════════════ FAMILY ═══════════════ -->
+            <div class="section" id="d-section-family">
+                <h5><i class="fas fa-users me-2"></i><span th:text="#{nav.family}">Сім'я</span></h5>
+
+                <div id="familyLoading" class="text-center py-4" style="display: none;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted small">Завантаження...</p>
+                </div>
+
+                <div id="familyContent" style="display: none;">
+                    <div id="familySystemMessage" class="alert alert-info shadow-sm mb-3 py-2" style="display: none; font-size: 0.85rem;">
+                        <i class="fas fa-info-circle me-1"></i> <span id="familySystemMessageText"></span>
+                    </div>
+                    <!-- НЕ В СІМ'Ї -->
+                    <div id="familyNotIn" style="display: none;">
+                        <div id="familyRejectedAlert" class="alert alert-danger p-2" style="display: none; font-size: 0.85rem;">
+                            <p class="mb-2">Вашу заявку до сім'ї <strong id="rejectedFamilyName"></strong> відхилено.</p>
+                            <button class="btn btn-sm btn-outline-danger w-100 py-0" onclick="FamilyPanel.clearRejected()">Зрозуміло</button>
+                        </div>
+                        <div id="familyPendingAlert" class="alert alert-info p-2" style="display: none; font-size: 0.85rem;">
+                            <p class="mb-2">Заявку до сім'ї <strong id="pendingFamilyName"></strong> надіслано. Очікуйте підтвердження.</p>
+                            <button class="btn btn-sm btn-outline-secondary w-100 py-0" onclick="FamilyPanel.cancelRequest()">Відізвати заявку</button>
+                        </div>
+
+                        <div id="familyForms">
+                            <p class="text-muted small mb-3">Створіть сімейний простір або приєднайтеся до існуючого.</p>
+                            <form id="createFamilyForm" class="mb-3" novalidate>
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold small mb-1">Створити сім'ю</label>
+                                    <!-- ВИПРАВЛЕНО: pattern без зайвих екрануючих слешів -->
+                                    <input type="text" name="name" id="createFamilyNameInput" class="form-control form-control-sm" placeholder="Назва сім'ї" required minlength="2" maxlength="20" pattern="^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-_'.]+$">
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <div class="invalid-feedback" style="font-size: 0.75rem;">Назва має містити 2-20 символів (літери, цифри, пробіл, - _ ' .)</div>
+                                        <small class="text-muted" style="font-size: 0.75rem;"><span id="createFamilyCharCount">0</span>/20</small>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Створити</button>
+                            </form>
+
+                            <div class="text-center my-2 text-muted small">— або —</div>
+
+                            <form id="joinFamilyForm" novalidate>
+                                <div class="mb-2">
+                                    <label class="form-label fw-semibold small mb-1">Приєднатися</label>
+                                    <input type="text" name="inviteCode" id="joinFamilyCodeInput" class="form-control form-control-sm text-uppercase" placeholder="Код-запрошення" required minlength="6" maxlength="12">
+                                    <div class="invalid-feedback" style="font-size: 0.75rem;">Введіть коректний код-запрошення</div>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm w-100">Приєднатися</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- В СІМ'Ї -->
+                    <div id="familyIn" style="display: none;">
+                        <!-- Назва та кнопка редагування -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                            <h6 class="mb-0 fw-bold text-truncate" id="familyName" style="min-width: 0;"></h6>
+                            <button id="editFamilyNameBtn" class="btn btn-sm btn-outline-secondary py-0 px-2 flex-shrink-0" style="display: none;" onclick="FamilyPanel.openEditNameModal()"><i class="fas fa-edit" style="font-size:0.7rem;"></i></button>
+                        </div>
+
+                        <!-- Код запрошення -->
+                        <div class="mb-3 p-2 border rounded bg-body-tertiary">
+                            <label class="form-label text-muted small mb-1" style="font-size:0.7rem;">Код-запрошення</label>
+                            <div class="d-flex gap-2 align-items-center">
+                                <code id="familyInviteCode" class="fs-6 fw-bold text-primary flex-grow-1 text-truncate" style="min-width: 0;"></code>
+                                <button class="btn btn-sm btn-outline-primary py-1 px-2 flex-shrink-0" onclick="FamilyPanel.copyCode()" title="Копіювати"><i class="fas fa-copy" style="font-size:0.75rem;"></i></button>
+                                <button id="regenCodeBtn" class="btn btn-sm btn-outline-warning py-1 px-2 flex-shrink-0" style="display: none;" onclick="FamilyPanel.openRegenModal()" title="Оновити код"><i class="fas fa-sync" style="font-size:0.75rem;"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- 1. Запити на вступ (ЗВЕРХУ) -->
+                        <div id="pendingRequestsBlock" style="display: none;">
+                            <h6 class="fw-bold mt-3 mb-2 text-warning" style="font-size:0.85rem;"><i class="fas fa-user-clock me-1"></i> Запити на вступ</h6>
+                            <ul class="list-group mb-3" id="pendingRequestsList"></ul>
+                        </div>
+
+                        <!-- 2. Учасники -->
+                        <h6 class="fw-bold mt-3 mb-2" style="font-size:0.85rem;"><i class="fas fa-user-friends me-1"></i> Учасники</h6>
+                        <ul class="list-group mb-3" id="familyMembersList"></ul>
+
+                        <!-- Кнопки виходу/видалення -->
+                        <button id="leaveFamilyBtn" class="btn btn-outline-danger btn-sm w-100 mb-2" onclick="FamilyPanel.openLeaveModal()">Покинути сім'ю</button>
+                        <button id="deleteFamilyBtn" class="btn btn-danger btn-sm w-100 mb-2" style="display: none;" onclick="FamilyPanel.openDeleteModal()">Видалити сім'ю</button>
+                    </div>
                 </div>
             </div>
 
@@ -331,7 +406,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         МОДАЛЬНІ ВІКНА
+         МОДАЛЬНІ ВІКНА (БЕЗ modal-dialog-centered, щоб відкривались зверху)
          ═══════════════════════════════════════════════════════════════ -->
 
     <!-- ===== ПІДТВЕРДЖЕННЯ ВИДАЛЕННЯ КАТЕГОРІЇ ===== -->
@@ -368,6 +443,127 @@
                             <i class="fas fa-trash me-1"></i> <span th:text="#{btn.delete}">Видалити</span>
                         </button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FAMILY MODALS ===== -->
+    <!-- Редагування назви сім'ї -->
+    <div class="modal fade" id="editFamilyNameModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-primary">
+                    <h5 class="modal-title text-primary"><i class="fas fa-edit me-2"></i>Редагувати назву</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold small mb-1">Нова назва сім'ї</label>
+                        <input type="text" id="editFamilyNameInput" class="form-control form-control-sm" required minlength="2" maxlength="20" pattern="^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-_'.]+$">
+                        <div class="invalid-feedback" style="font-size: 0.75rem;">Назва має містити 2-20 символів (літери, цифри, пробіл, - _ ' .)</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-primary" id="confirmEditNameBtn">Зберегти</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Видалення сім'ї -->
+    <div class="modal fade" id="deleteFamilyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-danger">
+                    <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Видалити сім'ю?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ви впевнені, що хочете <strong>назавжди видалити</strong> сім'ю?</p>
+                    <p class="text-muted small mb-0">Всі учасники будуть від'єднані, а спільні транзакції стануть приватними.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteFamilyBtn">Видалити</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Вихід з сім'ї -->
+    <div class="modal fade" id="leaveFamilyModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title text-warning"><i class="fas fa-sign-out-alt me-2"></i>Покинути сім'ю?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ви впевнені, що хочете покинути сім'ю?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-danger" id="confirmLeaveFamilyBtn">Покинути</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Оновлення коду -->
+    <div class="modal fade" id="regenCodeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-warning">
+                    <h5 class="modal-title text-warning"><i class="fas fa-sync me-2"></i>Оновити код?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Старий код перестане працювати. Всі, хто не встиг приєднатися, повинні будуть отримати новий.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-warning" id="confirmRegenCodeBtn">Оновити</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Видалення учасника -->
+    <div class="modal fade" id="removeMemberModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-danger">
+                    <h5 class="modal-title text-danger"><i class="fas fa-user-minus me-2"></i>Видалити учасника?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Ви впевнені, що хочете видалити <strong id="removeMemberName"></strong> з сім'ї?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-danger" id="confirmRemoveMemberBtn">Видалити</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Передача прав -->
+    <div class="modal fade" id="transferOwnerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-primary">
+                    <h5 class="modal-title text-primary"><i class="fas fa-crown me-2"></i>Передати права?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Зробити <strong id="transferOwnerName"></strong> новим власником сім'ї?</p>
+                    <p class="text-muted small mb-0">Ви втратите права адміністратора і станете звичайним учасником.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                    <button type="button" class="btn btn-primary" id="confirmTransferOwnerBtn">Передати</button>
                 </div>
             </div>
         </div>
@@ -518,13 +714,6 @@
 <!-- ═══════════════════════════════════════════════════════════════════
      SETTINGS PANEL SCRIPT
      ═══════════════════════════════════════════════════════════════════ -->
-<!--
-P1.e: логіка винесена у /js/settings-panel.js (кешується браузером).
-Інлайн залишає тільки i18n-рядки, які передаються через
-window.LazyCentSettingsI18n. Раніше цей фрагмент інлайнився на
-9 авторизованих сторінках — тепер це 8 рядків + посилання на
-кешований файл.
--->
 <th:block th:fragment="settingsPanelScript">
     <script th:inline="javascript">
         window.LazyCentSettingsI18n = {
@@ -537,6 +726,8 @@ window.LazyCentSettingsI18n. Раніше цей фрагмент інлайни
             pwdReqDigit:     /*[[#{pwd.req.digit}]]*/    'Цифра (0-9)',
             pwdReqSpecial:   /*[[#{pwd.req.special}]]*/  'Спеціальний символ (@$!%*?&)'
         };
+        window.csrfToken = /*[[${_csrf.token}]]*/ '';
+        window.csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
     </script>
     <script src="/js/settings-panel.js" defer></script>
 </th:block>

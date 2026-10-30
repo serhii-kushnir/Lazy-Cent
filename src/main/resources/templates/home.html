@@ -43,20 +43,32 @@
         .quick-link { text-decoration: none; color: inherit; }
 
         .btn-add-transaction {
-            padding: 1.2rem 3.5rem !important;
-            font-size: 1.5rem !important;
+            padding: 1rem 2.5rem !important;
+            font-size: 1.2rem !important;
             border-radius: 60px !important;
             box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             transition: all 0.3s;
             font-weight: 600;
             letter-spacing: 0.5px;
+            width: 100%;
+            max-width: 400px;
+        }
+        @media (min-width: 576px) {
+            .btn-add-transaction {
+                padding: 1.2rem 3.5rem !important;
+                font-size: 1.5rem !important;
+                width: auto;
+            }
         }
         .btn-add-transaction:hover {
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(0,0,0,0.25);
         }
         .btn-add-transaction i {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
+        }
+        @media (min-width: 576px) {
+            .btn-add-transaction i { font-size: 1.8rem; }
         }
 
         .transaction-type-toggle {
@@ -93,6 +105,54 @@
             text-align: right;
             margin-top: 0.25rem;
         }
+
+        /* ===== FAMILY WIDGET ===== */
+        .family-widget {
+            background: linear-gradient(135deg, #6f42c1 0%, #9b59b6 100%);
+            color: #fff;
+            border-radius: 1rem;
+            border: none;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .family-widget:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(111, 66, 193, 0.35);
+        }
+        .family-widget .invite-code {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.35rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 0.25rem;
+        }
+        .family-widget .btn-light {
+            color: #6f42c1;
+            font-weight: 600;
+        }
+        .family-widget .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.7);
+            color: #fff;
+        }
+        .family-widget .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #fff;
+        }
+        .family-widget .family-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        /* ===== DARK THEME MODAL FIXES ===== */
         .modal-content { border-radius: 1rem; }
         [data-bs-theme="dark"] .modal-content {
             background-color: #1d2027;
@@ -134,7 +194,6 @@
             border-color: #3a3f4a;
         }
     </style>
-    <div th:replace="~{fragments/head :: themeAssets}"></div>
     <!-- P2.a: спільна логіка транзакцій -->
     <script src="/js/transaction-common.js" defer></script>
 </head>
@@ -154,15 +213,15 @@
 
     <!-- ===== БАНЕР ДЕМО-ДАНИХ ===== -->
     <div th:if="${showDemoBanner}" class="alert alert-info alert-dismissible fade show animate-fade-up" role="alert">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 text-center text-sm-start">
             <div>
                 <i class="fas fa-info-circle me-2"></i>
                 <strong th:text="#{index.demo.title}">Ласкаво просимо до Lazy Cent!</strong>
                 <span class="d-none d-sm-inline" th:text="#{index.demo.text}">Додайте демонстраційні дані, щоб побачити, як працює додаток.</span>
             </div>
-            <form th:action="@{/generate-demo}" method="post" style="display: inline;">
+            <form th:action="@{/generate-demo}" method="post" class="w-100 w-sm-auto">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit" class="btn btn-success btn-sm">
+                <button type="submit" class="btn btn-success btn-sm w-100">
                     <i class="fas fa-magic me-1"></i> <span th:text="#{index.demo.addBtn}">Додати демо-дані</span>
                 </button>
             </form>
@@ -172,7 +231,7 @@
     <!-- ===== ЗАГОЛОВОК ===== -->
     <div class="row mb-4">
         <div class="col text-center animate-fade-down">
-            <h1 class="display-4">
+            <h1 class="display-5 display-sm-4">
                 <i class="fas fa-coins text-warning"></i> <span th:text="#{app.title}">Lazy Cent</span>
             </h1>
             <p class="lead" th:text="#{app.tagline}">Ваш особистий фінансовий помічник</p>
@@ -193,6 +252,71 @@
         </div>
     </div>
 
+    <!-- ===== СІМЕЙНИЙ ВІДЖЕТ ===== -->
+    <div class="row mb-5 animate-fade-up delay-1">
+        <div class="col-12">
+            <!-- ЯКЩО В СІМ'Ї -->
+            <div th:if="${family != null}" class="card family-widget">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-center text-md-start">
+                        <div class="d-flex flex-column flex-md-row align-items-center gap-3">
+                            <div class="family-icon mb-2 mb-md-0">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 fw-bold" th:text="${family.name}">Назва сім'ї</h4>
+                                <p class="mb-0 small" style="opacity: 0.95;">
+                                    <i class="fas fa-user-friends me-1"></i>
+                                    <span th:text="${familyMembersCount}">0</span> <span th:text="#{home.family.members}">учасників</span>
+                                    <span class="mx-2 d-none d-sm-inline">·</span>
+                                    <br class="d-block d-sm-none">
+                                    <i class="fas fa-key ms-0 ms-sm-2 me-1"></i>
+                                    <code class="invite-code mt-1 mt-sm-0" th:text="${family.inviteCode}">ABCD1234</code>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto mt-2 mt-md-0">
+                            <a th:href="@{/family/shared}" class="btn btn-light btn-rounded w-100 w-sm-auto">
+                                <i class="fas fa-list me-1"></i>
+                                <span th:text="#{home.family.viewShared}">Спільні транзакції</span>
+                            </a>
+                            <button type="button" class="btn btn-outline-light btn-rounded w-100 w-sm-auto"
+                                    onclick="window.openSettingsDrawer('family')">
+                                <i class="fas fa-cog me-1"></i>
+                                <span th:text="#{home.family.manage}">Налаштування</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ЯКЩО НЕ В СІМ'Ї -->
+            <div th:if="${family == null}" class="card family-widget">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-center text-md-start">
+                        <div class="d-flex flex-column flex-md-row align-items-center gap-3">
+                            <div class="family-icon mb-2 mb-md-0">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 fw-bold" th:text="#{home.family.title}">Сімейний бюджет</h4>
+                                <p class="mb-0 small" style="opacity: 0.95;"
+                                   th:text="#{home.family.subtitle}">
+                                    Діліться транзакціями з близькими та ведіть спільний облік
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-light btn-rounded w-100 w-sm-auto mt-2 mt-md-0"
+                                onclick="window.openSettingsDrawer('family')">
+                            <i class="fas fa-plus me-1"></i>
+                            <span th:text="#{home.family.createJoin}">Створити або приєднатися</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== ШВИДКИЙ ДОСТУП ===== -->
     <div class="row mb-5">
         <div class="col-12">
@@ -202,49 +326,49 @@
             </h3>
         </div>
 
-        <div class="col-md-3 mb-3 animate-fade-up delay-1">
+        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-1">
             <a href="/budget" class="quick-link">
                 <div class="card feature-card text-center bg-primary text-white h-100">
-                    <div class="card-body d-flex flex-column">
-                        <i class="fas fa-chart-line fa-3x mb-3"></i>
-                        <h4 th:text="#{index.quickAccess.budget}">Бюджет</h4>
-                        <p class="flex-fill" th:text="#{index.quickAccess.budgetDesc}">Перегляд загального бюджету та витрат за період</p>
+                    <div class="card-body d-flex flex-column p-3 p-sm-4">
+                        <i class="fas fa-chart-line fa-2x fa-sm-3x mb-3"></i>
+                        <h5 class="h4" th:text="#{index.quickAccess.budget}">Бюджет</h5>
+                        <p class="flex-fill small" th:text="#{index.quickAccess.budgetDesc}">Перегляд загального бюджету та витрат</p>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-md-3 mb-3 animate-fade-up delay-2">
+        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-2">
             <a href="/totals" class="quick-link">
                 <div class="card feature-card text-center bg-success text-white h-100">
-                    <div class="card-body d-flex flex-column">
-                        <i class="fas fa-chart-pie fa-3x mb-3"></i>
-                        <h4 th:text="#{index.quickAccess.totals}">Підсумки</h4>
-                        <p class="flex-fill" th:text="#{index.quickAccess.totalsDesc}">Аналітика та статистика за категоріями</p>
+                    <div class="card-body d-flex flex-column p-3 p-sm-4">
+                        <i class="fas fa-chart-pie fa-2x fa-sm-3x mb-3"></i>
+                        <h5 class="h4" th:text="#{index.quickAccess.totals}">Підсумки</h5>
+                        <p class="flex-fill small" th:text="#{index.quickAccess.totalsDesc}">Аналітика та статистика за категоріями</p>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-md-3 mb-3 animate-fade-up delay-3">
+        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-3">
             <a href="/all-days" class="quick-link">
                 <div class="card feature-card text-center bg-info text-white h-100">
-                    <div class="card-body d-flex flex-column">
-                        <i class="fas fa-calendar-alt fa-3x mb-3"></i>
-                        <h4 th:text="#{index.quickAccess.allDays}">Всі дні</h4>
-                        <p class="flex-fill" th:text="#{index.quickAccess.allDaysDesc}">Детальний перегляд за кожен день</p>
+                    <div class="card-body d-flex flex-column p-3 p-sm-4">
+                        <i class="fas fa-calendar-alt fa-2x fa-sm-3x mb-3"></i>
+                        <h5 class="h4" th:text="#{index.quickAccess.allDays}">Всі дні</h5>
+                        <p class="flex-fill small" th:text="#{index.quickAccess.allDaysDesc}">Детальний перегляд за кожен день</p>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-md-3 mb-3 animate-fade-up delay-4">
+        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-4">
             <a href="/notes" class="quick-link">
                 <div class="card feature-card text-center bg-warning text-dark h-100">
-                    <div class="card-body d-flex flex-column">
-                        <i class="fas fa-sticky-note fa-3x mb-3"></i>
-                        <h4 th:text="#{index.quickAccess.notes}">Нотатки</h4>
-                        <p class="flex-fill" th:text="#{index.quickAccess.notesDesc}">Швидкі нотатки та ідеї, як у Google Keep</p>
+                    <div class="card-body d-flex flex-column p-3 p-sm-4">
+                        <i class="fas fa-sticky-note fa-2x fa-sm-3x mb-3"></i>
+                        <h5 class="h4" th:text="#{index.quickAccess.notes}">Нотатки</h5>
+                        <p class="flex-fill small" th:text="#{index.quickAccess.notesDesc}">Швидкі нотатки та ідеї</p>
                     </div>
                 </div>
             </a>
@@ -340,7 +464,7 @@
 
 <!-- ===== МОДАЛЬНЕ ВІКНО ТРАНЗАКЦІЇ ===== -->
 <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="transactionModalLabel">
@@ -448,11 +572,13 @@
 
                 </div>
                 <div class="modal-footer">
-                    <span class="keyboard-hint" th:utext="#{modal.keyboardHint}">
+                    <span class="keyboard-hint d-none d-sm-inline" th:utext="#{modal.keyboardHint}">
                         <kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати
                     </span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" id="saveTransactionBtn" th:text="#{modal.save}">Зберегти транзакцію</button>
+                    <div class="d-flex w-100 w-sm-auto gap-2 mt-2 mt-sm-0">
+                        <button type="button" class="btn btn-secondary flex-fill" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                        <button type="submit" class="btn btn-primary flex-fill" id="saveTransactionBtn" th:text="#{modal.save}">Зберегти</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -466,13 +592,6 @@
 <!-- ===== СКРИПТ ПАНЕЛІ НАЛАШТУВАНЬ ===== -->
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 
-<!--
-  P2.a: конфігурація спільної логіки транзакцій.
-  Основна логіка — у /js/transaction-common.js (кешується).
-  Тут — тільки те, що специфічне для home.html:
-    • buildActionUrl: home використовує /quick-* endpoint без дати в URL
-    • i18n: рядки для JS
--->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         window.LazyCentTx.init({

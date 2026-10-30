@@ -5,12 +5,12 @@
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
         <!-- Логотип для АВТОРИЗОВАНИХ -->
-        <a sec:authorize="isAuthenticated()" class="navbar-brand" th:href="@{/home(lang=${#locale.language})}">
+        <a sec:authorize="isAuthenticated()" class="navbar-brand" th:href="@{/home}">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
 
         <!-- Логотип для НЕАВТОРИЗОВАНИХ -->
-        <a sec:authorize="!isAuthenticated()" class="navbar-brand" th:href="@{/(lang=${#locale.language})}">
+        <a sec:authorize="!isAuthenticated()" class="navbar-brand" th:href="@{/}">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
 
@@ -23,33 +23,32 @@
 
                 <!-- ==================== АВТОРИЗОВАНИЙ КОРИСТУВАЧ ==================== -->
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" th:href="@{/home(lang=${#locale.language})}">
+                    <a class="nav-link" th:classappend="${active == 'home'} ? ' active'" th:href="@{/home}">
                         <i class="fas fa-home me-1"></i><span th:text="#{nav.home}">Головна</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" th:href="@{/budget(lang=${#locale.language})}">
+                    <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" th:href="@{/budget}">
                         <i class="fas fa-chart-line me-1"></i><span th:text="#{nav.budget}">Бюджет</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" th:href="@{/totals(lang=${#locale.language})}">
+                    <a class="nav-link" th:classappend="${active == 'totals'} ? ' active'" th:href="@{/totals}">
                         <i class="fas fa-chart-pie me-1"></i><span th:text="#{nav.totals}">Підсумки</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" th:href="@{/all-days(lang=${#locale.language})}">
+                    <a class="nav-link" th:classappend="${active == 'all-days'} ? ' active'" th:href="@{/all-days}">
                         <i class="fas fa-calendar-alt me-1"></i><span th:text="#{nav.allDays}">Всі дні</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" th:href="@{/notes(lang=${#locale.language})}">
+                    <a class="nav-link" th:classappend="${active == 'notes'} ? ' active'" th:href="@{/notes}">
                         <i class="fas fa-sticky-note me-1"></i><span th:text="#{nav.notes}">Нотатки</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:classappend="${active == 'family'} ? ' active'"
-                       th:href="@{/family(lang=${#locale.language})}">
+                    <a class="nav-link" th:classappend="${active == 'family'} ? ' active'" th:href="@{/family/shared}">
                         <i class="fas fa-users me-1"></i><span th:text="#{nav.family}">Сім'я</span>
                     </a>
                 </li>
@@ -65,16 +64,15 @@
 
                 <!-- ==================== НЕАВТОРИЗОВАНИЙ КОРИСТУВАЧ ==================== -->
                 <li class="nav-item mt-2 mt-lg-0" sec:authorize="!isAuthenticated()">
-                    <a class="nav-btn nav-btn-ghost" th:href="@{/login(lang=${#locale.language})}" th:text="#{nav.login}">Увійти</a>
+                    <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{nav.login}">Увійти</a>
                 </li>
 
                 <li class="nav-item mt-2 mt-lg-0 ms-lg-2" sec:authorize="!isAuthenticated()">
-                    <a class="nav-btn nav-btn-primary" th:href="@{/register(lang=${#locale.language})}" th:text="#{nav.register}">Реєстрація</a>
+                    <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
                 </li>
 
                 <!-- ==================== ПЕРЕМИКАЧІ (МОВА + ТЕМА) - ЛИШЕ ДЛЯ АНОНІМІВ ==================== -->
-                <!-- ✅ ДОДАНО sec:authorize="!isAuthenticated()" -->
-                <li class="nav-item ms-lg-3 mt-2 mt-lg-0 d-flex flex-row align-items-center gap-2 w-100 w-lg-auto" sec:authorize="!isAuthenticated()">
+                <li class="nav-item ms-lg-3 mt-2 mt-lg-0 d-flex flex-row align-items-center justify-content-center gap-2 w-100 w-lg-auto" sec:authorize="!isAuthenticated()">
                     <!-- Мова -->
                     <div class="lang-switch flex-grow-1 flex-lg-grow-0">
                         <a th:href="@{''(lang='uk')}" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
@@ -90,9 +88,42 @@
         </div>
     </div>
 
+    <!-- ДОДАНО СТИЛІ ДЛЯ ЦЕНТРУВАННЯ НА МОБІЛЬНИХ -->
+    <style>
+        @media (max-width: 991.98px) {
+            /* Центруємо всі пункти меню */
+            .wm-navbar .navbar-nav > li {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+            /* Центруємо текст і іконки всередині посилань */
+            .wm-navbar .navbar-nav .nav-link {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                padding: 0.75rem 0;
+            }
+            /* Центруємо кнопку профілю (аватар) */
+            .wm-navbar .user-avatar {
+                justify-content: center;
+                width: 100%;
+            }
+            /* Вирівнювання для блоку з мовою та темою */
+            .wm-navbar .nav-item.d-flex {
+                display: flex !important;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+            }
+        }
+    </style>
+
     <script>
         (function() {
-            // Ініціалізація іконки теми
             const themeBtn = document.getElementById('themeToggle');
             if (themeBtn) {
                 const icon = themeBtn.querySelector('i');
@@ -114,7 +145,6 @@
                 });
             }
 
-            // Ініціали аватара
             function setAvatarInitials() {
                 const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
                 if (!avatarPlaceholder) return;

@@ -5,11 +5,13 @@ import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.lazycent.model.Family;
 import org.lazycent.model.TotalBudget;
 import org.lazycent.model.User;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.service.BudgetService;
 import org.lazycent.service.CategoryService;
+import org.lazycent.service.FamilyService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -32,12 +34,8 @@ public class HomeController extends BaseController {
     private final BudgetService budgetService;
     private final CategoryService categoryService;
     private final DayBudgetRepository dayBudgetRepository;
+    private final FamilyService familyService;
 
-    // ==================== ГОЛОВНА ====================
-
-    /**
-     * "/" — лендінг для анонімних, редірект на "/home" для залогінених.
-     */
     @GetMapping("/")
     public String index(Authentication authentication,
                         HttpServletRequest request,
@@ -45,22 +43,26 @@ public class HomeController extends BaseController {
         if (getCurrentUser(authentication) != null) {
             Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
             if (inputFlashMap != null) {
-                inputFlashMap.forEach((key, value) ->
-                        redirectAttributes.addFlashAttribute(key, value));
+                inputFlashMap.forEach(redirectAttributes::addFlashAttribute);
             }
             return "redirect:/home";
         }
         return "index";
     }
 
-    /**
-     * "/home" — дашборд для залогінених.
-     */
     @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) {
             return "redirect:/login";
+        }
+
+        // Додаємо дані про сім'ю
+        User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
+        Family family = familyService.getFamily(freshUser);
+        if (family != null) {
+            model.addAttribute("family", family);
+            model.addAttribute("familyMembersCount", familyService.getFamilyMembers(freshUser).size());
         }
 
         boolean showDemoBanner = dayBudgetRepository.countByOwner(currentUser) == 0;
@@ -81,8 +83,6 @@ public class HomeController extends BaseController {
         return "home";
     }
 
-    // ==================== ВСІ ДНІ ====================
-
     @GetMapping("/all-days")
     public String viewAllDays(Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
@@ -99,8 +99,6 @@ public class HomeController extends BaseController {
         model.addAttribute("incomeCategories", categoryService.getIncomeCategories(currentUser));
         return "all-days";
     }
-
-    // ==================== ПІДСУМКИ ====================
 
     @GetMapping("/totals")
     public String viewTotals(

@@ -1,28 +1,3 @@
-/* =====================================================================
-   LazyCent — transaction common logic
-   =====================================================================
-   Спільна логіка для модалки "Додати транзакцію", яка використовується
-   у 4 шаблонах: home, day-detail, totals, all-days.
-
-   Раніше цей код дублювався в кожному шаблоні (~180 рядків × 4 = 720).
-   Тепер — один файл, який кешується браузером і виконується з defer.
-
-   API (викликається інлайн-скриптом у шаблоні після завантаження):
-     window.LazyCentTx.init({
-       currencySymbol: '₴',
-       buildActionUrl: function(type, dateStr) { return '...'; },
-       i18n: {
-         noCategories: '...',
-         expense: '...',
-         income: '...'
-       }
-     });
-
-   Усі функції (populateCategories, fetchCategories, openCategorySettings,
-   setTransactionType) додатково експонуються як window.* для сумісності
-   з існуючим inline-кодом у day-detail.html / totals.html / all-days.html.
-   ===================================================================== */
-
 (function () {
     'use strict';
 
