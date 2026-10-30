@@ -1,6 +1,7 @@
 package org.lazycent.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.lazycent.model.Family;
 import org.lazycent.model.User;
 import org.lazycent.service.FamilyService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,9 +21,26 @@ public class FamilyController extends BaseController {
 
     private final FamilyService familyService;
 
+    /**
+     * Сторінка-хаб для сім'ї.
+     * Показує назву, учасників та швидкі посилання на інші розділи.
+     */
     @GetMapping
-    public String familyRedirect() {
-        return "redirect:/family/shared";
+    public String viewFamilyHub(Authentication authentication, Model model) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        Family family = familyService.getFamily(freshUser);
+
+        // Якщо користувач не в сім'ї, перекидаємо на сторінку, де буде повідомлення і кнопка в налаштування
+        if (family == null) {
+            return "redirect:/family/shared";
+        }
+
+        model.addAttribute("family", family);
+        model.addAttribute("membersCount", familyService.getFamilyMembers(freshUser).size());
+        return "family-hub";
     }
 
     @GetMapping("/shared")
@@ -39,7 +57,6 @@ public class FamilyController extends BaseController {
         model.addAttribute("inFamily", inFamily);
 
         if (!inFamily) {
-            // Якщо не в сім'ї, передаємо порожні дані, щоб уникнути помилок у шаблоні
             model.addAttribute("startDate", LocalDate.now().minusDays(30));
             model.addAttribute("endDate", LocalDate.now());
             model.addAttribute("transactions", java.util.List.of());
