@@ -19,6 +19,17 @@ public class TransactionController extends BaseController {
 
     private final BudgetService budgetService;
 
+    /**
+     * Безпечний редірект. Дозволяє лише внутрішні шляхи (починаються з "/"),
+     * блокує protocol-relative ("//evil.com"), absolute ("http://...") та CRLF.
+     */
+    private String safeReturnTo(String returnTo, String fallback) {
+        if (returnTo == null || returnTo.isBlank()) return fallback;
+        if (!returnTo.startsWith("/") || returnTo.startsWith("//")) return fallback;
+        if (returnTo.contains("://") || returnTo.contains("\r") || returnTo.contains("\n")) return fallback;
+        return returnTo;
+    }
+
     // ==================== ДУБЛЮВАННЯ ====================
 
     @PostMapping("/expense/duplicate/{id}")
@@ -47,6 +58,7 @@ public class TransactionController extends BaseController {
 
     @PostMapping("/expense/delete/{id}")
     public String deleteExpense(@PathVariable Long id,
+                                @RequestParam(value = "returnTo", required = false) String returnTo,
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
@@ -54,11 +66,12 @@ public class TransactionController extends BaseController {
         LocalDate date = budgetService.getDateByExpense(id, currentUser);
         budgetService.deleteExpense(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.deleted"));
-        return "redirect:/day/" + date;
+        return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
     }
 
     @PostMapping("/income/delete/{id}")
     public String deleteIncome(@PathVariable Long id,
+                               @RequestParam(value = "returnTo", required = false) String returnTo,
                                Authentication authentication,
                                RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
@@ -66,7 +79,7 @@ public class TransactionController extends BaseController {
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
         budgetService.deleteIncome(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.deleted"));
-        return "redirect:/day/" + date;
+        return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
     }
 
     // ==================== РЕДАГУВАННЯ ====================
@@ -82,6 +95,7 @@ public class TransactionController extends BaseController {
                               @RequestParam(value = "time", required = false) String timeStr,
                               @RequestParam(value = "buyer", required = false) String buyer,
                               @RequestParam(value = "seller", required = false) String seller,
+                              @RequestParam(value = "returnTo", required = false) String returnTo,
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
@@ -92,7 +106,7 @@ public class TransactionController extends BaseController {
                 shareWithFamily, time, buyer, seller, currentUser);
         LocalDate date = budgetService.getDateByExpense(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.updated"));
-        return "redirect:/day/" + date;
+        return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
     }
 
     @PostMapping("/income/edit/{id}")
@@ -106,6 +120,7 @@ public class TransactionController extends BaseController {
                              @RequestParam(value = "time", required = false) String timeStr,
                              @RequestParam(value = "buyer", required = false) String buyer,
                              @RequestParam(value = "seller", required = false) String seller,
+                             @RequestParam(value = "returnTo", required = false) String returnTo,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
@@ -116,6 +131,6 @@ public class TransactionController extends BaseController {
                 shareWithFamily, time, buyer, seller, currentUser);
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.updated"));
-        return "redirect:/day/" + date;
+        return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
     }
 }

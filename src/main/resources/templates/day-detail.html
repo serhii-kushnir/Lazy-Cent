@@ -835,6 +835,7 @@
             </div>
             <form id="editExpenseForm" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="returnTo" id="editExpenseReturnTo" value="" />
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
                     <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label><select name="categoryId" class="form-select" id="editExpenseCategory" required><option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
@@ -878,6 +879,7 @@
             </div>
             <form id="editIncomeForm" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="returnTo" id="editIncomeReturnTo" value="" />
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
                     <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label><select name="categoryId" class="form-select" id="editIncomeCategory" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
@@ -1709,6 +1711,44 @@
                 }
             });
         });
+
+        // ===== AUTO-OPEN EDIT MODAL (з ?edit=expense-123&returnTo=/family/shared) =====
+        (function autoOpenEditFromUrl() {
+            var params = new URLSearchParams(window.location.search);
+            var editParam = params.get('edit');
+            var returnTo = params.get('returnTo');
+
+            // Очищаємо returnTo в обох формах при завантаженні — щоб ручний клік не тягнув старе значення
+            var retExp = document.getElementById('editExpenseReturnTo');
+            var retInc = document.getElementById('editIncomeReturnTo');
+            if (retExp) retExp.value = '';
+            if (retInc) retInc.value = '';
+
+            if (!editParam) return;
+            var parts = editParam.split('-');
+            if (parts.length !== 2) return;
+            var type = parts[0], id = parts[1];
+            if (type !== 'expense' && type !== 'income') return;
+
+            setTimeout(function () {
+                var btn = document.querySelector(
+                    '.action-edit[data-type="' + type + '"][data-id="' + id + '"]'
+                );
+                if (!btn) return;
+
+                btn.click();
+
+                // Після кліку форма вже має action="/expense/edit/{id}".
+                // Проставляємо returnTo у приховане поле відповідної форми.
+                if (returnTo) {
+                    var field = type === 'expense' ? retExp : retInc;
+                    if (field) field.value = returnTo;
+                }
+
+                // Прибираємо ?edit=...&returnTo=... з URL
+                window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+            }, 300);
+        })();
 
         // ===== 18. ВИДАЛЕННЯ =====
         document.querySelectorAll('.action-delete').forEach(function (item) {

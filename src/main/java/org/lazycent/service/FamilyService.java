@@ -174,6 +174,9 @@ public class FamilyService {
         owner.setNotificationMessage("Учасник " + managed.getUsername() + " покинув вашу сім'ю.");
         userRepository.save(owner);
 
+        expenseRepository.clearSharedFlagForUser(managed);
+        incomeRepository.clearSharedFlagForUser(managed);
+
         managed.setFamily(null);
         userRepository.save(managed);
 
@@ -201,6 +204,9 @@ public class FamilyService {
                 || !member.getFamily().getId().equals(family.getId()))
             throw new ValidationException("Цей учасник не є членом вашої сім'ї");
 
+        expenseRepository.clearSharedFlagForUser(member);
+        incomeRepository.clearSharedFlagForUser(member);
+
         member.setFamily(null);
         userRepository.save(member);
         expenseRepository.clearSharedFlagForUser(member); // 👈 Очищаємо
@@ -225,6 +231,8 @@ public class FamilyService {
         for (User m : members) {
             m.setFamily(null);
             m.setNotificationMessage("Власник видалив сім'ю. Ви більше не є її учасником.");
+            expenseRepository.clearSharedFlagForUser(m);
+            incomeRepository.clearSharedFlagForUser(m);
         }
         userRepository.saveAll(members);
         familyRepository.delete(family);

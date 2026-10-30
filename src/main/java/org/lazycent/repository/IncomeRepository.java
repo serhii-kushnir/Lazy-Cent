@@ -13,13 +13,13 @@ import org.springframework.stereotype.Repository;
 import org.lazycent.model.dto.SharedTransactionDto;
 import java.time.LocalDate;
 import java.util.List;
-import java.time.LocalDate;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Long> {
 
     @Modifying
+    @Transactional
     @Query("UPDATE Income i SET i.shareWithFamily = false WHERE i.dayBudget.owner = :user")
     void clearSharedFlagForUser(@Param("user") User user);
 
@@ -100,8 +100,9 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
                                  @Param("user") User user);
 
     @Query("SELECT new org.lazycent.model.dto.SharedTransactionDto(" +
-            "i.dayBudget.date, i.dayBudget.owner.username, i.category.name, " +
-            "i.description, i.amount, 'INCOME', i.time) " +
+            "i.id, i.dayBudget.date, i.dayBudget.owner.username, i.category.name, " +
+            "i.description, i.amount, 'INCOME', i.time, " +
+            "i.quantity, i.buyer, i.seller, i.details) " +
             "FROM Income i " +
             "WHERE i.dayBudget.owner.family.id = :familyId " +
             "  AND i.shareWithFamily = true " +

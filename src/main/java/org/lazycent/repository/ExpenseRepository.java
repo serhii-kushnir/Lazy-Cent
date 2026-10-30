@@ -13,13 +13,14 @@ import org.springframework.stereotype.Repository;
 import org.lazycent.model.dto.SharedTransactionDto;
 import java.time.LocalDate;
 import java.util.List;
-import java.time.LocalDate;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Modifying
+    @Transactional
     @Query("UPDATE Expense e SET e.shareWithFamily = false WHERE e.dayBudget.owner = :user")
     void clearSharedFlagForUser(@Param("user") User user);
 
@@ -101,8 +102,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                                  @Param("user") User user);
 
     @Query("SELECT new org.lazycent.model.dto.SharedTransactionDto(" +
-            "e.dayBudget.date, e.dayBudget.owner.username, e.category.name, " +
-            "e.description, e.amount, 'EXPENSE', e.time) " +
+            "e.id, e.dayBudget.date, e.dayBudget.owner.username, e.category.name, " +
+            "e.description, e.amount, 'EXPENSE', e.time, " +
+            "e.quantity, e.buyer, e.seller, e.details) " +
             "FROM Expense e " +
             "WHERE e.dayBudget.owner.family.id = :familyId " +
             "  AND e.shareWithFamily = true " +
@@ -112,6 +114,5 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             @Param("familyId") Long familyId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
-
 
 }

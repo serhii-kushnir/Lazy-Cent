@@ -191,10 +191,8 @@ public class FamilyController extends BaseController {
 
     @GetMapping("/shared")
     public String viewShared(
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Authentication authentication, Model model) {
         User user = getCurrentUser(authentication);
         if (user == null) return "redirect:/login";
@@ -207,13 +205,9 @@ public class FamilyController extends BaseController {
 
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
-        model.addAttribute("transactions",
-                familyService.getSharedTransactions(freshUser, startDate, endDate));
-
-        model.addAttribute("currentUser", freshUser);
-
+        model.addAttribute("transactions", familyService.getSharedTransactions(freshUser, startDate, endDate));
         model.addAttribute("familyMembers", familyService.getFamilyMembers(freshUser));
-
+        model.addAttribute("currentUser", freshUser); // 👈 Обов'язково
         return "family-shared";
     }
 
