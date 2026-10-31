@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="#{budget.title} + ' - ' + #{app.title}">Бюджет - Lazy Cent</title>
+    <title th:text="#{budget.title} + ' - ' + #{app.title}">Витрати - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
@@ -171,13 +171,13 @@
 
     <div class="print-header d-print-flex" style="display: none;">
         <span class="logo">💰 LazyCent</span>
-        <h2 class="text-nowrap" th:text="#{budget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Бюджет на 10.2026</h2>
+        <h2 class="text-nowrap" th:text="#{budget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Витрати на 10.2026</h2>
     </div>
 
     <div class="d-flex justify-content-center justify-content-lg-start align-items-center mb-4 animate-fade-up">
         <h2 class="mb-0 fw-bold text-nowrap">
             <i class="fas fa-wallet me-2 text-primary"></i>
-            <span th:text="#{budget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Бюджет на 10.2026</span>
+            <span th:text="#{budget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Витрати на 10.2026</span>
         </h2>
     </div>
 

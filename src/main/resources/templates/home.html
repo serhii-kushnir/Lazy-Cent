@@ -294,59 +294,75 @@
         <div class="col-12">
             <h3 class="text-center mb-4 animate-fade-down delay-1">
                 <i class="fas fa-bolt text-primary"></i>
-                <span th:text="#{index.quickAccess.title}">Швидкий доступ</span>
+                <span>Швидкий доступ</span>
             </h3>
         </div>
 
-        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-1">
+        <!-- Витрати -->
+        <div class="col-6 col-md-4 col-lg mb-3 animate-fade-up delay-1">
             <a href="/budget" class="quick-link">
                 <div class="card feature-card text-center bg-primary text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
                         <i class="fas fa-chart-line fa-2x fa-sm-3x mb-3"></i>
-                        <h5 class="h4" th:text="#{index.quickAccess.budget}">Бюджет</h5>
-                        <p class="flex-fill small" th:text="#{index.quickAccess.budgetDesc}">Перегляд загального бюджету та витрат</p>
+                        <h5 class="h4">Витрати</h5>
+                        <p class="flex-fill small">Перегляд лімітів та витрат за період</p>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-2">
+        <!-- Дохід -->
+        <div class="col-6 col-md-4 col-lg mb-3 animate-fade-up delay-1">
+            <a href="/budget-income" class="quick-link">
+                <div class="card feature-card text-center bg-success text-white h-100">
+                    <div class="card-body d-flex flex-column p-3 p-sm-4">
+                        <i class="fas fa-hand-holding-dollar fa-2x fa-sm-3x mb-3"></i>
+                        <h5 class="h4">Дохід</h5>
+                        <p class="flex-fill small">Цілі доходів та їх досягнення</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Підсумки -->
+        <div class="col-6 col-md-4 col-lg mb-3 animate-fade-up delay-2">
             <a href="/totals" class="quick-link">
                 <div class="card feature-card text-center bg-success text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
                         <i class="fas fa-chart-pie fa-2x fa-sm-3x mb-3"></i>
-                        <h5 class="h4" th:text="#{index.quickAccess.totals}">Підсумки</h5>
-                        <p class="flex-fill small" th:text="#{index.quickAccess.totalsDesc}">Аналітика та статистика за категоріями</p>
+                        <h5 class="h4">Підсумки</h5>
+                        <p class="flex-fill small">Аналітика та статистика за категоріями</p>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-3">
+        <!-- Всі дні -->
+        <div class="col-6 col-md-4 col-lg mb-3 animate-fade-up delay-3">
             <a href="/all-days" class="quick-link">
                 <div class="card feature-card text-center bg-info text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
                         <i class="fas fa-calendar-alt fa-2x fa-sm-3x mb-3"></i>
-                        <h5 class="h4" th:text="#{index.quickAccess.allDays}">Всі дні</h5>
-                        <p class="flex-fill small" th:text="#{index.quickAccess.allDaysDesc}">Детальний перегляд за кожен день</p>
+                        <h5 class="h4">Всі дні</h5>
+                        <p class="flex-fill small">Детальний перегляд за кожен день</p>
                     </div>
                 </div>
             </a>
         </div>
 
-        <div class="col-6 col-md-3 mb-3 animate-fade-up delay-4">
+        <!-- Нотатки -->
+        <div class="col-6 col-md-4 col-lg mb-3 animate-fade-up delay-4">
             <a href="/notes" class="quick-link">
                 <div class="card feature-card text-center bg-warning text-dark h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
                         <i class="fas fa-sticky-note fa-2x fa-sm-3x mb-3"></i>
-                        <h5 class="h4" th:text="#{index.quickAccess.notes}">Нотатки</h5>
-                        <p class="flex-fill small" th:text="#{index.quickAccess.notesDesc}">Швидкі нотатки та ідеї</p>
+                        <h5 class="h4">Нотатки</h5>
+                        <p class="flex-fill small">Швидкі нотатки та ідеї, як у Google Keep</p>
                     </div>
                 </div>
             </a>
         </div>
     </div>
-
     <!-- СТАТИСТИКА -->
     <div class="row animate-fade-up delay-2">
         <div class="col-12">

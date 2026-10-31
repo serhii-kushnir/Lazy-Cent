@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="#{incomeBudget.title} + ' - ' + #{app.title}">Цільовий дохід - Lazy Cent</title>
+    <title th:text="#{incomeBudget.title} + ' - ' + #{app.title}">Дохід - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
@@ -166,14 +166,14 @@
         <span class="logo">💰 LazyCent</span>
         <h2 class="text-nowrap"
             th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">
-            Цільовий дохід на 10.2026
+            Дохід на 10.2026
         </h2>
     </div>
 
     <div class="d-flex justify-content-center justify-content-lg-start align-items-center mb-4 animate-fade-up">
         <h2 class="mb-0 fw-bold text-nowrap">
             <i class="fas fa-hand-holding-dollar me-2 text-success"></i>
-            <span th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Цільовий дохід на 10.2026</span>
+            <span th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Дохід на 10.2026</span>
         </h2>
     </div>
 
@@ -247,7 +247,7 @@
 
     <!-- ===== 4 КАРТКИ ===== -->
     <div class="row g-3 mb-4">
-        <!-- 1. Цільовий дохід -->
+        <!-- 1. Дохід -->
         <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-1">
             <div class="card budget-card h-100">
                 <div class="card-body d-flex align-items-center gap-3">
@@ -255,7 +255,7 @@
                         <i class="fas fa-bullseye"></i>
                     </div>
                     <div class="flex-grow-1 text-start">
-                        <h6 class="text-muted" th:text="#{incomeBudget.totalTarget}">Цільовий дохід</h6>
+                        <h6 class="text-muted" th:text="#{incomeBudget.totalTarget}">Дохід</h6>
                         <h3 class="text-success"
                             th:text="${#numbers.formatDecimal(dashboard.totalBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
                     </div>
@@ -554,7 +554,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;">
-                <h5 class="modal-title"><i class="fas fa-bullseye me-2"></i><span th:text="#{incomeBudget.modal.setTarget}">Встановити цільовий дохід</span></h5>
+                <h5 class="modal-title"><i class="fas fa-bullseye me-2"></i><span th:text="#{incomeBudget.modal.setTarget}">Встановити Дохід</span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form th:action="@{/budget-income/plan}" method="post">
@@ -564,7 +564,7 @@
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold">
-                            <span th:text="#{incomeBudget.modal.setTargetLabel}">Цільовий дохід на місяць</span>
+                            <span th:text="#{incomeBudget.modal.setTargetLabel}">Дохід на місяць</span>
                             (<span th:text="${currencySymbol}">₴</span>)
                         </label>
                         <div class="input-group input-group-lg">
