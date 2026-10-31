@@ -31,6 +31,7 @@ public class BudgetDashboardDto {
 
     private Integer overLimitCount;
     private Double overLimitTotal;
+    private Double incomesDeltaPercent;
 
     private List<CategoryBudgetDto> categories;
     private Map<LocalDate, Double> dailyExpenses;

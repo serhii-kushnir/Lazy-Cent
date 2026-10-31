@@ -19,16 +19,9 @@ public class BudgetPlan {
     @EqualsAndHashCode.Include
     private Long id;
 
-    /**
-     * P2.c: {@code owner} тепер LAZY.
-     *
-     * <p><b>Де читається:</b>
-     * <ul>
-     *   <li>{@code BudgetPlanningService.getBudgetPlan/saveOrUpdateBudgetPlan} —
-     *       у WHERE-фільтрі або {@code setOwner(...)};</li>
-     *   <li>Thymeleaf {@code budget.html} — {@code owner} НЕ використовується.</li>
-     * </ul>
-     */
+    @Column(name = "plan_type", nullable = false, length = 20)
+    private String planType = "EXPENSE";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;

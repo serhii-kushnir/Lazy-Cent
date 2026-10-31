@@ -12,4 +12,9 @@ public interface BudgetPlanRepository extends JpaRepository<BudgetPlan, Long> {
     Optional<BudgetPlan> findByOwnerAndBudgetMonthAndBudgetYear(User owner, int budgetMonth, int budgetYear);
 
     void deleteByOwner(User owner);
+
+    Optional<BudgetPlan> findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(
+            User owner, int month, int year, String planType);
+
+    void deleteByOwnerAndPlanType(User owner, String planType);
 }
