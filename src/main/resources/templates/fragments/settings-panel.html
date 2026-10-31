@@ -714,7 +714,7 @@
 <!-- ═══════════════════════════════════════════════════════════════════
      SETTINGS PANEL SCRIPT
      ═══════════════════════════════════════════════════════════════════ -->
-<th:block th:fragment="settingsPanelScript">
+<th:block th:fragment="settingsPanelScript" sec:authorize="isAuthenticated()">
     <script th:inline="javascript">
         window.LazyCentSettingsI18n = {
             themeLight:      /*[[#{theme.light}]]*/      'Світла',

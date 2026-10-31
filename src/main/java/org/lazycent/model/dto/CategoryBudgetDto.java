@@ -14,4 +14,11 @@ public class CategoryBudgetDto {
     private Double limit;
     private Double percentUsed;
     private String status; // "OK", "WARNING", "OVER"
+    private String note;   // ← ДОДАНО
+
+    // Конструктор без note — для сумісності
+    public CategoryBudgetDto(Category category, Double spent, Double limit,
+                             Double percentUsed, String status) {
+        this(category, spent, limit, percentUsed, status, null);
+    }
 }

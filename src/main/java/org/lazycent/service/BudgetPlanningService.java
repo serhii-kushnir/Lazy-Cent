@@ -87,10 +87,14 @@ public class BudgetPlanningService {
 
         double remainingBudget = totalBudget - totalExpenses;
 
-        // 2. Ліміти категорій
+        // 2. Ліміти категорій — зберігаємо цілі entity, щоб мати доступ до note
         List<CategoryBudgetLimit> limits = getCategoryLimits(user, month, year);
-        Map<Long, Double> limitMap = limits.stream()
-                .collect(Collectors.toMap(l -> l.getCategory().getId(), CategoryBudgetLimit::getLimitAmount));
+        Map<Long, CategoryBudgetLimit> limitsByCategory = limits.stream()
+                .collect(Collectors.toMap(
+                        l -> l.getCategory().getId(),
+                        l -> l,
+                        (a, b) -> a   // якщо раптом дублікат — беремо перший
+                ));
 
         // 3. Витрати по категоріях
         List<CategorySummaryDto> expenseSummaries = expenseRepository.getExpenseCategorySummaries(start, end, user);
@@ -100,22 +104,34 @@ public class BudgetPlanningService {
 
         Map<Category, Double> categoryExpenses = new HashMap<>();
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
+
         for (CategorySummaryDto dto : expenseSummaries) {
             Category cat = allCategories.stream()
                     .filter(c -> c.getName().equals(dto.getCategoryName()))
                     .findFirst()
                     .orElse(null);
             if (cat == null) continue;
+
             double spent = dto.getTotalAmount();
             categoryExpenses.put(cat, spent);
-            double limit = limitMap.getOrDefault(cat.getId(), 0.0);
+
+            CategoryBudgetLimit limitEntity = limitsByCategory.get(cat.getId());
+            double limit = limitEntity != null && limitEntity.getLimitAmount() != null
+                    ? limitEntity.getLimitAmount()
+                    : 0.0;
+            String note = limitEntity != null ? limitEntity.getNote() : null;
+
             double percentUsed = limit > 0 ? (spent / limit * 100) : 0.0;
             String status;
-            if (limit == 0) status = "OK";
-            else if (percentUsed < 80) status = "OK";
-            else if (percentUsed < 100) status = "WARNING";
-            else status = "OVER";
-            categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, percentUsed, status));
+            if (limit == 0 || percentUsed < 80) {
+                status = "OK";
+            } else if (percentUsed < 100) {
+                status = "WARNING";
+            } else {
+                status = "OVER";
+            }
+
+            categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, percentUsed, status, note));
         }
         categoryDtos.sort((a, b) -> Double.compare(b.getPercentUsed(), a.getPercentUsed()));
 

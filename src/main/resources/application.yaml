@@ -116,9 +116,9 @@ app:
     # Cron для щоденного очищення прострочених токенів.
     cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
   logging:
-    # Керує file-appenders у logback-spring.xml.
-    # false (default) — логи тільки в stdout (підходить для Fly.io, Docker, Kubernetes).
-    # true — додатково пише в ./logs/*.log (для локальної розробки).
+    level:
+    org.lazycent: INFO
+    org.hibernate.SQL: WARN
     file:
       enabled: ${LOG_TO_FILE:false}
 

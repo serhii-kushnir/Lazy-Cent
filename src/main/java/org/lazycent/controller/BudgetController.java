@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.BudgetDashboardDto;
+import org.lazycent.repository.DayBudgetRepository; // ← додано імпорт
 import org.lazycent.service.BudgetPlanningService;
 import org.lazycent.service.CategoryService;
 import org.springframework.security.core.Authentication;
@@ -14,7 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -24,6 +28,7 @@ public class BudgetController extends BaseController {
 
     private final BudgetPlanningService budgetPlanningService;
     private final CategoryService categoryService;
+    private final DayBudgetRepository dayBudgetRepository; // ← додано поле
 
     @GetMapping("/budget")
     public String viewBudget(@RequestParam(value = "month", required = false) Integer month,
@@ -35,6 +40,30 @@ public class BudgetController extends BaseController {
 
         if (month == null) month = LocalDate.now().getMonthValue();
         if (year == null) year = LocalDate.now().getYear();
+
+        // --- Доступні роки (де є транзакції) ---
+        List<Integer> availableYears = dayBudgetRepository.findDistinctYearsByOwner(user);
+        if (availableYears.isEmpty()) {
+            availableYears = List.of(year);
+        } else if (!availableYears.contains(year)) {
+            List<Integer> temp = new ArrayList<>(availableYears);
+            temp.add(year);
+            temp.sort(Collections.reverseOrder());
+            availableYears = temp;
+        }
+
+        // --- Доступні місяці (для обраного року) ---
+        List<Integer> availableMonths = dayBudgetRepository.findDistinctMonthsByOwnerAndYear(user, year);
+        if (availableMonths.isEmpty()) {
+            // Якщо в цьому році ще немає транзакцій — показуємо хоча б поточний обраний місяць
+            availableMonths = List.of(month);
+        } else if (!availableMonths.contains(month)) {
+            // Якщо обраний місяць не має транзакцій — додаємо його, щоб не зникав зі списку
+            List<Integer> temp = new ArrayList<>(availableMonths);
+            temp.add(month);
+            temp.sort(Integer::compare);
+            availableMonths = temp;
+        }
 
         BudgetDashboardDto dashboard = budgetPlanningService.getDashboard(user, month, year);
 
@@ -50,6 +79,8 @@ public class BudgetController extends BaseController {
         model.addAttribute("dashboard", dashboard);
         model.addAttribute("month", month);
         model.addAttribute("year", year);
+        model.addAttribute("availableYears", availableYears);
+        model.addAttribute("availableMonths", availableMonths);
         model.addAttribute("expenseCategories", categoryService.getExpenseCategories(user));
         model.addAttribute("categoryExpenses", categoryExpenses);
 

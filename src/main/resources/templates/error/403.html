@@ -13,11 +13,11 @@
         .error-code { font-size: 6rem; font-weight: 700; color: var(--bs-secondary-color); line-height: 1; }
         .error-title { font-size: 2rem; margin: 1rem 0; }
         .error-description { color: var(--bs-secondary-color); margin-bottom: 2rem; }
+        .error-actions .btn { margin: 0.25rem; }
     </style>
 </head>
 <body>
 <nav th:replace="~{fragments/navbar :: navbar('none')}"></nav>
-<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
 
@@ -43,6 +43,5 @@
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
-<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
 </html>

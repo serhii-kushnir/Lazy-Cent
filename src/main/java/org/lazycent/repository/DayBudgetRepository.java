@@ -17,6 +17,15 @@ import java.util.Optional;
 @Repository
 public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
 
+    @Query("SELECT DISTINCT YEAR(b.date) FROM DayBudget b WHERE b.owner = :owner ORDER BY YEAR(b.date) DESC")
+    List<Integer> findDistinctYearsByOwner(@Param("owner") User owner);
+
+    @Query("SELECT DISTINCT MONTH(b.date) FROM DayBudget b " +
+            "WHERE b.owner = :owner AND YEAR(b.date) = :year " +
+            "ORDER BY MONTH(b.date) ASC")
+    List<Integer> findDistinctMonthsByOwnerAndYear(@Param("owner") User owner,
+                                                   @Param("year") int year);
+
     @EntityGraph(attributePaths = {
             "expenses", "expenses.category",
             "incomes", "incomes.category"

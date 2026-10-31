@@ -13,7 +13,6 @@
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
         .anim-fade-up {
             animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             opacity: 0;
@@ -119,6 +118,7 @@
         .table-transactions th:not(:last-child) { border-right: 1px solid #dee2e6; }
         [data-bs-theme="dark"] .table-transactions th:not(:last-child) { border-right-color: #3a3f4a; }
 
+        /* Ресайз колонок */
         .table-transactions th .resize-handle {
             position: absolute; right: -3px; top: 0; width: 6px; height: 100%;
             cursor: col-resize; user-select: none; background: #adb5bd;
@@ -136,6 +136,7 @@
         .table-transactions tbody tr:hover { background-color: rgba(13, 110, 253, 0.08); }
         [data-bs-theme="dark"] .table-transactions tbody tr:hover { background-color: rgba(90, 138, 197, 0.18); }
 
+        /* Ширини колонок */
         .table-transactions .col-num      { width: 50px;  min-width: 50px;  text-align: center; white-space: nowrap; }
         .table-transactions .col-date     { width: 100px; min-width: 100px; text-align: center; white-space: nowrap; }
         .table-transactions .col-time     { width: 80px;  min-width: 80px;  text-align: center; white-space: nowrap; }
@@ -270,14 +271,12 @@
             <!-- Хедер картки -->
             <div class="card-header py-3 anim-fade-up delay-3">
                 <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
-                    <!-- Назва та бейдж -->
                     <div class="d-flex justify-content-between align-items-center w-100">
                         <h5 class="mb-0 text-truncate me-2"><i class="fas fa-list-ul me-2"></i><span th:text="#{family.shared.heading}">Транзакції</span></h5>
                         <span class="badge bg-light text-dark flex-shrink-0" style="font-size: 0.95rem; padding: 0.4rem 0.6rem;">
                             <span th:text="#{common.total}">Всього</span>: <span id="totalRowsCount" th:text="${transactions.size()}">0</span>
                         </span>
                     </div>
-                    <!-- Перемикач вигляду -->
                     <div class="view-toggle mt-1 mt-lg-0" id="viewToggle">
                         <button class="btn active" data-view="table" th:title="#{family.shared.table}">
                             <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{family.shared.table}">Таблиця</span>
@@ -293,7 +292,6 @@
 
                 <!-- Панель інструментів -->
                 <div class="table-toolbar no-print anim-fade-up delay-3">
-                    <!-- Форма з датами -->
                     <form method="get" th:action="@{/family/shared}" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-md-auto mb-2 mb-md-0">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="fas fa-calendar"></i></span>
@@ -308,7 +306,6 @@
                         </button>
                     </form>
 
-                    <!-- Пошук -->
                     <div class="search-input flex-grow-1 w-100 w-md-auto">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -316,25 +313,21 @@
                         </div>
                     </div>
 
-                    <!-- Фільтри -->
                     <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto">
                         <select id="typeFilter" class="form-select form-select-sm flex-grow-1">
                             <option value="all" th:text="#{common.all}">Всі</option>
                             <option value="expense" th:text="#{type.expenseFilter}">Витрати</option>
                             <option value="income" th:text="#{type.incomeFilter}">Доходи</option>
                         </select>
-
                         <select id="categoryFilter" class="form-select form-select-sm flex-grow-1">
                             <option value="" th:text="#{totals.allCategories}">Всі категорії</option>
                         </select>
-
                         <select id="memberFilter" class="form-select form-select-sm flex-grow-1">
                             <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
                             <option th:each="m : ${familyMembers}" th:value="${m.username}" th:text="${m.username}"></option>
                         </select>
                     </div>
 
-                    <!-- Пагінація та інфо -->
                     <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 w-100 w-md-auto mt-2 mt-md-0">
                         <select id="pageSizeSelect" class="form-select form-select-sm" style="width: 100px;">
                             <option value="0" th:text="#{common.all}">Всі</option>
@@ -342,11 +335,9 @@
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </select>
-
                         <button id="loadMoreBtn" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus-circle me-1"></i> <span th:text="#{common.loadMore}">Завантажити</span>
                         </button>
-
                         <span class="info-text" id="visibleInfo">—</span>
                     </div>
                 </div>
@@ -582,6 +573,7 @@
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
@@ -592,7 +584,7 @@
         var i18nTypeIncome  = /*[[#{type.INCOME}]]*/  'Дохід';
 
         var viewToggle = document.getElementById('viewToggle');
-        if (!viewToggle) return; // якщо не в сім'ї, JS не потрібен
+        if (!viewToggle) return;
 
         var i18n = {
             showing:   /*[[#{common.showing}]]*/   'Показано: {0} з {1}',
@@ -685,7 +677,6 @@
             });
         }
 
-        // ===== SYNC & ANIMATE CARDS =====
         function syncCards(visibleRows) {
             var visibleKeys = new Set(visibleRows.map(rowKey));
             var animIdx = 0;
@@ -702,7 +693,6 @@
             });
         }
 
-        // ===== UPDATE UI & ANIMATE ROWS =====
         function updateUI() {
             var total = filteredRows.length;
             if (totalRowsSpan) totalRowsSpan.textContent = total;
@@ -728,7 +718,6 @@
 
             toShow.forEach(function (row, idx) {
                 row.style.display = '';
-                // Анімація рядка
                 row.classList.remove('row-animate');
                 void row.offsetWidth;
                 row.style.animationDelay = (idx * 0.03) + 's';
@@ -882,6 +871,5 @@
         applyFilters();
     });
 </script>
-<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
 </html>

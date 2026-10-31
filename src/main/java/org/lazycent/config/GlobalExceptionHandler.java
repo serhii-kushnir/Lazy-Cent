@@ -1,5 +1,6 @@
 package org.lazycent.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.lazycent.exception.BusinessException;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -44,8 +46,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ModelAndView handleNoResourceFound(NoResourceFoundException ex) {
-        log.debug("Сторінка не знайдена: {}", ex.getResourcePath());
+    public Object handleNoResourceFound(NoResourceFoundException ex,
+                                        HttpServletResponse response) {
+        String path = ex.getResourcePath();
+
+        // Тихо ігноруємо .map файли — браузер запитує їх лише при відкритих DevTools,
+        // і вони не потрібні для роботи застосунку.
+        if (path != null && path.endsWith(".map")) {
+            return ResponseEntity.notFound().build();   // 404 без рендерингу шаблону
+        }
+
+        log.debug("Сторінка не знайдена: {}", path);
         ModelAndView mav = new ModelAndView("error/404");
         mav.setStatus(HttpStatus.NOT_FOUND);
         return mav;
@@ -99,8 +110,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public String handleGenericException(Exception ex,
                                          HttpServletRequest request,
+                                         HttpServletResponse response,
                                          RedirectAttributes redirectAttributes) {
         log.error("Unexpected error: ", ex);
+
+        // Якщо відповідь уже відправлена — редірект неможливий,
+        // спроба addFlashAttribute кине "Cannot create a session after response committed"
+        if (response.isCommitted()) {
+            log.error("Response already committed, cannot redirect from error handler");
+            return null;   // DispatcherServlet завершить обробку без exceptions
+        }
+
         redirectAttributes.addFlashAttribute("errorMessage", msg("error.technical"));
         return redirectUtils.redirectToReferer(request);
     }
