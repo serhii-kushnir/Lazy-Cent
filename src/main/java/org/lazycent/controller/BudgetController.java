@@ -1,19 +1,23 @@
 package org.lazycent.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.Category;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.BudgetDashboardDto;
-import org.lazycent.repository.DayBudgetRepository; // ← додано імпорт
+import org.lazycent.repository.DayBudgetRepository;
+import org.lazycent.service.BudgetExportService;
 import org.lazycent.service.BudgetPlanningService;
 import org.lazycent.service.CategoryService;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +32,8 @@ public class BudgetController extends BaseController {
 
     private final BudgetPlanningService budgetPlanningService;
     private final CategoryService categoryService;
-    private final DayBudgetRepository dayBudgetRepository; // ← додано поле
+    private final DayBudgetRepository dayBudgetRepository;
+    private final BudgetExportService budgetExportService;
 
     @GetMapping("/budget")
     public String viewBudget(@RequestParam(value = "month", required = false) Integer month,
@@ -41,7 +46,6 @@ public class BudgetController extends BaseController {
         if (month == null) month = LocalDate.now().getMonthValue();
         if (year == null) year = LocalDate.now().getYear();
 
-        // --- Доступні роки (де є транзакції) ---
         List<Integer> availableYears = dayBudgetRepository.findDistinctYearsByOwner(user);
         if (availableYears.isEmpty()) {
             availableYears = List.of(year);
@@ -52,13 +56,11 @@ public class BudgetController extends BaseController {
             availableYears = temp;
         }
 
-        // --- Доступні місяці (для обраного року) ---
-        List<Integer> availableMonths = dayBudgetRepository.findDistinctMonthsByOwnerAndYear(user, year);
+        List<Integer> availableMonths =
+                dayBudgetRepository.findDistinctMonthsByOwnerAndYear(user, year);
         if (availableMonths.isEmpty()) {
-            // Якщо в цьому році ще немає транзакцій — показуємо хоча б поточний обраний місяць
             availableMonths = List.of(month);
         } else if (!availableMonths.contains(month)) {
-            // Якщо обраний місяць не має транзакцій — додаємо його, щоб не зникав зі списку
             List<Integer> temp = new ArrayList<>(availableMonths);
             temp.add(month);
             temp.sort(Integer::compare);
@@ -76,6 +78,11 @@ public class BudgetController extends BaseController {
             }
         }
 
+        int prevMonth = (month == 1) ? 12 : month - 1;
+        int prevYear = (month == 1) ? year - 1 : year;
+        boolean hasPrevMonthLimits = !budgetPlanningService
+                .getCategoryLimits(user, prevMonth, prevYear).isEmpty();
+
         model.addAttribute("dashboard", dashboard);
         model.addAttribute("month", month);
         model.addAttribute("year", year);
@@ -83,6 +90,7 @@ public class BudgetController extends BaseController {
         model.addAttribute("availableMonths", availableMonths);
         model.addAttribute("expenseCategories", categoryService.getExpenseCategories(user));
         model.addAttribute("categoryExpenses", categoryExpenses);
+        model.addAttribute("hasPrevMonthLimits", hasPrevMonthLimits);
 
         return "budget";
     }
@@ -115,5 +123,77 @@ public class BudgetController extends BaseController {
         budgetPlanningService.saveCategoryLimit(currentUser, categoryId, month, year, limitAmount, note);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.categoryLimit.saved"));
         return "redirect:/budget?month=" + month + "&year=" + year;
+    }
+
+    @PostMapping("/budget/category-limit/delete")
+    public String deleteCategoryLimit(@RequestParam Long categoryId,
+                                      @RequestParam("month") Integer month,
+                                      @RequestParam("year") Integer year,
+                                      Authentication authentication,
+                                      RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        try {
+            budgetPlanningService.deleteCategoryLimit(currentUser, categoryId, month, year);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    msg("budget.deleteLimit.success"));
+        } catch (Exception e) {
+            log.error("Помилка видалення ліміту", e);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/budget?month=" + month + "&year=" + year;
+    }
+
+    @PostMapping("/budget/category-limit/copy-previous")
+    public String copyPreviousLimits(@RequestParam("month") Integer month,
+                                     @RequestParam("year") Integer year,
+                                     Authentication authentication,
+                                     RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        int prevMonth = (month == 1) ? 12 : month - 1;
+        int prevYear = (month == 1) ? year - 1 : year;
+
+        try {
+            int copied = budgetPlanningService.copyLimitsFromMonth(
+                    currentUser, prevMonth, prevYear, month, year);
+            if (copied > 0) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        msg("budget.copyPrevious.success", copied));
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        msg("budget.copyPrevious.empty"));
+            }
+        } catch (Exception e) {
+            log.error("Помилка копіювання лімітів", e);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/budget?month=" + month + "&year=" + year;
+    }
+
+    // NEW: Excel export
+    @GetMapping("/budget/export")
+    public void exportBudget(@RequestParam("month") Integer month,
+                             @RequestParam("year") Integer year,
+                             Authentication authentication,
+                             HttpServletResponse response) throws IOException {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        byte[] xlsx = budgetExportService.export(
+                currentUser, month, year, LocaleContextHolder.getLocale());
+
+        String filename = String.format("budget-%d-%02d.xlsx", year, month);
+        response.setContentType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + filename + "\"");
+        response.setContentLength(xlsx.length);
+        response.getOutputStream().write(xlsx);
     }
 }

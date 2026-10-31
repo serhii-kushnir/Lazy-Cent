@@ -106,10 +106,10 @@ class RedirectUtilsTest {
         req.setServerName("internal-container");   // внутрішнє ім'я
         req.setServerPort(8080);
         req.setScheme("http");
-        req.addHeader("X-Forwarded-Host", "lazy-cent.fly.dev");
+        req.addHeader("X-Forwarded-Host", "lazy-cent.com");
         req.addHeader("X-Forwarded-Port", "443");
         req.addHeader("X-Forwarded-Proto", "https");
-        req.addHeader("Referer", "https://lazy-cent.fly.dev/budget");
+        req.addHeader("Referer", "https://lazy-cent.com/budget");
 
         assertThat(proxyAware.redirectToReferer(req))
                 .as("За проксі Referer свого ж хоста має бути прийнятий")

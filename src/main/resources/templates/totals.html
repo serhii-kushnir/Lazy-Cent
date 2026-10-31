@@ -50,6 +50,16 @@
         }
         .amount.income { color: var(--bs-success); }
         .amount.expense { color: var(--bs-danger); }
+        /* Кольори сум у таблиці категорій (витрати — червоні, доходи — зелені) */
+        .text-expense { color: #dc3545; font-weight: 600; }
+        .text-income  { color: #198754; font-weight: 600; }
+        .text-balance-positive { color: #198754; }
+        .text-balance-negative { color: #dc3545; }
+        [data-bs-theme="dark"] .text-expense { color: #f87171; }
+        [data-bs-theme="dark"] .text-income  { color: #6ee7b7; }
+        [data-bs-theme="dark"] .text-balance-positive { color: #6ee7b7; }
+        [data-bs-theme="dark"] .text-balance-negative { color: #f87171; }
+
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInRow { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -409,7 +419,9 @@
     <div class="balance-row balance-animated">
         <div class="balance-cell">
             <div class="label" th:text="#{totals.netBalance}">Чистий баланс</div>
-            <div class="amount" th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
+            <div class="amount"
+     th:classappend="${totalBudget.balance >= 0} ? 'income' : 'expense'"
+     th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
         </div>
         <div class="balance-cell">
             <div class="label" th:text="#{totals.income}">Доходи</div>

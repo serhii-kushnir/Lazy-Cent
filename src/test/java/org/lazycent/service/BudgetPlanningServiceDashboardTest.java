@@ -257,7 +257,9 @@ class BudgetPlanningServiceDashboardTest {
 
         BudgetDashboardDto dto = dashboardFor(LocalDate.now());
 
-        assertThat(dto.getCategories()).isEmpty();
+        assertThat(dto.getCategories())
+                .extracting(c -> c.getCategory().getName())
+                .containsExactly("Їжа");
         assertThat(dto.getCategoryExpenses()).isEmpty();
     }
 

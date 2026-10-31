@@ -84,18 +84,14 @@ server:
   forward-headers-strategy: framework
   servlet:
     session:
-      # 60 хвилин неактивності → сесія інвалідується.
       timeout: 60m
       cookie:
-        # Кастомне ім'я, щоб не світити стандартний JSESSIONID
         name: LAZYCENT_SESSION
-        # Захист від XSS: JavaScript не бачить cookie з сесією.
         http-only: true
-        # У продакшн — увімкнути (HTTPS-only).
         secure: ${SESSION_COOKIE_SECURE:false}
-        # Захист від CSRF: cookie передається тільки на same-site переходах.
         same-site: lax
         path: /
+        persistent: false
 
 # ===================== APP =====================
 app:

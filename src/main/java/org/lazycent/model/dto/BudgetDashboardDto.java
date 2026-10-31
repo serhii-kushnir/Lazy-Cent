@@ -13,17 +13,26 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BudgetDashboardDto {
-    private Double totalBudget;          // загальний бюджет на місяць
-    private Double totalExpenses;        // фактичні витрати за місяць
-    private Double totalIncomes;         // фактичні доходи за місяць
-    private Double remainingBudget;      // залишок (totalBudget - totalExpenses) або (totalIncomes - totalExpenses) - оберемо загальний підхід
-    private Double projectedBalance;     // прогноз на кінець місяця
-    private Integer daysPassed;          // скільки днів місяця минуло
-    private Integer daysInMonth;         // всього днів у місяці
-    private Double dailyAverageExpense;  // середні витрати за день
-    private Double projectedTotalExpenses; // прогнозовані витрати до кінця місяця
+
+    private Double totalBudget;
+    private Double totalExpenses;
+    private Double totalIncomes;
+    private Double remainingBudget;
+    private Double projectedBalance;
+    private Integer daysPassed;
+    private Integer daysInMonth;
+    private Double dailyAverageExpense;
+    private Double projectedTotalExpenses;
+
+    private Integer daysRemaining;
+    private Double dailyRemainingBudget;
+    private Double previousMonthExpenses;
+    private Double expensesDeltaPercent;
+
+    private Integer overLimitCount;
+    private Double overLimitTotal;
 
     private List<CategoryBudgetDto> categories;
-    private Map<LocalDate, Double> dailyExpenses; // витрати по днях (для графіка)
-    private Map<Category, Double> categoryExpenses; // витрати по категоріях (для графіка)
+    private Map<LocalDate, Double> dailyExpenses;
+    private Map<Category, Double> categoryExpenses;
 }

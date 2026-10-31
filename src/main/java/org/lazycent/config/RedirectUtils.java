@@ -8,35 +8,6 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-/**
- * Безпечний редірект на {@code Referer} з захистом від Open Redirect.
- *
- * <p><b>Політика:</b>
- * <ul>
- *   <li>Relative path без authority — приймаємо.</li>
- *   <li>Absolute URL ({@code https://...}) — приймаємо ТІЛЬКИ якщо хост і порт
- *       збігаються з поточним запитом.</li>
- *   <li>Protocol-relative ({@code //evil.com/path}) — завжди відкидаємо.</li>
- *   <li>Інший хост/порт — відкидаємо.</li>
- * </ul>
- *
- * <h3>Reverse proxy</h3>
- * За TLS-термінацією (Fly.io, Nginx, Cloudflare) {@code request.getServerName()}
- * і {@code getServerPort()} повертають ВНУТРІШНІ значення контейнера
- * (наприклад, {@code localhost:8080}), а не те, що бачить клієнт
- * ({@code lazy-cent.fly.dev:443}). Тоді перевірка same-origin відкидає
- * валідний {@code Referer} свого ж хоста.
- *
- * <p><b>Рішення:</b> якщо {@code app.trust-proxy=true} (тільки коли застосунок
- * справді за проксі!), читаємо {@code X-Forwarded-Host}, {@code X-Forwarded-Port},
- * {@code X-Forwarded-Proto} з підтримкою списків (перше значення) і порту
- * у форматі {@code host:port}.
- *
- * <p><b>Безпека:</b> за замовчуванням {@code trust-proxy=false}. Увімкнення
- * без реального проксі дозволяє підробити Referer і редіректнути на
- * довільний хост — обов'язково перевірте, що проксі перезаписує
- * {@code X-Forwarded-*} (а не додає до клієнтського).
- */
 @Component
 @Slf4j
 public class RedirectUtils {

@@ -69,6 +69,47 @@ public class BudgetPlanningService {
         return categoryBudgetLimitRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, month, year);
     }
 
+    @Transactional
+    public void deleteCategoryLimit(User user, Long categoryId, int month, int year) {
+        Category category = categoryService.getCategoryById(categoryId, user);
+        categoryBudgetLimitRepository
+                .findByCategoryAndOwnerAndBudgetMonthAndBudgetYear(category, user, month, year)
+                .ifPresent(categoryBudgetLimitRepository::delete);
+        log.info("Видалено ліміт категорії '{}' для {}/{} користувача {}",
+                category.getName(), month, year, user.getUsername());
+    }
+
+    @Transactional
+    public int copyLimitsFromMonth(User user,
+                                   int fromMonth, int fromYear,
+                                   int toMonth, int toYear) {
+        List<CategoryBudgetLimit> source = categoryBudgetLimitRepository
+                .findByOwnerAndBudgetMonthAndBudgetYear(user, fromMonth, fromYear);
+        if (source.isEmpty()) return 0;
+
+        int copied = 0;
+        for (CategoryBudgetLimit old : source) {
+            boolean exists = categoryBudgetLimitRepository
+                    .findByCategoryAndOwnerAndBudgetMonthAndBudgetYear(
+                            old.getCategory(), user, toMonth, toYear)
+                    .isPresent();
+            if (exists) continue;
+
+            CategoryBudgetLimit copy = new CategoryBudgetLimit();
+            copy.setCategory(old.getCategory());
+            copy.setOwner(user);
+            copy.setBudgetMonth(toMonth);
+            copy.setBudgetYear(toYear);
+            copy.setLimitAmount(old.getLimitAmount());
+            copy.setNote(old.getNote());
+            categoryBudgetLimitRepository.save(copy);
+            copied++;
+        }
+        log.info("Скопійовано {} лімітів з {}/{} у {}/{} для {}",
+                copied, fromMonth, fromYear, toMonth, toYear, user.getUsername());
+        return copied;
+    }
+
     // ==================== ДАШБОРД ====================
 
     @Transactional(readOnly = true)
@@ -79,7 +120,6 @@ public class BudgetPlanningService {
         BudgetPlan plan = getBudgetPlan(user, month, year);
         double totalBudget = plan != null ? plan.getTotalBudget() : 0.0;
 
-        // 1. Загальні суми за місяць
         Double totalExpenses = expenseRepository.sumExpensesByDateBetweenAndUser(start, end, user);
         Double totalIncomes = incomeRepository.sumIncomesByDateBetweenAndUser(start, end, user);
         if (totalExpenses == null) totalExpenses = 0.0;
@@ -87,33 +127,35 @@ public class BudgetPlanningService {
 
         double remainingBudget = totalBudget - totalExpenses;
 
-        // 2. Ліміти категорій — зберігаємо цілі entity, щоб мати доступ до note
         List<CategoryBudgetLimit> limits = getCategoryLimits(user, month, year);
         Map<Long, CategoryBudgetLimit> limitsByCategory = limits.stream()
                 .collect(Collectors.toMap(
                         l -> l.getCategory().getId(),
                         l -> l,
-                        (a, b) -> a   // якщо раптом дублікат — беремо перший
+                        (a, b) -> a
                 ));
 
-        // 3. Витрати по категоріях
-        List<CategorySummaryDto> expenseSummaries = expenseRepository.getExpenseCategorySummaries(start, end, user);
+        List<CategorySummaryDto> expenseSummaries =
+                expenseRepository.getExpenseCategorySummaries(start, end, user);
 
-        // Отримуємо ВСІ категорії один раз
-        List<Category> allCategories = categoryService.getAllCategories(user);
+        Map<String, Double> expensesByCategoryName = new HashMap<>();
+        for (CategorySummaryDto dto : expenseSummaries) {
+            expensesByCategoryName.merge(dto.getCategoryName(), dto.getTotalAmount(), Double::sum);
+        }
+
+        List<Category> expenseCategories = categoryService.getAllCategories(user).stream()
+                .filter(c -> "EXPENSE".equalsIgnoreCase(c.getType()))
+                .toList();
 
         Map<Category, Double> categoryExpenses = new HashMap<>();
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
 
-        for (CategorySummaryDto dto : expenseSummaries) {
-            Category cat = allCategories.stream()
-                    .filter(c -> c.getName().equals(dto.getCategoryName()))
-                    .findFirst()
-                    .orElse(null);
-            if (cat == null) continue;
+        for (Category cat : expenseCategories) {
+            double spent = expensesByCategoryName.getOrDefault(cat.getName(), 0.0);
 
-            double spent = dto.getTotalAmount();
-            categoryExpenses.put(cat, spent);
+            if (spent > 0) {
+                categoryExpenses.put(cat, spent);
+            }
 
             CategoryBudgetLimit limitEntity = limitsByCategory.get(cat.getId());
             double limit = limitEntity != null && limitEntity.getLimitAmount() != null
@@ -133,10 +175,22 @@ public class BudgetPlanningService {
 
             categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, percentUsed, status, note));
         }
-        categoryDtos.sort((a, b) -> Double.compare(b.getPercentUsed(), a.getPercentUsed()));
 
-        // 4. Денні витрати для графіка
-        List<DailySummaryDto> dailyExpenseSummaries = expenseRepository.getDailyExpenseSummaries(start, end, user);
+        categoryDtos.sort(
+                Comparator
+                        .comparingInt((CategoryBudgetDto d) ->
+                                (d.getLimit() != null && d.getLimit() > 0) ? 0 : 1)
+                        .thenComparing(
+                                d -> d.getPercentUsed() != null ? d.getPercentUsed() : 0.0,
+                                Comparator.reverseOrder())
+                        .thenComparing(
+                                d -> d.getCategory().getName(),
+                                String.CASE_INSENSITIVE_ORDER)
+        );
+
+        List<DailySummaryDto> dailyExpenseSummaries =
+                expenseRepository.getDailyExpenseSummaries(start, end, user);
+
         Map<LocalDate, Double> dailyExpenses = new TreeMap<>();
         LocalDate current = start;
         while (!current.isAfter(end)) {
@@ -147,32 +201,46 @@ public class BudgetPlanningService {
             dailyExpenses.put(dto.getDate(), dto.getTotalExpenses());
         }
 
-        // 5. Прогноз.
-        //
-        // FIX: daysPassed більше не = today.getDayOfMonth() для будь-якого місяця.
-        // Правильна семантика:
-        //   • майбутній місяць  → 0 днів минуло (ще не почався)
-        //   • минулий місяць    → усі дні місяця минули
-        //   • поточний місяць   → today.getDayOfMonth()
-        // Це виправляє прогноз при перегляді бюджету на минулий або майбутній місяць
-        // (раніше, наприклад, для вересня у жовтні показувало 15 днів замість 30).
         LocalDate today = LocalDate.now();
         int daysInMonth = start.lengthOfMonth();
         int daysPassed;
         if (start.isAfter(today)) {
-            // майбутній місяць — жоден день ще не минув
             daysPassed = 0;
         } else if (end.isBefore(today)) {
-            // минулий місяць — усі дні вже минули
             daysPassed = daysInMonth;
         } else {
-            // поточний місяць — реальна кількість днів, що минули
             daysPassed = today.getDayOfMonth();
         }
 
         double dailyAverage = daysPassed > 0 ? totalExpenses / daysPassed : 0.0;
         double projectedTotalExpenses = dailyAverage * daysInMonth;
         double projectedBalance = totalBudget - projectedTotalExpenses;
+
+        int daysRemaining = Math.max(daysInMonth - daysPassed, 0);
+        double dailyRemainingBudget = daysRemaining > 0 && remainingBudget > 0
+                ? remainingBudget / daysRemaining
+                : 0.0;
+
+        LocalDate prevStart = start.minusMonths(1);
+        LocalDate prevEnd = prevStart.withDayOfMonth(prevStart.lengthOfMonth());
+        Double previousMonthExpenses =
+                expenseRepository.sumExpensesByDateBetweenAndUser(prevStart, prevEnd, user);
+
+        Double expensesDeltaPercent = null;
+        if (previousMonthExpenses != null && previousMonthExpenses > 0) {
+            expensesDeltaPercent =
+                    (totalExpenses - previousMonthExpenses) / previousMonthExpenses * 100.0;
+        }
+
+        // NEW: over-limit count + total excess
+        int overLimitCount = 0;
+        double overLimitTotal = 0.0;
+        for (CategoryBudgetDto dto : categoryDtos) {
+            if ("OVER".equals(dto.getStatus())) {
+                overLimitCount++;
+                overLimitTotal += dto.getSpent() - dto.getLimit();
+            }
+        }
 
         BudgetDashboardDto dto = new BudgetDashboardDto();
         dto.setTotalBudget(totalBudget);
@@ -184,6 +252,15 @@ public class BudgetPlanningService {
         dto.setDaysInMonth(daysInMonth);
         dto.setDailyAverageExpense(dailyAverage);
         dto.setProjectedTotalExpenses(projectedTotalExpenses);
+
+        dto.setDaysRemaining(daysRemaining);
+        dto.setDailyRemainingBudget(dailyRemainingBudget);
+        dto.setPreviousMonthExpenses(previousMonthExpenses);
+        dto.setExpensesDeltaPercent(expensesDeltaPercent);
+
+        dto.setOverLimitCount(overLimitCount);
+        dto.setOverLimitTotal(overLimitTotal);
+
         dto.setCategories(categoryDtos);
         dto.setDailyExpenses(dailyExpenses);
         dto.setCategoryExpenses(categoryExpenses);
@@ -191,7 +268,7 @@ public class BudgetPlanningService {
         return dto;
     }
 
-    // ==================== ДОПОМІЖНІ МЕТОДИ ====================
+    // ==================== ДОПОМІЖНІ ====================
 
     public int getCurrentMonth() {
         return LocalDate.now().getMonthValue();
