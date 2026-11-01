@@ -157,6 +157,29 @@ public class BudgetController extends BaseController {
         return "redirect:/budget?month=" + month + "&year=" + year;
     }
 
+    @GetMapping("/budget-income/export")
+    public void exportIncomeBudget(@RequestParam("month") Integer month,
+                                   @RequestParam("year") Integer year,
+                                   Authentication authentication,
+                                   HttpServletResponse response) throws IOException {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        byte[] xlsx = budgetExportService.exportIncome(
+                currentUser, month, year, LocaleContextHolder.getLocale());
+
+        String filename = String.format("income-target-%d-%02d.xlsx", year, month);
+        response.setContentType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + filename + "\"");
+        response.setContentLength(xlsx.length);
+        response.getOutputStream().write(xlsx);
+    }
+
     @GetMapping("/budget/export")
     public void exportBudget(@RequestParam("month") Integer month,
                              @RequestParam("year") Integer year,

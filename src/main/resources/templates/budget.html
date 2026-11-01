@@ -244,7 +244,8 @@
             <a th:href="@{/budget/export(month=${month}, year=${year})}" class="btn btn-success">
                 <i class="fas fa-file-excel me-1"></i> <span th:text="#{budget.export}">Експорт</span>
             </a>
-            <button class="btn btn-warning" onclick="window.print()">
+            <button class="btn btn-warning d-none d-sm-inline-flex align-items-center justify-content-center"
+                    onclick="window.print()">
                 <i class="fas fa-print"></i> <span th:text="#{btn.print}">Друк</span>
             </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#setBudgetModal">
@@ -723,7 +724,6 @@
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
-<div th:replace="~{fragments/toast :: toastScript}"></div>
 
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
@@ -869,5 +869,6 @@
 
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+<div th:replace="~{fragments/quick-transaction-modal :: quickTransactionModalScript}"></div>
 </body>
 </html>

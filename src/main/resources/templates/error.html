@@ -20,7 +20,9 @@
             <span th:text="#{error.generic.title}">Сталася помилка!</span>
         </h4>
         <!-- FIX: ${error.message} замість ${error}, бо ${error} — це Map, рендерить toString() -->
-        <p th:text="${error != null and error.message != null} ? ${error.message} : #{error.generic.message}">
+        <p th:text="${message != null and !#strings.isEmpty(message)} ? ${message} : #{error.generic.message}">
+    Непередбачена помилка
+</p>
             Непередбачена помилка
         </p>
         <hr>

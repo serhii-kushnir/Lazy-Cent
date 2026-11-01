@@ -31,17 +31,20 @@ public class BudgetPlanningService {
 
     @Transactional
     public BudgetPlan saveOrUpdateBudgetPlan(User user, int month, int year, Double totalBudget) {
-        BudgetPlan plan = budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, month, year)
+        BudgetPlan plan = budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, month, year, "EXPENSE")
                 .orElse(new BudgetPlan());
         plan.setOwner(user);
         plan.setBudgetMonth(month);
         plan.setBudgetYear(year);
         plan.setTotalBudget(totalBudget);
+        plan.setPlanType("EXPENSE");
         return budgetPlanRepository.save(plan);
     }
 
     public BudgetPlan getBudgetPlan(User user, int month, int year) {
-        return budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, month, year)
+        return budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, month, year, "EXPENSE")
                 .orElse(null);
     }
 
@@ -414,7 +417,7 @@ public class BudgetPlanningService {
         dto.setIncomesDeltaPercent(incomesDeltaPercent);
         dto.setCategories(categoryDtos);
         dto.setCategoryExpenses(categoryIncomes);
-        dto.setDailyExpenses(new TreeMap<>());   // не використовується на цій сторінці
+        dto.setDailyExpenses(new TreeMap<>());
         return dto;
     }
 

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="quickTransactionModal"
+     class="modal fade" id="quickTransactionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>
+                    <span th:text="#{modal.addTransaction}">Додати нову транзакцію</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="quickTransactionForm" th:action="@{/quick-expense}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                <div class="modal-body">
+                    <input type="hidden" name="type" id="quickTransactionType" value="EXPENSE">
+
+                    <!-- Найменування -->
+                    <div class="mb-3">
+                        <label for="quickTransactionName" class="form-label" th:text="#{modal.name}">Найменування</label>
+                        <input type="text" class="form-control" id="quickTransactionName" name="description"
+                               th:placeholder="#{modal.name.placeholder}" required>
+                        <div class="invalid-feedback" th:text="#{modal.fillField}">Будь ласка, заповніть це поле</div>
+                    </div>
+
+                    <!-- Тип -->
+                    <div class="mb-3">
+                        <label class="form-label" th:text="#{modal.type}">Тип</label>
+                        <div class="transaction-type-toggle">
+                            <button type="button" class="btn active-expense" id="quickTypeExpenseBtn">
+                                <i class="fas fa-arrow-down me-1"></i>
+                                <span th:text="#{modal.type.expense}">Витрата</span>
+                            </button>
+                            <button type="button" class="btn btn-outline-success" id="quickTypeIncomeBtn">
+                                <i class="fas fa-arrow-up me-1"></i>
+                                <span th:text="#{modal.type.income}">Дохід</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Категорія -->
+                    <div class="mb-3">
+                        <label for="quickCategorySelect" class="form-label" th:text="#{modal.category}">Категорія</label>
+                        <div class="input-group category-input-group">
+                            <select class="form-select" id="quickCategorySelect" name="categoryId" required>
+                                <option value="" th:text="#{common.loading}">Завантаження...</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary"
+                                    onclick="openCategorySettings()"
+                                    th:title="#{modal.category.addTitle}">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" th:text="#{modal.enterCategory}">Виберіть категорію</div>
+                        <div class="form-text text-muted" th:utext="#{modal.category.hint}">
+                            Не знайшли потрібну категорію? Натисніть <kbd>+</kbd> щоб додати.
+                        </div>
+                    </div>
+
+                    <!-- Дата -->
+                    <div class="mb-3">
+                        <label for="quickTransactionDate" class="form-label" th:text="#{modal.date}">Дата</label>
+                        <input type="date" class="form-control" id="quickTransactionDate" name="date" required>
+                    </div>
+
+                    <!-- Час -->
+                    <div class="mb-3">
+                        <label for="quickTransactionTime" class="form-label" th:text="#{modal.time}">Час (необов'язково)</label>
+                        <input type="time" class="form-control" id="quickTransactionTime" name="time" step="60">
+                    </div>
+
+                    <!-- Сума -->
+                    <div class="mb-3">
+                        <label for="quickTransactionAmount" class="form-label" th:text="#{modal.amount}">Сума</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="quickAmountMinus">-</button>
+                            <input type="number" step="0.01" class="form-control" id="quickTransactionAmount" name="amount"
+                                   th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
+                            <button type="button" class="btn btn-outline-secondary" id="quickAmountPlus">+</button>
+                        </div>
+                        <div class="invalid-feedback" th:text="#{modal.enterAmount}">Введіть суму</div>
+                    </div>
+
+                    <!-- Кількість -->
+                    <div class="mb-3">
+                        <label for="quickTransactionQuantity" class="form-label" th:text="#{modal.quantity}">Кількість (необов'язково)</label>
+                        <div class="input-group-number">
+                            <button type="button" class="btn btn-outline-secondary" id="quickQuantityMinus">-</button>
+                            <input type="number" step="1" class="form-control" id="quickTransactionQuantity" name="quantity"
+                                   placeholder="1" value="1" min="1">
+                            <button type="button" class="btn btn-outline-secondary" id="quickQuantityPlus">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Покупець -->
+                    <div class="mb-3">
+                        <label for="quickTransactionBuyer" class="form-label" th:text="#{modal.buyer}">Покупець (необов'язково)</label>
+                        <input type="text" class="form-control" id="quickTransactionBuyer" name="buyer" th:placeholder="#{common.buyer}">
+                    </div>
+
+                    <!-- Продавець -->
+                    <div class="mb-3">
+                        <label for="quickTransactionSeller" class="form-label" th:text="#{modal.seller}">Продавець (необов'язково)</label>
+                        <input type="text" class="form-control" id="quickTransactionSeller" name="seller" th:placeholder="#{common.seller}">
+                    </div>
+
+                    <!-- Деталі -->
+                    <div class="mb-3">
+                        <label for="quickTransactionDetails" class="form-label" th:text="#{modal.details}">Додаткові деталі (необов'язково)</label>
+                        <textarea class="form-control" id="quickTransactionDetails" name="details" rows="3"
+                                  th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
+                        <div class="char-counter">
+                            <span id="quickCharCount">0</span> / 250
+                        </div>
+                    </div>
+
+                    <!-- Поділитися з сім'єю -->
+                    <div class="mb-3" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="quickTransactionShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="quickTransactionShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                        <div class="form-text text-muted"
+                             th:text="#{modal.shareWithFamily.hint}">
+                            Члени вашої сім'ї побачать цю транзакцію
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <span class="keyboard-hint d-none d-sm-inline" th:utext="#{modal.keyboardHint}">
+                        <kbd>Ctrl+Enter</kbd> зберегти · <kbd>Esc</kbd> скасувати
+                    </span>
+                    <div class="d-flex w-100 w-sm-auto gap-2 mt-2 mt-sm-0">
+                        <button type="button" class="btn btn-secondary flex-fill"
+                                data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                        <button type="submit" class="btn btn-primary flex-fill"
+                                id="quickSaveBtn" th:text="#{modal.save}">Зберегти транзакцію</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<th:block th:fragment="quickTransactionModalScript">
+    <script th:inline="javascript">
+        (function() {
+            'use strict';
+
+            // Fallback, якщо transaction-common.js ще не визначив openCategorySettings
+            if (typeof window.openCategorySettings !== 'function') {
+                window.openCategorySettings = function() {
+                    const modalEl = document.getElementById('quickTransactionModal');
+                    if (modalEl) {
+                        const m = bootstrap.Modal.getInstance(modalEl);
+                        if (m) m.hide();
+                    }
+                    setTimeout(function() {
+                        const drawer = document.getElementById('settingsDrawer');
+                        const overlay = document.getElementById('settingsOverlay');
+                        if (drawer && overlay) {
+                            drawer.classList.add('open');
+                            overlay.classList.add('open');
+                            document.body.style.overflow = 'hidden';
+                            const tab = document.querySelector('#drawerMenu .menu-item[data-section="categories"]');
+                            if (tab) tab.click();
+                        }
+                    }, 350);
+                };
+            }
+
+            function initQuickModal() {
+                const modal = document.getElementById('quickTransactionModal');
+                if (!modal) return;
+
+                // Переносимо модалку в <body>, щоб вирвати зі stacking context навбара
+                if (modal.parentElement !== document.body) {
+                    document.body.appendChild(modal);
+                }
+
+                const form = document.getElementById('quickTransactionForm');
+                if (!form) return;
+
+                const typeInput   = document.getElementById('quickTransactionType');
+                const catSelect   = document.getElementById('quickCategorySelect');
+                const expenseBtn  = document.getElementById('quickTypeExpenseBtn');
+                const incomeBtn   = document.getElementById('quickTypeIncomeBtn');
+                const dateInput   = document.getElementById('quickTransactionDate');
+                const amountInput = document.getElementById('quickTransactionAmount');
+                const quantityInput = document.getElementById('quickTransactionQuantity');
+                const detailsInput  = document.getElementById('quickTransactionDetails');
+                const charCount     = document.getElementById('quickCharCount');
+
+                // === Категорії ===
+                async function loadCategories(type) {
+                    catSelect.innerHTML = '<option value="">...</option>';
+                    try {
+                        const url = type === 'EXPENSE' ? '/categories/expense' : '/categories/income';
+                        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        const cats = await res.json();
+                        catSelect.innerHTML = '';
+                        if (!cats || cats.length === 0) {
+                            const o = document.createElement('option');
+                            o.value = '';
+                            o.textContent = /*[[#{common.noData}]]*/ 'Немає категорій';
+                            o.disabled = true;
+                            catSelect.appendChild(o);
+                            return;
+                        }
+                        cats.forEach(c => {
+                            const o = document.createElement('option');
+                            o.value = c.id;
+                            o.textContent = c.name;
+                            catSelect.appendChild(o);
+                        });
+                    } catch (e) {
+                        console.error('quick modal: failed to load categories', e);
+                        catSelect.innerHTML = '<option value="">Помилка</option>';
+                    }
+                }
+
+                // === Перемикання типу ===
+                function setType(type) {
+                    typeInput.value = type;
+                    form.action = type === 'EXPENSE' ? '/quick-expense' : '/quick-income';
+                    if (type === 'EXPENSE') {
+                        expenseBtn.className = 'btn active-expense';
+                        incomeBtn.className  = 'btn btn-outline-success';
+                    } else {
+                        incomeBtn.className  = 'btn active-income';
+                        expenseBtn.className = 'btn btn-outline-danger';
+                    }
+                    loadCategories(type);
+                }
+
+                expenseBtn?.addEventListener('click', () => setType('EXPENSE'));
+                incomeBtn?.addEventListener('click',  () => setType('INCOME'));
+
+                // === +/- кнопки ===
+                document.getElementById('quickAmountMinus')?.addEventListener('click', function() {
+                    let v = parseFloat(amountInput.value) || 0;
+                    if (v > 0) amountInput.value = (Math.round((v - 0.01) * 100) / 100).toFixed(2);
+                });
+                document.getElementById('quickAmountPlus')?.addEventListener('click', function() {
+                    let v = parseFloat(amountInput.value) || 0;
+                    amountInput.value = (Math.round((v + 0.01) * 100) / 100).toFixed(2);
+                });
+                document.getElementById('quickQuantityMinus')?.addEventListener('click', function() {
+                    const v = parseInt(quantityInput.value) || 1;
+                    if (v > 1) quantityInput.value = v - 1;
+                });
+                document.getElementById('quickQuantityPlus')?.addEventListener('click', function() {
+                    const v = parseInt(quantityInput.value) || 1;
+                    quantityInput.value = v + 1;
+                });
+
+                // === Char counter ===
+                detailsInput?.addEventListener('input', function() {
+                    if (!charCount) return;
+                    charCount.textContent = this.value.length;
+                    charCount.style.color = this.value.length >= 250 ? '#dc3545' : '';
+                });
+
+                // === Lifecycle ===
+                modal.addEventListener('show.bs.modal', function() {
+                    if (dateInput && !dateInput.value) {
+                        dateInput.value = new Date().toISOString().split('T')[0];
+                    }
+                    setType('EXPENSE');
+                    modal.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                });
+
+                modal.addEventListener('hidden.bs.modal', function() {
+                    form.reset();
+                    if (charCount) charCount.textContent = '0';
+                });
+
+                // === Валідація ===
+                form.addEventListener('submit', function(e) {
+                    let valid = true;
+                    const name   = document.getElementById('quickTransactionName');
+                    const amount = document.getElementById('quickTransactionAmount');
+
+                    if (name && !name.value.trim()) { name.classList.add('is-invalid'); valid = false; }
+                    else if (name) name.classList.remove('is-invalid');
+
+                    if (amount && parseFloat(amount.value) <= 0) { amount.classList.add('is-invalid'); valid = false; }
+                    else if (amount) amount.classList.remove('is-invalid');
+
+                    if (!catSelect.value) { catSelect.classList.add('is-invalid'); valid = false; }
+                    else catSelect.classList.remove('is-invalid');
+
+                    if (!valid) {
+                        e.preventDefault();
+                        const first = form.querySelector('.is-invalid');
+                        if (first) first.focus();
+                    }
+                });
+
+                // === Ctrl+Enter ===
+                document.addEventListener('keydown', function(e) {
+                    if (!modal.classList.contains('show')) return;
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                        e.preventDefault();
+                        const btn = form.querySelector('button[type="submit"]');
+                        if (btn) btn.click();
+                        else form.submit();
+                    }
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initQuickModal);
+            } else {
+                initQuickModal();
+            }
+        })();
+    </script>
+</th:block>
+
+</body>
+</html>

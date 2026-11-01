@@ -153,7 +153,7 @@
 </head>
 <body>
 
-<nav th:replace="~{fragments/navbar :: navbar('budget')}"></nav>
+<nav th:replace="~{fragments/navbar :: navbar('budget-income')}"></nav>
 <div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
@@ -236,9 +236,16 @@
         </div>
 
         <div class="d-flex flex-column flex-sm-row gap-2 action-buttons no-print w-100 w-lg-auto justify-content-center justify-content-lg-end">
-            <button class="btn btn-warning" onclick="window.print()">
+            <!-- Excel -->
+            <a th:href="@{/budget-income/export(month=${month}, year=${year})}" class="btn btn-success">
+                <i class="fas fa-file-excel me-1"></i> <span th:text="#{incomeBudget.export}">Експорт в Excel</span>
+            </a>
+            <!-- Print — тільки на sm+ -->
+            <button class="btn btn-warning d-none d-sm-inline-flex align-items-center justify-content-center"
+                    onclick="window.print()">
                 <i class="fas fa-print"></i> <span th:text="#{btn.print}">Друк</span>
             </button>
+            <!-- Set target -->
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#setTargetModal">
                 <i class="fas fa-bullseye me-1"></i> <span th:text="#{incomeBudget.modal.setTarget}">Встановити ціль</span>
             </button>
@@ -368,7 +375,7 @@
                             <i class="fas fa-bullseye me-2"></i>
                             <span th:text="#{incomeBudget.categoriesWithTargets}">Категорії доходів з цілями</span>
                         </h5>
-                        <div class="view-toggle mt-1 mt-lg-0" id="viewToggle">
+                        <div class="view-toggle mt-1 mt-lg-0" id="viewToggle" style="height: 68.8px;">
                             <button class="btn active" data-view="table" th:title="#{day.table}">
                                 <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
                             </button>
@@ -858,6 +865,6 @@
     });
 </script>
 
-<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div><div th:replace="~{fragments/quick-transaction-modal :: quickTransactionModalScript}"></div>
 </body>
 </html>

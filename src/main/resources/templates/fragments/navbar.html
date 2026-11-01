@@ -4,6 +4,7 @@
 
 <nav th:fragment="navbar(active)" class="navbar navbar-expand-lg wm-navbar">
     <div class="container-fluid">
+
         <!-- Логотип для АВТОРИЗОВАНИХ -->
         <a sec:authorize="isAuthenticated()" class="navbar-brand" th:href="@{/home}">
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
@@ -14,9 +15,22 @@
             <img src="/logo.png" alt="Lazy Cent" height="50" style="height: 50px; width: auto;">
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <!-- ========== МОБІЛЬНИЙ КЛАСТЕР: [+] [☰ Меню] — видно лише < 992px ========== -->
+        <div class="d-flex d-lg-none align-items-center gap-2 ms-auto">
+
+            <!-- Кнопка «+» (тільки для авторизованих) -->
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#quickTransactionModal" title="Add transaction" aria-label="Add transaction" style="height: 44.6px;width: 47.6px;">
+                <i class="fas fa-plus"></i>
+            </button>
+
+            <!-- Гамбургер «Меню» -->
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false">
+                <span class="navbar-toggler-icon"></span>
+                <span class="navbar-toggler-label" th:text="#{nav.menu}">Меню</span>
+            </button>
+        </div>
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
@@ -29,7 +43,7 @@
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:classappend="${active == 'budget'} ? ' active'" th:href="@{/budget}">
-                        <i class="fas fa-chart-line me-1"></i><span th:text="#{nav.budget}">Бюджет</span>
+                        <i class="fas fa-chart-line me-1"></i><span th:text="#{nav.budget}">Витрати</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
@@ -58,6 +72,15 @@
                     </a>
                 </li>
 
+                <!-- ========== КНОПКА «Додати транзакцію» — ТІЛЬКИ DESKTOP (≥ 992px) ========== -->
+                <li class="nav-item ms-lg-2 d-none d-lg-block" sec:authorize="isAuthenticated()">
+                    <button type="button" class="btn nav-btn nav-btn-primary"
+                            data-bs-toggle="modal" data-bs-target="#quickTransactionModal">
+                        <i class="fas fa-plus me-1"></i>
+                        <span th:text="#{nav.addTransaction}">Додати транзакцію</span>
+                    </button>
+                </li>
+
                 <!-- Аватар та налаштування (Шестерня) -->
                 <li class="nav-item ms-lg-2" sec:authorize="isAuthenticated()">
                     <button class="user-avatar" id="openSettingsBtn" type="button" th:title="#{settings.title}">
@@ -78,13 +101,10 @@
 
                 <!-- ==================== ПЕРЕМИКАЧІ (МОВА + ТЕМА) - ЛИШЕ ДЛЯ АНОНІМІВ ==================== -->
                 <li class="nav-item ms-lg-3 mt-2 mt-lg-0 d-flex flex-row align-items-center justify-content-center gap-2 w-100 w-lg-auto" sec:authorize="!isAuthenticated()">
-                    <!-- Мова -->
                     <div class="lang-switch flex-grow-1 flex-lg-grow-0">
                         <a th:href="@{''(lang='uk')}" th:classappend="${#locale.language == 'uk'} ? 'active'">UA</a>
                         <a th:href="@{''(lang='en')}" th:classappend="${#locale.language == 'en'} ? 'active'">EN</a>
                     </div>
-
-                    <!-- Тема -->
                     <button id="themeToggle" class="theme-toggle-btn" type="button" th:title="#{settings.theme}">
                         <i class="fas fa-moon"></i>
                     </button>
@@ -93,36 +113,33 @@
         </div>
     </div>
 
-    <!-- ДОДАНО СТИЛІ ДЛЯ ЦЕНТРУВАННЯ НА МОБІЛЬНИХ -->
+    <!-- Стилі -->
     <style>
+        .wm-navbar .navbar-toggler {
+            padding: 0.4rem 0.75rem;
+            border-radius: 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .wm-navbar .navbar-toggler-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--wm-navbar-color);
+            white-space: nowrap;
+        }
+
         @media (max-width: 991.98px) {
-            /* Центруємо всі пункти меню */
-            .wm-navbar .navbar-nav > li {
-                display: flex;
-                justify-content: center;
-                width: 100%;
-            }
-            /* Центруємо текст і іконки всередині посилань */
+            .wm-navbar .navbar-nav > li { display: flex; justify-content: center; width: 100%; }
             .wm-navbar .navbar-nav .nav-link {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                padding: 0.75rem 0;
+                display: flex; justify-content: center; align-items: center;
+                width: 100%; padding: 0.75rem 0;
             }
-            /* Центруємо кнопку профілю (аватар) */
-            .wm-navbar .user-avatar {
-                justify-content: center;
-                width: 100%;
-            }
-            /* Вирівнювання для блоку з мовою та темою */
+            .wm-navbar .user-avatar { justify-content: center; width: 100%; }
             .wm-navbar .nav-item.d-flex {
-                display: flex !important;
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                width: 100%;
+                display: flex !important; flex-direction: row;
+                align-items: center; justify-content: center;
+                gap: 10px; width: 100%;
             }
         }
     </style>
@@ -133,14 +150,11 @@
             if (themeBtn) {
                 const icon = themeBtn.querySelector('i');
                 const root = document.documentElement;
-
                 function updateIcon() {
                     const theme = root.getAttribute('data-bs-theme') || 'light';
                     icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                 }
-
                 updateIcon();
-
                 themeBtn.addEventListener('click', function() {
                     const current = root.getAttribute('data-bs-theme') || 'light';
                     const next = current === 'dark' ? 'light' : 'dark';
@@ -149,20 +163,15 @@
                     updateIcon();
                 });
             }
-
             function setAvatarInitials() {
                 const avatarPlaceholder = document.querySelector('.user-avatar .avatar-placeholder');
                 if (!avatarPlaceholder) return;
                 const name = avatarPlaceholder.textContent.trim();
                 if (!name) return;
-                const initials = name.split(' ')
-                    .filter(w => w.length > 0)
-                    .map(w => w.charAt(0).toUpperCase())
-                    .slice(0, 2)
-                    .join('');
+                const initials = name.split(' ').filter(w => w.length > 0)
+                    .map(w => w.charAt(0).toUpperCase()).slice(0, 2).join('');
                 avatarPlaceholder.textContent = initials || 'U';
             }
-
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', setAvatarInitials);
             } else {
@@ -170,6 +179,9 @@
             }
         })();
     </script>
+
+    <div th:replace="~{fragments/quick-transaction-modal :: quickTransactionModal}"></div>
+    <div th:replace="~{fragments/quick-transaction-modal :: quickTransactionModalScript}"></div>
 </nav>
 
 </body>

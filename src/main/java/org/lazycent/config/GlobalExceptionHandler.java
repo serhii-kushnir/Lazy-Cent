@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.apache.catalina.connector.ClientAbortException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -33,7 +34,14 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     private final MessageSource messageSource;
-    private final RedirectUtils redirectUtils;   // ← інжект через конструктор
+    private final RedirectUtils redirectUtils;
+
+
+    @ExceptionHandler(ClientAbortException.class)
+    public String handleClientAbort(ClientAbortException ex) {
+        log.debug("Клієнт закрив з'єднання: {}", ex.getMessage());
+        return null;
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public String handleAccessDenied(AccessDeniedException ex,
