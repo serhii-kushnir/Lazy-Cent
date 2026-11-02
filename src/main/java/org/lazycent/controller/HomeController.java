@@ -1,134 +1,181 @@
 package org.lazycent.controller;
 
-import org.lazycent.model.DayBudget;
-import java.util.List;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.lazycent.model.BudgetPlan;
+import org.lazycent.model.Category;
+import org.lazycent.model.DayBudget;
+import org.lazycent.model.Expense;
 import org.lazycent.model.Family;
+import org.lazycent.model.Income;
 import org.lazycent.model.TotalBudget;
 import org.lazycent.model.User;
+import org.lazycent.model.dto.CategoryExpenseItem;
+import org.lazycent.model.dto.RecentTransactionDto;
 import org.lazycent.repository.DayBudgetRepository;
+import org.lazycent.service.BudgetPlanningService;
 import org.lazycent.service.BudgetService;
-import org.lazycent.service.CategoryService;
 import org.lazycent.service.FamilyService;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
-@Slf4j
 public class HomeController extends BaseController {
 
     private final BudgetService budgetService;
-    private final CategoryService categoryService;
-    private final DayBudgetRepository dayBudgetRepository;
     private final FamilyService familyService;
-
-    @GetMapping("/")
-    public String index(Authentication authentication,
-                        HttpServletRequest request,
-                        RedirectAttributes redirectAttributes) {
-        if (getCurrentUser(authentication) != null) {
-            Map<String, ?> inputFlashMap = RequestContextUtils.getInputFlashMap(request);
-            if (inputFlashMap != null) {
-                inputFlashMap.forEach(redirectAttributes::addFlashAttribute);
-            }
-            return "redirect:/home";
-        }
-        return "index";
-    }
+    private final BudgetPlanningService budgetPlanningService;
+    private final DayBudgetRepository dayBudgetRepository;
 
     @GetMapping("/home")
     public String home(Authentication authentication, Model model) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
 
-        // Додаємо дані про сім'ю
-        User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
-        Family family = familyService.getFamily(freshUser);
+        LocalDate today = LocalDate.now();
+
+        // === Підсумки ===
+        TotalBudget todaySummary = budgetService.getTodaySummary(user);
+        TotalBudget weekSummary  = budgetService.getWeekSummary(user);
+        TotalBudget monthSummary = budgetService.getMonthSummary(user);
+        model.addAttribute("today", today);
+        model.addAttribute("todaySummary", todaySummary);
+        model.addAttribute("weekSummary", weekSummary);
+        model.addAttribute("monthSummary", monthSummary);
+
+        // === Сім'я ===
+        Family family = familyService.getFamily(user);
         if (family != null) {
             model.addAttribute("family", family);
-            model.addAttribute("familyMembersCount", familyService.getFamilyMembers(freshUser).size());
+            model.addAttribute("familyMembersCount", familyService.getFamilyMembers(user).size());
         }
 
-        boolean showDemoBanner = dayBudgetRepository.countByOwner(currentUser) == 0;
+        // === Демо-банер ===
+        long dayBudgetCount = dayBudgetRepository.countByOwner(user);
+        model.addAttribute("showDemoBanner", dayBudgetCount == 0);
 
-        model.addAttribute("today", LocalDate.now());
-        model.addAttribute("expenseCategories", categoryService.getExpenseCategories(currentUser));
-        model.addAttribute("incomeCategories", categoryService.getIncomeCategories(currentUser));
+        // === БЛОК 1: Місячний бюджет ===
+        BudgetPlan plan = budgetPlanningService.getBudgetPlan(user, today.getMonthValue(), today.getYear());
+        model.addAttribute("budgetPlan", plan);
+        int daysInMonth = today.lengthOfMonth();
+        int daysRemaining = daysInMonth - today.getDayOfMonth();
+        model.addAttribute("budgetDaysRemaining", daysRemaining);
+        if (plan != null && plan.getTotalBudget() != null && plan.getTotalBudget() > 0) {
+            double spent = monthSummary.getTotalExpenses() != null ? monthSummary.getTotalExpenses() : 0.0;
+            double remaining = plan.getTotalBudget() - spent;
+            double percent = spent / plan.getTotalBudget() * 100.0;
+            model.addAttribute("budgetSpent", spent);
+            model.addAttribute("budgetRemaining", remaining);
+            model.addAttribute("budgetPercent", percent);
+            model.addAttribute("budgetPercentCapped", Math.min(percent, 100.0));
+        }
 
-        TotalBudget todaySummary = budgetService.getTodaySummary(currentUser);
-        TotalBudget weekSummary = budgetService.getWeekSummary(currentUser);
-        TotalBudget monthSummary = budgetService.getMonthSummary(currentUser);
+        // === БЛОК 2: Останні транзакції ===
+        model.addAttribute("recentTransactions", getRecentTransactions(user, 5));
 
-        model.addAttribute("todaySummary", todaySummary != null ? todaySummary : new TotalBudget());
-        model.addAttribute("weekSummary", weekSummary != null ? weekSummary : new TotalBudget());
-        model.addAttribute("monthSummary", monthSummary != null ? monthSummary : new TotalBudget());
-        model.addAttribute("showDemoBanner", showDemoBanner);
+        // === БЛОК 3: Топ-3 категорій ===
+        model.addAttribute("topCategories", getTopCategories(monthSummary, 3));
+        model.addAttribute("topIncomeCategories", getTopIncomeCategories(monthSummary, 3));
 
         return "home";
     }
 
-    @GetMapping("/all-days")
-    public String viewAllDays(Authentication authentication, Model model) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) return "redirect:/login";
+    // ==================== HELPERS ====================
 
-        long totalDays = dayBudgetRepository.countByOwner(currentUser);
-        List<DayBudget> allBudgets = budgetService.getAllBudgets(currentUser);
-        boolean isLimited = totalDays > allBudgets.size();
+    /**
+     * Двоетапна вибірка — щоб уникнути HHH90003004
+     * (firstResult/maxResults + collection fetch → in-memory pagination).
+     *
+     * 1. findRecentDates — тільки дати з SQL LIMIT (без JOIN).
+     * 2. findByOwnerAndDateInOrderByDateAsc — повні дані за цими датами
+     *    з @EntityGraph, без Pageable → нормальний JOIN FETCH.
+     */
+    private List<RecentTransactionDto> getRecentTransactions(User user, int limit) {
+        List<LocalDate> recentDates = dayBudgetRepository
+                .findRecentDates(user, PageRequest.of(0, 3));
+        if (recentDates.isEmpty()) return List.of();
 
-        model.addAttribute("allBudgets", allBudgets);
-        model.addAttribute("totalDays", totalDays);
-        model.addAttribute("isLimited", isLimited);
-        model.addAttribute("expenseCategories", categoryService.getExpenseCategories(currentUser));
-        model.addAttribute("incomeCategories", categoryService.getIncomeCategories(currentUser));
-        return "all-days";
-    }
+        List<DayBudget> recentDays = dayBudgetRepository
+                .findByOwnerAndDateInOrderByDateAsc(user, recentDates);
+        if (recentDays.isEmpty()) return List.of();
 
-    @GetMapping("/totals")
-    public String viewTotals(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            Authentication authentication,
-            Model model) {
-
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) return "redirect:/login";
-
-        if (startDate == null) startDate = LocalDate.now().minusDays(30);
-        if (endDate == null) endDate = LocalDate.now();
-
-        TotalBudget totalBudget = budgetService.getTotalBudget(startDate, endDate, currentUser);
-        if (totalBudget == null) {
-            totalBudget = new TotalBudget();
-            totalBudget.setTotalExpenses(0.0);
-            totalBudget.setTotalIncomes(0.0);
-            totalBudget.setBalance(0.0);
-            totalBudget.setExpensesByCategory(new HashMap<>());
-            totalBudget.setIncomesByCategory(new HashMap<>());
-            totalBudget.setDailySummaries(new LinkedHashMap<>());
+        List<RecentTransactionDto> all = new ArrayList<>();
+        for (DayBudget d : recentDays) {
+            for (Expense e : d.getExpenses()) {
+                all.add(new RecentTransactionDto(
+                        e.getId(), d.getDate(), e.getTime(),
+                        e.getDescription(),
+                        e.getCategory() != null ? e.getCategory().getName() : "—",
+                        e.getAmount() != null ? e.getAmount() : 0.0,
+                        true));
+            }
+            for (Income i : d.getIncomes()) {
+                all.add(new RecentTransactionDto(
+                        i.getId(), d.getDate(), i.getTime(),
+                        i.getDescription(),
+                        i.getCategory() != null ? i.getCategory().getName() : "—",
+                        i.getAmount() != null ? i.getAmount() : 0.0,
+                        false));
+            }
         }
 
-        model.addAttribute("totalBudget", totalBudget);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
-        model.addAttribute("expenseCategories", categoryService.getExpenseCategories(currentUser));
-        model.addAttribute("incomeCategories", categoryService.getIncomeCategories(currentUser));
-        return "totals";
+        all.sort(Comparator
+                .comparing(RecentTransactionDto::date).reversed()
+                .thenComparing(t -> t.time() != null ? t.time() : LocalTime.MIN,
+                        Comparator.reverseOrder()));
+
+        return all.size() > limit ? all.subList(0, limit) : all;
+    }
+
+    private List<CategoryExpenseItem> getTopCategories(TotalBudget monthSummary, int limit) {
+        if (monthSummary == null || monthSummary.getExpensesByCategory() == null
+                || monthSummary.getExpensesByCategory().isEmpty()) {
+            return List.of();
+        }
+        Map<Category, Double> byCategory = monthSummary.getExpensesByCategory();
+        double total = byCategory.values().stream()
+                .mapToDouble(v -> v != null ? v : 0.0).sum();
+        if (total <= 0) return List.of();
+
+        return byCategory.entrySet().stream()
+                .filter(e -> e.getValue() != null && e.getValue() > 0)
+                .sorted(Map.Entry.<Category, Double>comparingByValue().reversed())
+                .limit(limit)
+                .map(e -> new CategoryExpenseItem(
+                        e.getKey().getName(),
+                        e.getValue(),
+                        e.getValue() / total * 100.0))
+                .toList();
+    }
+
+    private List<CategoryExpenseItem> getTopIncomeCategories(TotalBudget monthSummary, int limit) {
+        if (monthSummary == null || monthSummary.getIncomesByCategory() == null
+                || monthSummary.getIncomesByCategory().isEmpty()) {
+            return List.of();
+        }
+        Map<Category, Double> byCategory = monthSummary.getIncomesByCategory();
+        double total = byCategory.values().stream()
+                .mapToDouble(v -> v != null ? v : 0.0).sum();
+        if (total <= 0) return List.of();
+
+        return byCategory.entrySet().stream()
+                .filter(e -> e.getValue() != null && e.getValue() > 0)
+                .sorted(Map.Entry.<Category, Double>comparingByValue().reversed())
+                .limit(limit)
+                .map(e -> new CategoryExpenseItem(
+                        e.getKey().getName(),
+                        e.getValue(),
+                        e.getValue() / total * 100.0))
+                .toList();
     }
 }
