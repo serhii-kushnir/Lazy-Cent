@@ -3,8 +3,9 @@
 <body>
 
 <div th:fragment="quickTransactionModal"
-     class="modal fade" id="quickTransactionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+     class="modal fade" id="quickTransactionModal" tabindex="-1" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
@@ -281,11 +282,15 @@
                     }
                     setType('EXPENSE');
                     modal.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                    document.documentElement.classList.add('modal-scroll-lock');
                 });
 
                 modal.addEventListener('hidden.bs.modal', function() {
                     form.reset();
                     if (charCount) charCount.textContent = '0';
+
+                    document.documentElement.classList.remove('modal-scroll-lock');
                 });
 
                 // === Валідація ===

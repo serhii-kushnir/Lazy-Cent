@@ -652,3 +652,241 @@ html, body { overflow-x: auto !important; }
     .cookie-banner-actions { width: 100%; }
     .cookie-banner-actions .btn { flex: 1; padding: 0.5rem 0.75rem; font-size: 0.8rem; }
 }
+
+/* =====================================================================
+   GLOBAL TRANSACTION MODAL (quickTransactionModal + transactionModal)
+   Ці стилі працюють на всіх сторінках, де є модалка додавання транзакції.
+   ===================================================================== */
+
+/* Модальне вікно */
+#quickTransactionModal .modal-content,
+#transactionModal .modal-content {
+    border-radius: 1rem;
+    border: none;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .modal-content,
+[data-bs-theme="dark"] #transactionModal .modal-content {
+    background-color: #1d2027;
+    color: #e6e6e6;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .modal-header,
+[data-bs-theme="dark"] #transactionModal .modal-header {
+    border-bottom-color: #2a2e37;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .modal-footer,
+[data-bs-theme="dark"] #transactionModal .modal-footer {
+    border-top-color: #2a2e37;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .form-control,
+[data-bs-theme="dark"] #quickTransactionModal .form-select,
+[data-bs-theme="dark"] #transactionModal .form-control,
+[data-bs-theme="dark"] #transactionModal .form-select {
+    background-color: #23262e;
+    color: #e6e6e6;
+    border-color: #3a3f4a;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .form-control:focus,
+[data-bs-theme="dark"] #quickTransactionModal .form-select:focus,
+[data-bs-theme="dark"] #transactionModal .form-control:focus,
+[data-bs-theme="dark"] #transactionModal .form-select:focus {
+    background-color: #2a2e37;
+    color: #fff;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .btn-close,
+[data-bs-theme="dark"] #transactionModal .btn-close {
+    filter: invert(1);
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .form-check-label,
+[data-bs-theme="dark"] #transactionModal .form-check-label {
+    color: #e6e6e6;
+}
+
+/* Перемикач Витрата / Дохід */
+#quickTransactionModal .transaction-type-toggle,
+#transactionModal .transaction-type-toggle {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+#quickTransactionModal .transaction-type-toggle .btn,
+#transactionModal .transaction-type-toggle .btn {
+    flex: 1;
+    padding: 0.6rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+}
+
+#quickTransactionModal .transaction-type-toggle .btn.active-expense,
+#transactionModal .transaction-type-toggle .btn.active-expense {
+    background-color: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+}
+
+#quickTransactionModal .transaction-type-toggle .btn.active-income,
+#transactionModal .transaction-type-toggle .btn.active-income {
+    background-color: #198754;
+    color: #fff;
+    border-color: #198754;
+}
+
+/* Поля з +/- (сума, кількість) */
+#quickTransactionModal .input-group-number,
+#transactionModal .input-group-number {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#quickTransactionModal .input-group-number .btn,
+#transactionModal .input-group-number .btn {
+    flex: 0 0 40px;
+}
+
+#quickTransactionModal .input-group-number input,
+#transactionModal .input-group-number input {
+    flex: 1;
+    text-align: center;
+}
+
+/* Лічильник символів */
+#quickTransactionModal .char-counter,
+#transactionModal .char-counter {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .char-counter,
+[data-bs-theme="dark"] #transactionModal .char-counter {
+    color: #9aa3b2;
+}
+
+/* Група «Категорія + кнопка +» */
+#quickTransactionModal .category-input-group .form-select,
+#transactionModal .category-input-group .form-select {
+    border-radius: 0.375rem 0 0 0.375rem;
+}
+
+#quickTransactionModal .category-input-group .btn,
+#transactionModal .category-input-group .btn {
+    border-radius: 0 0.375rem 0.375rem 0;
+    border-left: none;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .category-input-group .btn,
+[data-bs-theme="dark"] #transactionModal .category-input-group .btn {
+    border-color: #3a3f4a;
+}
+
+/* Підказка клавіатури (Ctrl+Enter · Esc) */
+#quickTransactionModal .keyboard-hint,
+#transactionModal .keyboard-hint {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-right: 1rem;
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .keyboard-hint,
+[data-bs-theme="dark"] #transactionModal .keyboard-hint {
+    color: #9aa3b2;
+}
+
+#quickTransactionModal .keyboard-hint kbd,
+#transactionModal .keyboard-hint kbd {
+    background: #e9ecef;
+    color: #212529;
+    border-radius: 4px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+[data-bs-theme="dark"] #quickTransactionModal .keyboard-hint kbd,
+[data-bs-theme="dark"] #transactionModal .keyboard-hint kbd {
+    background: #2a2e37;
+    color: #e6e6e6;
+}
+
+/* =====================================================================
+   GLOBAL TRANSACTION MODAL — SCROLL FIX
+   Form між modal-content і modal-body ламає Bootstrap modal-dialog-scrollable,
+   бо той розрахований на прямих нащадків. Ці правила вирішують проблему:
+   - modal-content стає flex-колонкою з max-height
+   - form теж flex-колонка, flex: 1, min-height: 0 (щоб дозволити стискання)
+   - modal-body скролиться
+   ===================================================================== */
+
+#quickTransactionModal .modal-content,
+#transactionModal .modal-content {
+    max-height: calc(100vh - 3.5rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#quickTransactionModal .modal-content > form,
+#transactionModal .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+#quickTransactionModal .modal-body,
+#transactionModal .modal-body {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;    /* ← КРИТИЧНО: дозволяє flex-item стискатись нижче контенту */
+}
+
+#quickTransactionModal .modal-header,
+#quickTransactionModal .modal-footer,
+#transactionModal .modal-header,
+#transactionModal .modal-footer {
+    flex-shrink: 0;
+}
+
+/* Мобільний — майже на весь екран */
+@media (max-width: 575.98px) {
+    #quickTransactionModal .modal-content,
+    #transactionModal .modal-content {
+        max-height: calc(100vh - 1rem);
+    }
+}
+/* =====================================================================
+   MODAL: темніший backdrop + блокування скролу сторінки
+   ===================================================================== */
+
+/* 1. Backdrop — темніший (за замовчуванням 0.5) */
+.modal-backdrop {
+    --bs-backdrop-opacity: 0.85;
+}
+.modal-backdrop.show {
+    opacity: 0.85;
+}
+
+/* 2. Поки модалка відкрита — body НЕ скролиться.
+   !important — бо в app.css вже є `html, body { overflow-x: auto !important; }`,
+   який інакше перебиває Bootstrap-ове `body.modal-open { overflow: hidden; }`. */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+/* 3. Коли модалка відкрита — html теж не скролиться (через :has для нових браузерів).
+   Fallback для старих — клас ставимо через MutationObserver нижче в JS. */
+html.modal-scroll-lock,
+html.modal-scroll-lock body {
+    overflow: hidden !important;
+}

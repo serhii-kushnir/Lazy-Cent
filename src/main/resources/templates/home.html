@@ -22,6 +22,22 @@
         .delay-2 { animation-delay: 0.10s; }
         .delay-3 { animation-delay: 0.15s; }
         .delay-4 { animation-delay: 0.20s; }
+        .delay-5 { animation-delay: 0.25s; }
+        .delay-6 { animation-delay: 0.30s; }
+        .delay-7 { animation-delay: 0.35s; }
+        .delay-8 { animation-delay: 0.40s; }
+
+        /* ===== ICON CIRCLE ===== */
+        .icon-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
 
         /* ===== СЕКЦІЙНІ ЗАГОЛОВКИ ===== */
         .section-heading {
@@ -50,10 +66,17 @@
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
             height: 100%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
         .feature-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        [data-bs-theme="dark"] .feature-card {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        }
+        [data-bs-theme="dark"] .feature-card:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
         .quick-link { text-decoration: none; color: inherit; }
 
@@ -68,11 +91,19 @@
             color: #fff;
             border-radius: 1rem;
             border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: transform 0.3s, box-shadow 0.3s;
         }
         .family-widget:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 24px rgba(111, 66, 193, 0.35);
+        }
+        [data-bs-theme="dark"] .family-widget {
+            border: 1px solid #2a2e37;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        }
+        [data-bs-theme="dark"] .family-widget:hover {
+            box-shadow: 0 12px 24px rgba(111, 66, 193, 0.5);
         }
         .family-widget .invite-code {
             background: rgba(255, 255, 255, 0.2);
@@ -107,51 +138,45 @@
         /* ===== STAT CARD ===== */
         .stat-card {
             border-radius: 1rem;
-            border: 1px solid var(--bs-border-color);
+            border: none;
+            background-color: var(--bs-card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             transition: transform 0.25s ease, box-shadow 0.25s ease;
             height: 100%;
         }
         .stat-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
-        .stat-card .stat-card-header {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            padding-bottom: 0.75rem;
-            margin-bottom: 0.75rem;
-            border-bottom: 1px dashed var(--bs-border-color);
+        [data-bs-theme="dark"] .stat-card {
+            background-color: #1d2027;
+            border: 1px solid #2a2e37;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
         }
-        [data-bs-theme="dark"] .stat-card .stat-card-header { border-bottom-color: #2a2e37; }
-        .stat-card .stat-card-header i { font-size: 1rem; }
-        .stat-card .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            font-size: 0.95rem;
+        [data-bs-theme="dark"] .stat-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         }
-        .stat-card .stat-row:last-child { margin-bottom: 0; }
-        .stat-card .stat-row.balance-row {
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid var(--bs-border-color);
-            font-size: 1rem;
-        }
-        [data-bs-theme="dark"] .stat-card .stat-row.balance-row { border-top-color: #2a2e37; }
-        .stat-card .stat-row .label {
-            color: var(--bs-secondary-color);
-            font-weight: 500;
-        }
-        .stat-card .stat-row .value { font-weight: 700; }
 
-        /* ===== UNIFIED CARD — БЕЗ height:100%, щоб не тягнути висоту ===== */
+        /* ===== UNIFIED CARD (з hover) ===== */
         .unified-card {
             border-radius: 1rem;
-            border: 1px solid var(--bs-border-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: none;
+            background-color: var(--bs-card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            height: 100%;
+        }
+        .unified-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        [data-bs-theme="dark"] .unified-card {
+            background-color: #1d2027;
+            border: 1px solid #2a2e37;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+        }
+        [data-bs-theme="dark"] .unified-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         }
         .unified-card .card-body { padding: 1.5rem !important; }
 
@@ -179,7 +204,7 @@
 <div class="container mt-4 pb-5">
 
     <!-- БАНЕР ДЕМО-ДАНИХ -->
-    <div th:if="${showDemoBanner}" class="alert alert-info alert-dismissible fade show animate-fade-up" role="alert">
+    <div th:if="${showDemoBanner}" class="alert alert-info alert-dismissible fade show animate-fade-up delay-1" role="alert">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 text-center text-sm-start">
             <div>
                 <i class="fas fa-info-circle me-2"></i>
@@ -215,8 +240,8 @@
         <span th:text="#{nav.family}">Сім'я</span>
     </div>
 
-    <div class="row mb-2 animate-fade-up">
-        <div class="col-12">
+    <div class="row mb-2">
+        <div class="col-12 animate-fade-up delay-1">
             <div th:if="${family != null}" class="card family-widget">
                 <div class="card-body p-4">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-center text-md-start">
@@ -237,9 +262,9 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto mt-2 mt-md-0">
-                            <a th:href="@{/family}" class="btn btn-light btn-rounded w-100 w-sm-auto">
-                                <i class="fas fa-door-open me-1"></i>
+                        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto mt-2 mt-md-0" style="height: 64.6px;">
+                            <a href="/family" class="btn btn-light btn-rounded w-100 w-sm-auto" style="align-content: center;">
+                            <i class="fas fa-door-open me-1"></i>
                                 <span th:text="#{home.family.viewHub}">Перейти до сім'ї</span>
                             </a>
                             <button type="button" class="btn btn-outline-light btn-rounded w-100 w-sm-auto"
@@ -284,8 +309,8 @@
         <span th:text="#{index.quickAccess.title}">Швидкий доступ</span>
     </div>
 
-    <div class="row mb-2 animate-fade-up">
-        <div class="col-12 col-md-4 col-lg mb-3 delay-1">
+    <div class="row mb-2">
+        <div class="col-12 col-md-4 col-lg mb-3 animate-fade-up delay-1">
             <a th:href="@{/budget}" class="quick-link">
                 <div class="card feature-card text-center bg-danger text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
@@ -297,7 +322,7 @@
             </a>
         </div>
 
-        <div class="col-12 col-md-4 col-lg mb-3 delay-1">
+        <div class="col-12 col-md-4 col-lg mb-3 animate-fade-up delay-2">
             <a th:href="@{/budget-income}" class="quick-link">
                 <div class="card feature-card text-center bg-success text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
@@ -309,7 +334,7 @@
             </a>
         </div>
 
-        <div class="col-12 col-md-4 col-lg mb-3 delay-2">
+        <div class="col-12 col-md-4 col-lg mb-3 animate-fade-up delay-3">
             <a th:href="@{/totals}" class="quick-link">
                 <div class="card feature-card text-center bg-primary text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
@@ -321,7 +346,7 @@
             </a>
         </div>
 
-        <div class="col-12 col-md-4 col-lg mb-3 delay-3">
+        <div class="col-12 col-md-4 col-lg mb-3 animate-fade-up delay-4">
             <a th:href="@{/all-days}" class="quick-link">
                 <div class="card feature-card text-center bg-brown text-white h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
@@ -333,7 +358,7 @@
             </a>
         </div>
 
-        <div class="col-12 col-md-4 col-lg mb-3 delay-4">
+        <div class="col-12 col-md-4 col-lg mb-3 animate-fade-up delay-5">
             <a th:href="@{/notes}" class="quick-link">
                 <div class="card feature-card text-center bg-warning text-dark h-100">
                     <div class="card-body d-flex flex-column p-3 p-sm-4">
@@ -347,22 +372,33 @@
     </div>
 
     <!-- ============================================================
-         СЕКЦІЯ 3: БЮДЖЕТ НА МІСЯЦЬ (перенесено вище статистики)
+         СЕКЦІЯ 3: ВАША ФІНАНСОВА СТАТИСТИКА
+         Budget → перший блок, потім Today/Week/Month
          ============================================================ -->
     <div class="section-heading animate-fade-down">
-        <i class="fas fa-wallet text-primary"></i>
-        <span th:text="#{home.budget.title}">Бюджет на місяць</span>
+        <i class="fas fa-chart-simple text-info"></i>
+        <span th:text="#{index.stats.title}">Ваша фінансова статистика</span>
     </div>
 
-    <div class="row mb-2 animate-fade-up">
-        <div class="col-12">
+    <!-- Бюджет (перший після heading) -->
+    <div class="row mb-3">
+        <div class="col-12 animate-fade-up delay-1">
             <div class="card unified-card">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="text-muted mb-0">
-                            <i class="fas fa-coins me-2"></i>
-                            <span th:text="#{budget.totalBudget}">Загальний бюджет</span>
-                        </h6>
+
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="icon-circle bg-primary-subtle text-primary">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{home.budget.title}">Бюджет на місяць</h6>
+                            <h3 class="text-primary mb-0"
+                                th:text="${budgetPlan != null and budgetPlan.totalBudget != null and budgetPlan.totalBudget > 0
+                                           ? #numbers.formatDecimal(budgetPlan.totalBudget, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol
+                                           : '— ' + currencySymbol}">
+                                — ₴
+                            </h3>
+                        </div>
                         <a th:href="@{/budget}" class="btn btn-sm btn-outline-primary">
                             <span th:text="#{home.budget.manage}">Налаштувати</span>
                             <i class="fas fa-arrow-right ms-1"></i>
@@ -370,17 +406,17 @@
                     </div>
 
                     <div th:if="${budgetPlan == null or budgetPlan.totalBudget == null or budgetPlan.totalBudget == 0}"
-                         class="text-center py-3 text-muted">
-                        <i class="fas fa-plus-circle fa-2x mb-2" style="opacity: 0.4;"></i>
-                        <p class="mb-3" th:text="#{home.budget.notSet}">Бюджет на цей місяць ще не встановлено</p>
+                         class="text-center py-2 text-muted border-top pt-3">
+                        <p class="mb-2 small" th:text="#{home.budget.notSet}">Бюджет на цей місяць ще не встановлено</p>
                         <a th:href="@{/budget}" class="btn btn-primary btn-sm">
                             <i class="fas fa-plus me-1"></i>
                             <span th:text="#{home.budget.setNow}">Встановити бюджет</span>
                         </a>
                     </div>
 
-                    <div th:if="${budgetPlan != null and budgetPlan.totalBudget != null and budgetPlan.totalBudget > 0}">
-                        <div class="d-flex justify-content-between mb-2">
+                    <div th:if="${budgetPlan != null and budgetPlan.totalBudget != null and budgetPlan.totalBudget > 0}"
+                         class="border-top pt-3">
+                        <div class="d-flex justify-content-between mb-2 small">
                             <span class="fw-semibold">
                                 <span th:text="${#numbers.formatDecimal(budgetSpent, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                                 <span class="text-muted mx-1">/</span>
@@ -392,7 +428,7 @@
                         </div>
                         <div class="progress" style="height: 10px;">
                             <div class="progress-bar" role="progressbar"
-                                 th:style="'width:' + ${budgetPercentCapped} + '%'"
+                                 th:style="|width:${budgetPercentCapped}%|"
                                  th:classappend="${budgetPercent > 100} ? 'bg-danger' : (${budgetPercent >= 80} ? 'bg-warning' : 'bg-success')">
                             </div>
                         </div>
@@ -409,96 +445,121 @@
                             </span>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-         СЕКЦІЯ 4: ВАША ФІНАНСОВА СТАТИСТИКА
-         ============================================================ -->
-    <div class="section-heading animate-fade-down">
-        <i class="fas fa-chart-simple text-info"></i>
-        <span th:text="#{index.stats.title}">Ваша фінансова статистика</span>
-    </div>
+    <!-- Today / Week / Month -->
+    <div class="row g-3 mb-2">
 
-    <div class="row g-3 mb-2 animate-fade-up">
-        <div class="col-md-4 delay-1">
-            <div class="stat-card">
+        <!-- Сьогодні -->
+        <div class="col-md-4 animate-fade-up delay-2">
+            <div class="card stat-card">
                 <div class="card-body p-4">
-                    <div class="stat-card-header text-primary">
-                        <i class="fas fa-sun me-2"></i>
-                        <span th:text="#{index.today}">Сьогодні</span>
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="icon-circle bg-primary-subtle text-primary">
+                            <i class="fas fa-sun"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{index.today}">Сьогодні</h6>
+                            <h3 class="mb-0"
+                                th:classappend="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="label"><i class="fas fa-arrow-up text-success me-1"></i><span th:text="#{index.income}">Доходи</span></span>
-                        <span class="value text-success"
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">
+                            <i class="fas fa-arrow-up text-success me-1"></i>
+                            <span th:text="#{index.income}">Доходи</span>
+                        </span>
+                        <span class="text-success fw-semibold"
                               th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                     </div>
-                    <div class="stat-row">
-                        <span class="label"><i class="fas fa-arrow-down text-danger me-1"></i><span th:text="#{index.expense}">Витрати</span></span>
-                        <span class="value text-danger"
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">
+                            <i class="fas fa-arrow-down text-danger me-1"></i>
+                            <span th:text="#{index.expense}">Витрати</span>
+                        </span>
+                        <span class="text-danger fw-semibold"
                               th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                     </div>
-                    <div class="stat-row balance-row">
-                        <span class="label fw-bold"><i class="fas fa-balance-scale me-1"></i><span th:text="#{index.balance}">Баланс</span></span>
-                        <span class="value"
-                              th:classappend="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
-                              th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 delay-2">
-            <div class="stat-card">
+        <!-- Цей тиждень -->
+        <div class="col-md-4 animate-fade-up delay-3">
+            <div class="card stat-card">
                 <div class="card-body p-4">
-                    <div class="stat-card-header text-success">
-                        <i class="fas fa-calendar-week me-2"></i>
-                        <span th:text="#{index.week}">Цей тиждень</span>
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="icon-circle bg-success-subtle text-success">
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{index.week}">Цей тиждень</h6>
+                            <h3 class="mb-0"
+                                th:classappend="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="label"><i class="fas fa-arrow-up text-success me-1"></i><span th:text="#{index.income}">Доходи</span></span>
-                        <span class="value text-success"
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">
+                            <i class="fas fa-arrow-up text-success me-1"></i>
+                            <span th:text="#{index.income}">Доходи</span>
+                        </span>
+                        <span class="text-success fw-semibold"
                               th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                     </div>
-                    <div class="stat-row">
-                        <span class="label"><i class="fas fa-arrow-down text-danger me-1"></i><span th:text="#{index.expense}">Витрати</span></span>
-                        <span class="value text-danger"
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">
+                            <i class="fas fa-arrow-down text-danger me-1"></i>
+                            <span th:text="#{index.expense}">Витрати</span>
+                        </span>
+                        <span class="text-danger fw-semibold"
                               th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
-                    </div>
-                    <div class="stat-row balance-row">
-                        <span class="label fw-bold"><i class="fas fa-balance-scale me-1"></i><span th:text="#{index.balance}">Баланс</span></span>
-                        <span class="value"
-                              th:classappend="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
-                              th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 delay-3">
-            <div class="stat-card">
+        <!-- Цей місяць -->
+        <div class="col-md-4 animate-fade-up delay-4">
+            <div class="card stat-card">
                 <div class="card-body p-4">
-                    <div class="stat-card-header text-info">
-                        <i class="fas fa-calendar-alt me-2"></i>
-                        <span th:text="#{index.month}">Цей місяць</span>
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="icon-circle bg-info-subtle text-info">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{index.month}">Цей місяць</h6>
+                            <h3 class="mb-0"
+                                th:classappend="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
                     </div>
-                    <div class="stat-row">
-                        <span class="label"><i class="fas fa-arrow-up text-success me-1"></i><span th:text="#{index.income}">Доходи</span></span>
-                        <span class="value text-success"
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="text-muted">
+                            <i class="fas fa-arrow-up text-success me-1"></i>
+                            <span th:text="#{index.income}">Доходи</span>
+                        </span>
+                        <span class="text-success fw-semibold"
                               th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                     </div>
-                    <div class="stat-row">
-                        <span class="label"><i class="fas fa-arrow-down text-danger me-1"></i><span th:text="#{index.expense}">Витрати</span></span>
-                        <span class="value text-danger"
+                    <div class="d-flex justify-content-between small">
+                        <span class="text-muted">
+                            <i class="fas fa-arrow-down text-danger me-1"></i>
+                            <span th:text="#{index.expense}">Витрати</span>
+                        </span>
+                        <span class="text-danger fw-semibold"
                               th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
-                    </div>
-                    <div class="stat-row balance-row">
-                        <span class="label fw-bold"><i class="fas fa-balance-scale me-1"></i><span th:text="#{index.balance}">Баланс</span></span>
-                        <span class="value"
-                              th:classappend="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
-                              th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                     </div>
                 </div>
             </div>
@@ -506,30 +567,39 @@
     </div>
 
     <!-- ============================================================
-         СЕКЦІЯ 5: ОСТАННІ ТРАНЗАКЦІЇ (50%) + ТОП КАТЕГОРІЙ (50%)
-         align-items-start → кожна картка бере природну висоту
+         СЕКЦІЯ 4: ОСТАННІ ТРАНЗАКЦІЇ + ТОП КАТЕГОРІЙ
          ============================================================ -->
-    <div class="row animate-fade-up align-items-start">
+    <div class="row">
 
-        <!-- ЛІВО (50%): Останні транзакції -->
-        <div class="col-12 col-lg-6 mb-2">
-            <div class="section-heading animate-fade-down">
-                <i class="fas fa-clock-rotate-left text-info"></i>
-                <span th:text="#{home.recent.title}">Останні транзакції</span>
-                <a th:href="@{/all-days}" class="btn btn-sm btn-outline-secondary heading-action">
-                    <span th:text="#{home.recent.viewAll}">Всі</span>
-                    <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            </div>
-            <div class="card unified-card">
-                <div class="card-body">
+        <!-- ЛІВО: Останні транзакції -->
+        <div class="col-12 col-lg-6 mb-2 animate-fade-up delay-1">
+            <div class="card unified-card h-100">
+                <div class="card-body d-flex flex-column">
+
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="icon-circle bg-info-subtle text-info">
+                            <i class="fas fa-clock-rotate-left"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{home.recent.title}">Останні транзакції</h6>
+                            <h3 class="text-info mb-0"
+                                th:text="${recentTransactions != null ? recentTransactions.size() : 0}">
+                                0
+                            </h3>
+                        </div>
+                        <a th:href="@{/all-days}" class="btn btn-sm btn-outline-secondary">
+                            <span th:text="#{home.recent.viewAll}">Всі</span>
+                            <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+
                     <div th:if="${recentTransactions == null or recentTransactions.empty}"
                          class="text-center py-4 text-muted">
                         <i class="fas fa-inbox fa-2x mb-2" style="opacity: 0.4;"></i>
                         <p class="mb-0" th:text="#{home.recent.empty}">Ще немає транзакцій</p>
                     </div>
                     <ul th:if="${recentTransactions != null and !recentTransactions.empty}"
-                        class="list-group list-group-flush recent-list">
+                        class="list-group list-group-flush recent-list flex-grow-1">
                         <li th:each="t : ${recentTransactions}"
                             class="list-group-item d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-2 flex-grow-1 text-truncate">
@@ -549,24 +619,29 @@
                                   th:text="${(t.expense() ? '−' : '+') + #numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
                         </li>
                     </ul>
+
                 </div>
             </div>
         </div>
 
-        <!-- ПРАВО (50%): Один блок «Топ категорій» — витрати зверху, доходи знизу -->
-        <div class="col-12 col-lg-6 mb-2">
-            <div class="section-heading animate-fade-down">
-                <i class="fas fa-chart-line text-primary"></i>
-                <span>Топ категорій</span>
-            </div>
-            <div class="card unified-card">
-                <div class="card-body">
+        <!-- ПРАВО: Топ категорій (витрати + доходи) -->
+        <div class="col-12 col-lg-6 mb-2 animate-fade-up delay-2">
+            <div class="card unified-card h-100">
+                <div class="card-body d-flex flex-column">
 
-                    <!-- Верхня половина: Топ категорій витрат -->
-                    <h6 class="fw-bold text-danger mb-3">
-                        <i class="fas fa-chart-line me-2"></i>
-                        <span th:text="#{home.topCategories.title}">Топ категорій витрат</span>
-                    </h6>
+                    <!-- Топ категорій витрат -->
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="icon-circle bg-danger-subtle text-danger">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{home.topCategories.title}">Топ категорій витрат</h6>
+                            <h3 class="text-danger mb-0"
+                                th:text="${#numbers.formatDecimal(topExpensesTotal, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
+                    </div>
 
                     <div th:if="${topCategories == null or topCategories.empty}"
                          class="text-center py-3 text-muted">
@@ -588,19 +663,26 @@
                             </div>
                             <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-danger" role="progressbar"
-                                     th:style="'width:' + ${cat.percent()} + '%'"></div>
+                                     th:style="|width:${cat.percent()}%|"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Розділювач -->
                     <hr class="my-4">
 
-                    <!-- Нижня половина: Топ категорій доходів -->
-                    <h6 class="fw-bold text-success mb-3">
-                        <i class="fas fa-hand-holding-dollar me-2"></i>
-                        <span th:text="#{home.topIncomeCategories.title}">Топ категорій доходів</span>
-                    </h6>
+                    <!-- Топ категорій доходів -->
+                    <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                        <div class="icon-circle bg-success-subtle text-success">
+                            <i class="fas fa-hand-holding-dollar"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{home.topIncomeCategories.title}">Топ категорій доходів</h6>
+                            <h3 class="text-success mb-0"
+                                th:text="${#numbers.formatDecimal(topIncomesTotal, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
+                    </div>
 
                     <div th:if="${topIncomeCategories == null or topIncomeCategories.empty}"
                          class="text-center py-3 text-muted">
@@ -622,7 +704,7 @@
                             </div>
                             <div class="progress" style="height: 8px;">
                                 <div class="progress-bar bg-success" role="progressbar"
-                                     th:style="'width:' + ${cat.percent()} + '%'"></div>
+                                     th:style="|width:${cat.percent()}%|"></div>
                             </div>
                         </div>
                     </div>

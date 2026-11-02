@@ -357,7 +357,7 @@
         </div>
         <div class="progress progress-bar-custom">
             <div class="progress-bar" role="progressbar"
-                 th:style="'width:' + ${dashboard.totalBudget > 0 ? (dashboard.totalIncomes / dashboard.totalBudget * 100 > 100 ? 100 : dashboard.totalIncomes / dashboard.totalBudget * 100) : 0} + '%'"
+                 th:style="|width:${dashboard.totalBudget > 0 ? (dashboard.totalIncomes / dashboard.totalBudget * 100 > 100 ? 100 : dashboard.totalIncomes / dashboard.totalBudget * 100) : 0}%|"
                  th:classappend="${dashboard.totalBudget > 0 and dashboard.totalIncomes / dashboard.totalBudget >= 1} ? 'bg-success' : (${dashboard.totalBudget > 0 and dashboard.totalIncomes / dashboard.totalBudget >= 0.8} ? 'bg-info' : 'bg-warning')"
                  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
             </div>
@@ -427,7 +427,7 @@
                                         <div th:if="${catDto.limit > 0}">
                                             <div class="progress progress-bar-custom" style="height: 6px;">
                                                 <div class="progress-bar" role="progressbar"
-                                                     th:style="'width:' + ${catDto.percentUsed > 100 ? 100 : catDto.percentUsed} + '%'"
+                                                     th:style="|width:${catDto.percentUsed > 100 ? 100 : catDto.percentUsed}%|"
                                                      th:classappend="${catDto.percentUsed >= 100} ? 'bg-success' : (${catDto.percentUsed >= 80} ? 'bg-info' : 'bg-warning')">
                                                 </div>
                                             </div>
@@ -512,7 +512,7 @@
                                         <div th:if="${catDto.limit > 0}" class="mb-2 mt-3">
                                             <div class="progress progress-bar-custom" style="height: 8px;">
                                                 <div class="progress-bar" role="progressbar"
-                                                     th:style="'width:' + ${catDto.percentUsed > 100 ? 100 : catDto.percentUsed} + '%'"
+                                                     th:style="|width:${catDto.percentUsed > 100 ? 100 : catDto.percentUsed}%|"
                                                      th:classappend="${catDto.percentUsed >= 100} ? 'bg-success' : (${catDto.percentUsed >= 80} ? 'bg-info' : 'bg-warning')">
                                                 </div>
                                             </div>

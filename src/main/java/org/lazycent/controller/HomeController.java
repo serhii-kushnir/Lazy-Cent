@@ -64,7 +64,7 @@ public class HomeController extends BaseController {
         long dayBudgetCount = dayBudgetRepository.countByOwner(user);
         model.addAttribute("showDemoBanner", dayBudgetCount == 0);
 
-        // === БЛОК 1: Місячний бюджет ===
+        // === Бюджет на місяць ===
         BudgetPlan plan = budgetPlanningService.getBudgetPlan(user, today.getMonthValue(), today.getYear());
         model.addAttribute("budgetPlan", plan);
         int daysInMonth = today.lengthOfMonth();
@@ -80,26 +80,28 @@ public class HomeController extends BaseController {
             model.addAttribute("budgetPercentCapped", Math.min(percent, 100.0));
         }
 
-        // === БЛОК 2: Останні транзакції ===
-        model.addAttribute("recentTransactions", getRecentTransactions(user, 5));
+        // === Останні транзакції (6) ===
+        model.addAttribute("recentTransactions", getRecentTransactions(user, 6));
 
-        // === БЛОК 3: Топ-3 категорій ===
-        model.addAttribute("topCategories", getTopCategories(monthSummary, 3));
-        model.addAttribute("topIncomeCategories", getTopIncomeCategories(monthSummary, 3));
+        // === Топ категорій (витрати + доходи) + їхні суми ===
+        List<CategoryExpenseItem> topCategories = getTopCategories(monthSummary, 3);
+        List<CategoryExpenseItem> topIncomeCategories = getTopIncomeCategories(monthSummary, 3);
+        model.addAttribute("topCategories", topCategories);
+        model.addAttribute("topIncomeCategories", topIncomeCategories);
+        model.addAttribute("topExpensesTotal", topCategories.stream()
+                .filter(c -> c.amount() != null)
+                .mapToDouble(CategoryExpenseItem::amount)
+                .sum());
+        model.addAttribute("topIncomesTotal", topIncomeCategories.stream()
+                .filter(c -> c.amount() != null)
+                .mapToDouble(CategoryExpenseItem::amount)
+                .sum());
 
         return "home";
     }
 
     // ==================== HELPERS ====================
 
-    /**
-     * Двоетапна вибірка — щоб уникнути HHH90003004
-     * (firstResult/maxResults + collection fetch → in-memory pagination).
-     *
-     * 1. findRecentDates — тільки дати з SQL LIMIT (без JOIN).
-     * 2. findByOwnerAndDateInOrderByDateAsc — повні дані за цими датами
-     *    з @EntityGraph, без Pageable → нормальний JOIN FETCH.
-     */
     private List<RecentTransactionDto> getRecentTransactions(User user, int limit) {
         List<LocalDate> recentDates = dayBudgetRepository
                 .findRecentDates(user, PageRequest.of(0, 3));
