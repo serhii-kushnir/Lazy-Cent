@@ -7,186 +7,93 @@
 
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
-    <script src="/js/transaction-common.js" defer></script>
-    <div th:replace="~{fragments/head :: themeAssetsWithCharts(robots='noindex, nofollow')}"></div>
+    <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
 
     <style>
-        :root {
-            --ink: #1B2430;
-            --ink-soft: #2B3648;
-            --gold: #C9A227;
-            --gold-soft: #E4C766;
-            --income: #4F7942;
-            --expense: #B5533C;
-            --text-muted: #6B7280;
+        /* ===== АНІМАЦІЇ ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: #ffffff; color: var(--ink); }
-        .wrap { max-width: 100%; margin: 0 auto; padding: 0.5rem; }
-        .ledger-head {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid var(--ink); padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem; flex-wrap: wrap; gap: 16px;
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        .ledger-head h1 { font-family: 'Fraunces', serif; font-size: 2rem; margin: 0; font-weight: 600; }
+        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.10s; }
+        .delay-3 { animation-delay: 0.15s; }
 
-        .balance-row {
-            display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 1px;
-            background: var(--bs-border-color); border: 1px solid var(--bs-border-color);
-            margin-bottom: 1.5rem; border-radius: 0.5rem; overflow: hidden; text-align: center;
+        /* ===== HOVER ДЛЯ КНОПОК (як у budget/income) ===== */
+        .btn:not(.btn-close):not(.navbar-toggler) {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .balance-cell { background: var(--bs-card-bg); padding: 26px 28px; color: var(--bs-body-color); }
-        .balance-cell .label {
-            font-size: 0.78rem; text-transform: uppercase;
-            letter-spacing: 0.1em; color: var(--bs-secondary-color); margin-bottom: 10px;
+        .btn:not(.btn-close):not(.navbar-toggler):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        .balance-cell .amount {
-            font-family: 'IBM Plex Mono', monospace; font-size: 2.1rem;
-            font-weight: 600; font-variant-numeric: tabular-nums;
+
+        /* ===== ICON CIRCLE ===== */
+        .icon-circle {
+            width: 56px; height: 56px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
         }
-        .amount.income { color: var(--bs-success); }
-        .amount.expense { color: var(--bs-danger); }
-        /* Кольори сум у таблиці категорій (витрати — червоні, доходи — зелені) */
-        .text-expense { color: #dc3545; font-weight: 600; }
-        .text-income  { color: #198754; font-weight: 600; }
-        .text-balance-positive { color: #198754; }
-        .text-balance-negative { color: #dc3545; }
-        [data-bs-theme="dark"] .text-expense { color: #f87171; }
-        [data-bs-theme="dark"] .text-income  { color: #6ee7b7; }
-        [data-bs-theme="dark"] .text-balance-positive { color: #6ee7b7; }
-        [data-bs-theme="dark"] .text-balance-negative { color: #f87171; }
 
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInRow { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideUpFade { 0% { opacity: 0; transform: translateY(30px) scale(0.95); } 60% { transform: translateY(-5px) scale(1.01); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
-        @keyframes slideLeftFade { 0% { opacity: 0; transform: translateX(-30px); } 100% { opacity: 1; transform: translateX(0); } }
-        @keyframes slideRightFade { 0% { opacity: 0; transform: translateX(30px); } 100% { opacity: 1; transform: translateX(0); } }
-        @keyframes slideUpTable { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
-        @keyframes blurFade { 0% { opacity: 0; filter: blur(10px); transform: scale(1.1); } 100% { opacity: 1; filter: blur(0); transform: scale(1); } }
-        @keyframes pulseAppear { 0% { opacity: 0; transform: scale(0.8); } 50% { transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
-        @keyframes buttonSlide { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
-        @keyframes rowStagger { 0% { opacity: 0; transform: translateX(-20px); } 100% { opacity: 1; transform: translateX(0); } }
-
-        .ledger-head-animated { animation: blurFade 0.8s ease forwards; opacity: 0; }
-        .balance-animated { animation: slideUpFade 0.7s ease forwards; opacity: 0; }
-        .chart-animated { animation: pulseAppear 0.8s ease forwards; opacity: 0; animation-delay: 0.2s; }
-        .table-wrap-animated { animation: slideUpTable 0.7s ease forwards; opacity: 0; animation-delay: 0.3s; }
-        .btn-animated { animation: buttonSlide 0.5s ease forwards; opacity: 0; }
-        .btn-animated:nth-child(1) { animation-delay: 0.1s; }
-        .btn-animated:nth-child(2) { animation-delay: 0.2s; }
-        .btn-animated:nth-child(3) { animation-delay: 0.3s; }
-        .category-card-animated { animation: slideLeftFade 0.6s ease forwards; opacity: 0; }
-        .category-card-animated:nth-child(odd) { animation: slideLeftFade 0.6s ease forwards; opacity: 0; }
-        .category-card-animated:nth-child(even) { animation: slideRightFade 0.6s ease forwards; opacity: 0; }
-        .category-card-animated:nth-child(1) { animation-delay: 0.05s; }
-        .category-card-animated:nth-child(2) { animation-delay: 0.10s; }
-        .category-card-animated:nth-child(3) { animation-delay: 0.15s; }
-        .category-card-animated:nth-child(4) { animation-delay: 0.20s; }
-        .category-card-animated:nth-child(5) { animation-delay: 0.25s; }
-        .category-card-animated:nth-child(6) { animation-delay: 0.30s; }
-        .category-card-animated:nth-child(7) { animation-delay: 0.35s; }
-        .category-card-animated:nth-child(8) { animation-delay: 0.40s; }
-        .category-card-animated:nth-child(9) { animation-delay: 0.45s; }
-        .category-card-animated:nth-child(10) { animation-delay: 0.50s; }
-        .row-animate { animation: rowStagger 0.4s ease forwards; opacity: 0; }
-
-        .category-input-group .form-select { border-radius: 0.375rem 0 0 0.375rem; }
-        .category-input-group .btn { border-radius: 0 0.375rem 0.375rem 0; border-left: none; }
-        [data-bs-theme="dark"] .category-input-group .btn { border-color: #3a3f4a; }
-
-        .toolbar-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; }
-        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; text-align: center; }
-
-        .card-body { padding: 5px !important; }
-        .card-header { padding: 5px !important; }
-        .mt-4 { margin-top: 0.5rem !important; }
-        .mt-5 { margin-top: 1rem !important; }
-
-        .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .btn-rounded { border-radius: 50px !important; }
-
-        .table-toolbar {
-            display: flex; flex-wrap: wrap; align-items: center;
-            gap: 0.5rem 0.75rem; padding: 0.5rem 0;
-            border-bottom: 1px solid #dee2e6; margin-bottom: 0.5rem;
+        /* ===== STAT CARD (без hover) ===== */
+        .stat-card {
+            border-radius: 1rem;
+            border: none;
+            background-color: var(--bs-card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: 100%;
         }
-        [data-bs-theme="dark"] .table-toolbar { border-bottom-color: #2a2e37; }
-        .search-input { flex: 1 1 200px; min-width: 150px; }
-        .search-input .input-group-text { background: transparent; border-right: none; }
-        .search-input .form-control { border-left: none; }
-
-        .filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-        .filter-group .form-control-sm { width: auto; min-width: 130px; }
-        .filter-group .date-range { display: flex; align-items: center; gap: 0.3rem; }
-        .filter-group .date-range .text-muted { font-size: 0.8rem; }
-
-        .page-size-select { max-width: 100px; flex: 0 0 auto; }
-        .load-more-btn { flex: 0 0 auto; }
-        .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
-        [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
-
-        .type-filter-select { max-width: 130px; flex: 0 0 auto; }
-        .category-filter-select { max-width: 160px; flex: 0 0 auto; }
-
-        .view-toggle { display: flex; gap: 0.3rem; background: #e9ecef; border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0; }
-        [data-bs-theme="dark"] .view-toggle { background: #2a2e37; }
-        .view-toggle .btn {
-            border: none; padding: 0.5rem 1.2rem; font-size: 1rem;
-            border-radius: 0.375rem; background: transparent;
-            color: #495057; font-weight: 600; transition: all 0.2s ease;
+        [data-bs-theme="dark"] .stat-card {
+            background-color: #1d2027;
+            border: 1px solid #2a2e37;
         }
-        .view-toggle .btn.active { background: #fff; color: #0d6efd; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
-        [data-bs-theme="dark"] .view-toggle .btn { color: #adb5bd; }
-        [data-bs-theme="dark"] .view-toggle .btn.active { background: #1d2027; color: #6ea8fe; }
-        .view-toggle .btn i { margin-right: 0.3rem; }
 
-        .cards-view-container { display: none; }
-        .cards-view-container.show { display: block; }
-        .table-view-container { display: block; }
-        .table-view-container.hidden { display: none; }
+        /* ===== UNIFIED CARD (без hover, прозорий фон для карток) ===== */
+        .unified-card {
+            border-radius: 1rem;
+            border: none;
+            background-color: transparent;
+        }
+        [data-bs-theme="dark"] .unified-card {
+            background-color: transparent;
+        }
 
-        .category-card-wrapper { padding-left: 0.25rem; padding-right: 0.25rem; margin-bottom: 0.75rem; }
-        .category-card {
-            background: #fff; border-radius: 0.5rem; border: 1px solid #dee2e6;
-            padding: 0.75rem; transition: transform 0.2s, box-shadow 0.2s; height: 100%;
-        }
-        .category-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        [data-bs-theme="dark"] .category-card { background: #1d2027; border-color: #2a2e37; }
-        .category-card .card-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.5rem; }
-        .category-card .card-text {
-            display: flex; justify-content: space-between; padding: 0.2rem 0;
-            border-bottom: 1px dashed #e9ecef; font-size: 0.9rem;
-        }
-        .category-card .card-text:last-child { border-bottom: none; }
-        [data-bs-theme="dark"] .category-card .card-text { border-bottom-color: #2a2e37; }
-        .category-card .card-text .label { color: #6c757d; }
-        [data-bs-theme="dark"] .category-card .card-text .label { color: #9aa3b2; }
-        .category-card .card-text .value { font-weight: 600; }
-        .category-card .badge-type { font-size: 0.6rem; padding: 0.2rem 0.5rem; border-radius: 20px; }
-        .badge-type.expense { background-color: #dc3545; color: #fff; }
-        .badge-type.income { background-color: #198754; color: #fff; }
-        [data-bs-theme="dark"] .badge-type.expense { background-color: #7a2a2a; }
-        [data-bs-theme="dark"] .badge-type.income { background-color: #1f6d3b; }
+        /* ===== ПРОГРЕС-БАР (як у budget) ===== */
+        .progress-bar-custom { height: 10px; border-radius: 10px; }
 
-        .table-categories { width: 100%; font-size: 0.85rem; border-collapse: collapse; }
-        .table-categories th, .table-categories td {
-            text-align: center !important; vertical-align: middle !important;
-            padding: 0.5rem 0.4rem; border-bottom: 1px solid #dee2e6;
+        /* ===== HOVER РЯДКІВ ТАБЛИЦІ (як у budget — фіолетовий) ===== */
+        .category-row:hover > td {
+            background-color: rgba(124, 58, 237, 0.05) !important;
         }
-        [data-bs-theme="dark"] .table-categories th, [data-bs-theme="dark"] .table-categories td { border-bottom-color: #2a2e37; }
-        .table-categories th { background-color: #f8f9fa; font-weight: 600; white-space: nowrap; }
-        [data-bs-theme="dark"] .table-categories th { background-color: #1d2027; color: #e6e6e6; }
-        .table-categories .col-number { width: 60px; min-width: 60px; }
-        .table-categories .col-category { width: auto; min-width: 150px; text-align: left; }
-        .table-categories .col-type { width: 80px; min-width: 80px; }
-        .table-categories .col-amount { width: 120px; min-width: 120px; }
-        .table-categories .col-percent { width: 100px; min-width: 100px; }
+        [data-bs-theme="dark"] .category-row:hover > td {
+            background-color: rgba(167, 139, 250, 0.1) !important;
+        }
+
+        /* ===== TABLE — стиль budget ===== */
+        .table thead th {
+            background-color: var(--bs-tertiary-bg);
+            color: var(--bs-secondary-color);
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--bs-border-color);
+        }
+        [data-bs-theme="dark"] .table thead th {
+            background-color: #23262e;
+            color: #9aa3b2;
+            border-bottom-color: #3a3f4a;
+        }
 
         .sortable { cursor: pointer; user-select: none; }
         .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; }
@@ -194,197 +101,185 @@
         .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
         .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
 
-        .empty-note {
-            font-family: 'IBM Plex Mono', monospace; color: var(--text-muted);
-            font-size: 0.9rem; padding: 20px 0; text-align: center;
+        /* ===== VIEW TOGGLE ===== */
+        .view-toggle {
+            display: flex; gap: 0.3rem;
+            background: var(--bs-secondary-bg);
+            border-radius: 0.5rem; padding: 0.2rem;
+            flex-shrink: 0;
         }
-
-        @media (max-width: 860px) {
-            .balance-row { grid-template-columns: 1fr; }
-            .balance-cell { padding: 16px 20px; }
-            .balance-cell .amount { font-size: 1.6rem; }
-        }
-
-        @media (max-width: 768px) {
-            .table-categories { font-size: 0.7rem; }
-            .table-categories th, .table-categories td { padding: 0.3rem 0.2rem; }
-            .table-categories .col-category { min-width: 100px; }
-            .table-categories .col-amount { min-width: 80px; }
-            .table-categories .col-percent { min-width: 70px; }
-            .table-categories .col-type { min-width: 60px; }
-            .table-toolbar { gap: 0.4rem; }
-            .search-input { min-width: 100px; }
-            .filter-group .date-range input[type="date"] { width: 110px; }
-            .filter-group .form-control-sm { min-width: 80px; }
-            .page-size-select { max-width: 70px; }
-            .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
-            .info-text { font-size: 0.7rem; }
-            .type-filter-select { max-width: 100px; }
-            .category-filter-select { max-width: 120px; }
-            .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
-            .category-card .card-text { font-size: 0.8rem; }
-        }
-
-        @media (max-width: 576px) {
-            .search-input { flex: 0 0 100%; min-width: unset; }
-            .filter-group { flex: 0 0 100%; justify-content: flex-start; }
-            .filter-group .date-range input[type="date"] { width: 100px; }
-            .view-toggle .btn { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-            .category-card-wrapper { padding-left: 0; padding-right: 0; }
-            .type-filter-select { max-width: 100%; }
-            .category-filter-select { max-width: 100%; }
-        }
-
-        [data-bs-theme="dark"] body { background-color: #14161a; color: #e6e6e6; }
-        [data-bs-theme="dark"] .balance-cell { background-color: #1d2027; }
-        [data-bs-theme="dark"] .balance-row { background: #2a2e37; border-color: #2a2e37; }
-        [data-bs-theme="dark"] .ledger-head { border-bottom-color: #2a2e37; }
-        [data-bs-theme="dark"] .ledger-head h1 { color: #e6e6e6; }
-        [data-bs-theme="dark"] .category-card { background: #1d2027; border-color: #2a2e37; }
-        [data-bs-theme="dark"] .category-card .card-text { border-bottom-color: #2a2e37; }
-        [data-bs-theme="dark"] .category-card .card-text .label { color: #9aa3b2; }
-        [data-bs-theme="dark"] .table-categories th, [data-bs-theme="dark"] .table-categories td { border-bottom-color: #2a2e37; }
-        [data-bs-theme="dark"] .table-categories th { background-color: #1d2027; color: #e6e6e6; }
-        [data-bs-theme="dark"] .empty-note { color: #9aa3b2; }
-
-        .toast {
-            background: #fff; border-left: 4px solid #0d6efd;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 250px;
-            border-radius: 8px; opacity: 0; transform: translateX(100%);
-            transition: all 0.5s ease;
-        }
-        .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { border-left-color: #198754; }
-        .toast.error { border-left-color: #dc3545; }
-        .toast .toast-header { background: transparent; border-bottom: none; padding: 0.75rem 1rem 0.25rem 1rem; }
-        .toast .toast-body { padding: 0.25rem 1rem 0.75rem 1rem; font-size: 0.95rem; }
-        [data-bs-theme="dark"] .toast { background: #1d2027; color: #e6e6e6; border-color: #2a2e37; }
-        [data-bs-theme="dark"] .toast .toast-header { color: #e6e6e6; }
-        [data-bs-theme="dark"] .toast .btn-close { filter: invert(1); }
-
-        .keyboard-hint { font-size: 0.9rem; color: #6c757d; margin-right: 1rem; }
-        [data-bs-theme="dark"] .keyboard-hint { color: #9aa3b2; }
-        .keyboard-hint kbd {
-            background: #e9ecef; color: #212529; border-radius: 4px;
-            padding: 0.2rem 0.6rem; font-size: 0.85rem;
-            font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        [data-bs-theme="dark"] .keyboard-hint kbd { background: #2a2e37; color: #e6e6e6; }
-
-        .chart-section { transition: all 0.3s ease; }
-        .chart-toggle-btn { cursor: pointer; user-select: none; }
-        .chart-toggle-btn .toggle-icon { transition: transform 0.3s ease; display: inline-block; }
-        .chart-toggle-btn .toggle-icon.rotated { transform: rotate(180deg); }
-        .chart-card .card-header { display: flex; justify-content: space-between; align-items: center; }
-
-        .analytics-toggle { display: flex; gap: 0.3rem; background: #e9ecef; border-radius: 0.5rem; padding: 0.15rem; flex-shrink: 0; }
-        [data-bs-theme="dark"] .analytics-toggle { background: #2a2e37; }
-        .analytics-toggle .btn {
-            border: none; padding: 0.3rem 0.8rem; font-size: 0.8rem;
+        .view-toggle .btn {
+            border: none; padding: 0.5rem 1.2rem; font-size: 1rem;
             border-radius: 0.375rem; background: transparent;
-            color: #495057; font-weight: 600; transition: all 0.2s ease;
+            color: var(--bs-secondary-color); font-weight: 600;
+            transition: all 0.2s ease;
         }
-        .analytics-toggle .btn.active { background: #fff; color: #0d6efd; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
-        [data-bs-theme="dark"] .analytics-toggle .btn { color: #adb5bd; }
-        [data-bs-theme="dark"] .analytics-toggle .btn.active { background: #1d2027; color: #6ea8fe; }
-        .analytics-toggle .btn i { margin-right: 0.2rem; }
-
-        .chart-row-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; }
-        .chart-col { flex: 0 0 auto; max-width: 50%; padding: 0 0.5rem; min-width: 280px; }
-        .chart-flex { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-        .chart-container { max-height: 200px; max-width: 200px; flex-shrink: 0; }
-        .chart-container canvas { max-height: 200px; max-width: 200px; cursor: pointer; }
-        .chart-legend-table { font-size: 0.8rem; flex: 0 0 auto; min-width: 120px; text-align: left; }
-        .chart-legend-table td { padding: 0.1rem 0.3rem; }
-        .chart-legend-table .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; }
-        .chart-legend-table .amount-col { text-align: right; font-weight: 600; }
-
-        [data-bs-theme="dark"] .chart-card .card-header {
-            background-color: #2a2e37 !important; color: #e6e6e6 !important;
-            border-bottom-color: #3a3f4a !important;
+        .view-toggle .btn.active {
+            background: var(--bs-body-bg);
+            color: var(--bs-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
-        [data-bs-theme="dark"] .chart-card .card-body { background-color: #1d2027 !important; }
-        [data-bs-theme="dark"] .chart-legend-table td { color: #e6e6e6 !important; }
-        [data-bs-theme="dark"] .chart-legend-table .amount-col { color: #9aa3b2 !important; }
-
-        .modal-content { border-radius: 1rem; }
-        .transaction-type-toggle { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
-        .transaction-type-toggle .btn { flex: 1; padding: 0.6rem; font-weight: 600; border-radius: 0.5rem; }
-        .transaction-type-toggle .btn.active-expense { background-color: #dc3545; color: #fff; border-color: #dc3545; }
-        .transaction-type-toggle .btn.active-income { background-color: #198754; color: #fff; border-color: #198754; }
-        .input-group-number { display: flex; gap: 0.5rem; align-items: center; }
-        .input-group-number .btn { flex: 0 0 40px; }
-        .input-group-number input { flex: 1; text-align: center; }
-        .char-counter { font-size: 0.8rem; color: #6c757d; text-align: right; margin-top: 0.25rem; }
-        [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
-        [data-bs-theme="dark"] .modal-content { background-color: #1d2027; color: #e6e6e6; }
-        [data-bs-theme="dark"] .modal-header { border-bottom-color: #2a2e37; }
-        [data-bs-theme="dark"] .modal-footer { border-top-color: #2a2e37; }
-        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select {
-            background-color: #23262e; color: #e6e6e6; border-color: #3a3f4a;
+        [data-bs-theme="dark"] .view-toggle .btn.active {
+            background: #1d2027; color: #6ea8fe;
         }
-        [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus {
-            background-color: #2a2e37; color: #fff;
-        }
-        [data-bs-theme="dark"] .btn-close { filter: invert(1); }
+        .view-toggle .btn i { margin-right: 0.3rem; }
 
+        /* ===== CONTAINERS ===== */
+        .table-view-container { display: block; }
+        .table-view-container.hidden { display: none; }
+        .cards-view-container { display: none; }
+        .cards-view-container.show { display: block; }
+
+        /* ===== TOOLBAR ===== */
+        .table-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--bs-border-color);
+            margin-bottom: 0.5rem;
+        }
+        .search-input { flex: 1 1 200px; min-width: 150px; }
+        .search-input .input-group-text { background: transparent; border-right: none; }
+        .search-input .form-control { border-left: none; }
+        .filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+        .filter-group .form-control-sm { width: auto; min-width: 130px; }
+        .page-size-select { max-width: 100px; flex: 0 0 auto; }
+        .info-text {
+            font-size: 0.85rem;
+            color: var(--bs-secondary-color);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .type-filter-select { max-width: 130px; flex: 0 0 auto; }
+        .category-filter-select { max-width: 160px; flex: 0 0 auto; }
+
+        /* ===== CATEGORY CARDS ===== */
+        .category-card-wrapper { margin-bottom: 0.75rem; }
+        .category-card {
+            background: var(--bs-body-bg);
+            border-radius: 0.75rem;
+            border: 1px solid var(--bs-border-color);
+            padding: 0.9rem;
+            height: 100%;
+        }
+        [data-bs-theme="dark"] .category-card {
+            background: #1d2027;
+            border-color: #2a2e37;
+        }
+        .category-card .card-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .category-card .card-text {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.2rem 0;
+            border-bottom: 1px dashed var(--bs-border-color);
+            font-size: 0.9rem;
+        }
+        .category-card .card-text:last-child { border-bottom: none; }
+        .category-card .card-text .label { color: var(--bs-secondary-color); }
+        .category-card .card-text .value { font-weight: 600; }
+
+        .empty-note {
+            color: var(--bs-secondary-color);
+            font-size: 0.9rem;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        /* ===== МОБІЛЬНИЙ ===== */
+        @media (max-width: 767.98px) {
+            .table-toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 0.5rem 0;
+            }
+            .search-input {
+                order: 1;
+                flex: 1 1 100%;
+                min-width: 0;
+            }
+            .filter-group {
+                order: 2;
+                flex: 1 1 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.35rem;
+            }
+            .filter-group > .text-muted.small { display: none; }
+            .filter-group .form-control-sm {
+                min-width: 0 !important;
+                width: 100%;
+                height: 34px;
+                font-size: 0.8rem;
+                padding: 0.25rem 0.4rem;
+            }
+            .type-filter-select,
+            .category-filter-select,
+            .page-size-select {
+                flex: 1 1 calc(33.333% - 0.34rem);
+                max-width: none;
+                min-width: 0;
+                height: 34px;
+                font-size: 0.8rem;
+                padding: 0.25rem 0.5rem;
+            }
+            .type-filter-select { order: 3; }
+            .category-filter-select { order: 4; }
+            .page-size-select { order: 5; }
+            .info-text {
+                order: 6;
+                flex: 1 1 100%;
+                text-align: center;
+                margin-left: 0;
+                font-size: 0.8rem;
+            }
+
+            .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+        }
+
+        /* ===== PRINT ===== */
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            .wrap { max-width: 100% !important; padding: 10px !important; }
-            nav.navbar, footer, .no-print, .btn, .btn-add-transaction,
-            .modal, .modal-backdrop, .d-print-none, .table-toolbar,
-            .view-toggle, .analytics-toggle, .chart-toggle-btn,
-            .ledger-head, .filter-group, .search-input, .page-size-select,
-            .load-more-btn, .info-text, .no-print { display: none !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
+            .d-print-none, .table-toolbar, .view-toggle, .filter-group,
+            .search-input, .page-size-select, .info-text { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
             .print-header {
-                display: flex !important; justify-content: space-between; align-items: center;
+                display: flex !important;
+                justify-content: space-between; align-items: center;
                 padding: 0 !important; margin: 0 0 4px 0 !important;
-                border-bottom: 1px solid #333; line-height: 1.2;
+                border-bottom: 1px solid #333;
             }
-            .print-header .logo { font-size: 1rem !important; font-weight: 700; color: #1B2430; }
-            .print-header h2 { font-size: 0.9rem !important; font-weight: 600; margin: 0; color: #333; }
-            .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
-
-            .balance-row {
-                display: grid !important; grid-template-columns: 1.3fr 1fr 1fr !important;
-                gap: 1px !important; background: #333 !important; border: 1px solid #333 !important;
-                border-radius: 0.5rem !important; overflow: hidden !important;
-                margin-bottom: 10px !important;
-                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+            .print-header .logo { font-size: 1rem !important; font-weight: 700; }
+            .print-header h2 { font-size: 0.9rem !important; font-weight: 600; margin: 0; }
+            .print-footer {
+                text-align: center; font-size: 0.6rem !important; color: #666;
+                border-top: 1px solid #ccc;
+                padding-top: 2px !important; margin-top: 4px !important;
             }
-            .balance-cell { background: #fff !important; padding: 8px 12px !important; color: #333 !important; text-align: center !important; }
-            .balance-cell .label {
-                font-size: 0.55rem !important; text-transform: uppercase !important;
-                letter-spacing: 0.05em !important; color: #666 !important; margin-bottom: 2px !important;
-            }
-            .balance-cell .amount { font-size: 1rem !important; font-weight: 600 !important; }
-            .balance-cell .amount.income { color: #198754 !important; }
-            .balance-cell .amount.expense { color: #dc3545 !important; }
-
-            .table-categories th {
+            .stat-card, .unified-card { border: 1px solid #ddd !important; box-shadow: none !important; }
+            .table thead th {
                 background-color: #333 !important; color: #fff !important;
-                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
-                padding: 4px 6px !important; font-size: 0.6rem !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            .table-categories td { border-color: #ddd !important; padding: 3px 6px !important; font-size: 0.6rem !important; }
-            .table-categories .col-amount { font-size: 0.6rem !important; }
-            .table-categories .col-percent { font-size: 0.6rem !important; }
-            .table-categories .badge { font-size: 0.5rem !important; padding: 1px 4px !important; }
-
-            .category-card { border: 1px solid #ddd !important; box-shadow: none !important; padding: 4px 6px !important; margin-bottom: 4px !important; }
-            .category-card .card-title { font-size: 0.65rem !important; }
-            .category-card .card-text { font-size: 0.55rem !important; padding: 1px 0 !important; }
-            .category-card .badge-type { font-size: 0.45rem !important; padding: 1px 4px !important; }
-
-            .chart-container canvas { max-height: 120px !important; max-width: 120px !important; }
-            .chart-card .card-header { padding: 2px 6px !important; }
-            .chart-card .card-header span { font-size: 0.6rem !important; }
-            .chart-card .card-body { padding: 4px !important; }
-            .chart-legend-table td { font-size: 0.5rem !important; padding: 1px 2px !important; }
-            .chart-legend-table .amount-col { font-size: 0.5rem !important; }
-            .chart-legend-table .color-dot { width: 6px !important; height: 6px !important; }
+        }
+        /* ===== ФОН ДЛЯ ВНУТРІШНІХ БЛОКІВ КАРТКИ ===== */
+        .bg-card-bg {
+            background-color: var(--bs-card-bg);
+        }
+        [data-bs-theme="dark"] .bg-card-bg {
+            background-color: #1d2027;
         }
     </style>
 </head>
@@ -395,271 +290,311 @@
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
 
-<div class="wrap">
+<div class="container-fluid px-3 px-md-4 mt-4">
 
     <div class="print-header d-print-flex" style="display: none;">
         <span class="logo">💰 LazyCent</span>
         <h2 th:text="#{totals.heading}">Підсумки</h2>
     </div>
 
-    <!-- ЗАГОЛОВОК -->
-    <div class="ledger-head no-print ledger-head-animated">
-        <h1 th:text="#{totals.heading}">Підсумки</h1>
-        <div class="d-flex flex-wrap gap-2 no-print">
-            <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded btn-animated" data-bs-toggle="modal" data-bs-target="#transactionModal">
-                <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати</span>
-            </button>
-            <button class="btn btn-warning btn-sm btn-rounded btn-animated" onclick="window.print()">
-                <i class="fas fa-print me-1"></i> <span th:text="#{btn.print}">Друк</span>
+    <!-- ============================================================
+         ЗАГОЛОВОК — h2 + дата під ним (на всіх екранах)
+         ============================================================ -->
+    <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3 mb-4 animate-fade-down">
+        <h2 class="mb-0 fw-bold text-center text-md-start">
+            <i class="fas fa-chart-pie me-2 text-primary"></i>
+            <span th:text="#{totals.heading}">Підсумки</span>
+            <small class="text-muted fw-normal d-block d-md-inline ms-md-2 text-nowrap">
+                <i class="far fa-calendar-alt me-1"></i>
+                <span th:text="${#temporals.format(startDate, 'dd.MM.yyyy')}">01.11.2026</span>
+                <span class="mx-1">—</span>
+                <span th:text="${#temporals.format(endDate, 'dd.MM.yyyy')}">03.11.2026</span>
+            </small>
+        </h2>
+        <div class="d-flex flex-column flex-sm-row gap-2 no-print w-100 w-md-auto justify-content-center justify-content-md-end">
+            <a th:href="@{/totals/export(startDate=${startDate}, endDate=${endDate})}" class="btn btn-success">
+                <i class="fas fa-file-excel me-1"></i>
+                <span th:text="#{totals.export}">Експорт</span>
+            </a>
+            <button class="btn btn-warning d-none d-md-inline-flex align-items-center justify-content-center"
+                    onclick="window.print()">
+                <i class="fas fa-print"></i>
+                <span class="ms-1" th:text="#{btn.print}">Друк</span>
             </button>
         </div>
     </div>
 
-    <!-- КАРТКА БАЛАНСУ -->
-    <div class="balance-row balance-animated">
-        <div class="balance-cell">
-            <div class="label" th:text="#{totals.netBalance}">Чистий баланс</div>
-            <div class="amount"
-     th:classappend="${totalBudget.balance >= 0} ? 'income' : 'expense'"
-     th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
-        </div>
-        <div class="balance-cell">
-            <div class="label" th:text="#{totals.income}">Доходи</div>
-            <div class="amount income" th:text="${#numbers.formatDecimal(totalBudget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
-        </div>
-        <div class="balance-cell">
-            <div class="label" th:text="#{totals.expense}">Витрати</div>
-            <div class="amount expense" th:text="${#numbers.formatDecimal(totalBudget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
-        </div>
-    </div>
-
-    <!-- ДІАГРАМИ -->
-    <div class="chart-section chart-animated" id="chartSection">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card chart-card">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
-                        <span><i class="fas fa-chart-pie me-2"></i><span th:text="#{totals.analytics}">Аналітика</span></span>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="analytics-toggle" id="analyticsToggle">
-                                <button class="btn active" data-mode="charts" th:title="#{day.analytics.charts}">
-                                    <i class="fas fa-chart-pie"></i> <span class="d-none d-sm-inline" th:text="#{day.analytics.charts}">Кругові</span>
-                                </button>
-                                <button class="btn" data-mode="bar" th:title="#{day.analytics.bar}">
-                                    <i class="fas fa-chart-bar"></i> <span class="d-none d-sm-inline" th:text="#{day.analytics.bar}">Стовпчики</span>
-                                </button>
-                                <button class="btn" data-mode="both" th:title="#{day.analytics.both}">
-                                    <i class="fas fa-chart-simple"></i> <span class="d-none d-sm-inline" th:text="#{day.analytics.both}">Обидва</span>
-                                </button>
-                            </div>
-                            <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn">
-                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
-                            </button>
+    <!-- ============================================================
+         БАЛАНС — 3 картки
+         ============================================================ -->
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4 animate-fade-up delay-1">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle"
+                             th:classappend="${totalBudget.balance >= 0} ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{totals.netBalance}">Чистий баланс</h6>
+                            <h3 class="mb-0"
+                                th:classappend="${totalBudget.balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(totalBudget.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
                         </div>
                     </div>
-                    <div class="card-body" id="chartBody">
-                        <div class="chart-row-container" id="chartsContainer">
-                            <div class="chart-col" id="expenseChartCol" th:unless="${#maps.isEmpty(totalBudget.expensesByCategory)}">
-                                <div class="text-center">
-                                    <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i><span th:text="#{totals.analytics.expenses}">Витрати за категоріями</span></h6>
-                                    <div class="chart-flex">
-                                        <div class="chart-container mx-auto"><canvas id="expenseChart"></canvas></div>
-                                        <div class="chart-legend-table" id="expenseLegend"></div>
-                                    </div>
-                                </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4 animate-fade-up delay-2">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-success-subtle text-success">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{totals.income}">Доходи</h6>
+                            <h3 class="text-success mb-0"
+                                th:text="${#numbers.formatDecimal(totalBudget.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4 animate-fade-up delay-3">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-danger-subtle text-danger">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{totals.expense}">Витрати</h6>
+                            <h3 class="text-danger mb-0"
+                                th:text="${#numbers.formatDecimal(totalBudget.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                0 ₴
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+     КАТЕГОРІЇ
+     ============================================================ -->
+    <div class="row">
+        <div class="col-12 animate-fade-up">
+            <div class="unified-card">
+                <div class="card-body p-0">
+
+                    <!-- ЄДИНА КАРТКА: Заголовок + Тулбар + Таблиця -->
+                    <div id="tableAndToolbarBlock" class="bg-card-bg mb-3" style="border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+
+                        <!-- Заголовок -->
+                        <div class="d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem; border-bottom: 1px solid var(--bs-border-color);">
+                            <div class="icon-circle bg-info-subtle text-info">
+                                <i class="fas fa-tags"></i>
                             </div>
-                            <div class="chart-col" id="incomeChartCol" th:unless="${#maps.isEmpty(totalBudget.incomesByCategory)}">
-                                <div class="text-center">
-                                    <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i><span th:text="#{totals.analytics.incomes}">Доходи за категоріями</span></h6>
-                                    <div class="chart-flex">
-                                        <div class="chart-container mx-auto"><canvas id="incomeChart"></canvas></div>
-                                        <div class="chart-legend-table" id="incomeLegend"></div>
-                                    </div>
-                                </div>
+                            <div class="flex-grow-1 text-start">
+                                <h6 class="text-muted mb-0" th:text="#{totals.categories}">Категорії</h6>
+                                <h3 class="mb-0"><span id="totalRowsCount">0</span></h3>
+                            </div>
+                            <div class="view-toggle" id="viewToggle">
+                                <button class="btn active" data-view="table" th:title="#{day.table}">
+                                    <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
+                                </button>
+                                <button class="btn" data-view="cards" th:title="#{day.cards}">
+                                    <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
+                                </button>
                             </div>
                         </div>
-                        <div class="row mt-3" id="barChartRow">
-                            <div class="col-12">
-                                <div class="text-center">
-                                    <h6 class="text-primary mb-1"><i class="fas fa-chart-bar me-1"></i><span th:text="#{totals.analytics.bar}">Суми по категоріях</span></h6>
-                                    <div style="max-height: 300px; max-width: 100%;">
-                                        <canvas id="barChart" style="max-height: 280px; width: 100%;"></canvas>
-                                    </div>
-                                </div>
+
+                        <!-- TOOLBAR -->
+                        <div class="table-toolbar no-print" style="padding: 1rem; margin: 0; border-bottom: 1px solid var(--bs-border-color);">
+                            <div class="input-group search-input">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="searchInput" class="form-control form-control-sm"
+                                       th:placeholder="#{totals.searchCategories}">
+                            </div>
+
+                            <div class="filter-group">
+                                <span class="text-muted small" th:text="#{common.from}">від</span>
+                                <input type="date" id="dateFrom" class="form-control form-control-sm" th:value="${startDate}">
+                                <span class="text-muted small" th:text="#{common.to}">до</span>
+                                <input type="date" id="dateTo" class="form-control form-control-sm" th:value="${endDate}">
+                            </div>
+
+                            <select id="typeFilter" class="form-select form-select-sm type-filter-select">
+                                <option value="all" th:text="#{totals.allTypes}">Всі типи</option>
+                                <option value="EXPENSE" th:text="#{type.expenseFilter}">Витрати</option>
+                                <option value="INCOME" th:text="#{type.incomeFilter}">Доходи</option>
+                            </select>
+
+                            <select id="categoryFilter" class="form-select form-select-sm category-filter-select">
+                                <option value="all" th:text="#{totals.allCategories}">Всі категорії</option>
+                            </select>
+
+                            <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
+                                <option value="0" selected th:text="#{common.all}">Всі</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+
+                            <span class="info-text" id="visibleInfo">—</span>
+                        </div>
+
+                        <!-- TABLE -->
+                        <div id="tableView" class="table-view-container">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0 align-middle" id="categoriesTable">
+                                    <thead>
+                                    <tr>
+                                        <th class="ps-4 sortable active-asc" data-sort="category" data-type="string">
+                                            <span th:text="#{totals.col.category}">Категорія</span> <i class="fas fa-sort-up sort-icon"></i>
+                                        </th>
+                                        <th class="text-center sortable" data-sort="type" data-type="string">
+                                            <span th:text="#{totals.col.type}">Тип</span> <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="text-center sortable" data-sort="amount" data-type="number">
+                                            <span th:text="#{totals.col.amount}">Сума</span> <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                        <th class="text-center pe-4 sortable" data-sort="percent" data-type="number" style="min-width: 120px;">
+                                            <span th:text="#{totals.col.percent}">Прогрес</span> <i class="fas fa-sort sort-icon"></i>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="categoriesBody">
+                                    <tr th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}" class="category-row"
+                                        th:data-category="${entry.key.name}"
+                                        th:data-amount="${entry.value}"
+                                        th:data-type="EXPENSE"
+                                        th:data-percent="0">
+                                        <td class="ps-4 fw-semibold">
+                                            <i class="fas fa-folder text-muted me-2"></i>
+                                            <span th:text="${entry.key.name}"></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-danger" th:text="#{type.EXPENSE}">Витрата</span>
+                                        </td>
+                                        <td class="text-center text-danger fw-semibold"
+                                            th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}"></td>
+                                        <td class="text-center pe-4">
+                                            <div class="progress progress-bar-custom" style="height: 6px;">
+                                                <div class="progress-bar bg-danger" role="progressbar"
+                                                     th:id="'pct-bar-' + ${stat.index}" style="width: 0%"></div>
+                                            </div>
+                                            <small class="d-block text-center mt-1 fw-bold text-danger"
+                                                   th:id="'percent-' + ${stat.index}" th:text="'0%'"></small>
+                                        </td>
+                                    </tr>
+                                    <tr th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}" class="category-row"
+                                        th:data-category="${entry.key.name}"
+                                        th:data-amount="${entry.value}"
+                                        th:data-type="INCOME"
+                                        th:data-percent="0">
+                                        <td class="ps-4 fw-semibold">
+                                            <i class="fas fa-folder text-muted me-2"></i>
+                                            <span th:text="${entry.key.name}"></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-success" th:text="#{type.INCOME}">Дохід</span>
+                                        </td>
+                                        <td class="text-center text-success fw-semibold"
+                                            th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}"></td>
+                                        <td class="text-center pe-4">
+                                            <div class="progress progress-bar-custom" style="height: 6px;">
+                                                <div class="progress-bar bg-success" role="progressbar"
+                                                     th:id="'pct-bar-income-' + ${stat.index}" style="width: 0%"></div>
+                                            </div>
+                                            <small class="d-block text-center mt-1 fw-bold text-success"
+                                                   th:id="'percent-income-' + ${stat.index}" th:text="'0%'"></small>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory)}" id="emptyRow">
+                                        <td colspan="4" class="text-center text-muted py-3" th:text="#{totals.noData}">Немає даних за обраний період</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <div th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory) and #maps.isEmpty(totalBudget.dailySummaries)}" class="empty-note" th:text="#{totals.noData}">
+                    </div>
+
+                    <!-- CARDS (прозорий фон між ними) -->
+                    <div id="cardsView" class="cards-view-container">
+                        <div class="row g-3" id="cardsContainer">
+                            <!-- Тут ваш код карток stat-card для EXPENSE та INCOME -->
+                            <th:block th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}">
+                                <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="EXPENSE"
+                                     th:data-category="${entry.key.name}"
+                                     th:data-amount="${entry.value}"
+                                     th:data-percent="0">
+                                    <div class="stat-card">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center gap-3 mb-3">
+                                                <div class="icon-circle bg-danger-subtle text-danger">
+                                                    <i class="fas fa-folder"></i>
+                                                </div>
+                                                <div class="flex-grow-1 text-start" style="min-width: 0;">
+                                                    <h6 class="text-muted mb-1 text-truncate" th:text="${entry.key.name}">Категорія</h6>
+                                                    <h3 class="text-danger mb-0 text-truncate"
+                                                        th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                                        0 ₴
+                                                    </h3>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                <span class="text-muted small"><i class="fas fa-percent me-1"></i><span th:text="#{common.share}">Частка</span></span>
+                                                <span class="fw-bold text-danger percent-value">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th:block>
+                            <th:block th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}">
+                                <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper" data-type="INCOME"
+                                     th:data-category="${entry.key.name}"
+                                     th:data-amount="${entry.value}"
+                                     th:data-percent="0">
+                                    <div class="stat-card">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-center gap-3 mb-3">
+                                                <div class="icon-circle bg-success-subtle text-success">
+                                                    <i class="fas fa-folder"></i>
+                                                </div>
+                                                <div class="flex-grow-1 text-start" style="min-width: 0;">
+                                                    <h6 class="text-muted mb-1 text-truncate" th:text="${entry.key.name}">Категорія</h6>
+                                                    <h3 class="text-success mb-0 text-truncate"
+                                                        th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">
+                                                        0 ₴
+                                                    </h3>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                                <span class="text-muted small"><i class="fas fa-percent me-1"></i><span th:text="#{common.share}">Частка</span></span>
+                                                <span class="fw-bold text-success percent-value">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </th:block>
+                        </div>
+                        <div id="noCardsResults" class="empty-note" style="display: none;" th:text="#{totals.noData}">
                             Немає даних за обраний період
                         </div>
                     </div>
+
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- КАРТКА КАТЕГОРІЙ -->
-    <div class="card shadow mt-4 table-wrap-animated">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem; background-color: var(--bs-card-bg); border-bottom: 1px solid var(--bs-border-color);">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <h5 class="mb-0"><i class="fas fa-tags me-2"></i><span th:text="#{totals.categories}">Категорії</span></h5>
-                <div class="view-toggle" id="viewToggle">
-                    <button class="btn active" data-view="table" th:title="#{day.table}">
-                        <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
-                    </button>
-                    <button class="btn" data-view="cards" th:title="#{day.cards}">
-                        <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
-                    </button>
-                </div>
-            </div>
-            <span class="badge" style="font-size: 1rem; padding: 0.5rem 0.8rem; background-color: var(--bs-secondary-bg); color: var(--bs-body-color);">
-                <span th:text="#{common.total}">Всього</span>: <span id="totalRowsCount">0</span>
-            </span>
-        </div>
-        <div class="card-body">
-
-            <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
-            <div class="table-toolbar no-print">
-                <div class="input-group search-input">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" th:placeholder="#{totals.searchCategories}">
-                </div>
-
-                <div class="filter-group">
-                    <span class="text-muted small" th:text="#{common.from}">від</span>
-                    <input type="date" id="dateFrom" class="form-control form-control-sm" th:value="${startDate}">
-                    <span class="text-muted small" th:text="#{common.to}">до</span>
-                    <input type="date" id="dateTo" class="form-control form-control-sm" th:value="${endDate}">
-                    <button class="btn btn-primary btn-sm" id="applyDateFilter">
-                        <i class="fas fa-check me-1"></i> <span th:text="#{totals.applyDate}">Застосувати</span>
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" id="clearDateFilter" th:title="#{totals.resetDate}">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <select id="typeFilter" class="form-select form-select-sm type-filter-select">
-                    <option value="all" th:text="#{totals.allTypes}">Всі типи</option>
-                    <option value="EXPENSE" th:text="#{type.expenseFilter}">Витрати</option>
-                    <option value="INCOME" th:text="#{type.incomeFilter}">Доходи</option>
-                </select>
-
-                <select id="categoryFilter" class="form-select form-select-sm category-filter-select">
-                    <option value="all" th:text="#{totals.allCategories}">Всі категорії</option>
-                </select>
-
-                <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
-                    <option value="0" selected th:text="#{common.all}">Всі</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-                <button id="loadMoreBtn" class="btn btn-primary btn-sm load-more-btn">
-                    <i class="fas fa-plus-circle me-1"></i> <span th:text="#{common.loadMore}">Завантажити ще</span>
-                </button>
-                <span class="info-text" id="visibleInfo">—</span>
-            </div>
-
-            <!-- ТАБЛИЦЯ КАТЕГОРІЙ -->
-            <div id="tableView" class="table-view-container">
-                <div class="table-responsive">
-                    <table class="table-categories" id="categoriesTable">
-                        <thead>
-                        <tr>
-                            <th class="col-number" th:text="#{totals.col.number}">№</th>
-                            <th class="col-category sortable active-asc" data-sort="category" data-type="string">
-                                <span th:text="#{totals.col.category}">Категорія</span> <i class="fas fa-sort-up sort-icon"></i>
-                            </th>
-                            <th class="col-type sortable" data-sort="type" data-type="string">
-                                <span th:text="#{totals.col.type}">Тип</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-amount sortable" data-sort="amount" data-type="number">
-                                <span th:text="#{totals.col.amount}">Сума</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-percent sortable" data-sort="percent" data-type="number">
-                                <span th:text="#{totals.col.percent}">%</span> <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody id="categoriesBody">
-                        <tr th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}" class="category-row"
-                            th:data-category="${entry.key.name}"
-                            th:data-amount="${entry.value}"
-                            th:data-type="EXPENSE"
-                            th:data-percent="0">
-                            <td class="col-number" th:text="${stat.index + 1}"></td>
-                            <td class="col-category" th:text="${entry.key.name}"></td>
-                            <td class="col-type"><span class="badge bg-danger" style="font-size:0.7rem;" th:text="#{type.EXPENSE}">Витрата</span></td>
-                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-percent" th:id="'percent-' + ${stat.index}" th:text="'0%'"></td>
-                        </tr>
-                        <tr th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}" class="category-row"
-                            th:data-category="${entry.key.name}"
-                            th:data-amount="${entry.value}"
-                            th:data-type="INCOME"
-                            th:data-percent="0">
-                            <td class="col-number" th:text="${stat.index + 1 + totalBudget.expensesByCategory.size()}"></td>
-                            <td class="col-category" th:text="${entry.key.name}"></td>
-                            <td class="col-type"><span class="badge bg-success" style="font-size:0.7rem;" th:text="#{type.INCOME}">Дохід</span></td>
-                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-percent" th:id="'percent-income-' + ${stat.index}" th:text="'0%'"></td>
-                        </tr>
-                        <tr th:if="${#maps.isEmpty(totalBudget.expensesByCategory) and #maps.isEmpty(totalBudget.incomesByCategory)}" id="emptyRow">
-                            <td colspan="5" class="text-center text-muted py-3" th:text="#{totals.noData}">Немає даних за обраний період</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- КАРТКИ КАТЕГОРІЙ -->
-            <div id="cardsView" class="cards-view-container">
-                <div class="row" id="cardsContainer">
-                    <th:block th:each="entry, stat : ${totalBudget.expensesByCategory.entrySet()}">
-                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper category-card-animated" data-type="EXPENSE"
-                             th:data-category="${entry.key.name}"
-                             th:data-amount="${entry.value}"
-                             th:data-percent="0">
-                            <div class="category-card">
-                                <div class="card-title d-flex justify-content-between align-items-center">
-                                    <span th:text="${entry.key.name}"></span>
-                                    <span class="badge-type expense" th:text="#{type.EXPENSE}">Витрата</span>
-                                </div>
-                                <div class="card-text">
-                                    <span class="label"><i class="fas fa-coins me-1"></i><span th:text="#{common.amount}">Сума</span></span>
-                                    <span class="value text-expense" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
-                                </div>
-                                <div class="card-text">
-                                    <span class="label"><i class="fas fa-percent me-1"></i><span th:text="#{common.share}">Частка</span></span>
-                                    <span class="value percent-value" th:text="'0%'"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </th:block>
-                    <th:block th:each="entry, stat : ${totalBudget.incomesByCategory.entrySet()}">
-                        <div class="col-12 col-sm-6 col-lg-4 category-card-wrapper category-card-animated" data-type="INCOME"
-                             th:data-category="${entry.key.name}"
-                             th:data-amount="${entry.value}"
-                             th:data-percent="0">
-                            <div class="category-card">
-                                <div class="card-title d-flex justify-content-between align-items-center">
-                                    <span th:text="${entry.key.name}"></span>
-                                    <span class="badge-type income" th:text="#{type.INCOME}">Дохід</span>
-                                </div>
-                                <div class="card-text">
-                                    <span class="label"><i class="fas fa-coins me-1"></i><span th:text="#{common.amount}">Сума</span></span>
-                                    <span class="value text-income" th:text="${#numbers.formatDecimal(entry.value, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
-                                </div>
-                                <div class="card-text">
-                                    <span class="label"><i class="fas fa-percent me-1"></i><span th:text="#{common.share}">Частка</span></span>
-                                    <span class="value percent-value" th:text="'0%'"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </th:block>
-                </div>
-                <div id="noCardsResults" class="empty-note" style="display: none;" th:text="#{totals.noData}">Немає даних за обраний період</div>
-            </div>
-
         </div>
     </div>
 
@@ -669,170 +604,20 @@
 
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ТРАНЗАКЦІЇ ===== -->
-<div class="modal fade no-print" id="transactionModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i><span th:text="#{modal.addTransaction}">Додати нову транзакцію</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="transactionForm" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-body">
-                    <input type="hidden" name="type" id="transactionType" value="EXPENSE">
-
-                    <div class="mb-3">
-                        <label class="form-label" th:text="#{modal.type}">Тип</label>
-                        <div class="transaction-type-toggle">
-                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> <span th:text="#{modal.type.expense}">Витрата</span>
-                            </button>
-                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> <span th:text="#{modal.type.income}">Дохід</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionDate" class="form-label" th:text="#{modal.date}">Дата</label>
-                        <input type="date" class="form-control" id="transactionDate" name="date" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionTime" class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="categorySelect" class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <div class="input-group category-input-group">
-                            <select class="form-select" id="categorySelect" name="categoryId" required>
-                                <option value="" th:text="#{common.loading}">Завантаження...</option>
-                            </select>
-                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" th:title="#{modal.category.addTitle}">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" th:text="#{modal.enterCategory}">Виберіть категорію</div>
-                        <div class="form-text text-muted" th:utext="#{modal.category.hint}">Не знайшли потрібну категорію?</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionName" class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" class="form-control" id="transactionName" name="description"
-                               th:placeholder="#{modal.name.placeholder}" required>
-                        <div class="invalid-feedback" th:text="#{modal.fillField}">Заповніть це поле</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionAmount" class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <div class="input-group-number">
-                            <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
-                            <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
-                        </div>
-                        <div class="invalid-feedback" th:text="#{modal.enterAmount}">Введіть суму</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionQuantity" class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <div class="input-group-number">
-                            <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
-                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
-                                   placeholder="1" value="1" min="1">
-                            <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionBuyer" class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" th:placeholder="#{common.buyer}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionSeller" class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" class="form-control" id="transactionSeller" name="seller" th:placeholder="#{common.seller}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionDetails" class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
-                                  th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="charCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{modal.save}">Зберегти транзакцію</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
-
-<!-- ПЕРЕДАЄМО ДАНІ ДЛЯ ДІАГРАМ -->
-<div style="display:none;">
-    <span id="expenseData" th:each="entry : ${totalBudget.expensesByCategory.entrySet()}"
-          th:data-category="${entry.key.name}"
-          th:data-amount="${entry.value}"></span>
-    <span id="incomeData" th:each="entry : ${totalBudget.incomesByCategory.entrySet()}"
-          th:data-category="${entry.key.name}"
-          th:data-amount="${entry.value}"></span>
-</div>
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 
-<!--
-  P2.a: спільна логіка транзакцій винесена у /js/transaction-common.js.
-  Тут залишається ЛИШЕ специфічне для totals:
-    • chart rendering (server-side дані, не DOM-рядки)
-    • analytics toggle, chart collapse
-    • filters для КАТЕГОРІЙ (не транзакцій): search, date, type, category
-    • view toggle (таблиця/картки для категорій)
-    • sorting категорій
-    • calculatePercentages
--->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         'use strict';
 
-        // ===== P2.a: init спільної логіки транзакцій =====
-        window.LazyCentTx.init({
-            currencySymbol: /*[[${currencySymbol}]]*/ '₴',
-            buildActionUrl: function (type, dateStr) {
-                if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
-                return type === 'EXPENSE'
-                    ? '/day/' + dateStr + '/expense'
-                    : '/day/' + dateStr + '/income';
-            },
-            i18n: {
-                noCategories: /*[[#{totals.allCategories}]]*/ 'Немає категорій'
-            }
-        });
-
-        // ===== ЛОКАЛЬНИЙ КОД =====
-        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
-
         var i18n = {
-            toastSuccess:   /*[[#{toast.success}]]*/ 'Успішно!',
-            toastError:     /*[[#{toast.error}]]*/   'Помилка!',
-            toastInfo:      /*[[#{toast.info}]]*/    'Інформація',
             showing:        /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
-            allLoaded:      /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
-            loadMore:       /*[[#{common.loadMore}]]*/ 'Завантажити ще',
-            chartNotLoaded: /*[[#{toast.error}]]*/ 'Chart.js не завантажено.',
-            noCategories:   /*[[#{totals.allCategories}]]*/ 'Немає категорій',
-            typeExpense:    /*[[#{type.EXPENSE}]]*/ 'Витрата',
-            typeIncome:     /*[[#{type.INCOME}]]*/ 'Дохід',
-            allCategories:  /*[[#{totals.allCategories}]]*/ 'Всі категорії',
-            barLabel:       /*[[#{common.amount}]]*/ 'Сума'
+            allCategories:  /*[[#{totals.allCategories}]]*/ 'Всі категорії'
         };
 
         function fmt(template) {
@@ -842,26 +627,12 @@
             });
         }
 
-        // ===== ЗБІР ДАНИХ ДЛЯ ДІАГРАМ =====
-        var expenseCategories = [], expenseAmounts = [];
-        var incomeCategories = [], incomeAmounts = [];
-
-        document.querySelectorAll('#expenseData').forEach(function (el) {
-            var cat = el.getAttribute('data-category');
-            var amount = parseFloat(el.getAttribute('data-amount')) || 0;
-            if (cat && amount > 0) { expenseCategories.push(cat); expenseAmounts.push(amount); }
-        });
-        document.querySelectorAll('#incomeData').forEach(function (el) {
-            var cat = el.getAttribute('data-category');
-            var amount = parseFloat(el.getAttribute('data-amount')) || 0;
-            if (cat && amount > 0) { incomeCategories.push(cat); incomeAmounts.push(amount); }
-        });
-
-        // ===== ФІЛЬТР КАТЕГОРІЙ =====
         function populateCategoryFilter() {
             var allCategories = [];
-            expenseCategories.forEach(function (c) { if (allCategories.indexOf(c) === -1) allCategories.push(c); });
-            incomeCategories.forEach(function (c) { if (allCategories.indexOf(c) === -1) allCategories.push(c); });
+            document.querySelectorAll('.category-row').forEach(function (row) {
+                var c = row.dataset.category;
+                if (c && allCategories.indexOf(c) === -1) allCategories.push(c);
+            });
             allCategories.sort();
             var filterSelect = document.getElementById('categoryFilter');
             if (!filterSelect) return;
@@ -875,25 +646,6 @@
             if (currentVal && allCategories.indexOf(currentVal) !== -1) filterSelect.value = currentVal;
         }
 
-        // ===== ДАНІ ДЛЯ СТОВПЧИКІВ =====
-        var allBarCategories = [], allBarAmounts = [], barColors = [];
-        expenseCategories.forEach(function (cat, idx) {
-            allBarCategories.push(cat); allBarAmounts.push(expenseAmounts[idx]); barColors.push('#dc3545');
-        });
-        incomeCategories.forEach(function (cat, idx) {
-            allBarCategories.push(cat); allBarAmounts.push(incomeAmounts[idx]); barColors.push('#198754');
-        });
-
-        var CHART_PALETTE = ['#C9A227','#B5533C','#4F7942','#1B2430','#8C7A5B','#D4A373','#6D6875','#B5838D','#2A9D8F','#E76F51','#264653','#F4A261','#E9C46A','#A8DADC','#457B9D'];
-        function getCategoryColor(name, index) {
-            if (!name) return '#6c757d';
-            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            var hash = 0;
-            for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
-        }
-
-        // ===== ВІДСОТКИ =====
         function calculatePercentages() {
             var expenseEntries = document.querySelectorAll('.category-row[data-type="EXPENSE"]');
             var totalExpenses = 0;
@@ -904,6 +656,8 @@
                 row.dataset.percent = percent.toFixed(1);
                 var cell = document.getElementById('percent-' + idx);
                 if (cell) cell.textContent = percent.toFixed(1) + '%';
+                var bar = document.getElementById('pct-bar-' + idx);
+                if (bar) bar.style.width = percent.toFixed(1) + '%';
             });
 
             var incomeEntries = document.querySelectorAll('.category-row[data-type="INCOME"]');
@@ -915,6 +669,8 @@
                 row.dataset.percent = percent.toFixed(1);
                 var cell = document.getElementById('percent-income-' + idx);
                 if (cell) cell.textContent = percent.toFixed(1) + '%';
+                var bar = document.getElementById('pct-bar-income-' + idx);
+                if (bar) bar.style.width = percent.toFixed(1) + '%';
             });
 
             document.querySelectorAll('.category-card-wrapper').forEach(function (card) {
@@ -928,153 +684,12 @@
             });
         }
 
-        // ===== ДІАГРАМИ =====
-        function renderExpenseChart() {
-            var canvas = document.getElementById('expenseChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            if (expenseCategories.length === 0) {
-                var col = document.getElementById('expenseChartCol');
-                if (col) col.style.display = 'none';
-                return;
-            }
-            var colors = expenseCategories.map(function (n, i) { return getCategoryColor(n, i); });
-            if (window.expenseChartInstance) window.expenseChartInstance.destroy();
-            window.expenseChartInstance = new Chart(canvas, {
-                type: 'doughnut',
-                data: { labels: expenseCategories, datasets: [{ data: expenseAmounts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
-            });
-            var legendContainer = document.getElementById('expenseLegend');
-            if (legendContainer) {
-                var total = expenseAmounts.reduce(function (a, b) { return a + b; }, 0);
-                var html = '<table class="chart-legend-table"><tbody>';
-                expenseCategories.forEach(function (name, idx) {
-                    var amount = expenseAmounts[idx];
-                    var color = getCategoryColor(name, idx);
-                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                    html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
-                });
-                legendContainer.innerHTML = html + '</tbody></table>';
-            }
-        }
-
-        function renderIncomeChart() {
-            var canvas = document.getElementById('incomeChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            if (incomeCategories.length === 0) {
-                var col = document.getElementById('incomeChartCol');
-                if (col) col.style.display = 'none';
-                return;
-            }
-            var colors = incomeCategories.map(function (n, i) { return getCategoryColor(n, i + 5); });
-            if (window.incomeChartInstance) window.incomeChartInstance.destroy();
-            window.incomeChartInstance = new Chart(canvas, {
-                type: 'doughnut',
-                data: { labels: incomeCategories, datasets: [{ data: incomeAmounts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
-            });
-            var legendContainer = document.getElementById('incomeLegend');
-            if (legendContainer) {
-                var total = incomeAmounts.reduce(function (a, b) { return a + b; }, 0);
-                var html = '<table class="chart-legend-table"><tbody>';
-                incomeCategories.forEach(function (name, idx) {
-                    var amount = incomeAmounts[idx];
-                    var color = getCategoryColor(name, idx + 5);
-                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                    html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
-                });
-                legendContainer.innerHTML = html + '</tbody></table>';
-            }
-        }
-
-        function renderBarChart() {
-            var canvas = document.getElementById('barChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            if (allBarCategories.length === 0) {
-                var row = document.getElementById('barChartRow');
-                if (row) row.style.display = 'none';
-                return;
-            }
-            if (window.barChartInstance) window.barChartInstance.destroy();
-            window.barChartInstance = new Chart(canvas, {
-                type: 'bar',
-                data: {
-                    labels: allBarCategories,
-                    datasets: [{ label: i18n.barLabel, data: allBarAmounts, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: true, ticks: { maxRotation: 45, minRotation: 30 } },
-                        y: { beginAtZero: true, ticks: { callback: function (v) { return v + ' ' + currencySymbol; } } }
-                    }
-                }
-            });
-        }
-
-        function renderAllCharts() {
-            setTimeout(function () { renderExpenseChart(); renderIncomeChart(); renderBarChart(); }, 150);
-        }
-
-        // ===== ANALYTICS TOGGLE + CHART COLLAPSE =====
-        var analyticsToggle = document.getElementById('analyticsToggle');
-        var chartsContainer = document.getElementById('chartsContainer');
-        var barRow = document.getElementById('barChartRow');
-
-        function setAnalyticsMode(mode) {
-            analyticsToggle.querySelectorAll('.btn').forEach(function (btn) {
-                btn.classList.toggle('active', btn.dataset.mode === mode);
-            });
-            if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow.style.display = 'none'; }
-            else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow.style.display = ''; }
-            else { chartsContainer.style.display = 'flex'; barRow.style.display = ''; }
-            localStorage.setItem('totals-analytics-mode', mode);
-            setTimeout(renderAllCharts, 100);
-        }
-        setAnalyticsMode(localStorage.getItem('totals-analytics-mode') || 'both');
-        analyticsToggle.addEventListener('click', function (e) {
-            var btn = e.target.closest('.btn');
-            if (!btn || btn.classList.contains('active')) return;
-            setAnalyticsMode(btn.dataset.mode);
-        });
-
-        var toggleChartBtn = document.getElementById('toggleChartBtn');
-        var chartBody = document.getElementById('chartBody');
-        var chartIcon = document.getElementById('chartToggleIcon');
-        if (toggleChartBtn && chartBody) {
-            if (localStorage.getItem('totals-chart-collapsed') === 'true') {
-                chartBody.style.display = 'none';
-                chartIcon.className = 'fas fa-chevron-down toggle-icon';
-            }
-            toggleChartBtn.addEventListener('click', function () {
-                var isHidden = chartBody.style.display === 'none';
-                if (isHidden) {
-                    chartBody.style.display = '';
-                    chartIcon.className = 'fas fa-chevron-up toggle-icon';
-                    localStorage.setItem('totals-chart-collapsed', 'false');
-                    setTimeout(renderAllCharts, 100);
-                } else {
-                    chartBody.style.display = 'none';
-                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
-                    localStorage.setItem('totals-chart-collapsed', 'true');
-                }
-            });
-        }
-
-        // ===== ФІЛЬТРИ + VIEW TOGGLE + SORT =====
         var searchInput = document.getElementById('searchInput');
         var dateFrom = document.getElementById('dateFrom');
         var dateTo = document.getElementById('dateTo');
-        var applyDateBtn = document.getElementById('applyDateFilter');
-        var clearDateBtn = document.getElementById('clearDateFilter');
         var typeFilter = document.getElementById('typeFilter');
         var categoryFilter = document.getElementById('categoryFilter');
         var pageSizeSelect = document.getElementById('pageSizeSelect');
-        var loadMoreBtn = document.getElementById('loadMoreBtn');
         var viewToggle = document.getElementById('viewToggle');
         var totalRowsSpan = document.getElementById('totalRowsCount');
         var visibleInfo = document.getElementById('visibleInfo');
@@ -1133,14 +748,6 @@
             return result;
         }
 
-        function updateRowNumbers() {
-            document.querySelectorAll('#categoriesBody .category-row').forEach(function (row, idx) {
-                if (row.style.display === 'none') return;
-                var numCell = row.querySelector('.col-number');
-                if (numCell) numCell.textContent = idx + 1;
-            });
-        }
-
         function updateUI() {
             var total = filteredItems.length;
             if (totalRowsSpan) totalRowsSpan.textContent = total;
@@ -1159,12 +766,7 @@
                     if (card) card.style.display = '';
                 });
                 if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, total, total);
-                if (loadMoreBtn) {
-                    loadMoreBtn.disabled = true;
-                    loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
-                }
                 if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
-                updateRowNumbers();
                 setTimeout(calculatePercentages, 50);
                 return;
             }
@@ -1177,32 +779,14 @@
                 if (card) card.style.display = '';
             });
 
-            var allShown = (end >= total);
             if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, end, total);
-            if (loadMoreBtn) {
-                loadMoreBtn.disabled = allShown || total === 0;
-                loadMoreBtn.innerHTML = allShown && total > 0
-                    ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
-                    : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
-            }
             if (noCardsResults) noCardsResults.style.display = total === 0 ? 'block' : 'none';
-            updateRowNumbers();
             setTimeout(calculatePercentages, 50);
         }
 
         function applyFiltersAndPaginate() {
             filteredItems = getFilteredItems();
             currentPage = 1;
-            updateUI();
-            setTimeout(renderAllCharts, 100);
-        }
-
-        function loadMore() {
-            if (pageSize === 0) return;
-            var total = filteredItems.length;
-            var shown = Math.min(currentPage * pageSize, total);
-            if (shown >= total) { loadMoreBtn.disabled = true; return; }
-            currentPage++;
             updateUI();
         }
 
@@ -1214,24 +798,17 @@
             currentPage = 1;
             updateUI();
         });
-        loadMoreBtn.addEventListener('click', loadMore);
 
-        // Фільтр дати — перехід на серверний endpoint
-        function updateData() {
-            var from = dateFrom.value, to = dateTo.value;
-            window.location.href = (from && to) ? '/totals?startDate=' + from + '&endDate=' + to : '/totals';
+        function reloadWithDates() {
+            var from = dateFrom.value;
+            var to = dateTo.value;
+            if (!from || !to) return;
+            if (from > to) return;
+            window.location.href = '/totals?startDate=' + from + '&endDate=' + to;
         }
-        applyDateBtn.addEventListener('click', function (e) { e.preventDefault(); updateData(); });
-        clearDateBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            dateFrom.value = '';
-            dateTo.value = '';
-            window.location.href = '/totals';
-        });
-        dateFrom.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
-        dateTo.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); updateData(); } });
+        dateFrom.addEventListener('change', reloadWithDates);
+        dateTo.addEventListener('change', reloadWithDates);
 
-        // Сортування
         function sortRowsBy(column, direction) {
             var th = document.querySelector('.sortable[data-sort="' + column + '"]');
             var dataType = th ? th.dataset.type : 'string';
@@ -1276,15 +853,7 @@
 
         applyFiltersAndPaginate();
         setTimeout(calculatePercentages, 300);
-
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            .forEach(function (el) { new bootstrap.Tooltip(el); });
-
-        setTimeout(function () { if (typeof Chart !== 'undefined') renderAllCharts(); }, 500);
-        setTimeout(calculatePercentages, 1000);
     });
 </script>
-<div th:replace="~{fragments/settings-panel :: settingsPanelScript}">
-</div><div th:replace="~{fragments/quick-transaction-modal :: quickTransactionModalScript}"></div>
 </body>
 </html>
