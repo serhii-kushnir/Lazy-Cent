@@ -48,6 +48,11 @@ public class HomeController extends BaseController {
         TotalBudget todaySummary = budgetService.getTodaySummary(user);
         TotalBudget weekSummary  = budgetService.getWeekSummary(user);
         TotalBudget monthSummary = budgetService.getMonthSummary(user);
+
+        Double currentBalance = dayBudgetRepository.findFirstByOwnerOrderByDateDesc(user)
+                .map(DayBudget::getRemainingBalance)
+                .orElse(0.0);
+        model.addAttribute("currentBalance", currentBalance);
         model.addAttribute("today", today);
         model.addAttribute("todaySummary", todaySummary);
         model.addAttribute("weekSummary", weekSummary);
