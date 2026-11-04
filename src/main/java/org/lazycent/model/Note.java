@@ -21,7 +21,16 @@ public class Note {
     @EqualsAndHashCode.Include
     private Long id;
 
+    /**
+     * Optimistic locking — захист від lost update.
+     * Дві вкладки редагують → друга отримає ObjectOptimisticLockingFailureException
+     * (обробляється в GlobalExceptionHandler → повідомлення "Дані були змінені в іншій сесії").
+     */
+    @Version
     @Column(nullable = false)
+    private Long version = 0L;
+
+    @Column(nullable = false, length = 255)
     private String title;
 
     @Column(length = 5000)
@@ -36,6 +45,9 @@ public class Note {
 
     private boolean archived = false;
 
+    @Column(name = "share_with_family", nullable = false)
+    private Boolean shareWithFamily = false;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
@@ -45,7 +57,4 @@ public class Note {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
-
-    @Column(name = "share_with_family", nullable = false)
-    private Boolean shareWithFamily = false;
 }

@@ -13,12 +13,9 @@
         .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
         .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
         .delay-1 { animation-delay: 0.05s; }
-        .delay-2 { animation-delay: 0.10s; }
 
-        /* ===== FULLHD MAX ===== */
         .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
 
-        /* ===== UNIFORM BUTTON RADIUS ===== */
         .btn:not(.btn-close),
         .btn.rounded-pill,
         .btn.rounded-circle,
@@ -28,19 +25,14 @@
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
 
-        /* ===== HEADER Z-INDEX ===== */
         .page-header-wrap { position: relative; z-index: 10; }
 
-        /* ===== ICON CIRCLE ===== */
         .icon-circle {
             width: 56px; height: 56px; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
             font-size: 1.5rem; flex-shrink: 0;
         }
 
-        /* ===================================================================
-           NOTES SECTION — unified bg (#1d2027 in dark)
-           =================================================================== */
         .notes-section {
             background-color: var(--bs-card-bg);
             border-radius: 1rem;
@@ -52,9 +44,6 @@
             border: 1px solid #2a2e37;
         }
 
-        /* ===================================================================
-           CATEGORY HEADER — theme-aware
-           =================================================================== */
         .cat-header-theme {
             background-color: #ffffff !important;
             color: #212529 !important;
@@ -79,7 +68,6 @@
             color: #ffffff !important;
         }
 
-        /* ===== VIEW TOGGLE (filter) ===== */
         .view-toggle {
             display: flex; gap: 0.3rem;
             background: var(--bs-secondary-bg);
@@ -117,13 +105,10 @@
             .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
         }
 
-        /* ===== SEARCH BAR ===== */
         .search-bar .input-group-text { background: transparent; border-right: none; }
         .search-bar .form-control { border-left: none; }
 
-        /* ===================================================================
-           NOTE CARDS
-           =================================================================== */
+        /* ===== NOTE CARDS ===== */
         .note-card {
             border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
@@ -222,7 +207,6 @@
         }
         .empty-notes i { font-size: 4rem; opacity: 0.25; }
 
-        /* ===== MOBILE ===== */
         @media (max-width: 575.98px) {
             .cat-header-theme > div.no-print {
                 width: 100%;
@@ -240,7 +224,6 @@
             }
         }
 
-        /* ===== PRINT ===== */
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
             nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
@@ -273,7 +256,6 @@
     <!-- ========== PAGE HEADER ========== -->
     <div class="page-header-wrap mb-4 animate-fade-down">
 
-        <!-- Desktop: title LEFT, buttons RIGHT -->
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
                 <i class="fas fa-users me-2 text-primary"></i>
@@ -291,7 +273,6 @@
             </div>
         </div>
 
-        <!-- Mobile -->
         <div class="d-lg-none">
             <h2 class="mb-3 fw-bold text-center">
                 <i class="fas fa-users me-2 text-primary"></i>
@@ -311,7 +292,6 @@
     <!-- ========== MAIN SECTION ========== -->
     <div class="notes-section mb-3 animate-fade-up delay-1">
 
-        <!-- Section header -->
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
             <div class="icon-circle bg-info text-white">
                 <i class="fas fa-users"></i>
@@ -329,7 +309,6 @@
             </div>
         </div>
 
-        <!-- Search bar -->
         <div class="p-3 search-bar" style="border-bottom: 1px solid var(--bs-border-color);">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -337,7 +316,6 @@
             </div>
         </div>
 
-        <!-- Notes grid -->
         <div class="p-3">
             <div class="row g-3" id="noteGrid">
 
@@ -356,7 +334,6 @@
                             <div class="card-body"
                                  th:onclick="${note.owner.id == currentUser.id} ? 'editNote(' + ${note.id} + ')' : ''">
 
-                                <!-- Author badge -->
                                 <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                     <span class="author-badge"
                                           th:classappend="${note.owner.id == currentUser.id} ? 'is-me' : ''">
@@ -374,7 +351,6 @@
                                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
                             </div>
 
-                            <!-- Actions: MY notes -->
                             <div th:if="${note.owner.id == currentUser.id}" class="card-footer">
                                 <div class="d-flex gap-1">
                                     <button class="btn-icon"
@@ -396,7 +372,6 @@
                                 </button>
                             </div>
 
-                            <!-- Actions: OTHERS' notes -->
                             <div th:unless="${note.owner.id == currentUser.id}" class="card-footer">
                                 <span class="text-muted small">
                                     <i class="fas fa-lock me-1"></i>
@@ -415,7 +390,6 @@
                     </div>
                 </th:block>
 
-                <!-- Empty state -->
                 <div th:if="${familyNotes.empty}" class="col-12">
                     <div class="empty-notes">
                         <i class="fas fa-users-slash"></i>
@@ -438,7 +412,7 @@
     </div>
 </div>
 
-<!-- ==================== EDIT NOTE MODAL (для своїх) ==================== -->
+<!-- ==================== EDIT NOTE MODAL ==================== -->
 <div class="modal fade" id="editNoteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -553,7 +527,6 @@
 
         document.addEventListener('DOMContentLoaded', function () {
 
-            // ===== COLOR PICKERS =====
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -576,7 +549,6 @@
                 });
             });
 
-            // ===== EDIT NOTE =====
             window.editNote = function (id) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
@@ -608,7 +580,6 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
             };
 
-            // ===== TOGGLE PIN =====
             window.togglePin = function (id) {
                 var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-pin/' + id, {
@@ -617,7 +588,6 @@
                 }).then(function (r) { if (r.ok) location.reload(); });
             };
 
-            // ===== TOGGLE ARCHIVE =====
             window.toggleArchive = function (id) {
                 var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-archive/' + id, {
@@ -626,13 +596,11 @@
                 }).then(function (r) { if (r.ok) location.reload(); });
             };
 
-            // ===== DELETE NOTE =====
             window.deleteNote = function (id) {
                 document.getElementById('deleteNoteForm').action = '/notes/delete/' + id;
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteNoteConfirmModal')).show();
             };
 
-            // ===== SEARCH =====
             var searchInput = document.getElementById('searchInput');
             searchInput.addEventListener('input', function () {
                 var q = this.value.trim().toLowerCase();
@@ -647,7 +615,6 @@
                 updateNoteCount();
             });
 
-            // ===== FILTER =====
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
@@ -664,7 +631,6 @@
                 });
             });
 
-            // ===== COUNT =====
             function updateNoteCount() {
                 var visible = 0;
                 document.querySelectorAll('.note-card-wrapper').forEach(function (w) {

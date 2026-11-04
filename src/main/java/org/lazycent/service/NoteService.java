@@ -2,9 +2,13 @@ package org.lazycent.service;
 
 import lombok.RequiredArgsConstructor;
 import org.lazycent.exception.EntityNotFoundException;
+import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Note;
 import org.lazycent.model.User;
 import org.lazycent.repository.NoteRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +19,48 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NoteService {
 
+    /** Максимальні довжини — мають збігатися з колонками БД (V1). */
+    private static final int MAX_TITLE_LENGTH = 255;
+    private static final int MAX_CONTENT_LENGTH = 5000;
+
+    /** Скільки нотаток показувати за один "завантажити ще". */
+    public static final int PAGE_SIZE = 20;
+
     private final NoteRepository noteRepository;
+
+    // ==================== ВАЛІДАЦІЯ ====================
+
+    /**
+     * Обрізає пробіли та перевіряє довжину/порожнечу title.
+     *
+     * <p>Дублює клієнтську валідацію навмисно: curl/Postman обходять `maxlength`,
+     * і без серверної перевірки в БД можна вставити 10 МБ title → падіння колонки.
+     */
+    private String validateAndTrimTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new ValidationException("Назва нотатки не може бути порожньою");
+        }
+        String trimmed = title.trim();
+        if (trimmed.length() > MAX_TITLE_LENGTH) {
+            throw new ValidationException(
+                    "Назва нотатки не може перевищувати " + MAX_TITLE_LENGTH + " символів");
+        }
+        return trimmed;
+    }
+
+    /**
+     * Обрізає пробіли в content та перевіряє довжину.
+     * {@code null} → {@code ""} (порожня нотатка валідна).
+     */
+    private String validateAndTrimContent(String content) {
+        if (content == null) return "";
+        String trimmed = content.trim();
+        if (trimmed.length() > MAX_CONTENT_LENGTH) {
+            throw new ValidationException(
+                    "Текст нотатки не може перевищувати " + MAX_CONTENT_LENGTH + " символів");
+        }
+        return trimmed;
+    }
 
     // ==================== ПЕРЕВІРКА ДОСТУПУ ====================
 
@@ -32,31 +77,20 @@ public class NoteService {
 
     @Transactional
     public Note createNote(Note note) {
+        // страховка: якщо хтось створив Note без перевірки — обрізаємо тут
+        note.setTitle(validateAndTrimTitle(note.getTitle()));
+        note.setContent(validateAndTrimContent(note.getContent()));
         return noteRepository.save(note);
     }
 
-    /**
-     * Оновлює нотатку.
-     *
-     * <p><b>Сигнатура (порядок аргументів):</b>
-     * {@code (id, title, content, color, textColor, shareWithFamily, user)}
-     *
-     * <p><b>Поведінка з null:</b>
-     * <ul>
-     *   <li>{@code content == null} → зберігається порожній рядок</li>
-     *   <li>{@code color == null / empty} → залишається старий</li>
-     *   <li>{@code textColor == null / empty} → залишається старий</li>
-     *   <li>{@code shareWithFamily == null} → залишається старий</li>
-     * </ul>
-     */
     @Transactional
     public Note updateNote(Long id, String title, String content,
                            String color, String textColor,
                            Boolean shareWithFamily, User user) {
         Note note = getOwnedNote(id, user);
 
-        note.setTitle(title);
-        note.setContent(content != null ? content : "");
+        note.setTitle(validateAndTrimTitle(title));
+        note.setContent(validateAndTrimContent(content));
 
         if (color != null && !color.isEmpty()) {
             note.setColor(color);
@@ -104,19 +138,33 @@ public class NoteService {
         return noteRepository.save(note);
     }
 
-    // ==================== ЧИТАННЯ ====================
+    // ==================== ЧИТАННЯ (PAGINATED) ====================
 
     @Transactional(readOnly = true)
-    public List<Note> getActiveNotes(User user) {
-        if (user == null) return List.of();
-        return noteRepository.findByOwnerAndArchivedFalseOrderByPinnedDescUpdatedAtDesc(user);
+    public Page<Note> getActiveNotes(User user, int page) {
+        return getActiveNotes(user, page, PAGE_SIZE);
     }
 
     @Transactional(readOnly = true)
-    public List<Note> getArchivedNotes(User user) {
-        if (user == null) return List.of();
-        return noteRepository.findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(user);
+    public Page<Note> getActiveNotes(User user, int page, int size) {
+        if (user == null) return Page.empty();
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        return noteRepository.findByOwnerAndArchivedFalseOrderByPinnedDescUpdatedAtDesc(user, pageable);
     }
+
+    @Transactional(readOnly = true)
+    public Page<Note> getArchivedNotes(User user, int page) {
+        return getArchivedNotes(user, page, PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> getArchivedNotes(User user, int page, int size) {
+        if (user == null) return Page.empty();
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        return noteRepository.findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(user, pageable);
+    }
+
+    // ==================== ПОШУК ====================
 
     @Transactional(readOnly = true)
     public List<Note> searchNotes(User user, String query) {
@@ -142,7 +190,6 @@ public class NoteService {
         Note source = noteRepository.findByIdWithOwner(sourceId)
                 .orElseThrow(() -> new EntityNotFoundException("Нотатку", sourceId));
 
-        // має бути з тієї ж сім'ї
         if (source.getOwner().getFamilyId() == null
                 || !source.getOwner().getFamilyId().equals(user.getFamilyId())) {
             throw new AccessDeniedException("Нотатка не з вашої сім'ї");
@@ -161,5 +208,33 @@ public class NoteService {
         copy.setArchived(false);
         copy.setPinned(false);
         return noteRepository.save(copy);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> searchActiveNotes(User user, String query, int page) {
+        return searchActiveNotes(user, query, page, PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> searchActiveNotes(User user, String query, int page, int size) {
+        if (user == null || query == null || query.trim().isEmpty()) {
+            return getActiveNotes(user, page, size);
+        }
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        return noteRepository.searchActive(user, query.trim(), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> searchArchivedNotes(User user, String query, int page) {
+        return searchArchivedNotes(user, query, page, PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> searchArchivedNotes(User user, String query, int page, int size) {
+        if (user == null || query == null || query.trim().isEmpty()) {
+            return getArchivedNotes(user, page, size);
+        }
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
+        return noteRepository.searchArchived(user, query.trim(), pageable);
     }
 }

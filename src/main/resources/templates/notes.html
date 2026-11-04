@@ -10,10 +10,15 @@
     <style>
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
-        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+
+        /* ============================================================
+           ВИПРАВЛЕННЯ #1: animation-fill-mode = backwards (не forwards!)
+           Без forwards transform повертається до `none` після анімації,
+           тому :hover { transform: translateY(-2px) } працює.
+           ============================================================ */
+        .animate-fade-up   { animation: fadeInUp   0.5s ease backwards; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
         .delay-1 { animation-delay: 0.05s; }
-        .delay-2 { animation-delay: 0.10s; }
 
         .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
 
@@ -54,20 +59,15 @@
         .cat-header-theme h6 * { color: #6c757d !important; }
         .cat-header-theme h3,
         .cat-header-theme h3 * { color: #212529 !important; }
-
         [data-bs-theme="dark"] .cat-header-theme {
             background-color: #1d2027 !important;
             color: #e6e6e6 !important;
             border-bottom-color: #2a2e37 !important;
         }
         [data-bs-theme="dark"] .cat-header-theme h6,
-        [data-bs-theme="dark"] .cat-header-theme h6 * {
-            color: rgba(230, 230, 230, 0.75) !important;
-        }
+        [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230, 230, 230, 0.75) !important; }
         [data-bs-theme="dark"] .cat-header-theme h3,
-        [data-bs-theme="dark"] .cat-header-theme h3 * {
-            color: #ffffff !important;
-        }
+        [data-bs-theme="dark"] .cat-header-theme h3 * { color: #ffffff !important; }
 
         .view-toggle {
             display: flex; gap: 0.3rem;
@@ -94,9 +94,7 @@
         [data-bs-theme="dark"] .cat-header-theme .view-toggle {
             background: rgba(255, 255, 255, 0.08) !important;
         }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn {
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
             background: #0d6efd !important;
             color: #ffffff !important;
@@ -106,37 +104,85 @@
             .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
         }
 
+        /* ===== SEARCH BAR ===== */
+        .search-bar { position: relative; }
         .search-bar .input-group-text { background: transparent; border-right: none; }
-        .search-bar .form-control { border-left: none; }
+        .search-bar .input-group > .btn { border-left: none; }
 
+        /* ============================================================
+           ВИПРАВЛЕННЯ #2: кнопка "Х" — завжди видима, не залежить від JS
+           ============================================================ */
+        #searchClear {
+            flex-shrink: 0;
+            min-width: 44px;
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+        #searchClear:hover {
+            background-color: rgba(220, 53, 69, 0.12);
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        [data-bs-theme="dark"] #searchClear {
+            color: #adb5bd;
+            border-color: #495057;
+        }
+        [data-bs-theme="dark"] #searchClear:hover {
+            background-color: rgba(248, 113, 113, 0.15);
+            border-color: #f87171;
+            color: #f87171;
+        }
+
+        .search-loading {
+            position: absolute;
+            right: 4.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--bs-secondary-color);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        /* ============================================================
+           ВИПРАВЛЕННЯ #1 (продовження): картки — hover як на кнопках
+           Той самий transform + shadow, що і .btn:hover
+           ============================================================ */
         .note-card {
             border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             height: 100%;
             display: flex;
             flex-direction: column;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
             overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .note-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         [data-bs-theme="dark"] .note-card:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
         .note-card.pinned {
             box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1);
         }
         .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 8px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15);
         }
+        [data-bs-theme="dark"] .note-card.pinned:hover {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-up, .animate-fade-down { animation: none; }
+            .note-card { transition: box-shadow 0.2s ease; }
+            .note-card:hover { transform: none; }
+        }
+
         .note-card.archived { opacity: 0.7; }
-        .note-card .card-body {
-            flex: 1;
-            padding: 0.9rem 1rem 0.75rem;
-        }
+        .note-card .card-body { flex: 1; padding: 0.9rem 1rem 0.75rem; }
         .note-card .card-title {
             font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -183,14 +229,9 @@
             color: var(--bs-secondary-color); white-space: nowrap; padding: 0 1rem;
             display: inline-flex; align-items: center; gap: 0.5rem;
         }
-        .archived-divider hr {
-            border-color: var(--bs-border-color); opacity: 0.6; margin: 0;
-        }
+        .archived-divider hr { border-color: var(--bs-border-color); opacity: 0.6; margin: 0; }
 
-        .empty-notes {
-            text-align: center; padding: 60px 20px;
-            color: var(--bs-secondary-color);
-        }
+        .empty-notes { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-notes i { font-size: 4rem; opacity: 0.25; }
 
         .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -206,21 +247,12 @@
         }
         .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
 
+        .char-counter { font-size: 0.75rem; color: var(--bs-secondary-color); text-align: right; margin-top: 0.25rem; }
+
         @media (max-width: 575.98px) {
-            .cat-header-theme > div.no-print {
-                width: 100%;
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 0.5rem !important;
-            }
-            .cat-header-theme > div.no-print > .view-toggle {
-                width: 100% !important;
-                height: 42px !important;
-            }
-            .cat-header-theme > div.no-print > .view-toggle > .btn {
-                flex: 1;
-                height: 36px !important;
-            }
+            .cat-header-theme > div.no-print { width: 100%; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
+            .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; height: 42px !important; }
+            .cat-header-theme > div.no-print > .view-toggle > .btn { flex: 1; height: 36px !important; }
         }
 
         @media print {
@@ -252,10 +284,8 @@
         <h2 th:text="#{notes.title}">Нотатки</h2>
     </div>
 
-    <!-- ========== PAGE HEADER ========== -->
     <div class="page-header-wrap mb-4 animate-fade-down">
 
-        <!-- Desktop: title LEFT, buttons RIGHT -->
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
                 <i class="fas fa-sticky-note me-2 text-primary"></i>
@@ -273,7 +303,6 @@
             </div>
         </div>
 
-        <!-- Mobile -->
         <div class="d-lg-none">
             <h2 class="mb-3 fw-bold text-center">
                 <i class="fas fa-sticky-note me-2 text-primary"></i>
@@ -292,17 +321,20 @@
         </div>
     </div>
 
-    <!-- ========== MAIN SECTION ========== -->
     <div class="notes-section mb-3 animate-fade-up delay-1">
 
-        <!-- Section header -->
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
             <div class="icon-circle bg-primary text-white">
                 <i class="fas fa-sticky-note"></i>
             </div>
             <div class="flex-grow-1 text-start" style="min-width: 0;">
                 <h6 class="mb-0" th:text="#{notes.title}">Нотатки</h6>
-                <h3 class="mb-0"><span id="headerNoteCount">0</span></h3>
+                <h3 class="mb-0">
+                    <span id="headerNoteCount">0</span>
+                    <small class="text-muted ms-1" id="headerTotalHint"
+                           th:if="${activeTotal != null and activeTotal > 20}"
+                           th:text="'/ ' + ${activeTotal}">/500</small>
+                </h3>
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="filterToggle">
@@ -314,134 +346,27 @@
             </div>
         </div>
 
-        <!-- Search bar -->
+        <!-- SEARCH BAR: X-кнопка завжди в DOM і завжди видима -->
         <div class="p-3 search-bar" style="border-bottom: 1px solid var(--bs-border-color);">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" id="searchInput" class="form-control" th:placeholder="#{notes.search}">
+                <input type="text" id="searchInput" class="form-control"
+                       th:value="${q}" th:placeholder="#{notes.search}" autocomplete="off">
+                <button type="button" id="searchClear"
+                        class="btn btn-outline-secondary"
+                        title="Очистити пошук"
+                        aria-label="Очистити пошук">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            <span id="searchLoading" class="search-loading" style="display:none;">
+                <i class="fas fa-spinner fa-spin"></i>
+            </span>
         </div>
 
-        <!-- Notes grid -->
         <div class="p-3">
             <div class="row g-3" id="noteGrid">
-
-                <!-- ========== ACTIVE NOTES ========== -->
-                <th:block th:each="note : ${notes}">
-                    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
-                         data-kind="active"
-                         th:attr="data-shared=${note.shareWithFamily}">
-                        <div class="note-card animate-fade-up"
-                             th:classappend="${note.pinned} ? 'pinned' : ''"
-                             th:data-id="${note.id}"
-                             th:data-archived="false"
-                             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
-                             th:data-color="${note.color}"
-                             th:data-textcolor="${note.textColor}"
-                             th:style="'background-color:' + ${note.color}">
-                            <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                                    <h5 class="card-title mb-0 flex-grow-1"
-                                        th:text="${note.title}"
-                                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
-                                    <span th:if="${note.shareWithFamily}"
-                                          class="shared-badge"
-                                          th:title="#{badge.shared.tooltip}">
-                                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
-                                    </span>
-                                </div>
-                                <p class="card-text"
-                                   th:text="${note.content}"
-                                   th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
-                            </div>
-                            <div class="card-footer">
-                                <div class="d-flex gap-1">
-                                    <button class="btn-icon"
-                                            th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
-                                            th:onclick="'togglePin(' + ${note.id} + ')'">
-                                        <i class="fas fa-thumbtack"
-                                           th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
-                                    </button>
-                                    <button class="btn-icon"
-                                            th:title="#{notes.action.archive}"
-                                            th:onclick="'toggleArchive(' + ${note.id} + ')'">
-                                        <i class="fas fa-archive"></i>
-                                    </button>
-                                </div>
-                                <button class="btn-icon text-danger"
-                                        th:title="#{notes.action.delete}"
-                                        th:onclick="'deleteNote(' + ${note.id} + ')'">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </th:block>
-
-                <!-- ========== ARCHIVED DIVIDER ========== -->
-                <div th:if="${!archivedNotes.empty}"
-                     class="col-12 archived-divider js-archived-divider">
-                    <div class="d-flex align-items-center">
-                        <hr class="flex-grow-1">
-                        <span class="divider-label">
-                            <i class="fas fa-archive"></i>
-                            <span th:text="#{notes.filter.archived}">Архів</span>
-                        </span>
-                        <hr class="flex-grow-1">
-                    </div>
-                </div>
-
-                <!-- ========== ARCHIVED NOTES ========== -->
-                <th:block th:each="note : ${archivedNotes}">
-                    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
-                         data-kind="archived"
-                         th:attr="data-shared=${note.shareWithFamily}">
-                        <div class="note-card archived animate-fade-up"
-                             th:data-id="${note.id}"
-                             th:data-archived="true"
-                             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
-                             th:data-color="${note.color}"
-                             th:data-textcolor="${note.textColor}"
-                             th:style="'background-color:' + ${note.color}">
-                            <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
-                                    <h5 class="card-title mb-0 flex-grow-1"
-                                        th:text="${note.title}"
-                                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
-                                    <span th:if="${note.shareWithFamily}"
-                                          class="shared-badge"
-                                          th:title="#{badge.shared.tooltip}">
-                                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
-                                    </span>
-                                </div>
-                                <p class="card-text"
-                                   th:text="${note.content}"
-                                   th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
-                            </div>
-                            <div class="card-footer">
-                                <button class="btn-icon"
-                                        th:title="#{notes.action.unarchive}"
-                                        th:onclick="'toggleArchive(' + ${note.id} + ')'">
-                                    <i class="fas fa-undo"></i>
-                                </button>
-                                <button class="btn-icon text-danger"
-                                        th:title="#{notes.action.delete}"
-                                        th:onclick="'deleteNote(' + ${note.id} + ')'">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </th:block>
-
-                <!-- Empty state -->
-                <div th:if="${notes.empty and archivedNotes.empty}" class="col-12">
-                    <div class="empty-notes">
-                        <i class="fas fa-sticky-note"></i>
-                        <h4 class="mt-3" th:text="#{notes.empty.title}">Немає нотаток</h4>
-                        <p class="mb-0" th:text="#{notes.empty.text}">Створіть першу нотатку, натиснувши кнопку «Створити».</p>
-                    </div>
-                </div>
+                <th:block th:replace="~{fragments/note-grid :: fullGrid}"></th:block>
             </div>
         </div>
     </div>
@@ -466,12 +391,14 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <input type="text" class="form-control" name="title"
+                        <input type="text" class="form-control" name="title" id="createNoteTitle"
                                th:placeholder="#{notes.field.title}" required maxlength="255">
+                        <div class="char-counter"><span id="createTitleCount">0</span> / 255</div>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control" name="content" rows="4"
+                        <textarea class="form-control" name="content" id="createNoteContent" rows="4"
                                   th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
+                        <div class="char-counter"><span id="createContentCount">0</span> / 5000</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" th:text="#{notes.field.bg}">Колір фону</label>
@@ -545,10 +472,12 @@
                     <div class="mb-3">
                         <input type="text" class="form-control" name="title" id="editNoteTitle"
                                th:placeholder="#{notes.field.title}" required maxlength="255">
+                        <div class="char-counter"><span id="editTitleCount">0</span> / 255</div>
                     </div>
                     <div class="mb-3">
                         <textarea class="form-control" name="content" id="editNoteContent" rows="4"
                                   th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
+                        <div class="char-counter"><span id="editContentCount">0</span> / 5000</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" th:text="#{notes.field.bg}">Колір фону</label>
@@ -664,9 +593,26 @@
             no:  /*[[#{notes.delete.no}]]*/  'Ні'
         };
 
+        function bindCounter(inputId, counterId, max) {
+            var input = document.getElementById(inputId);
+            var counter = document.getElementById(counterId);
+            if (!input || !counter) return;
+            function update() {
+                var len = input.value.length;
+                counter.textContent = len;
+                counter.style.color = len >= max ? 'var(--bs-danger)' : '';
+            }
+            input.addEventListener('input', update);
+            update();
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
 
-            // ===== COLOR PICKERS =====
+            bindCounter('createNoteTitle', 'createTitleCount', 255);
+            bindCounter('createNoteContent', 'createContentCount', 5000);
+            bindCounter('editNoteTitle', 'editTitleCount', 255);
+            bindCounter('editNoteContent', 'editContentCount', 5000);
+
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -689,7 +635,6 @@
                 });
             });
 
-            // ===== EDIT NOTE =====
             window.editNote = function (id) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
@@ -718,11 +663,15 @@
                 var shareInput = document.getElementById('editShareWithFamily');
                 if (shareInput) shareInput.checked = isShared;
 
+                ['editNoteTitle', 'editNoteContent'].forEach(function (elId) {
+                    var el = document.getElementById(elId);
+                    if (el) el.dispatchEvent(new Event('input'));
+                });
+
                 document.getElementById('editNoteForm').action = '/notes/update/' + id;
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
             };
 
-            // ===== TOGGLE PIN =====
             window.togglePin = function (id) {
                 var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-pin/' + id, {
@@ -731,7 +680,6 @@
                 }).then(function (r) { if (r.ok) location.reload(); });
             };
 
-            // ===== TOGGLE ARCHIVE =====
             window.toggleArchive = function (id) {
                 var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-archive/' + id, {
@@ -740,7 +688,6 @@
                 }).then(function (r) { if (r.ok) location.reload(); });
             };
 
-            // ===== DELETE NOTE =====
             window.deleteNote = function (id) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
@@ -758,22 +705,6 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteNoteConfirmModal')).show();
             };
 
-            // ===== SEARCH =====
-            var searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', function () {
-                var query = this.value.trim().toLowerCase();
-                document.querySelectorAll('.note-card-wrapper').forEach(function (wrapper) {
-                    if (!query) { wrapper.style.display = ''; return; }
-                    var card = wrapper.querySelector('.note-card');
-                    if (!card) return;
-                    var title = (card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '').toLowerCase();
-                    var content = (card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '').toLowerCase();
-                    wrapper.style.display = (title.indexOf(query) !== -1 || content.indexOf(query) !== -1) ? '' : 'none';
-                });
-                updateNoteCount();
-            });
-
-            // ===== FILTER =====
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
@@ -788,24 +719,121 @@
                     var kind = wrapper.dataset.kind;
                     var isShared = wrapper.dataset.shared === 'true';
 
-                    if (filter === 'all') {
-                        wrapper.style.display = '';
-                    } else if (filter === 'active') {
-                        wrapper.style.display = (kind === 'active') ? '' : 'none';
-                    } else if (filter === 'archived') {
-                        wrapper.style.display = (kind === 'archived') ? '' : 'none';
-                    } else if (filter === 'shared') {
-                        wrapper.style.display = isShared ? '' : 'none';
-                    }
+                    if (filter === 'all') wrapper.style.display = '';
+                    else if (filter === 'active') wrapper.style.display = (kind === 'active') ? '' : 'none';
+                    else if (filter === 'archived') wrapper.style.display = (kind === 'archived') ? '' : 'none';
+                    else if (filter === 'shared') wrapper.style.display = isShared ? '' : 'none';
                 });
 
-                var divider = document.querySelector('.js-archived-divider');
-                if (divider) {
+                document.querySelectorAll('.js-archived-divider').forEach(function (divider) {
                     divider.style.display = (filter === 'all') ? '' : 'none';
-                }
+                });
             }
 
-            // ===== COUNT =====
+            // ===== SEARCH + X clear =====
+            var searchInput = document.getElementById('searchInput');
+            var searchClear = document.getElementById('searchClear');
+            var searchLoading = document.getElementById('searchLoading');
+            var searchTimer = null;
+            var lastQuery = searchInput.value || '';
+
+            if (searchClear) {
+                searchClear.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    searchInput.value = '';
+                    lastQuery = '';
+                    doSearch('');
+                    searchInput.focus();
+                });
+            }
+
+            searchInput.addEventListener('input', function () {
+                var q = this.value.trim();
+                if (q === lastQuery) return;
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(function () { doSearch(q); }, 400);
+            });
+
+            document.getElementById('noteGrid').addEventListener('click', function (e) {
+                var btn = e.target.closest('.js-clear-search');
+                if (!btn) return;
+                e.preventDefault();
+                searchInput.value = '';
+                lastQuery = '';
+                doSearch('');
+                searchInput.focus();
+            });
+
+            function doSearch(q) {
+                var thisQuery = q;
+                lastQuery = q;
+                if (searchLoading) searchLoading.style.display = 'inline-block';
+
+                fetch('/notes/api/search?q=' + encodeURIComponent(q))
+                    .then(function (r) { return r.ok ? r.text() : ''; })
+                    .then(function (html) {
+                        if (thisQuery !== lastQuery) return;
+                        document.getElementById('noteGrid').innerHTML = html;
+                        if (searchLoading) searchLoading.style.display = 'none';
+
+                        document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                            b.classList.toggle('active', b.dataset.filter === 'all');
+                        });
+
+                        updateNoteCount();
+                    })
+                    .catch(function () {
+                        if (thisQuery !== lastQuery) return;
+                        if (searchLoading) searchLoading.style.display = 'none';
+                    });
+            }
+
+            window.loadMore = function (type) {
+                var wrapper = document.getElementById(type + 'LoadMore');
+                if (!wrapper) return;
+
+                var page = parseInt(wrapper.dataset.page) || 1;
+                var q = wrapper.dataset.q || '';
+                var btn = wrapper.querySelector('button');
+                if (!btn) return;
+
+                btn.disabled = true;
+                var originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Завантаження...';
+
+                var url = '/notes/api/load-more?type=' + encodeURIComponent(type) + '&page=' + page;
+                if (q) url += '&q=' + encodeURIComponent(q);
+
+                fetch(url)
+                    .then(function (r) { return r.ok ? r.text() : ''; })
+                    .then(function (html) {
+                        if (!html || !html.trim()) {
+                            wrapper.remove();
+                            return;
+                        }
+
+                        var probe = document.createElement('div');
+                        probe.innerHTML = html;
+                        var newCount = probe.querySelectorAll('.note-card-wrapper').length;
+
+                        wrapper.insertAdjacentHTML('beforebegin', html);
+                        wrapper.dataset.page = String(page + 1);
+
+                        if (newCount < 20) {
+                            wrapper.remove();
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                        }
+
+                        updateNoteCount();
+                    })
+                    .catch(function () {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    });
+            };
+
             function updateNoteCount() {
                 var visible = 0;
                 document.querySelectorAll('.note-card-wrapper').forEach(function (w) {

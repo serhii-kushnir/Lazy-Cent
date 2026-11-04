@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================================================
+     ACTIVE NOTE CARD — використовується в notes.html + AJAX
+     ============================================================ -->
+<th:block th:fragment="activeCard(note)">
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
+         data-kind="active"
+         th:attr="data-shared=${note.shareWithFamily}">
+        <div class="note-card animate-fade-up"
+             th:classappend="${note.pinned} ? 'pinned' : ''"
+             th:data-id="${note.id}"
+             th:data-archived="false"
+             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
+             th:data-color="${note.color}"
+             th:data-textcolor="${note.textColor}"
+             th:style="'background-color:' + ${note.color}">
+            <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                    <h5 class="card-title mb-0 flex-grow-1"
+                        th:text="${note.title}"
+                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                    <span th:if="${note.shareWithFamily}"
+                          class="shared-badge"
+                          th:title="#{badge.shared.tooltip}">
+                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                    </span>
+                </div>
+                <p class="card-text"
+                   th:text="${note.content}"
+                   th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex gap-1">
+                    <button class="btn-icon"
+                            th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                            th:onclick="'togglePin(' + ${note.id} + ')'">
+                        <i class="fas fa-thumbtack"
+                           th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
+                    </button>
+                    <button class="btn-icon"
+                            th:title="#{notes.action.archive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                </div>
+                <button class="btn-icon text-danger"
+                        th:title="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ')'">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- ============================================================
+     ARCHIVED NOTE CARD
+     ============================================================ -->
+<th:block th:fragment="archivedCard(note)">
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
+         data-kind="archived"
+         th:attr="data-shared=${note.shareWithFamily}">
+        <div class="note-card archived animate-fade-up"
+             th:data-id="${note.id}"
+             th:data-archived="true"
+             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
+             th:data-color="${note.color}"
+             th:data-textcolor="${note.textColor}"
+             th:style="'background-color:' + ${note.color}">
+            <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                    <h5 class="card-title mb-0 flex-grow-1"
+                        th:text="${note.title}"
+                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                    <span th:if="${note.shareWithFamily}"
+                          class="shared-badge">
+                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                    </span>
+                </div>
+                <p class="card-text"
+                   th:text="${note.content}"
+                   th:style="'color:' + ${note.textColor}">Текст...</p>
+            </div>
+            <div class="card-footer">
+                <button class="btn-icon"
+                        th:title="#{notes.action.unarchive}"
+                        th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                    <i class="fas fa-undo"></i>
+                </button>
+                <button class="btn-icon text-danger"
+                        th:title="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ')'">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>
