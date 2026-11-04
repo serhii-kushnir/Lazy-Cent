@@ -23,7 +23,7 @@ public class FamilyController extends BaseController {
 
     /**
      * Сторінка-хаб для сім'ї.
-     * Показує назву, учасників та швидкі посилання на інші розділи.
+     * Template: {@code family/hub.html}
      */
     @GetMapping
     public String viewFamilyHub(Authentication authentication, Model model) {
@@ -33,16 +33,19 @@ public class FamilyController extends BaseController {
         User freshUser = userRepository.findById(user.getId()).orElse(user);
         Family family = familyService.getFamily(freshUser);
 
-        // Якщо користувач не в сім'ї, перекидаємо на сторінку, де буде повідомлення і кнопка в налаштування
         if (family == null) {
             return "redirect:/family/shared";
         }
 
         model.addAttribute("family", family);
         model.addAttribute("membersCount", familyService.getFamilyMembers(freshUser).size());
-        return "family-hub";
+        return "family/hub";                       // ← ЗМІНЕНО
     }
 
+    /**
+     * Спільні транзакції.
+     * Template: {@code family/shared.html}
+     */
     @GetMapping("/shared")
     public String viewShared(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -62,7 +65,7 @@ public class FamilyController extends BaseController {
             model.addAttribute("transactions", java.util.List.of());
             model.addAttribute("familyMembers", java.util.List.of());
             model.addAttribute("currentUser", freshUser);
-            return "family-shared";
+            return "family/shared";                // ← ЗМІНЕНО
         }
 
         if (startDate == null) startDate = LocalDate.now().minusDays(30);
@@ -73,6 +76,6 @@ public class FamilyController extends BaseController {
         model.addAttribute("transactions", familyService.getSharedTransactions(freshUser, startDate, endDate));
         model.addAttribute("familyMembers", familyService.getFamilyMembers(freshUser));
         model.addAttribute("currentUser", freshUser);
-        return "family-shared";
+        return "family/shared";                    // ← ЗМІНЕНО
     }
 }

@@ -15,10 +15,8 @@
         .delay-1 { animation-delay: 0.05s; }
         .delay-2 { animation-delay: 0.10s; }
 
-        /* ===== FULLHD MAX ===== */
         .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
 
-        /* ===== UNIFORM BUTTON RADIUS ===== */
         .btn:not(.btn-close),
         .btn.rounded-pill,
         .btn.rounded-circle,
@@ -28,19 +26,14 @@
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
 
-        /* ===== HEADER Z-INDEX ===== */
         .page-header-wrap { position: relative; z-index: 10; }
 
-        /* ===== ICON CIRCLE ===== */
         .icon-circle {
             width: 56px; height: 56px; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
             font-size: 1.5rem; flex-shrink: 0;
         }
 
-        /* ===================================================================
-           NOTES SECTION — unified bg (#1d2027 in dark, white in light)
-           =================================================================== */
         .notes-section {
             background-color: var(--bs-card-bg);
             border-radius: 1rem;
@@ -48,13 +41,10 @@
             overflow: hidden;
         }
         [data-bs-theme="dark"] .notes-section {
-            background-color: #1d2027 !important;
+            background-color: #212529 !important;
             border: 1px solid #2a2e37;
         }
 
-        /* ===================================================================
-           CATEGORY HEADER — theme-aware
-           =================================================================== */
         .cat-header-theme {
             background-color: #ffffff !important;
             color: #212529 !important;
@@ -79,7 +69,6 @@
             color: #ffffff !important;
         }
 
-        /* ===== VIEW TOGGLE (filter) ===== */
         .view-toggle {
             display: flex; gap: 0.3rem;
             background: var(--bs-secondary-bg);
@@ -117,13 +106,9 @@
             .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
         }
 
-        /* ===== SEARCH BAR ===== */
         .search-bar .input-group-text { background: transparent; border-right: none; }
         .search-bar .form-control { border-left: none; }
 
-        /* ===================================================================
-           NOTE CARDS
-           =================================================================== */
         .note-card {
             border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
@@ -180,37 +165,34 @@
         [data-bs-theme="dark"] .note-card .btn-icon.text-danger:hover { background: rgba(248, 113, 113, 0.2); color: #f87171; }
         .note-card .btn-icon .pin-icon { color: #fbbc04; }
 
-        /* ===== ARCHIVED DIVIDER ===== */
-        .archived-divider {
-            margin: 1.5rem 0 0.5rem;
-        }
-        .archived-divider .divider-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--bs-secondary-color);
+        .shared-badge {
+            font-size: 0.65rem;
+            padding: 0.2rem 0.5rem;
+            background-color: rgba(13, 202, 240, 0.9);
+            color: #000;
+            font-weight: 600;
+            border-radius: 0.4rem;
             white-space: nowrap;
-            padding: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .archived-divider hr {
-            border-color: var(--bs-border-color);
-            opacity: 0.6;
-            margin: 0;
+            flex-shrink: 0;
         }
 
-        /* ===== EMPTY STATE ===== */
+        .archived-divider { margin: 1.5rem 0 0.5rem; }
+        .archived-divider .divider-label {
+            font-size: 0.85rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--bs-secondary-color); white-space: nowrap; padding: 0 1rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .archived-divider hr {
+            border-color: var(--bs-border-color); opacity: 0.6; margin: 0;
+        }
+
         .empty-notes {
-            text-align: center;
-            padding: 60px 20px;
+            text-align: center; padding: 60px 20px;
             color: var(--bs-secondary-color);
         }
         .empty-notes i { font-size: 4rem; opacity: 0.25; }
 
-        /* ===== COLOR PICKERS ===== */
         .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
         .color-picker .color-option {
             width: 30px; height: 30px; border-radius: 50%;
@@ -224,7 +206,6 @@
         }
         .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
 
-        /* ===== MOBILE ===== */
         @media (max-width: 575.98px) {
             .cat-header-theme > div.no-print {
                 width: 100%;
@@ -242,7 +223,6 @@
             }
         }
 
-        /* ===== PRINT ===== */
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
             nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
@@ -255,10 +235,6 @@
             .note-card, .notes-section { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
             .cat-header-theme { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
             .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
-        }
-        /* ===== Notes grid background ===== */
-        [data-bs-theme="dark"] .notes-grid-area {
-            background-color: #212529 !important;
         }
     </style>
 </head>
@@ -279,26 +255,35 @@
     <!-- ========== PAGE HEADER ========== -->
     <div class="page-header-wrap mb-4 animate-fade-down">
 
-        <!-- Desktop: title centered, button absolute right -->
-        <!-- Desktop: title LEFT, button right -->
+        <!-- Desktop: title LEFT, buttons RIGHT -->
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
                 <i class="fas fa-sticky-note me-2 text-primary"></i>
                 <span th:text="#{notes.title}">Нотатки</span>
             </h2>
-            <div class="position-absolute end-0 no-print">
+            <div class="position-absolute end-0 no-print d-flex gap-2">
+                <a th:if="${hasFamily}" th:href="@{/notes/family}" class="btn btn-outline-primary">
+                    <i class="fas fa-users me-1"></i>
+                    <span th:text="#{notes.family.familyNotes}">Сімейні нотатки</span>
+                </a>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNoteModal">
                     <i class="fas fa-plus me-1"></i>
                     <span th:text="${#locale.language == 'en' ? 'Create note' : 'Створити нотатку'}">Створити нотатку</span>
                 </button>
             </div>
         </div>
-        <!-- Mobile/Tablet: title centered, button full-width below -->
+
+        <!-- Mobile -->
         <div class="d-lg-none">
             <h2 class="mb-3 fw-bold text-center">
                 <i class="fas fa-sticky-note me-2 text-primary"></i>
                 <span th:text="#{notes.title}">Нотатки</span>
             </h2>
+            <a th:if="${hasFamily}" th:href="@{/notes/family}"
+               class="btn btn-outline-primary w-100 mb-2 no-print">
+                <i class="fas fa-users me-1"></i>
+                <span th:text="#{notes.family.familyNotes}">Сімейні нотатки</span>
+            </a>
             <button class="btn btn-primary w-100 no-print"
                     data-bs-toggle="modal" data-bs-target="#createNoteModal">
                 <i class="fas fa-plus me-1"></i>
@@ -306,6 +291,7 @@
             </button>
         </div>
     </div>
+
     <!-- ========== MAIN SECTION ========== -->
     <div class="notes-section mb-3 animate-fade-up delay-1">
 
@@ -323,6 +309,7 @@
                     <button class="btn active" data-filter="all" th:text="#{notes.filter.all}">Усі</button>
                     <button class="btn" data-filter="active" th:text="#{notes.filter.active}">Активні</button>
                     <button class="btn" data-filter="archived" th:text="#{notes.filter.archived}">Архів</button>
+                    <button class="btn" data-filter="shared" th:if="${hasFamily}" th:text="#{badge.shared}">Спільні</button>
                 </div>
             </div>
         </div>
@@ -336,23 +323,33 @@
         </div>
 
         <!-- Notes grid -->
-        <div class="p-3 notes-grid-area">
+        <div class="p-3">
             <div class="row g-3" id="noteGrid">
 
                 <!-- ========== ACTIVE NOTES ========== -->
                 <th:block th:each="note : ${notes}">
-                    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper" data-kind="active">
+                    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
+                         data-kind="active"
+                         th:attr="data-shared=${note.shareWithFamily}">
                         <div class="note-card animate-fade-up"
                              th:classappend="${note.pinned} ? 'pinned' : ''"
                              th:data-id="${note.id}"
                              th:data-archived="false"
+                             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
                              th:data-color="${note.color}"
                              th:data-textcolor="${note.textColor}"
                              th:style="'background-color:' + ${note.color}">
                             <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
-                                <h5 class="card-title"
-                                    th:text="${note.title}"
-                                    th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                    <h5 class="card-title mb-0 flex-grow-1"
+                                        th:text="${note.title}"
+                                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                                    <span th:if="${note.shareWithFamily}"
+                                          class="shared-badge"
+                                          th:title="#{badge.shared.tooltip}">
+                                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                                    </span>
+                                </div>
                                 <p class="card-text"
                                    th:text="${note.content}"
                                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
@@ -396,17 +393,27 @@
 
                 <!-- ========== ARCHIVED NOTES ========== -->
                 <th:block th:each="note : ${archivedNotes}">
-                    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper" data-kind="archived">
+                    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
+                         data-kind="archived"
+                         th:attr="data-shared=${note.shareWithFamily}">
                         <div class="note-card archived animate-fade-up"
                              th:data-id="${note.id}"
                              th:data-archived="true"
+                             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
                              th:data-color="${note.color}"
                              th:data-textcolor="${note.textColor}"
                              th:style="'background-color:' + ${note.color}">
                             <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
-                                <h5 class="card-title"
-                                    th:text="${note.title}"
-                                    th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                    <h5 class="card-title mb-0 flex-grow-1"
+                                        th:text="${note.title}"
+                                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                                    <span th:if="${note.shareWithFamily}"
+                                          class="shared-badge"
+                                          th:title="#{badge.shared.tooltip}">
+                                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                                    </span>
+                                </div>
                                 <p class="card-text"
                                    th:text="${note.content}"
                                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
@@ -460,11 +467,11 @@
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <input type="text" class="form-control" name="title"
-                               th:placeholder="#{notes.field.title}" required>
+                               th:placeholder="#{notes.field.title}" required maxlength="255">
                     </div>
                     <div class="mb-3">
                         <textarea class="form-control" name="content" rows="4"
-                                  th:placeholder="#{notes.field.content}"></textarea>
+                                  th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" th:text="#{notes.field.bg}">Колір фону</label>
@@ -496,6 +503,20 @@
                         </div>
                         <input type="hidden" name="textColor" id="selectedTextColor" value="#212529">
                     </div>
+                    <div class="mb-0" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="createShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="createShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                        <div class="form-text text-muted" th:text="#{modal.shareWithFamily.hint}">
+                            Члени вашої сім'ї побачать цю нотатку
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
@@ -523,11 +544,11 @@
                     <input type="hidden" name="id" id="editNoteId">
                     <div class="mb-3">
                         <input type="text" class="form-control" name="title" id="editNoteTitle"
-                               th:placeholder="#{notes.field.title}" required>
+                               th:placeholder="#{notes.field.title}" required maxlength="255">
                     </div>
                     <div class="mb-3">
                         <textarea class="form-control" name="content" id="editNoteContent" rows="4"
-                                  th:placeholder="#{notes.field.content}"></textarea>
+                                  th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" th:text="#{notes.field.bg}">Колір фону</label>
@@ -558,6 +579,20 @@
                             <span class="color-option" style="background:#6c757d" data-color="#6c757d"></span>
                         </div>
                         <input type="hidden" name="textColor" id="editSelectedTextColor" value="#212529">
+                    </div>
+                    <div class="mb-0" th:if="${hasFamily}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input"
+                                   id="editShareWithFamily"
+                                   name="shareWithFamily" value="true">
+                            <label class="form-check-label" for="editShareWithFamily">
+                                <i class="fas fa-users me-1"></i>
+                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                            </label>
+                        </div>
+                        <div class="form-text text-muted" th:text="#{modal.shareWithFamily.hint}">
+                            Члени вашої сім'ї побачать цю нотатку
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
@@ -662,6 +697,7 @@
                 var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '';
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
+                var isShared = card.dataset.shareWithFamily === 'true';
 
                 document.getElementById('editNoteId').value = id;
                 document.getElementById('editNoteTitle').value = title;
@@ -679,8 +715,10 @@
                 });
                 document.getElementById('editSelectedTextColor').value = textColor;
 
-                document.getElementById('editNoteForm').action = '/notes/update/' + id;
+                var shareInput = document.getElementById('editShareWithFamily');
+                if (shareInput) shareInput.checked = isShared;
 
+                document.getElementById('editNoteForm').action = '/notes/update/' + id;
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
             };
 
@@ -736,26 +774,31 @@
             });
 
             // ===== FILTER =====
-            var currentFilter = 'all';
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    currentFilter = this.dataset.filter;
-                    applyFilterAndDivider(currentFilter);
+                    applyFilterAndDivider(this.dataset.filter);
                     updateNoteCount();
                 });
             });
 
             function applyFilterAndDivider(filter) {
                 document.querySelectorAll('.note-card-wrapper').forEach(function (wrapper) {
-                    var isArchived = wrapper.dataset.kind === 'archived';
-                    if (filter === 'all') wrapper.style.display = '';
-                    else if (filter === 'active') wrapper.style.display = isArchived ? 'none' : '';
-                    else if (filter === 'archived') wrapper.style.display = isArchived ? '' : 'none';
+                    var kind = wrapper.dataset.kind;
+                    var isShared = wrapper.dataset.shared === 'true';
+
+                    if (filter === 'all') {
+                        wrapper.style.display = '';
+                    } else if (filter === 'active') {
+                        wrapper.style.display = (kind === 'active') ? '' : 'none';
+                    } else if (filter === 'archived') {
+                        wrapper.style.display = (kind === 'archived') ? '' : 'none';
+                    } else if (filter === 'shared') {
+                        wrapper.style.display = isShared ? '' : 'none';
+                    }
                 });
 
-                // Divider visible ONLY when filter === 'all' AND there are archived notes
                 var divider = document.querySelector('.js-archived-divider');
                 if (divider) {
                     divider.style.display = (filter === 'all') ? '' : 'none';
@@ -772,7 +815,6 @@
                 if (el) el.textContent = visible;
             }
 
-            // initial
             applyFilterAndDivider('all');
             updateNoteCount();
         });

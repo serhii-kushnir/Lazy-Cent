@@ -29,6 +29,7 @@ class UserServiceOAuth2Test {
 
     private UserRepository userRepository;
     private DemoDataService demoDataService;
+    private FamilyService familyService;        // ← ДОДАНО
     private PasswordEncoder passwordEncoder;
     private UserService service;
 
@@ -44,6 +45,7 @@ class UserServiceOAuth2Test {
 
         userRepository = mock(UserRepository.class);
         demoDataService = mock(DemoDataService.class);
+        familyService = mock(FamilyService.class);   // ← ДОДАНО
         passwordEncoder = new BCryptPasswordEncoder();
 
         service = new UserService(
@@ -53,7 +55,9 @@ class UserServiceOAuth2Test {
                 demoDataService,
                 mock(BudgetService.class),
                 mock(NoteService.class),
-                messageSource);
+                messageSource,
+                familyService                          // ← ДОДАНО 8-й аргумент
+        );
 
         when(userRepository.findByProviderAndProviderId(any(), any())).thenReturn(Optional.empty());
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());

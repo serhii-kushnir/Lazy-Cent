@@ -6,7 +6,6 @@ import org.lazycent.model.*;
 import org.lazycent.model.dto.BudgetDashboardDto;
 import org.lazycent.model.dto.CategorySummaryDto;
 import org.lazycent.repository.*;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -59,10 +58,12 @@ class BudgetPlanningServiceTest {
 
     /**
      * Заглушує всі репозиторні залежності для виклику {@code getDashboard}.
-     * Окремий хелпер — щоб кожен тест не дублював 6 рядків when(...).
+     * Ключове: {@code findByOwnerAndBudgetMonthAndBudgetYearAndPlanType}
+     * з 4-м аргументом {@code "EXPENSE"} — саме так викликає сервіс.
      */
     private void stubEmptyDashboard(int month, int year) {
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, month, year))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, month, year, "EXPENSE"))
                 .thenReturn(Optional.empty());
         when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
         when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
@@ -79,7 +80,8 @@ class BudgetPlanningServiceTest {
 
     @Test
     void saveOrUpdateBudgetPlan_createsNew_whenNotExists() {
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.empty());
         when(budgetPlanRepository.save(any(BudgetPlan.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
@@ -101,7 +103,8 @@ class BudgetPlanningServiceTest {
         existing.setBudgetYear(2026);
         existing.setTotalBudget(3000.0);
 
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.of(existing));
         when(budgetPlanRepository.save(any(BudgetPlan.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
@@ -114,7 +117,8 @@ class BudgetPlanningServiceTest {
 
     @Test
     void getBudgetPlan_returnsNull_whenNotExists() {
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.empty());
 
         assertThat(service.getBudgetPlan(user, 10, 2026)).isNull();
@@ -163,7 +167,8 @@ class BudgetPlanningServiceTest {
         BudgetPlan plan = new BudgetPlan();
         plan.setTotalBudget(10000.0);
 
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.of(plan));
         when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(3000.0);
         when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(15000.0);
@@ -210,7 +215,8 @@ class BudgetPlanningServiceTest {
 
         CategorySummaryDto summary = new CategorySummaryDto("Їжа", 850.0, "EXPENSE");
 
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.empty());
         when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(850.0);
         when(incomeRepository.sumIncomesByDateBetweenAndUser(any(), any(), eq(user))).thenReturn(0.0);
@@ -229,18 +235,9 @@ class BudgetPlanningServiceTest {
     }
 
     // ==================== daysPassed: FIX ====================
-    //
-    // Семантика (після фіксу):
-    //   • майбутній місяць  → daysPassed = 0 (жодного дня не минуло)
-    //   • минулий місяць    → daysPassed = daysInMonth (усі дні минули)
-    //   • поточний місяць   → daysPassed = today.getDayOfMonth()
-    //
-    // Раніше daysPassed = today.getDayOfMonth() для БУДЬ-ЯКОГО місяця, що
-    // давало неправильний прогноз для минулих/майбутніх періодів.
 
     @Test
     void getDashboard_daysPassed_isZero_forFutureMonth() {
-        // Беремо "далеке майбутнє" — гарантовано після LocalDate.now()
         LocalDate now = LocalDate.now();
         int futureMonth = now.getMonthValue() == 12 ? 1 : now.getMonthValue() + 1;
         int futureYear = now.getMonthValue() == 12 ? now.getYear() + 1 : now.getYear();
@@ -267,7 +264,6 @@ class BudgetPlanningServiceTest {
 
         BudgetDashboardDto dto = service.getDashboard(user, pastMonth, pastYear);
 
-        // Усі дні минулого місяця вже пройшли
         assertThat(dto.getDaysPassed())
                 .as("У минулому місяці всі дні вже минули")
                 .isEqualTo(dto.getDaysInMonth());
@@ -290,15 +286,14 @@ class BudgetPlanningServiceTest {
 
     @Test
     void getDashboard_projectedBalance_usesRealDaysPassed_forPastMonth() {
-        // Регресійний тест: раніше для минулого місяця dailyAverage рахувався
-        // як totalExpenses / today.getDayOfMonth(), що завищувало прогноз.
         LocalDate now = LocalDate.now();
         int pastMonth = now.getMonthValue() == 1 ? 12 : now.getMonthValue() - 1;
         int pastYear = now.getMonthValue() == 1 ? now.getYear() - 1 : now.getYear();
 
         double totalExpenses = 3000.0;
 
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, pastMonth, pastYear))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, pastMonth, pastYear, "EXPENSE"))
                 .thenReturn(Optional.empty());
         when(expenseRepository.sumExpensesByDateBetweenAndUser(any(), any(), eq(user)))
                 .thenReturn(totalExpenses);
@@ -313,8 +308,6 @@ class BudgetPlanningServiceTest {
 
         BudgetDashboardDto dto = service.getDashboard(user, pastMonth, pastYear);
 
-        // Прогноз для минулого місяця = totalExpenses (бо всі дні пройшли).
-        // Раніше dailyAverage = 3000/15 = 200, projectedTotal = 200*30 = 6000 — неправильно.
         assertThat(dto.getDailyAverageExpense())
                 .as("Середнє за минулий місяць = сума / кількість днів місяця")
                 .isEqualTo(totalExpenses / dto.getDaysInMonth());
@@ -343,7 +336,8 @@ class BudgetPlanningServiceTest {
         plan.setId(1L);
         plan.setTotalBudget(5000.0);
 
-        when(budgetPlanRepository.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(budgetPlanRepository
+                .findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.of(plan));
 
         assertThat(service.getBudgetPlan(user, 10, 2026)).isSameAs(plan);

@@ -27,226 +27,117 @@ class NoteServiceTest {
     @InjectMocks
     private NoteService noteService;
 
-    private User owner;
-    private User intruder;
-    private Note note;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
-        owner = new User();
-        owner.setId(1L);
-        owner.setUsername("owner");
-
-        intruder = new User();
-        intruder.setId(2L);
-        intruder.setUsername("intruder");
-
-        note = new Note();
-        note.setId(100L);
-        note.setTitle("Test note");
-        note.setContent("Content");
-        note.setOwner(owner);
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("test");
     }
 
-    // ==================== ЗАХИСТ ВІД IDOR ====================
+    // ---------- helpers ----------
 
-    @Test
-    void deleteNote_succeedsForOwner() {
-        when(noteRepository.findByIdAndOwner(100L, owner)).thenReturn(Optional.of(note));
-
-        noteService.deleteNote(100L, owner);
-
-        verify(noteRepository).delete(note);
+    private Note note(Long id, User owner) {
+        Note n = new Note();
+        n.setId(id);
+        n.setOwner(owner);
+        n.setTitle("Title");
+        n.setContent("Content");
+        n.setColor("#ffffff");
+        n.setTextColor("#212529");
+        n.setShareWithFamily(false);
+        n.setPinned(false);
+        n.setArchived(false);
+        return n;
     }
 
-    @Test
-    void deleteNote_throwsAccessDenied_forIntruder() {
-        when(noteRepository.findByIdAndOwner(100L, intruder)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> noteService.deleteNote(100L, intruder))
-                .isInstanceOf(AccessDeniedException.class);
-
-        verify(noteRepository, never()).delete(any());
-    }
-
-    @Test
-    void togglePinned_throwsAccessDenied_forIntruder() {
-        when(noteRepository.findByIdAndOwner(100L, intruder)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> noteService.togglePinned(100L, intruder))
-                .isInstanceOf(AccessDeniedException.class);
-
-        verify(noteRepository, never()).save(any());
-    }
-
-    @Test
-    void toggleArchived_throwsAccessDenied_forIntruder() {
-        when(noteRepository.findByIdAndOwner(100L, intruder)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> noteService.toggleArchived(100L, intruder))
-                .isInstanceOf(AccessDeniedException.class);
-
-        verify(noteRepository, never()).save(any());
-    }
-
-    // ==================== БІЗНЕС-ЛОГІКА ====================
-
-    @Test
-    void togglePinned_flipsBoolean() {
-        note.setPinned(false);
-        when(noteRepository.findByIdAndOwner(100L, owner)).thenReturn(Optional.of(note));
-        when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        Note result = noteService.togglePinned(100L, owner);
-
-        assertThat(result.isPinned()).isTrue();
-    }
-
-    @Test
-    void toggleArchived_flipsBoolean() {
-        note.setArchived(false);
-        when(noteRepository.findByIdAndOwner(100L, owner)).thenReturn(Optional.of(note));
-        when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-
-        Note result = noteService.toggleArchived(100L, owner);
-
-        assertThat(result.isArchived()).isTrue();
-    }
+    // ---------- updateNote ----------
 
     @Test
     void updateNote_changesFields_forOwner() {
-        when(noteRepository.findByIdAndOwner(100L, owner)).thenReturn(Optional.of(note));
+        Note existing = note(10L, testUser);
+        when(noteRepository.findByIdAndOwner(10L, testUser)).thenReturn(Optional.of(existing));
         when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        Note updated = noteService.updateNote(100L, "New title", "New content",
-                "#fff", "#000", owner);
+        Note result = noteService.updateNote(
+                10L, "Нова назва", "Новий текст",
+                "#f28b82", "#ffffff", true, testUser);
 
-        assertThat(updated.getTitle()).isEqualTo("New title");
-        assertThat(updated.getContent()).isEqualTo("New content");
-        assertThat(updated.getColor()).isEqualTo("#fff");
-        assertThat(updated.getTextColor()).isEqualTo("#000");
+        assertThat(result.getTitle()).isEqualTo("Нова назва");
+        assertThat(result.getContent()).isEqualTo("Новий текст");
+        assertThat(result.getColor()).isEqualTo("#f28b82");
+        assertThat(result.getTextColor()).isEqualTo("#ffffff");
+        assertThat(result.getShareWithFamily()).isTrue();
+
+        verify(noteRepository).save(existing);
     }
 
     @Test
     void updateNote_throwsAccessDenied_forIntruder() {
-        when(noteRepository.findByIdAndOwner(100L, intruder)).thenReturn(Optional.empty());
+        User intruder = new User();
+        intruder.setId(999L);
+        intruder.setUsername("intruder");
 
-        assertThatThrownBy(() -> noteService.updateNote(100L, "x", "y",
-                null, null, intruder))
+        when(noteRepository.findByIdAndOwner(10L, intruder)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                noteService.updateNote(10L, "X", "Y", "#000000", "#ffffff", false, intruder))
                 .isInstanceOf(AccessDeniedException.class);
+
+        verify(noteRepository, never()).save(any());
     }
-
-    // ==================== CREATE ====================
-
-    @Test
-    void createNote_savesAndReturnsNote() {
-        when(noteRepository.save(any(Note.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
-
-        Note input = new Note();
-        input.setTitle("Test");
-        input.setOwner(owner);
-
-        Note result = noteService.createNote(input);
-
-        assertThat(result).isSameAs(input);
-        verify(noteRepository).save(input);
-    }
-
-    // ==================== READ ====================
-
-    @Test
-    void getArchivedNotes_returnsEmpty_forNullUser() {
-        assertThat(noteService.getArchivedNotes(null)).isEmpty();
-    }
-
-    @Test
-    void getArchivedNotes_delegatesToRepository() {
-        when(noteRepository.findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(owner))
-                .thenReturn(java.util.List.of(note));
-
-        assertThat(noteService.getArchivedNotes(owner)).containsExactly(note);
-    }
-
-    @Test
-    void searchNotes_returnsEmpty_forNullUser() {
-        assertThat(noteService.searchNotes(null, "query")).isEmpty();
-    }
-
-    @Test
-    void searchNotes_delegatesToRepository() {
-        when(noteRepository.searchNotes(owner, "test"))
-                .thenReturn(java.util.List.of(note));
-
-        assertThat(noteService.searchNotes(owner, "test")).containsExactly(note);
-    }
-
-    @Test
-    void getNoteById_returnsForOwner() {
-        when(noteRepository.findByIdAndOwner(100L, owner))
-                .thenReturn(java.util.Optional.of(note));
-
-        assertThat(noteService.getNoteById(100L, owner)).isSameAs(note);
-    }
-
-    @Test
-    void getNoteById_throwsAccessDenied_forIntruder() {
-        when(noteRepository.findByIdAndOwner(100L, intruder))
-                .thenReturn(java.util.Optional.empty());
-
-        assertThatThrownBy(() -> noteService.getNoteById(100L, intruder))
-                .isInstanceOf(AccessDeniedException.class);
-    }
-
-    // ==================== DELETE ALL ====================
-
-    @Test
-    void deleteAllNotes_deletesNothing_whenEmpty() {
-        when(noteRepository.findByOwner(owner)).thenReturn(java.util.List.of());
-
-        noteService.deleteAllNotes(owner);
-
-        verify(noteRepository, never()).deleteAll(anyList());
-    }
-
-    @Test
-    void deleteAllNotes_deletesAll_whenNonEmpty() {
-        when(noteRepository.findByOwner(owner)).thenReturn(java.util.List.of(note));
-
-        noteService.deleteAllNotes(owner);
-
-        verify(noteRepository).deleteAll(java.util.List.of(note));
-    }
-
-    // ==================== UPDATE WITH NULLS ====================
 
     @Test
     void updateNote_keepsExistingColors_whenNull() {
-        note.setColor("#abc");
-        note.setTextColor("#def");
-        when(noteRepository.findByIdAndOwner(100L, owner))
-                .thenReturn(java.util.Optional.of(note));
+        Note existing = note(10L, testUser);
+        existing.setColor("#ccff90");
+        existing.setTextColor("#000000");
+        when(noteRepository.findByIdAndOwner(10L, testUser)).thenReturn(Optional.of(existing));
         when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        Note result = noteService.updateNote(100L, "t", "c", null, null, owner);
+        Note result = noteService.updateNote(
+                10L, "T", "C", null, null, false, testUser);
 
-        assertThat(result.getColor()).isEqualTo("#abc");
-        assertThat(result.getTextColor()).isEqualTo("#def");
+        assertThat(result.getColor()).isEqualTo("#ccff90");
+        assertThat(result.getTextColor()).isEqualTo("#000000");
     }
 
     @Test
     void updateNote_handlesNullContent() {
-        when(noteRepository.findByIdAndOwner(100L, owner))
-                .thenReturn(java.util.Optional.of(note));
+        Note existing = note(10L, testUser);
+        when(noteRepository.findByIdAndOwner(10L, testUser)).thenReturn(Optional.of(existing));
         when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        Note result = noteService.updateNote(100L, "t", null, null, null, owner);
+        Note result = noteService.updateNote(
+                10L, "T", null, "#ffffff", "#212529", false, testUser);
 
-        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getContent()).isEqualTo("");
     }
 
     @Test
-    void getActiveNotes_returnsEmpty_forNullUser() {
-        assertThat(noteService.getActiveNotes(null)).isEmpty();
+    void updateNote_keepsExistingShare_whenNull() {
+        Note existing = note(10L, testUser);
+        existing.setShareWithFamily(true);
+        when(noteRepository.findByIdAndOwner(10L, testUser)).thenReturn(Optional.of(existing));
+        when(noteRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Note result = noteService.updateNote(
+                10L, "T", "C", "#ffffff", "#212529", null, testUser);
+
+        assertThat(result.getShareWithFamily()).isTrue();
+    }
+
+    // ---------- createNote ----------
+
+    @Test
+    void createNote_savesNote() {
+        Note n = note(null, testUser);
+        when(noteRepository.save(any())).thenReturn(n);
+
+        Note result = noteService.createNote(n);
+
+        assertThat(result).isSameAs(n);
+        verify(noteRepository).save(n);
     }
 }

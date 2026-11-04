@@ -42,17 +42,10 @@ public class Note {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    /**
-     * P2.c: {@code owner} тепер LAZY.
-     *
-     * <p><b>Де читається:</b>
-     * <ul>
-     *   <li>{@code NoteService.getOwnedNote} — використовує {@code findByIdAndOwner},
-     *       де owner у WHERE-фільтрі; явного {@code .getOwner()} немає;</li>
-     *   <li>Thymeleaf {@code notes.html} — {@code note.owner} НЕ використовується.</li>
-     * </ul>
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
+
+    @Column(name = "share_with_family", nullable = false)
+    private Boolean shareWithFamily = false;
 }

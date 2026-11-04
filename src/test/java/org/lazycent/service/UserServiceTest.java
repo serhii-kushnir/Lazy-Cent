@@ -30,11 +30,18 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class UserServiceTest {
 
-    @Mock private UserRepository userRepository;
-    @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
-    @Mock private DemoDataService demoDataService;
-    @Mock private BudgetService budgetService;
-    @Mock private NoteService noteService;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+    @Mock
+    private DemoDataService demoDataService;
+    @Mock
+    private BudgetService budgetService;
+    @Mock
+    private NoteService noteService;
+    @Mock
+    private FamilyService familyService;   // ← ДОДАНО
 
     private PasswordEncoder passwordEncoder;
     private UserService userService;
@@ -60,7 +67,8 @@ class UserServiceTest {
                 demoDataService,
                 budgetService,
                 noteService,
-                messageSource
+                messageSource,
+                familyService                   // ← ДОДАНО 8-й аргумент
         );
 
         managedUser = new User();
@@ -320,9 +328,6 @@ class UserServiceTest {
 
     /**
      * Перевіряє ПОРЯДОК викликів у deleteAccount: токени → бюджет → нотатки → юзер.
-     *
-     * <p>Це не просто "перевірка що всі викликані" — тут важливий саме порядок,
-     * бо FK-констрейнти в БД. Mockito {@code InOrder} дозволяє це перевірити.
      */
     @Test
     void deleteAccount_clearsInCorrectOrder() {

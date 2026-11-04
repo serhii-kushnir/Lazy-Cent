@@ -1,8 +1,10 @@
 package org.lazycent.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.lazycent.model.Family;
 import org.lazycent.model.Note;
 import org.lazycent.model.User;
+import org.lazycent.service.FamilyService;
 import org.lazycent.service.NoteService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -10,12 +12,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/notes")
 @RequiredArgsConstructor
 public class NoteController extends BaseController {
 
     private final NoteService noteService;
+    private final FamilyService familyService;
+
+    // ==================== СТОРІНКИ ====================
 
     @GetMapping
     public String viewNotes(Authentication authentication, Model model) {
@@ -27,11 +34,34 @@ public class NoteController extends BaseController {
         return "notes";
     }
 
+    @GetMapping("/family")
+    public String viewFamilyNotes(Authentication authentication,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        if (currentUser.getFamilyId() == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", msg("error.family.notInFamily"));
+            return "redirect:/family";
+        }
+
+        Family family = familyService.getFamily(currentUser);
+        List<Note> familyNotes = noteService.getFamilySharedNotes(currentUser);
+
+        model.addAttribute("family", family);
+        model.addAttribute("familyNotes", familyNotes);
+        model.addAttribute("currentUser", currentUser);
+        return "family/notes";                     // ← ЗМІНЕНО
+    }
+    // ==================== CRUD ====================
+
     @PostMapping("/create")
     public String createNote(@RequestParam String title,
                              @RequestParam(required = false) String content,
                              @RequestParam(required = false) String color,
                              @RequestParam(required = false) String textColor,
+                             @RequestParam(required = false, defaultValue = "false") Boolean shareWithFamily,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
@@ -43,27 +73,38 @@ public class NoteController extends BaseController {
         note.setColor(color != null ? color : "#ffffff");
         note.setTextColor(textColor != null ? textColor : "#212529");
         note.setOwner(currentUser);
+        note.setShareWithFamily(shareWithFamily);
         noteService.createNote(note);
 
-        // FIX: локалізоване повідомлення
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.created"));
         return "redirect:/notes";
     }
 
+    /**
+     * Оновлює нотатку.
+     *
+     * <p><b>УВАГА:</b> порядок параметрів у контролері:
+     * {@code (id, title, content, color, shareWithFamily, textColor)}
+     * — це відрізняється від порядку в {@link NoteService#updateNote},
+     * де {@code shareWithFamily} йде ПІСЛЯ {@code textColor}.
+     * Свідоме рішення: контролер приймає {@code shareWithFamily} перед {@code textColor},
+     * бо це логічне групування з {@code @RequestParam(defaultValue="false")},
+     * а сервіс — з {@code shareWithFamily} в кінці, щоб не ламати сигнатуру для майбутніх overload'ів.
+     */
     @PostMapping("/update/{id}")
     public String updateNote(@PathVariable Long id,
                              @RequestParam String title,
                              @RequestParam(required = false) String content,
                              @RequestParam(required = false) String color,
+                             @RequestParam(required = false, defaultValue = "false") Boolean shareWithFamily,
                              @RequestParam(required = false) String textColor,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
-        noteService.updateNote(id, title, content, color, textColor, currentUser);
+        noteService.updateNote(id, title, content, color, textColor, shareWithFamily, currentUser);
 
-        // FIX: локалізоване повідомлення
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.updated"));
         return "redirect:/notes";
     }
@@ -77,10 +118,11 @@ public class NoteController extends BaseController {
 
         noteService.deleteNote(id, currentUser);
 
-        // FIX: локалізоване повідомлення
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.deleted"));
         return "redirect:/notes";
     }
+
+    // ==================== TOGGLE ====================
 
     @PostMapping("/toggle-pin/{id}")
     public String togglePin(@PathVariable Long id,
@@ -91,7 +133,6 @@ public class NoteController extends BaseController {
 
         Note result = noteService.togglePinned(id, currentUser);
 
-        // FIX: локалізовані повідомлення
         redirectAttributes.addFlashAttribute("successMessage",
                 result.isPinned() ? msg("toast.note.pinned") : msg("toast.note.unpinned"));
         return "redirect:/notes";
@@ -106,9 +147,26 @@ public class NoteController extends BaseController {
 
         Note result = noteService.toggleArchived(id, currentUser);
 
-        // FIX: локалізовані повідомлення
         redirectAttributes.addFlashAttribute("successMessage",
                 result.isArchived() ? msg("toast.note.archived") : msg("toast.note.unarchived"));
+        return "redirect:/notes";
+    }
+
+    // ==================== COPY (сім'я) ====================
+
+    @PostMapping("/copy/{id}")
+    public String copyNote(@PathVariable Long id,
+                           Authentication authentication,
+                           RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        try {
+            noteService.copyNote(id, currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.note.copied"));
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/notes";
     }
 }
