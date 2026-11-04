@@ -38,8 +38,21 @@
         .month-nav { position: relative; z-index: 2000; }
         .month-nav .dropdown-menu { z-index: 2005; min-width: 240px; border-radius: 1rem; padding: 1rem; }
         .month-nav .dropdown-menu .form-select { width: auto; flex: 1; border-radius: 0.5rem; }
+        .month-nav {
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: 2px;
+        }
+        .month-nav::-webkit-scrollbar { display: none; }
+        .month-nav > * { flex-shrink: 0; white-space: nowrap; }
+        .month-nav .dropdown-toggle,
+        .month-nav .btn { white-space: nowrap; }
 
-        /* ===== HEADER Z-INDEX (dropdown above table) ===== */
+        /* ===== HEADER Z-INDEX ===== */
         .page-header-wrap { position: relative; z-index: 10; }
 
         /* ===== ICON CIRCLE ===== */
@@ -83,7 +96,7 @@
             background-color: #23262e; color: #9aa3b2; border-bottom-color: #3a3f4a;
         }
 
-        /* ===== VIEW TOGGLE ===== */
+        /* ===== VIEW TOGGLE (base, non-header) ===== */
         .view-toggle {
             display: flex; gap: 0.3rem;
             background: var(--bs-secondary-bg);
@@ -113,20 +126,84 @@
         .cards-view-container { display: none; }
         .cards-view-container.show { display: block; }
 
-        /* ===== SECTION BG = PAGE BG (not card bg) ===== */
+        /* ===== SECTION BG = PAGE BG ===== */
         .bg-card-bg { background-color: var(--bs-body-bg) !important; }
 
-        /* ===== CATEGORY HEADER: fixed dark #1d2027 ===== */
-        .cat-header-fixed {
+        /* ===================================================================
+           CATEGORY HEADER — theme-aware, hardcoded hex, bulletproof
+           =================================================================== */
+        .cat-header-theme {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+        .cat-header-theme h6,
+        .cat-header-theme h6 * {
+            color: #6c757d !important;
+        }
+        .cat-header-theme h3,
+        .cat-header-theme h3 * {
+            color: #212529 !important;
+        }
+
+        [data-bs-theme="dark"] .cat-header-theme {
             background-color: #1d2027 !important;
             color: #e6e6e6 !important;
+            border-bottom-color: #2a2e37 !important;
         }
-        .cat-header-fixed h6 { color: rgba(230, 230, 230, 0.7) !important; }
-        .cat-header-fixed h3 { color: #e6e6e6 !important; }
-        .cat-header-fixed .view-toggle { background: rgba(255, 255, 255, 0.08); }
-        .cat-header-fixed .view-toggle .btn { color: rgba(255, 255, 255, 0.7); }
-        .cat-header-fixed .view-toggle .btn.active {
-            background: var(--bs-primary); color: #fff; box-shadow: none;
+        [data-bs-theme="dark"] .cat-header-theme h6,
+        [data-bs-theme="dark"] .cat-header-theme h6 * {
+            color: rgba(230, 230, 230, 0.75) !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme h3,
+        [data-bs-theme="dark"] .cat-header-theme h3 * {
+            color: #ffffff !important;
+        }
+
+        /* --- btn-outline-light inside cat-header-theme --- */
+        .cat-header-theme .btn-outline-light {
+            color: #0d6efd !important;
+            border-color: #0d6efd !important;
+            background-color: transparent !important;
+        }
+        .cat-header-theme .btn-outline-light:hover {
+            color: #ffffff !important;
+            background-color: #0d6efd !important;
+            border-color: #0d6efd !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .btn-outline-light {
+            color: #f8f9fa !important;
+            border-color: #f8f9fa !important;
+            background-color: transparent !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .btn-outline-light:hover {
+            color: #212529 !important;
+            background-color: #f8f9fa !important;
+            border-color: #f8f9fa !important;
+        }
+
+        /* --- view-toggle inside cat-header-theme --- */
+        .cat-header-theme .view-toggle {
+            background: #e9ecef !important;
+        }
+        .cat-header-theme .view-toggle .btn {
+            color: #495057 !important;
+        }
+        .cat-header-theme .view-toggle .btn.active {
+            background: #ffffff !important;
+            color: #0d6efd !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
+            background: #0d6efd !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
         }
 
         /* ===== EQUAL-HEIGHT TOOLBAR ===== */
@@ -162,53 +239,32 @@
         /* ===== CARD ACTIONS RIGHT ===== */
         .card-actions-end { justify-content: flex-end; }
 
-        /* ===== PRINT ===== */
-        @media print {
-            body, html { margin: 0 !important; padding: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
-            .d-print-none, .table-toolbar, .view-toggle, .month-nav, .alert { display: none !important; }
-            .d-print-block { display: block !important; }
-            .d-print-flex { display: flex !important; }
-            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
-            .print-header { display: flex !important; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #333; margin-bottom: 20px; }
-            .print-footer { text-align: center; font-size: 0.7rem; color: #666; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
-            .card, .stat-card, .unified-card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
-            .table thead th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .table-responsive { overflow: visible !important; }
-            .table-view-container { display: block !important; }
-            .cards-view-container { display: none !important; }
-            .bg-card-bg { background-color: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; }
-            .cat-header-fixed { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
-            .cat-header-fixed h6, .cat-header-fixed h3 { color: #000 !important; }
-        }
-
-        /* ===== MOBILE: full-width buttons in cat-header-fixed toolbar ===== */
+        /* ===== MOBILE: full-width buttons in cat-header-theme toolbar ===== */
         @media (max-width: 575.98px) {
-            /* Force the button group to full width + stack vertically */
-            .cat-header-fixed > div.no-print {
+            .cat-header-theme > div.no-print {
                 width: 100%;
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 0.5rem !important;
             }
-            .cat-header-fixed > div.no-print > .btn,
-            .cat-header-fixed > div.no-print > .view-toggle {
+            .cat-header-theme > div.no-print > .btn,
+            .cat-header-theme > div.no-print > .view-toggle {
                 width: 100% !important;
                 justify-content: center;
             }
-            .cat-header-fixed > div.no-print > .view-toggle {
+            .cat-header-theme > div.no-print > .view-toggle {
                 display: flex !important;
                 height: 42px !important;
             }
-            .cat-header-fixed > div.no-print > .view-toggle > .btn {
+            .cat-header-theme > div.no-print > .view-toggle > .btn {
                 flex: 1;
                 height: 36px !important;
             }
-            .cat-header-fixed > div.no-print > .btn {
+            .cat-header-theme > div.no-print > .btn {
                 height: 42px !important;
             }
 
-            /* ===== Sum full visibility on mobile ===== */
+            /* Sum full visibility on mobile */
             .stat-card .flex-grow-1 { min-width: 0; }
             .stat-card h3 {
                 font-size: 1.15rem !important;
@@ -225,26 +281,24 @@
             }
         }
 
-        /* ===== month-nav: single line + horizontal scroll if needed ===== */
-        .month-nav {
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            overflow-y: visible;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-bottom: 2px;
-        }
-        .month-nav::-webkit-scrollbar {
-            display: none;
-        }
-        .month-nav > * {
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-        .month-nav .dropdown-toggle,
-        .month-nav .btn {
-            white-space: nowrap;
+        /* ===== PRINT ===== */
+        @media print {
+            body, html { margin: 0 !important; padding: 0 !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
+            .d-print-none, .table-toolbar, .view-toggle, .month-nav, .alert { display: none !important; }
+            .d-print-block { display: block !important; }
+            .d-print-flex { display: flex !important; }
+            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
+            .print-header { display: flex !important; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #333; margin-bottom: 20px; }
+            .print-footer { text-align: center; font-size: 0.7rem; color: #666; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
+            .card, .stat-card, .unified-card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+            .table thead th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .table-responsive { overflow: visible !important; }
+            .table-view-container { display: block !important; }
+            .cards-view-container { display: none !important; }
+            .bg-card-bg { background-color: #fff !important; box-shadow: none !important; border: 1px solid #ddd !important; }
+            .cat-header-theme { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
+            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
         }
     </style>
 </head>
@@ -467,8 +521,7 @@
                          style="border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
 
                         <!-- SECTION HEADER: title LEFT, buttons RIGHT -->
-                        <div class="cat-header-fixed d-flex align-items-center gap-3 flex-wrap"
-                             style="padding: 1rem; border-bottom: 1px solid var(--bs-border-color);">
+                        <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
 
                             <div class="icon-circle bg-primary text-white">
                                 <i class="fas fa-tags"></i>
@@ -477,7 +530,6 @@
                                 <h6 class="mb-0" th:text="#{budget.categoriesWithLimits}">Категорії з лімітами</h6>
                                 <h3 class="mb-0"><span th:text="${dashboard.categories.size()}">0</span></h3>
                             </div>
-
                             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                                 <!-- 1) viewToggle FIRST -->
                                 <div class="view-toggle" id="viewToggle">
