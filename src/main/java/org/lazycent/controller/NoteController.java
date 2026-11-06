@@ -185,9 +185,10 @@ public class NoteController extends BaseController {
             int deleted = noteService.deleteArchivedNotes(currentUser);
             if (deleted > 0) {
                 redirectAttributes.addFlashAttribute("successMessage",
-                        "Архів очищено: " + deleted + " нотаток видалено");
+                        msg("toast.archive.cleared", deleted));
             } else {
-                redirectAttributes.addFlashAttribute("successMessage", "Архів уже порожній");
+                redirectAttributes.addFlashAttribute("successMessage",
+                        msg("toast.archive.alreadyEmpty"));
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

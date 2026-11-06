@@ -773,7 +773,7 @@
                 </a>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNoteModal">
                     <i class="fas fa-plus me-1"></i>
-                    <span th:text="${#locale.language == 'en' ? 'Create note' : 'Створити нотатку'}">Створити нотатку</span>
+                    <span th:text="#{notes.create.button}">Створити нотатку</span>
                 </button>
             </div>
         </div>
@@ -791,7 +791,7 @@
             <button class="btn btn-primary w-100 no-print"
                     data-bs-toggle="modal" data-bs-target="#createNoteModal">
                 <i class="fas fa-plus me-1"></i>
-                <span th:text="${#locale.language == 'en' ? 'Create note' : 'Створити нотатку'}">Створити нотатку</span>
+                <span th:text="#{notes.create.button}">Створити нотатку</span>
             </button>
         </div>
     </div>
@@ -864,11 +864,11 @@
             </div>
 
             <div class="layout-toggle" id="layoutToggle">
-                <button class="btn active" data-layout="cards" title="Картки">
-                    <i class="fas fa-th-large"></i> <span>Картки</span>
+                <button class="btn active" data-layout="cards" th:title="#{notes.layout.cards}">
+                    <i class="fas fa-th-large"></i> <span th:text="#{notes.layout.cards}">Картки</span>
                 </button>
-                <button class="btn" data-layout="list" title="Список">
-                    <i class="fas fa-list"></i> <span>Список</span>
+                <button class="btn" data-layout="list" th:title="#{notes.layout.list}">
+                    <i class="fas fa-list"></i> <span th:text="#{notes.layout.list}">Список</span>
                 </button>
             </div>
 
@@ -891,8 +891,8 @@
                        th:value="${q}" th:placeholder="#{notes.search}" autocomplete="off">
                 <button type="button" id="searchClear"
                         class="btn btn-outline-secondary"
-                        title="Очистити пошук"
-                        aria-label="Очистити пошук">
+                        th:title="#{notes.search.clear}"
+                        th:aria-label="#{notes.search.clear}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -906,7 +906,8 @@
              style="border-color: var(--bs-border-color) !important;">
             <button type="button" class="btn btn-outline-danger btn-sm" id="clearArchiveBtn">
                 <i class="fas fa-trash me-1"></i>
-                Очистити архів (<span th:text="${archivedTotal}">0</span>)
+                <span th:text="#{notes.clearArchive.button}">Очистити архів</span>
+                (<span th:text="${archivedTotal}">0</span>)
             </button>
             <form id="clearArchiveForm" method="post"
                   th:action="@{/notes/archive/clear}" style="display:none;">
@@ -921,13 +922,13 @@
 
             <div id="emptyFilterMessage" class="empty-notes" style="display:none;">
                 <i class="fas fa-search" id="emptyFilterIcon"></i>
-                <h4 class="mt-3" id="emptyFilterTitle">Нічого не знайдено</h4>
-                <p class="mb-0" id="emptyFilterHint">Спробуйте змінити фільтр або створити нотатку.</p>
+                <h4 class="mt-3" id="emptyFilterTitle" th:text="#{notes.empty.search.title}">Нічого не знайдено</h4>
+                <p class="mb-0" id="emptyFilterHint" th:text="#{notes.empty.search.hint}">Спробуйте змінити фільтр або створити нотатку.</p>
             </div>
         </div>
     </div>
 
-    <div class="kbd-hint no-print text-center mb-5">
+    <div class="kbd-hint no-print text-center mb-5" th:utext="#{notes.kbd.hint}">
         <kbd>N</kbd> — нова нотатка · <kbd>/</kbd> — пошук · <kbd>Esc</kbd> — закрити
     </div>
 
@@ -937,7 +938,7 @@
 </div>
 
 <!-- ===== BULK BAR ===== -->
-<div id="bulkBar" class="bulk-bar no-print" role="toolbar" aria-label="Дії з вибраними нотатками">
+<div id="bulkBar" class="bulk-bar no-print" role="toolbar" th:aria-label="#{notes.title}">
     <div class="d-flex align-items-center gap-2 flex-wrap bulk-buttons">
         <span class="bulk-count me-auto">
             <i class="fas fa-check-square"></i>
@@ -964,15 +965,15 @@
     </div>
 </div>
 
-<!-- ==================== CONFIRM ACTION MODAL (зверху, без centered) ==================== -->
+<!-- ==================== CONFIRM ACTION MODAL ==================== -->
 <div class="modal fade no-print" id="confirmActionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
-            <div class="modal-header border-0 text-white" id="confirmActionHeader"
+            <div class="modal-header border-0 text-white bg-primary" id="confirmActionHeader"
                  style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
                     <i class="fas fa-question-circle me-2"></i>
-                    <span id="confirmActionTitle">Підтвердження</span>
+                    <span id="confirmActionTitle" th:text="#{confirm.title}">Підтвердження</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -982,13 +983,14 @@
             <div class="modal-footer border-0 p-4 pt-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal"
                         th:text="#{btn.cancel}">Скасувати</button>
-                <button type="button" class="btn" id="confirmActionBtn">Підтвердити</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn"
+                        th:text="#{confirm.ok}">Підтвердити</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ==================== CREATE NOTE MODAL (без centered) ==================== -->
+<!-- ==================== CREATE NOTE MODAL ==================== -->
 <div class="modal fade" id="createNoteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -1066,7 +1068,7 @@
     </div>
 </div>
 
-<!-- ==================== EDIT NOTE MODAL (без centered) ==================== -->
+<!-- ==================== EDIT NOTE MODAL ==================== -->
 <div class="modal fade" id="editNoteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -1145,7 +1147,7 @@
     </div>
 </div>
 
-<!-- ==================== DELETE NOTE MODAL (без centered) ==================== -->
+<!-- ==================== DELETE NOTE MODAL ==================== -->
 <div class="modal fade no-print" id="deleteNoteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -1200,11 +1202,77 @@
     (function () {
         'use strict';
 
+        // ============================================================
+        // i18n — усі рядки з серверних messages_*.properties
+        // ============================================================
         var i18n = {
             yes: /*[[#{notes.delete.yes}]]*/ 'Так',
-            no:  /*[[#{notes.delete.no}]]*/  'Ні'
+            no:  /*[[#{notes.delete.no}]]*/  'Ні',
+
+            toastSuccess: /*[[#{toast.success}]]*/ 'Успішно!',
+            toastError:   /*[[#{toast.error}]]*/   'Помилка!',
+
+            networkError:   /*[[#{notes.network.error}]]*/   'Помилка мережі',
+            archiveError:   /*[[#{notes.archive.error}]]*/   'Не вдалося змінити стан',
+            duplicateError: /*[[#{notes.duplicate.error}]]*/ 'Не вдалося скопіювати нотатку',
+            errorPrefix:    /*[[#{notes.error.prefix}]]*/    'Помилка: {0}',
+
+            pinned:   /*[[#{notes.pin.pinned}]]*/   'Нотатку закріплено',
+            unpinned: /*[[#{notes.pin.unpinned}]]*/ 'Нотатку відкріплено',
+
+            toastArchived:       /*[[#{toast.note.archived}]]*/         'Нотатку заархівовано!',
+            toastUnarchived:     /*[[#{toast.note.unarchived}]]*/       'Нотатку відновлено!',
+            toastBulkArchived:   /*[[#{toast.notes.bulk.archived}]]*/   'Архівовано: {0} нотаток',
+            toastBulkUnarchived: /*[[#{toast.notes.bulk.unarchived}]]*/ 'Відновлено: {0} нотаток',
+            toastBulkDeleted:    /*[[#{toast.notes.bulk.deleted}]]*/    'Видалено: {0} нотаток',
+
+            confirmTitle: /*[[#{confirm.title}]]*/ 'Підтвердження',
+            confirmOk:    /*[[#{confirm.ok}]]*/    'Підтвердити',
+
+            archiveTitle:     /*[[#{notes.archive.confirm.title}]]*/     'Архівувати нотатку?',
+            archiveMessage:   /*[[#{notes.archive.confirm.message}]]*/   '«{0}» буде переміщено в архів.',
+            archiveLabel:     /*[[#{notes.archive.confirm.label}]]*/     'Архівувати',
+
+            unarchiveTitle:   /*[[#{notes.unarchive.confirm.title}]]*/   'Розархівувати нотатку?',
+            unarchiveMessage: /*[[#{notes.unarchive.confirm.message}]]*/ '«{0}» буде повернуто до активних нотаток.',
+            unarchiveLabel:   /*[[#{notes.unarchive.confirm.label}]]*/   'Розархівувати',
+
+            bulkArchiveTitle:     /*[[#{notes.bulk.archive.confirm.title}]]*/     'Архівувати нотатки?',
+            bulkArchiveMessage:   /*[[#{notes.bulk.archive.confirm.message}]]*/   'Архівувати {0} нотаток?',
+            bulkUnarchiveTitle:   /*[[#{notes.bulk.unarchive.confirm.title}]]*/   'Відновити нотатки?',
+            bulkUnarchiveMessage: /*[[#{notes.bulk.unarchive.confirm.message}]]*/ 'Повернути {0} нотаток з архіву?',
+            bulkDeleteTitle:      /*[[#{notes.bulk.delete.confirm.title}]]*/      'Видалити нотатки?',
+            bulkDeleteMessage:    /*[[#{notes.bulk.delete.confirm.message}]]*/    'Видалити {0} нотаток? Цю дію не можна скасувати.',
+            bulkDeleteLabel:      /*[[#{notes.bulk.delete}]]*/                    'Видалити',
+
+            clearArchiveTitle:   /*[[#{notes.clearArchive.confirm.title}]]*/   'Очистити архів?',
+            clearArchiveMessage: /*[[#{notes.clearArchive.confirm.message}]]*/ 'Видалити всі нотатки з архіву? Цю дію не можна скасувати.',
+            clearArchiveLabel:   /*[[#{notes.clearArchive.confirm.label}]]*/   'Очистити',
+
+            duplicateModalTitle: /*[[#{notes.modal.duplicate}]]*/ 'Дублювати нотатку',
+
+            emptyArchivedTitle: /*[[#{notes.empty.archived.title}]]*/ 'Архів порожній',
+            emptyArchivedHint:  /*[[#{notes.empty.archived.hint}]]*/  'Тут з\'являться нотатки, які ви заархівуєте.',
+            emptySharedTitle:   /*[[#{notes.empty.shared.title}]]*/   'Немає спільних нотаток',
+            emptySharedHint:    /*[[#{notes.empty.shared.hint}]]*/    'Позначте нотатку як «Спільна», щоб поділитися з сім\'єю.',
+            emptyActiveTitle:   /*[[#{notes.empty.active.title}]]*/   'Немає активних нотаток',
+            emptyActiveHint:    /*[[#{notes.empty.active.hint}]]*/    'Створіть першу нотатку.',
+            emptyAllTitle:      /*[[#{notes.empty.all.title}]]*/      'Немає нотаток',
+            emptyAllHint:       /*[[#{notes.empty.all.hint}]]*/       'Створіть першу нотатку.',
+
+            loading: /*[[#{notes.loading}]]*/ 'Завантаження...'
         };
 
+        function fmt(template) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return template.replace(/\{(\d+)\}/g, function (m, i) {
+                return args[i] !== undefined ? args[i] : m;
+            });
+        }
+
+        // ============================================================
+        // TOAST
+        // ============================================================
         function showToast(msg, type) {
             var el = document.getElementById('liveToast');
             if (!el || typeof bootstrap === 'undefined') return;
@@ -1213,12 +1281,47 @@
             var icon = document.getElementById('toastIcon');
             el.classList.remove('success', 'error');
             el.classList.add(type === 'error' ? 'error' : 'success');
-            title.textContent = type === 'error' ? 'Помилка' : 'Успіх';
+            title.textContent = type === 'error' ? i18n.toastError : i18n.toastSuccess;
             icon.className = type === 'error'
                 ? 'fas fa-exclamation-circle me-2'
                 : 'fas fa-check-circle me-2';
             text.textContent = msg;
             bootstrap.Toast.getOrCreateInstance(el).show();
+        }
+
+        // ============================================================
+        // PENDING TOAST (survives page reload)
+        // ============================================================
+        var PENDING_TOAST_KEY = 'lazycent_notes_pending_toast';
+
+        /**
+         * Кладемо повідомлення в sessionStorage, щоб показати його
+         * ПІСЛЯ location.reload(). Використовується, коли дія fetch'ем
+         * завершується успішно, але потребує перезавантаження сторінки
+         * (server-flash не переживе fetch → reload).
+         */
+        function flashToast(msg, type) {
+            try {
+                sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({
+                    msg: msg,
+                    type: type || 'success'
+                }));
+            } catch (e) { /* ignore */ }
+        }
+
+        /** Читає pending-тост після reload, показує і видаляє. */
+        function drainPendingToast() {
+            try {
+                var raw = sessionStorage.getItem(PENDING_TOAST_KEY);
+                if (!raw) return;
+                sessionStorage.removeItem(PENDING_TOAST_KEY);
+                var obj = JSON.parse(raw);
+                if (obj && obj.msg) {
+                    setTimeout(function () {
+                        showToast(obj.msg, obj.type || 'success');
+                    }, 150);
+                }
+            } catch (e) { /* ignore */ }
         }
 
         // ============================================================
@@ -1256,7 +1359,7 @@
             var titleEl = document.getElementById('confirmActionTitle');
             var msgEl = document.getElementById('confirmActionMessage');
 
-            titleEl.textContent = opts.title || 'Підтвердження';
+            titleEl.textContent = opts.title || i18n.confirmTitle;
             msgEl.textContent = opts.message || '';
             confirmCallback = onConfirm;
 
@@ -1271,11 +1374,14 @@
             header.style.borderRadius = '1rem 1rem 0 0';
 
             confirmBtnEl.className = 'btn ' + btnClass;
-            confirmBtnEl.textContent = opts.confirmLabel || 'Підтвердити';
+            confirmBtnEl.textContent = opts.confirmLabel || i18n.confirmOk;
 
             bootstrap.Modal.getOrCreateInstance(confirmModalEl).show();
         }
 
+        // ============================================================
+        // CHAR COUNTERS
+        // ============================================================
         function bindCounter(inputId, counterId, max) {
             var input = document.getElementById(inputId);
             var counter = document.getElementById(counterId);
@@ -1300,6 +1406,9 @@
 
         document.addEventListener('DOMContentLoaded', function () {
 
+            // ✅ ПЕРШИМ — показати тост, що пережив reload
+            drainPendingToast();
+
             initConfirmModal();
 
             bindCounter('createNoteTitle', 'createTitleCount', 255);
@@ -1307,7 +1416,9 @@
             bindCounter('editNoteTitle', 'editTitleCount', 255);
             bindCounter('editNoteContent', 'editContentCount', 5000);
 
-            // ===== COLOR PICKERS =====
+            // ============================================================
+            // COLOR PICKERS
+            // ============================================================
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -1364,10 +1475,8 @@
                     if (el) el.dispatchEvent(new Event('input'));
                 });
 
-                // Оновлюємо action форми — UPDATE
                 document.getElementById('editNoteForm').action = '/notes/update/' + id;
 
-                // Відновлюємо оригінальний заголовок модалки (якщо був переключений на duplicate)
                 var modalTitle = document.querySelector('#editNoteModal .modal-title');
                 if (modalTitle && modalTitle.dataset.originalTitle) {
                     modalTitle.innerHTML = modalTitle.dataset.originalTitle;
@@ -1377,11 +1486,7 @@
             };
 
             // ============================================================
-            // DUPLICATE (fetch, без форми)
-            // ============================================================
-            // ============================================================
-            // DUPLICATE — відкриває модалку редагування з prefill
-            // (форма submit'иться на /notes/create, а не /notes/update/{id})
+            // DUPLICATE → prefill edit modal
             // ============================================================
             window.duplicateNote = function (id, e) {
                 if (e) { e.preventDefault(); e.stopPropagation(); }
@@ -1395,7 +1500,6 @@
                 var textColor = card.dataset.textcolor || '#212529';
                 var isShared = card.dataset.shareWithFamily === 'true';
 
-                // Prefill: title + " (копія)", решта як у джерела
                 document.getElementById('editNoteId').value = '';
                 document.getElementById('editNoteTitle').value = title + ' (копія)';
                 document.getElementById('editNoteContent').value = content;
@@ -1418,24 +1522,21 @@
                     if (el) el.dispatchEvent(new Event('input'));
                 });
 
-                // КЛЮЧОВЕ: форма створює НОВУ нотатку
                 document.getElementById('editNoteForm').action = '/notes/create';
 
-                // Змінюємо заголовок модалки (запам'ятовуємо оригінал)
                 var modalTitle = document.querySelector('#editNoteModal .modal-title');
                 if (modalTitle) {
                     if (!modalTitle.dataset.originalTitle) {
                         modalTitle.dataset.originalTitle = modalTitle.innerHTML;
                     }
-                    modalTitle.innerHTML = '<i class="fas fa-copy me-2"></i>' +
-                        'Дублювати нотатку';
+                    modalTitle.innerHTML = '<i class="fas fa-copy me-2"></i>' + i18n.duplicateModalTitle;
                 }
 
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
             };
 
             // ============================================================
-            // PIN (optimistic)
+            // PIN
             // ============================================================
             window.togglePin = function (id, e) {
                 if (e) e.stopPropagation();
@@ -1460,12 +1561,12 @@
                     headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
                 }).then(function (r) {
                     if (!r.ok) throw new Error('HTTP ' + r.status);
-                    showToast(wasPinned ? 'Нотатку відкріплено' : 'Нотатку закріплено', 'success');
+                    showToast(wasPinned ? i18n.unpinned : i18n.pinned, 'success');
                 }).catch(function () { location.reload(); });
             };
 
             // ============================================================
-            // ARCHIVE (single) — confirm
+            // ARCHIVE (single)
             // ============================================================
             window.toggleArchive = function (id, e) {
                 if (e) e.stopPropagation();
@@ -1475,20 +1576,28 @@
                 var isArchived = card.classList.contains('archived') || card.dataset.archived === 'true';
 
                 showConfirm({
-                    title: isArchived ? 'Розархівувати нотатку?' : 'Архівувати нотатку?',
-                    message: isArchived
-                        ? '«' + title + '» буде повернуто до активних нотаток.'
-                        : '«' + title + '» буде переміщено в архів.',
-                    confirmLabel: isArchived ? 'Розархівувати' : 'Архівувати'
+                    title: isArchived ? i18n.unarchiveTitle : i18n.archiveTitle,
+                    message: fmt(isArchived ? i18n.unarchiveMessage : i18n.archiveMessage, title),
+                    confirmLabel: isArchived ? i18n.unarchiveLabel : i18n.archiveLabel
                 }, function () {
                     var csrf = document.querySelector('input[name="_csrf"]');
                     fetch('/notes/toggle-archive/' + id, {
                         method: 'POST',
                         headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
                     }).then(function (r) {
-                        if (r.ok) location.reload();
-                        else showToast('Не вдалося змінити стан', 'error');
-                    }).catch(function () { showToast('Помилка мережі', 'error'); });
+                        if (r.ok) {
+                            // ✅ flashToast ПЕРЕД reload — інакше toast не покажеться
+                            flashToast(
+                                isArchived ? i18n.toastUnarchived : i18n.toastArchived,
+                                'success'
+                            );
+                            location.reload();
+                        } else {
+                            showToast(i18n.archiveError, 'error');
+                        }
+                    }).catch(function () {
+                        showToast(i18n.networkError, 'error');
+                    });
                 });
             };
 
@@ -1546,7 +1655,7 @@
             }
 
             // ============================================================
-            // LAYOUT TOGGLE
+            // LAYOUT (Картки / Список)
             // ============================================================
             var LAYOUT_KEY = 'lazycent-notes-layout';
             var noteGrid = document.getElementById('noteGrid');
@@ -1615,20 +1724,20 @@
                         var hintEl = document.getElementById('emptyFilterHint');
                         var iconEl = document.getElementById('emptyFilterIcon');
                         if (filter === 'archived') {
-                            titleEl.textContent = 'Архів порожній';
-                            hintEl.textContent = 'Тут з\'являться нотатки, які ви заархівуєте.';
+                            titleEl.textContent = i18n.emptyArchivedTitle;
+                            hintEl.textContent = i18n.emptyArchivedHint;
                             iconEl.className = 'fas fa-archive';
                         } else if (filter === 'shared') {
-                            titleEl.textContent = 'Немає спільних нотаток';
-                            hintEl.textContent = 'Позначте нотатку як «Спільна», щоб поділитися з сім\'єю.';
+                            titleEl.textContent = i18n.emptySharedTitle;
+                            hintEl.textContent = i18n.emptySharedHint;
                             iconEl.className = 'fas fa-users-slash';
                         } else if (filter === 'active') {
-                            titleEl.textContent = 'Немає активних нотаток';
-                            hintEl.textContent = 'Створіть першу нотатку.';
+                            titleEl.textContent = i18n.emptyActiveTitle;
+                            hintEl.textContent = i18n.emptyActiveHint;
                             iconEl.className = 'fas fa-sticky-note';
                         } else {
-                            titleEl.textContent = 'Немає нотаток';
-                            hintEl.textContent = 'Створіть першу нотатку.';
+                            titleEl.textContent = i18n.emptyAllTitle;
+                            hintEl.textContent = i18n.emptyAllHint;
                             iconEl.className = 'fas fa-sticky-note';
                         }
                         emptyMsg.style.display = '';
@@ -1655,7 +1764,6 @@
                 bulkBar.classList.add('active');
                 document.getElementById('bulkCount').textContent = selectedIds.size;
 
-                // Визначити типи вибраних нотаток
                 var hasActive = false;
                 var hasArchived = false;
                 selectedIds.forEach(function (id) {
@@ -1668,9 +1776,7 @@
                 var archiveBtn = bulkBar.querySelector('[data-action="archive"]');
                 var unarchiveBtn = bulkBar.querySelector('[data-action="unarchive"]');
 
-                // Показати "Архівувати" тільки якщо є хоч одна активна
                 if (archiveBtn) archiveBtn.classList.toggle('d-none', !hasActive);
-                // Показати "Відновити" тільки якщо є хоч одна архівна
                 if (unarchiveBtn) unarchiveBtn.classList.toggle('d-none', !hasArchived);
             }
 
@@ -1700,7 +1806,7 @@
             });
 
             // ============================================================
-            // BULK ACTIONS — 3 дії: archive, unarchive, delete
+            // BULK ACTIONS
             // ============================================================
             bulkBar.addEventListener('click', function (e) {
                 var btn = e.target.closest('[data-action]');
@@ -1716,19 +1822,19 @@
 
                 var title, message, confirmLabel, danger;
                 if (isDelete) {
-                    title = 'Видалити нотатки?';
-                    message = 'Видалити ' + count + ' нотаток? Цю дію не можна скасувати.';
-                    confirmLabel = 'Видалити';
+                    title = i18n.bulkDeleteTitle;
+                    message = fmt(i18n.bulkDeleteMessage, count);
+                    confirmLabel = i18n.bulkDeleteLabel;
                     danger = true;
                 } else if (isUnarchive) {
-                    title = 'Відновити нотатки?';
-                    message = 'Повернути ' + count + ' нотаток з архіву?';
-                    confirmLabel = 'Відновити';
+                    title = i18n.bulkUnarchiveTitle;
+                    message = fmt(i18n.bulkUnarchiveMessage, count);
+                    confirmLabel = i18n.unarchiveLabel;
                     danger = false;
                 } else {
-                    title = 'Архівувати нотатки?';
-                    message = 'Архівувати ' + count + ' нотаток?';
-                    confirmLabel = 'Архівувати';
+                    title = i18n.bulkArchiveTitle;
+                    message = fmt(i18n.bulkArchiveMessage, count);
+                    confirmLabel = i18n.archiveLabel;
                     danger = false;
                 }
 
@@ -1753,10 +1859,20 @@
                         if (!r.ok) throw new Error('HTTP ' + r.status);
                         return r.json();
                     }).then(function (data) {
-                        if (data.success) location.reload();
-                        else showToast('Помилка: ' + (data.error || '?'), 'error');
+                        if (data.success) {
+                            // ✅ flashToast ПЕРЕД reload
+                            var resultCount = data.count || count;
+                            var msg;
+                            if (isDelete)         msg = fmt(i18n.toastBulkDeleted, resultCount);
+                            else if (isUnarchive) msg = fmt(i18n.toastBulkUnarchived, resultCount);
+                            else                  msg = fmt(i18n.toastBulkArchived, resultCount);
+                            flashToast(msg, 'success');
+                            location.reload();
+                        } else {
+                            showToast(fmt(i18n.errorPrefix, data.error || '?'), 'error');
+                        }
                     }).catch(function (err) {
-                        showToast('Помилка: ' + err.message, 'error');
+                        showToast(fmt(i18n.errorPrefix, err.message), 'error');
                     });
                 });
             });
@@ -1768,11 +1884,12 @@
             if (clearArchiveBtn) {
                 clearArchiveBtn.addEventListener('click', function () {
                     showConfirm({
-                        title: 'Очистити архів?',
-                        message: 'Видалити всі нотатки з архіву? Цю дію не можна скасувати.',
+                        title: i18n.clearArchiveTitle,
+                        message: i18n.clearArchiveMessage,
                         danger: true,
-                        confirmLabel: 'Очистити'
+                        confirmLabel: i18n.clearArchiveLabel
                     }, function () {
+                        // form.submit() — server-flash покажеться напряму
                         document.getElementById('clearArchiveForm').submit();
                     });
                 });
@@ -1856,7 +1973,7 @@
 
                 btn.disabled = true;
                 var originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Завантаження...';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> ' + i18n.loading;
 
                 var size = readParam('size', '20');
                 var sort = readParam('sort', 'default');
@@ -1902,6 +2019,7 @@
                 var tag = (e.target.tagName || '').toUpperCase();
                 var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
 
+                // Ctrl/Cmd+A — вибрати всі видимі
                 if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !isEditable) {
                     var visibleCheckboxes = Array.from(noteGrid.querySelectorAll('.note-checkbox'))
                         .filter(function (cb) {

@@ -26,7 +26,7 @@
                 <div class="d-flex align-items-start gap-2 mb-1">
                     <input type="checkbox" class="note-checkbox form-check-input"
                            th:data-id="${note.id}"
-                           th:aria-label="'Вибрати нотатку: ' + ${note.title}"
+                           th:aria-label="#{notes.select.aria(${note.title})}"
                            onclick="event.stopPropagation()"/>
 
                     <h5 class="card-title mb-0 flex-grow-1"
@@ -60,7 +60,6 @@
                             th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
                         <i class="fas fa-archive"></i>
                     </button>
-                    <!-- Дублювання: button (не form) + JS-fetch -->
                     <button type="button" class="btn-icon"
                             th:title="#{notes.action.duplicate}"
                             th:aria-label="#{notes.action.duplicate}"
@@ -102,7 +101,7 @@
                 <div class="d-flex align-items-start gap-2 mb-1">
                     <input type="checkbox" class="note-checkbox form-check-input"
                            th:data-id="${note.id}"
-                           th:aria-label="'Вибрати нотатку: ' + ${note.title}"
+                           th:aria-label="#{notes.select.aria(${note.title})}"
                            onclick="event.stopPropagation()"/>
 
                     <h5 class="card-title mb-0 flex-grow-1"
