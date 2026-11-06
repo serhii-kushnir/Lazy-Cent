@@ -1,38 +1,27 @@
 package org.lazycent.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.lazycent.model.Note;
 import org.lazycent.model.User;
 import org.lazycent.service.NoteService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.thymeleaf.context.Context;
+import org.thymeleaf.context.WebContext;
 import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.web.servlet.JakartaServletWebApplication; // <-- ДОДАНО ІМПОРТ
 
 import java.util.List;
 import java.util.Set;
 
-/**
- * AJAX-контролер для нотаток.
- *
- * <p><b>Чому @RestController, а не @Controller:</b> методи повертають
- * готовий HTML-рядок (результат {@code templateEngine.process(...)}),
- * а не ім'я view. З {@code @Controller} Spring MVC сприймав би цей рядок
- * як ім'я view і намагався б його відрендерити через
- * {@code ThymeleafViewResolver} — що і викликало помилку
- * {@code Error resolving template []}.
- *
- * <p><b>Чому {@code Set<String> selectors}, а не {@code ":: fragment"}:</b>
- * перегрузка {@code process(String, IContext)} не завжди коректно
- * розбирає {@code ::} на ім'я + селектор. Явна передача селектора
- * через {@code Set<String>} — це задокументований і надійний API.
- */
 @RestController
 @RequestMapping("/notes/api")
 @RequiredArgsConstructor
@@ -52,45 +41,54 @@ public class NoteApiController extends BaseController {
     // ==================== LOAD MORE ====================
 
     @GetMapping(value = "/load-more", produces = MediaType.TEXT_HTML_VALUE)
-    public String loadMore(@RequestParam(defaultValue = "1") int page,
-                           @RequestParam(defaultValue = "active") String type,
-                           @RequestParam(required = false) String q,
-                           Authentication authentication) {
+    public String loadMore(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "active") String type,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "default") String sort,
+            Authentication authentication,
+            HttpServletRequest request,
+            HttpServletResponse response) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "";
 
         try {
             String query = (q != null && !q.trim().isEmpty()) ? q.trim() : null;
+            boolean archived = "archived".equals(type);
+            Sort sortSpec = NoteService.resolveSort(sort, archived);
 
             Page<Note> result;
             Set<String> selectors;
 
-            if ("archived".equals(type)) {
+            if (archived) {
                 result = (query == null)
-                        ? noteService.getArchivedNotes(currentUser, page)
-                        : noteService.searchArchivedNotes(currentUser, query, page);
+                        ? noteService.getArchivedNotes(currentUser, page, size, sortSpec)
+                        : noteService.searchArchivedNotes(currentUser, query, page, size, sortSpec);
                 selectors = ARCHIVED_CARD_SELECTOR;
             } else {
                 result = (query == null)
-                        ? noteService.getActiveNotes(currentUser, page)
-                        : noteService.searchActiveNotes(currentUser, query, page);
+                        ? noteService.getActiveNotes(currentUser, page, size, sortSpec)
+                        : noteService.searchActiveNotes(currentUser, query, page, size, sortSpec);
                 selectors = ACTIVE_CARD_SELECTOR;
             }
 
-            Context ctx = new Context();
-            List<Note> notes = result.getContent();
+            // ✅ FIX: створюємо IWebExchange, а потім WebContext
+            var application = JakartaServletWebApplication.buildApplication(request.getServletContext());
+            var exchange = application.buildExchange(request, response);
+            WebContext webCtx = new WebContext(exchange, request.getLocale());
 
+            List<Note> notes = result.getContent();
             StringBuilder html = new StringBuilder();
             for (Note note : notes) {
-                ctx.setVariable("note", note);
-                // ✅ фікс: template + selector окремо, а не "template :: fragment"
-                html.append(templateEngine.process(NOTE_CARD_TEMPLATE, selectors, ctx));
+                webCtx.setVariable("note", note);
+                html.append(templateEngine.process(NOTE_CARD_TEMPLATE, selectors, webCtx));
             }
             return html.toString();
 
         } catch (Exception e) {
             log.error("loadMore failed for type='{}', q='{}': {}", type, q, e.getMessage(), e);
-            return "";   // з @RestController → 200 OK з порожнім тілом
+            return "";
         }
     }
 
@@ -98,30 +96,40 @@ public class NoteApiController extends BaseController {
 
     @GetMapping(value = "/search", produces = MediaType.TEXT_HTML_VALUE)
     public String search(@RequestParam(required = false) String q,
-                         Authentication authentication) {
+                         @RequestParam(defaultValue = "20") int size,
+                         @RequestParam(defaultValue = "default") String sort,
+                         Authentication authentication,
+                         HttpServletRequest request,
+                         HttpServletResponse response) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "";
 
         try {
             String query = (q != null && !q.trim().isEmpty()) ? q.trim() : null;
 
+            Sort activeSort = NoteService.resolveSort(sort, false);
+            Sort archivedSort = NoteService.resolveSort(sort, true);
+
             Page<Note> activePage = (query == null)
-                    ? noteService.getActiveNotes(currentUser, 0)
-                    : noteService.searchActiveNotes(currentUser, query, 0);
+                    ? noteService.getActiveNotes(currentUser, 0, size, activeSort)
+                    : noteService.searchActiveNotes(currentUser, query, 0, size, activeSort);
 
             Page<Note> archivedPage = (query == null)
-                    ? noteService.getArchivedNotes(currentUser, 0)
-                    : noteService.searchArchivedNotes(currentUser, query, 0);
+                    ? noteService.getArchivedNotes(currentUser, 0, size, archivedSort)
+                    : noteService.searchArchivedNotes(currentUser, query, 0, size, archivedSort);
 
-            Context ctx = new Context();
-            ctx.setVariable("notes", activePage.getContent());
-            ctx.setVariable("archivedNotes", archivedPage.getContent());
-            ctx.setVariable("activeHasMore", activePage.hasNext());
-            ctx.setVariable("archivedHasMore", archivedPage.hasNext());
-            ctx.setVariable("q", query);
+            // ✅ FIX: створюємо IWebExchange, а потім WebContext
+            var application = JakartaServletWebApplication.buildApplication(request.getServletContext());
+            var exchange = application.buildExchange(request, response);
+            WebContext webCtx = new WebContext(exchange, request.getLocale());
 
-            // ✅ фікс: template + selector окремо, а не "template :: fullGrid"
-            return templateEngine.process(NOTE_GRID_TEMPLATE, FULL_GRID_SELECTOR, ctx);
+            webCtx.setVariable("notes", activePage.getContent());
+            webCtx.setVariable("archivedNotes", archivedPage.getContent());
+            webCtx.setVariable("activeHasMore", activePage.hasNext());
+            webCtx.setVariable("archivedHasMore", archivedPage.hasNext());
+            webCtx.setVariable("q", query);
+
+            return templateEngine.process(NOTE_GRID_TEMPLATE, FULL_GRID_SELECTOR, webCtx);
 
         } catch (Exception e) {
             log.error("Search rendering failed for q='{}': {}", q, e.getMessage(), e);

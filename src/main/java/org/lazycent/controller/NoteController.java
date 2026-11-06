@@ -7,6 +7,7 @@ import org.lazycent.model.User;
 import org.lazycent.service.FamilyService;
 import org.lazycent.service.NoteService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/notes")
@@ -23,25 +25,29 @@ public class NoteController extends BaseController {
     private final NoteService noteService;
     private final FamilyService familyService;
 
-    // ==================== СТОРІНКИ ====================
+    // ==================== СТОРІНКА ====================
 
     @GetMapping
     public String viewNotes(@RequestParam(value = "q", required = false) String q,
+                            @RequestParam(value = "sort", required = false, defaultValue = "default") String sort,
+                            @RequestParam(value = "size", required = false, defaultValue = "20") int size,
                             Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
         String query = (q != null && !q.trim().isEmpty()) ? q.trim() : null;
 
+        Sort activeSort = NoteService.resolveSort(sort, false);
+        Sort archivedSort = NoteService.resolveSort(sort, true);
+
         Page<Note> activePage = (query == null)
-                ? noteService.getActiveNotes(currentUser, 0)
-                : noteService.searchActiveNotes(currentUser, query, 0);
+                ? noteService.getActiveNotes(currentUser, 0, size, activeSort)
+                : noteService.searchActiveNotes(currentUser, query, 0, size, activeSort);
 
         Page<Note> archivedPage = (query == null)
-                ? noteService.getArchivedNotes(currentUser, 0)
-                : noteService.searchArchivedNotes(currentUser, query, 0);
+                ? noteService.getArchivedNotes(currentUser, 0, size, archivedSort)
+                : noteService.searchArchivedNotes(currentUser, query, 0, size, archivedSort);
 
-        // ✅ Лічильники — ЗАВЖДИ загальна кількість (не результати пошуку)
         long activeTotal = noteService.countActiveNotes(currentUser);
         long archivedTotal = noteService.countArchivedNotes(currentUser);
         long sharedTotal = noteService.countSharedNotes(currentUser);
@@ -54,6 +60,8 @@ public class NoteController extends BaseController {
         model.addAttribute("activeHasMore", activePage.hasNext());
         model.addAttribute("archivedHasMore", archivedPage.hasNext());
         model.addAttribute("q", query);
+        model.addAttribute("sort", sort);
+        model.addAttribute("size", size);
         return "notes";
     }
 
@@ -167,10 +175,6 @@ public class NoteController extends BaseController {
         return "redirect:/notes";
     }
 
-    /**
-     * Видаляє ВСІ архівні нотатки користувача одним запитом.
-     * Активні та shared нотатки не чіпаються.
-     */
     @PostMapping("/archive/clear")
     public String clearArchive(Authentication authentication,
                                RedirectAttributes redirectAttributes) {
@@ -189,6 +193,59 @@ public class NoteController extends BaseController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/notes";
+    }
+
+    // ==================== ДУБЛЮВАННЯ ====================
+
+    @PostMapping("/{id}/duplicate")
+    public String duplicateNote(@PathVariable Long id,
+                                Authentication authentication,
+                                RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        try {
+            Note copy = noteService.duplicateNote(id, currentUser);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Нотатку скопійовано: " + copy.getTitle());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/notes";
+    }
+
+    // ==================== BULK ====================
+
+    @PostMapping("/bulk/archive")
+    @ResponseBody
+    public Map<String, Object> bulkArchive(@RequestParam("ids") List<Long> ids,
+                                           Authentication authentication) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return Map.of("success", false, "error", "Unauthorized");
+        }
+        try {
+            int count = noteService.bulkArchive(ids, currentUser);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            return Map.of("success", false, "error", e.getMessage());
+        }
+    }
+
+    @PostMapping("/bulk/delete")
+    @ResponseBody
+    public Map<String, Object> bulkDelete(@RequestParam("ids") List<Long> ids,
+                                          Authentication authentication) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return Map.of("success", false, "error", "Unauthorized");
+        }
+        try {
+            int count = noteService.bulkDelete(ids, currentUser);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            return Map.of("success", false, "error", e.getMessage());
+        }
     }
 
     // ==================== COPY (сім'я) ====================

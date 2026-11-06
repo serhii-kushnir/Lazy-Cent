@@ -17,13 +17,19 @@
              th:data-color="${note.color}"
              th:data-textcolor="${note.textColor}"
              th:style="'background-color:' + ${note.color}">
-            <!--
-              card-body — фокусабельний елемент з роллю button.
-              JS-делегування в notes.html обробляє Enter/Space.
-            -->
+
+            <!-- ===== Вибір: окремий рядок НАД заголовком ===== -->
+            <div class="note-select-bar" onclick="event.stopPropagation()">
+                <input type="checkbox" class="note-checkbox form-check-input"
+                       th:data-id="${note.id}"
+                       th:aria-label="'Вибрати нотатку: ' + ${note.title}"/>
+                <span class="note-selected-mark" aria-hidden="true">
+                    <i class="fas fa-check-circle"></i>
+                </span>
+            </div>
+
             <div class="card-body"
-                 role="button"
-                 tabindex="0"
+                 role="button" tabindex="0"
                  th:aria-label="${note.title}"
                  th:onclick="'editNote(' + ${note.id} + ')'">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
@@ -40,8 +46,9 @@
                    th:text="${note.content}"
                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
             </div>
+
             <div class="card-footer">
-                <div class="d-flex gap-1">
+                <div class="d-flex gap-1 align-items-center">
                     <button type="button" class="btn-icon"
                             th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
                             th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
@@ -55,6 +62,16 @@
                             th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
                         <i class="fas fa-archive"></i>
                     </button>
+                    <form th:action="@{/notes/{id}/duplicate(id=${note.id})}"
+                          method="post" class="note-duplicate-form"
+                          onclick="event.stopPropagation();">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn-icon"
+                                th:title="#{notes.action.duplicate}"
+                                th:aria-label="#{notes.action.duplicate}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </form>
                 </div>
                 <button type="button" class="btn-icon text-danger"
                         th:title="#{notes.action.delete}"
@@ -81,17 +98,25 @@
              th:data-color="${note.color}"
              th:data-textcolor="${note.textColor}"
              th:style="'background-color:' + ${note.color}">
+
+            <div class="note-select-bar" onclick="event.stopPropagation()">
+                <input type="checkbox" class="note-checkbox form-check-input"
+                       th:data-id="${note.id}"
+                       th:aria-label="'Вибрати нотатку: ' + ${note.title}"/>
+                <span class="note-selected-mark" aria-hidden="true">
+                    <i class="fas fa-check-circle"></i>
+                </span>
+            </div>
+
             <div class="card-body"
-                 role="button"
-                 tabindex="0"
+                 role="button" tabindex="0"
                  th:aria-label="${note.title}"
                  th:onclick="'editNote(' + ${note.id} + ')'">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
                     <h5 class="card-title mb-0 flex-grow-1"
                         th:text="${note.title}"
                         th:style="'color:' + ${note.textColor}">Заголовок</h5>
-                    <span th:if="${note.shareWithFamily}"
-                          class="shared-badge">
+                    <span th:if="${note.shareWithFamily}" class="shared-badge">
                         <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
                     </span>
                 </div>
@@ -99,13 +124,26 @@
                    th:text="${note.content}"
                    th:style="'color:' + ${note.textColor}">Текст...</p>
             </div>
+
             <div class="card-footer">
-                <button type="button" class="btn-icon"
-                        th:title="#{notes.action.unarchive}"
-                        th:aria-label="#{notes.action.unarchive}"
-                        th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
-                    <i class="fas fa-undo"></i>
-                </button>
+                <div class="d-flex gap-1 align-items-center">
+                    <button type="button" class="btn-icon"
+                            th:title="#{notes.action.unarchive}"
+                            th:aria-label="#{notes.action.unarchive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <form th:action="@{/notes/{id}/duplicate(id=${note.id})}"
+                          method="post" class="note-duplicate-form"
+                          onclick="event.stopPropagation();">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn-icon"
+                                th:title="#{notes.action.duplicate}"
+                                th:aria-label="#{notes.action.duplicate}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </form>
+                </div>
                 <button type="button" class="btn-icon text-danger"
                         th:title="#{notes.action.delete}"
                         th:aria-label="#{notes.action.delete}"
