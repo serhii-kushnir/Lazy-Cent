@@ -32,17 +32,6 @@ public class NoteService {
 
     // ==================== SORT HELPERS ====================
 
-    /**
-     * Повертає {@link Sort} для вказаного режиму.
-     *
-     * <p><b>Для активних нотаток</b> ({@code archived = false}) закріплені
-     * завжди йдуть першими, незалежно від вибраного сортування — це
-     * узгоджено з Google Keep.
-     *
-     * @param sortKey одне з: {@code default}, {@code title}, {@code created},
-     *                {@code updated}, {@code color}
-     * @param archived чи це сортування для архіву
-     */
     public static Sort resolveSort(String sortKey, boolean archived) {
         Sort base = switch (sortKey == null ? "default" : sortKey) {
             case "title"   -> Sort.by("title").ascending();
@@ -376,5 +365,26 @@ public class NoteService {
     public long countSharedNotes(User user) {
         if (user == null) return 0;
         return noteRepository.countByOwnerAndShareWithFamilyTrue(user);
+    }
+
+    /**
+     * Всі активні нотатки без пагінації — для експорту.
+     * {@code size = 0} → {@link Integer#MAX_VALUE} (див. {@link #buildPageable}).
+     */
+    @Transactional(readOnly = true)
+    public List<Note> getAllActiveNotes(User user, Sort sort) {
+        if (user == null) return List.of();
+        Pageable pageable = buildPageable(0, 0, sort);
+        return noteRepository.findByOwnerAndArchivedFalse(user, pageable).getContent();
+    }
+
+    /**
+     * Всі архівні нотатки без пагінації — для експорту.
+     */
+    @Transactional(readOnly = true)
+    public List<Note> getAllArchivedNotes(User user, Sort sort) {
+        if (user == null) return List.of();
+        Pageable pageable = buildPageable(0, 0, sort);
+        return noteRepository.findByOwnerAndArchivedTrue(user, pageable).getContent();
     }
 }

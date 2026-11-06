@@ -5,6 +5,7 @@ import org.lazycent.model.Family;
 import org.lazycent.model.Note;
 import org.lazycent.model.User;
 import org.lazycent.service.FamilyService;
+import org.lazycent.service.NoteExportService;
 import org.lazycent.service.NoteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -24,6 +25,7 @@ public class NoteController extends BaseController {
 
     private final NoteService noteService;
     private final FamilyService familyService;
+    private final NoteExportService noteExportService;
 
     // ==================== СТОРІНКА ====================
 
@@ -281,5 +283,38 @@ public class NoteController extends BaseController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
         return "redirect:/notes";
+    }
+
+    /**
+     * Експорт нотаток в Excel.
+     *
+     * @param sort   default | title | created | updated | color
+     * @param filter all | active | archived | shared
+     */
+    @GetMapping("/export")
+    public void exportNotes(
+            @RequestParam(value = "sort", required = false, defaultValue = "default") String sort,
+            @RequestParam(value = "filter", required = false, defaultValue = "all") String filter,
+            Authentication authentication,
+            jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        byte[] xlsx = noteExportService.export(
+                currentUser, sort, filter,
+                org.springframework.context.i18n.LocaleContextHolder.getLocale());
+
+        String filename = "notes-" + filter + "-"
+                + java.time.LocalDate.now() + ".xlsx";
+        response.setContentType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + filename + "\"");
+        response.setContentLength(xlsx.length);
+        response.getOutputStream().write(xlsx);
     }
 }
