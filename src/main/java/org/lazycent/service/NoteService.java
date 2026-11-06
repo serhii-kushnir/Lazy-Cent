@@ -237,4 +237,32 @@ public class NoteService {
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size));
         return noteRepository.searchArchived(user, query.trim(), pageable);
     }
+
+    // ==================== COUNTS (для лічильників фільтрів) ====================
+
+    @Transactional(readOnly = true)
+    public long countActiveNotes(User user) {
+        if (user == null) return 0;
+        return noteRepository.countByOwnerAndArchivedFalse(user);
+    }
+
+    @Transactional(readOnly = true)
+    public long countArchivedNotes(User user) {
+        if (user == null) return 0;
+        return noteRepository.countByOwnerAndArchivedTrue(user);
+    }
+
+    @Transactional(readOnly = true)
+    public long countSharedNotes(User user) {
+        if (user == null || user.getFamilyId() == null) return 0;
+        return noteRepository.countSharedWithFamily(user.getFamilyId());
+    }
+
+    // ==================== BULK ====================
+
+    @Transactional
+    public int deleteArchivedNotes(User user) {
+        if (user == null) return 0;
+        return noteRepository.deleteArchivedByOwner(user);
+    }
 }

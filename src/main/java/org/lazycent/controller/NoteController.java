@@ -41,13 +41,19 @@ public class NoteController extends BaseController {
                 ? noteService.getArchivedNotes(currentUser, 0)
                 : noteService.searchArchivedNotes(currentUser, query, 0);
 
+        // ✅ Лічильники — ЗАВЖДИ загальна кількість (не результати пошуку)
+        long activeTotal = noteService.countActiveNotes(currentUser);
+        long archivedTotal = noteService.countArchivedNotes(currentUser);
+        long sharedTotal = noteService.countSharedNotes(currentUser);
+
         model.addAttribute("notes", activePage.getContent());
         model.addAttribute("archivedNotes", archivedPage.getContent());
-        model.addAttribute("activeTotal", activePage.getTotalElements());
-        model.addAttribute("archivedTotal", archivedPage.getTotalElements());
+        model.addAttribute("activeTotal", activeTotal);
+        model.addAttribute("archivedTotal", archivedTotal);
+        model.addAttribute("sharedTotal", sharedTotal);
         model.addAttribute("activeHasMore", activePage.hasNext());
         model.addAttribute("archivedHasMore", archivedPage.hasNext());
-        model.addAttribute("q", query);   // ← для hidden input у "Завантажити ще"
+        model.addAttribute("q", query);
         return "notes";
     }
 
@@ -158,6 +164,30 @@ public class NoteController extends BaseController {
         Note result = noteService.toggleArchived(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage",
                 result.isArchived() ? msg("toast.note.archived") : msg("toast.note.unarchived"));
+        return "redirect:/notes";
+    }
+
+    /**
+     * Видаляє ВСІ архівні нотатки користувача одним запитом.
+     * Активні та shared нотатки не чіпаються.
+     */
+    @PostMapping("/archive/clear")
+    public String clearArchive(Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        try {
+            int deleted = noteService.deleteArchivedNotes(currentUser);
+            if (deleted > 0) {
+                redirectAttributes.addFlashAttribute("successMessage",
+                        "Архів очищено: " + deleted + " нотаток видалено");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Архів уже порожній");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return "redirect:/notes";
     }
 

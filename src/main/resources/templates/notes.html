@@ -11,11 +11,7 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ============================================================
-           ВИПРАВЛЕННЯ #1: animation-fill-mode = backwards (не forwards!)
-           Без forwards transform повертається до `none` після анімації,
-           тому :hover { transform: translateY(-2px) } працює.
-           ============================================================ */
+        /* backwards, не forwards — щоб :hover працював після анімації */
         .animate-fade-up   { animation: fadeInUp   0.5s ease backwards; }
         .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
         .delay-1 { animation-delay: 0.05s; }
@@ -55,10 +51,8 @@
             color: #212529 !important;
             border-bottom: 1px solid #dee2e6 !important;
         }
-        .cat-header-theme h6,
-        .cat-header-theme h6 * { color: #6c757d !important; }
-        .cat-header-theme h3,
-        .cat-header-theme h3 * { color: #212529 !important; }
+        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
         [data-bs-theme="dark"] .cat-header-theme {
             background-color: #1d2027 !important;
             color: #e6e6e6 !important;
@@ -75,33 +69,52 @@
             border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0;
         }
         .view-toggle .btn {
-            border: none; padding: 0.5rem 1.2rem; font-size: 1rem;
+            border: none; padding: 0.5rem 1rem; font-size: 0.95rem;
             border-radius: 0.375rem !important; background: transparent;
             color: var(--bs-secondary-color); font-weight: 600;
             transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 0.4rem;
         }
-        .view-toggle .btn.active {
-            background: var(--bs-body-bg); color: var(--bs-primary);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        .view-toggle .btn .badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.45rem;
+            background: rgba(0,0,0,0.08);
+            color: inherit;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            min-width: 1.5rem;
+            text-align: center;
         }
+        .view-toggle .btn.active .badge { background: var(--bs-primary); color: #fff; }
+
         .cat-header-theme .view-toggle { background: #e9ecef !important; }
         .cat-header-theme .view-toggle .btn { color: #495057 !important; }
+        .cat-header-theme .view-toggle .btn .badge { background: rgba(0,0,0,0.1); color: #495057; }
         .cat-header-theme .view-toggle .btn.active {
             background: #ffffff !important;
             color: #0d6efd !important;
             box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
         }
+        .cat-header-theme .view-toggle .btn.active .badge { background: #0d6efd; color: #fff; }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle {
             background: rgba(255, 255, 255, 0.08) !important;
         }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn .badge {
+            background: rgba(255,255,255,0.15);
+            color: #e6e6e6;
+        }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
             background: #0d6efd !important;
             color: #ffffff !important;
             box-shadow: none !important;
         }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active .badge {
+            background: rgba(255,255,255,0.25);
+            color: #fff;
+        }
         @media (max-width: 767.98px) {
-            .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+            .view-toggle .btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
         }
 
         /* ===== SEARCH BAR ===== */
@@ -109,9 +122,6 @@
         .search-bar .input-group-text { background: transparent; border-right: none; }
         .search-bar .input-group > .btn { border-left: none; }
 
-        /* ============================================================
-           ВИПРАВЛЕННЯ #2: кнопка "Х" — завжди видима, не залежить від JS
-           ============================================================ */
         #searchClear {
             flex-shrink: 0;
             min-width: 44px;
@@ -124,10 +134,7 @@
             border-color: #dc3545;
             color: #dc3545;
         }
-        [data-bs-theme="dark"] #searchClear {
-            color: #adb5bd;
-            border-color: #495057;
-        }
+        [data-bs-theme="dark"] #searchClear { color: #adb5bd; border-color: #495057; }
         [data-bs-theme="dark"] #searchClear:hover {
             background-color: rgba(248, 113, 113, 0.15);
             border-color: #f87171;
@@ -144,35 +151,29 @@
             pointer-events: none;
         }
 
-        /* ============================================================
-           ВИПРАВЛЕННЯ #1 (продовження): картки — hover як на кнопках
-           Той самий transform + shadow, що і .btn:hover
-           ============================================================ */
+        /* ===== NOTE CARDS ===== */
         .note-card {
             border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             height: 100%;
             display: flex;
             flex-direction: column;
-            cursor: pointer;
             overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+        .note-card .card-body { cursor: pointer; }
         .note-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        [data-bs-theme="dark"] .note-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
-        .note-card.pinned {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15);
-        }
-        [data-bs-theme="dark"] .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5);
+        [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+        .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1); }
+        .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15); }
+        [data-bs-theme="dark"] .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5); }
+        .note-card .card-body:focus-visible {
+            outline: 3px solid var(--bs-primary);
+            outline-offset: -3px;
+            border-radius: 1rem 1rem 0 0;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -249,10 +250,29 @@
 
         .char-counter { font-size: 0.75rem; color: var(--bs-secondary-color); text-align: right; margin-top: 0.25rem; }
 
+        /* ===== KBD hint ===== */
+        .kbd-hint {
+            font-size: 0.75rem;
+            color: var(--bs-secondary-color);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        .kbd-hint kbd {
+            background: var(--bs-secondary-bg);
+            color: var(--bs-body-color);
+            border-radius: 4px;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: var(--bs-font-monospace);
+            border: 1px solid var(--bs-border-color);
+        }
+
         @media (max-width: 575.98px) {
             .cat-header-theme > div.no-print { width: 100%; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
             .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; height: 42px !important; }
             .cat-header-theme > div.no-print > .view-toggle > .btn { flex: 1; height: 36px !important; }
+            .kbd-hint { display: none; }
         }
 
         @media print {
@@ -323,6 +343,7 @@
 
     <div class="notes-section mb-3 animate-fade-up delay-1">
 
+        <!-- Section header -->
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
             <div class="icon-circle bg-primary text-white">
                 <i class="fas fa-sticky-note"></i>
@@ -338,15 +359,31 @@
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="filterToggle">
-                    <button class="btn active" data-filter="all" th:text="#{notes.filter.all}">Усі</button>
-                    <button class="btn" data-filter="active" th:text="#{notes.filter.active}">Активні</button>
-                    <button class="btn" data-filter="archived" th:text="#{notes.filter.archived}">Архів</button>
-                    <button class="btn" data-filter="shared" th:if="${hasFamily}" th:text="#{badge.shared}">Спільні</button>
+                    <button class="btn active" data-filter="all">
+                        <span th:text="#{notes.filter.all}">Усі</span>
+                        <span class="badge" id="badgeAll"
+                              th:text="${(activeTotal != null ? activeTotal : 0) + (archivedTotal != null ? archivedTotal : 0)}">0</span>
+                    </button>
+                    <button class="btn" data-filter="active">
+                        <span th:text="#{notes.filter.active}">Активні</span>
+                        <span class="badge" id="badgeActive"
+                              th:text="${activeTotal != null ? activeTotal : 0}">0</span>
+                    </button>
+                    <button class="btn" data-filter="archived">
+                        <span th:text="#{notes.filter.archived}">Архів</span>
+                        <span class="badge" id="badgeArchived"
+                              th:text="${archivedTotal != null ? archivedTotal : 0}">0</span>
+                    </button>
+                    <button class="btn" data-filter="shared" th:if="${hasFamily}">
+                        <span th:text="#{badge.shared}">Спільні</span>
+                        <span class="badge" id="badgeShared"
+                              th:text="${sharedTotal != null ? sharedTotal : 0}">0</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- SEARCH BAR: X-кнопка завжди в DOM і завжди видима -->
+        <!-- SEARCH BAR -->
         <div class="p-3 search-bar" style="border-bottom: 1px solid var(--bs-border-color);">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -364,11 +401,37 @@
             </span>
         </div>
 
+        <!-- Archive bulk actions -->
+        <div th:if="${archivedTotal != null and archivedTotal > 0}"
+             class="px-3 py-2 d-flex justify-content-end border-bottom"
+             style="border-color: var(--bs-border-color) !important;">
+            <form method="post" th:action="@{/notes/archive/clear}"
+                  onsubmit="return confirm('Видалити всі нотатки з архіву? Цю дію не можна скасувати.');"
+                  class="d-inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash me-1"></i>
+                    Очистити архів (<span th:text="${archivedTotal}">0</span>)
+                </button>
+            </form>
+        </div>
+
         <div class="p-3">
             <div class="row g-3" id="noteGrid">
                 <th:block th:replace="~{fragments/note-grid :: fullGrid}"></th:block>
             </div>
+
+            <!-- Порожній стан для фільтрів (показується JS) -->
+            <div id="emptyFilterMessage" class="empty-notes" style="display:none;">
+                <i class="fas fa-search" id="emptyFilterIcon"></i>
+                <h4 class="mt-3" id="emptyFilterTitle">Нічого не знайдено</h4>
+                <p class="mb-0" id="emptyFilterHint">Спробуйте змінити фільтр або створити нотатку.</p>
+            </div>
         </div>
+    </div>
+
+    <div class="kbd-hint no-print text-center mb-3">
+        <kbd>N</kbd> — нова нотатка · <kbd>/</kbd> — пошук · <kbd>Esc</kbd> — закрити
     </div>
 
     <div class="print-footer d-print-block" style="display: none;">
@@ -439,9 +502,6 @@
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
                             </label>
-                        </div>
-                        <div class="form-text text-muted" th:text="#{modal.shareWithFamily.hint}">
-                            Члени вашої сім'ї побачать цю нотатку
                         </div>
                     </div>
                 </div>
@@ -519,9 +579,6 @@
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
                             </label>
                         </div>
-                        <div class="form-text text-muted" th:text="#{modal.shareWithFamily.hint}">
-                            Члени вашої сім'ї побачать цю нотатку
-                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
@@ -593,6 +650,24 @@
             no:  /*[[#{notes.delete.no}]]*/  'Ні'
         };
 
+        // ===== TOAST =====
+        function showToast(msg, type) {
+            var el = document.getElementById('liveToast');
+            if (!el || typeof bootstrap === 'undefined') return;
+            var title = document.getElementById('toastTitle');
+            var text = document.getElementById('toastMessage');
+            var icon = document.getElementById('toastIcon');
+            el.classList.remove('success', 'error');
+            el.classList.add(type === 'error' ? 'error' : 'success');
+            title.textContent = type === 'error' ? 'Помилка' : 'Успіх';
+            icon.className = type === 'error'
+                ? 'fas fa-exclamation-circle me-2'
+                : 'fas fa-check-circle me-2';
+            text.textContent = msg;
+            bootstrap.Toast.getOrCreateInstance(el).show();
+        }
+
+        // ===== CHAR COUNTERS =====
         function bindCounter(inputId, counterId, max) {
             var input = document.getElementById(inputId);
             var counter = document.getElementById(counterId);
@@ -613,6 +688,7 @@
             bindCounter('editNoteTitle', 'editTitleCount', 255);
             bindCounter('editNoteContent', 'editContentCount', 5000);
 
+            // ===== COLOR PICKERS =====
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -635,6 +711,7 @@
                 });
             });
 
+            // ===== EDIT =====
             window.editNote = function (id) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
@@ -648,14 +725,12 @@
                 document.getElementById('editNoteTitle').value = title;
                 document.getElementById('editNoteContent').value = content;
 
-                var bgPicker = document.getElementById('editColorPicker');
-                bgPicker.querySelectorAll('.color-option').forEach(function (el) {
+                document.getElementById('editColorPicker').querySelectorAll('.color-option').forEach(function (el) {
                     el.classList.toggle('selected', el.dataset.color === color);
                 });
                 document.getElementById('editSelectedColor').value = color;
 
-                var textPicker = document.getElementById('editTextColorPicker');
-                textPicker.querySelectorAll('.color-option').forEach(function (el) {
+                document.getElementById('editTextColorPicker').querySelectorAll('.color-option').forEach(function (el) {
                     el.classList.toggle('selected', el.dataset.color === textColor);
                 });
                 document.getElementById('editSelectedTextColor').value = textColor;
@@ -672,23 +747,59 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
             };
 
-            window.togglePin = function (id) {
+            // ===== PIN: OPTIMISTIC (без reload) =====
+            window.togglePin = function (id, e) {
+                if (e) e.stopPropagation();
+                var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                if (!card) return;
+
+                var wrapper = card.closest('.note-card-wrapper');
+                var wasPinned = card.classList.contains('pinned');
+
+                // 1) Optimistic UI: toggle клас
+                card.classList.toggle('pinned', !wasPinned);
+
+                // 2) Якщо закріпили — пересунути на початок активного блоку
+                if (!wasPinned && wrapper) {
+                    var grid = document.getElementById('noteGrid');
+                    var firstActive = grid.querySelector('.note-card-wrapper[data-kind="active"]');
+                    if (firstActive && firstActive !== wrapper) {
+                        grid.insertBefore(wrapper, firstActive);
+                    }
+                }
+
+                // 3) Відправити на сервер
                 var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-pin/' + id, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-                }).then(function (r) { if (r.ok) location.reload(); });
+                }).then(function (r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    showToast(wasPinned ? 'Нотатку відкріплено' : 'Нотатку закріплено', 'success');
+                }).catch(function () {
+                    // 4) Rollback — reload як найпростіший спосіб відновити DOM
+                    location.reload();
+                });
             };
 
-            window.toggleArchive = function (id) {
+            // ===== ARCHIVE: структурна зміна → reload =====
+            window.toggleArchive = function (id, e) {
+                if (e) e.stopPropagation();
                 var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-archive/' + id, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-                }).then(function (r) { if (r.ok) location.reload(); });
+                }).then(function (r) {
+                    if (r.ok) location.reload();
+                    else showToast('Не вдалося змінити стан', 'error');
+                }).catch(function () {
+                    showToast('Помилка мережі', 'error');
+                });
             };
 
-            window.deleteNote = function (id) {
+            // ===== DELETE =====
+            window.deleteNote = function (id, e) {
+                if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
                 var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.trim() : '—';
@@ -705,32 +816,85 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteNoteConfirmModal')).show();
             };
 
+            // ===== A11Y: Enter/Space на card-body =====
+            document.getElementById('noteGrid').addEventListener('keydown', function (e) {
+                var body = e.target.closest('.card-body[role="button"]');
+                if (!body) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    var card = body.closest('.note-card');
+                    if (!card) return;
+                    var id = parseInt(card.dataset.id, 10);
+                    if (!isNaN(id)) window.editNote(id);
+                }
+            });
+
+            // ===== FILTER =====
+            var currentFilter = 'all';
+
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    applyFilterAndDivider(this.dataset.filter);
-                    updateNoteCount();
+                    currentFilter = this.dataset.filter;
+                    applyFilterAndDivider(currentFilter);
                 });
             });
 
             function applyFilterAndDivider(filter) {
+                var visibleCount = 0;
                 document.querySelectorAll('.note-card-wrapper').forEach(function (wrapper) {
                     var kind = wrapper.dataset.kind;
                     var isShared = wrapper.dataset.shared === 'true';
+                    var show = false;
 
-                    if (filter === 'all') wrapper.style.display = '';
-                    else if (filter === 'active') wrapper.style.display = (kind === 'active') ? '' : 'none';
-                    else if (filter === 'archived') wrapper.style.display = (kind === 'archived') ? '' : 'none';
-                    else if (filter === 'shared') wrapper.style.display = isShared ? '' : 'none';
+                    if (filter === 'all') show = true;
+                    else if (filter === 'active') show = (kind === 'active');
+                    else if (filter === 'archived') show = (kind === 'archived');
+                    else if (filter === 'shared') show = isShared;
+
+                    wrapper.style.display = show ? '' : 'none';
+                    if (show) visibleCount++;
                 });
 
                 document.querySelectorAll('.js-archived-divider').forEach(function (divider) {
                     divider.style.display = (filter === 'all') ? '' : 'none';
                 });
+
+                // Порожній стан
+                var emptyMsg = document.getElementById('emptyFilterMessage');
+                if (emptyMsg) {
+                    if (visibleCount === 0) {
+                        var titleEl = document.getElementById('emptyFilterTitle');
+                        var hintEl = document.getElementById('emptyFilterHint');
+                        var iconEl = document.getElementById('emptyFilterIcon');
+                        if (filter === 'archived') {
+                            titleEl.textContent = 'Архів порожній';
+                            hintEl.textContent = 'Тут з\'являться нотатки, які ви заархівуєте.';
+                            iconEl.className = 'fas fa-archive';
+                        } else if (filter === 'shared') {
+                            titleEl.textContent = 'Немає спільних нотаток';
+                            hintEl.textContent = 'Позначте нотатку як «Спільна», щоб поділитися з сім\'єю.';
+                            iconEl.className = 'fas fa-users-slash';
+                        } else if (filter === 'active') {
+                            titleEl.textContent = 'Немає активних нотаток';
+                            hintEl.textContent = 'Створіть першу нотатку.';
+                            iconEl.className = 'fas fa-sticky-note';
+                        } else {
+                            titleEl.textContent = 'Немає нотаток';
+                            hintEl.textContent = 'Створіть першу нотатку.';
+                            iconEl.className = 'fas fa-sticky-note';
+                        }
+                        emptyMsg.style.display = '';
+                    } else {
+                        emptyMsg.style.display = 'none';
+                    }
+                }
+
+                updateNoteCount();
             }
 
-            // ===== SEARCH + X clear =====
+            // ===== SEARCH =====
             var searchInput = document.getElementById('searchInput');
             var searchClear = document.getElementById('searchClear');
             var searchLoading = document.getElementById('searchLoading');
@@ -775,12 +939,11 @@
                         if (thisQuery !== lastQuery) return;
                         document.getElementById('noteGrid').innerHTML = html;
                         if (searchLoading) searchLoading.style.display = 'none';
-
+                        currentFilter = 'all';
                         document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
                             b.classList.toggle('active', b.dataset.filter === 'all');
                         });
-
-                        updateNoteCount();
+                        applyFilterAndDivider('all');
                     })
                     .catch(function () {
                         if (thisQuery !== lastQuery) return;
@@ -788,10 +951,10 @@
                     });
             }
 
+            // ===== LOAD MORE =====
             window.loadMore = function (type) {
                 var wrapper = document.getElementById(type + 'LoadMore');
                 if (!wrapper) return;
-
                 var page = parseInt(wrapper.dataset.page) || 1;
                 var q = wrapper.dataset.q || '';
                 var btn = wrapper.querySelector('button');
@@ -807,26 +970,15 @@
                 fetch(url)
                     .then(function (r) { return r.ok ? r.text() : ''; })
                     .then(function (html) {
-                        if (!html || !html.trim()) {
-                            wrapper.remove();
-                            return;
-                        }
-
+                        if (!html || !html.trim()) { wrapper.remove(); return; }
                         var probe = document.createElement('div');
                         probe.innerHTML = html;
                         var newCount = probe.querySelectorAll('.note-card-wrapper').length;
-
                         wrapper.insertAdjacentHTML('beforebegin', html);
                         wrapper.dataset.page = String(page + 1);
-
-                        if (newCount < 20) {
-                            wrapper.remove();
-                        } else {
-                            btn.disabled = false;
-                            btn.innerHTML = originalHtml;
-                        }
-
-                        updateNoteCount();
+                        if (newCount < 20) wrapper.remove();
+                        else { btn.disabled = false; btn.innerHTML = originalHtml; }
+                        applyFilterAndDivider(currentFilter);
                     })
                     .catch(function () {
                         btn.disabled = false;
@@ -834,6 +986,7 @@
                     });
             };
 
+            // ===== COUNTS =====
             function updateNoteCount() {
                 var visible = 0;
                 document.querySelectorAll('.note-card-wrapper').forEach(function (w) {
@@ -843,8 +996,41 @@
                 if (el) el.textContent = visible;
             }
 
+            // ===== KEYBOARD SHORTCUTS =====
+            document.addEventListener('keydown', function (e) {
+                var tag = (e.target.tagName || '').toUpperCase();
+                var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+
+                // N — нова нотатка (тільки поза полями вводу)
+                if (!isEditable && (e.key === 'n' || e.key === 'N')
+                    && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('createNoteModal')).show();
+                    return;
+                }
+
+                // / — фокус у пошук
+                if (!isEditable && e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    searchInput.focus();
+                    return;
+                }
+
+                // Esc — закрити модалки / очистити пошук якщо фокус у ньому
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.show').forEach(function (m) {
+                        var inst = bootstrap.Modal.getInstance(m);
+                        if (inst) inst.hide();
+                    });
+                    if (document.activeElement === searchInput && searchInput.value) {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                }
+            });
+
+            // ===== INIT =====
             applyFilterAndDivider('all');
-            updateNoteCount();
         });
     })();
 </script>

@@ -3,7 +3,7 @@
 <body>
 
 <!-- ============================================================
-     ACTIVE NOTE CARD — використовується в notes.html + AJAX
+     ACTIVE NOTE CARD
      ============================================================ -->
 <th:block th:fragment="activeCard(note)">
     <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
@@ -17,7 +17,15 @@
              th:data-color="${note.color}"
              th:data-textcolor="${note.textColor}"
              th:style="'background-color:' + ${note.color}">
-            <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
+            <!--
+              card-body — фокусабельний елемент з роллю button.
+              JS-делегування в notes.html обробляє Enter/Space.
+            -->
+            <div class="card-body"
+                 role="button"
+                 tabindex="0"
+                 th:aria-label="${note.title}"
+                 th:onclick="'editNote(' + ${note.id} + ')'">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
                     <h5 class="card-title mb-0 flex-grow-1"
                         th:text="${note.title}"
@@ -34,21 +42,24 @@
             </div>
             <div class="card-footer">
                 <div class="d-flex gap-1">
-                    <button class="btn-icon"
+                    <button type="button" class="btn-icon"
                             th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
-                            th:onclick="'togglePin(' + ${note.id} + ')'">
+                            th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                            th:onclick="'togglePin(' + ${note.id} + ', event)'">
                         <i class="fas fa-thumbtack"
                            th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
                     </button>
-                    <button class="btn-icon"
+                    <button type="button" class="btn-icon"
                             th:title="#{notes.action.archive}"
-                            th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                            th:aria-label="#{notes.action.archive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
                         <i class="fas fa-archive"></i>
                     </button>
                 </div>
-                <button class="btn-icon text-danger"
+                <button type="button" class="btn-icon text-danger"
                         th:title="#{notes.action.delete}"
-                        th:onclick="'deleteNote(' + ${note.id} + ')'">
+                        th:aria-label="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ', event)'">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -70,7 +81,11 @@
              th:data-color="${note.color}"
              th:data-textcolor="${note.textColor}"
              th:style="'background-color:' + ${note.color}">
-            <div class="card-body" th:onclick="'editNote(' + ${note.id} + ')'">
+            <div class="card-body"
+                 role="button"
+                 tabindex="0"
+                 th:aria-label="${note.title}"
+                 th:onclick="'editNote(' + ${note.id} + ')'">
                 <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
                     <h5 class="card-title mb-0 flex-grow-1"
                         th:text="${note.title}"
@@ -85,14 +100,16 @@
                    th:style="'color:' + ${note.textColor}">Текст...</p>
             </div>
             <div class="card-footer">
-                <button class="btn-icon"
+                <button type="button" class="btn-icon"
                         th:title="#{notes.action.unarchive}"
-                        th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                        th:aria-label="#{notes.action.unarchive}"
+                        th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
                     <i class="fas fa-undo"></i>
                 </button>
-                <button class="btn-icon text-danger"
+                <button type="button" class="btn-icon text-danger"
                         th:title="#{notes.action.delete}"
-                        th:onclick="'deleteNote(' + ${note.id} + ')'">
+                        th:aria-label="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ', event)'">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>

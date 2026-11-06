@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,45 +25,47 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     // ==================== PAGINATED ====================
 
-    /**
-     * Активні нотатки з пагінацією.
-     * {@code @EntityGraph} підтягує {@code owner} eager — щоб у шаблоні
-     * не ловити {@code LazyInitializationException} на {@code note.owner.username}.
-     */
     @EntityGraph(attributePaths = {"owner"})
     Page<Note> findByOwnerAndArchivedFalseOrderByPinnedDescUpdatedAtDesc(User owner, Pageable pageable);
 
-    /**
-     * Архівні нотатки з пагінацією.
-     */
     @EntityGraph(attributePaths = {"owner"})
     Page<Note> findByOwnerAndArchivedTrueOrderByUpdatedAtDesc(User owner, Pageable pageable);
 
+    // ==================== COUNTS ====================
+
+    /** Кількість активних нотаток користувача (для лічильників фільтрів). */
+    long countByOwnerAndArchivedFalse(User owner);
+
+    /** Кількість архівних нотаток користувача. */
+    long countByOwnerAndArchivedTrue(User owner);
+
+    /** Кількість спільних нотаток сім'ї. */
+    @Query("SELECT COUNT(n) FROM Note n " +
+            "WHERE n.owner.family.id = :familyId " +
+            "AND n.shareWithFamily = true " +
+            "AND n.archived = false")
+    long countSharedWithFamily(@Param("familyId") Long familyId);
+
+    // ==================== BULK DELETE ====================
+
+    /**
+     * Видаляє всі архівні нотатки користувача одним SQL-запитом.
+     * Повертає кількість видалених рядків.
+     */
+    @Modifying
+    @Query("DELETE FROM Note n WHERE n.owner = :owner AND n.archived = true")
+    int deleteArchivedByOwner(@Param("owner") User owner);
+
     // ==================== ACCESS ====================
 
-    /**
-     * Атомарний пошук: нотатка за ID + перевірка власника в одному запиті.
-     * Захищає від IDOR на рівні БД.
-     */
     Optional<Note> findByIdAndOwner(Long id, User owner);
 
-    /**
-     * Нотатка за ID з eager-завантаженим власником.
-     *
-     * <p><b>Чому не {@code findByIdWithOwner}:</b> Spring Data парсить
-     * {@code WithOwner} як property на {@code Long id} і падає з
-     * {@code PropertyReferenceException}. Тому — явний {@code @Query}.
-     */
     @EntityGraph(attributePaths = {"owner"})
     @Query("SELECT n FROM Note n WHERE n.id = :id")
     Optional<Note> findByIdWithOwner(@Param("id") Long id);
 
     // ==================== FAMILY ====================
 
-    /**
-     * Спільні нотатки сім'ї (усіх учасників, включно з власником).
-     * Використовується на сторінці /notes/family.
-     */
     @EntityGraph(attributePaths = {"owner"})
     @Query("SELECT n FROM Note n " +
             "WHERE n.owner.family.id = :familyId " +
@@ -86,8 +89,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> searchNotes(@Param("owner") User owner,
                            @Param("archived") boolean archived,
                            @Param("query") String query);
-
-    // ==================== SEARCH (PAGINATED) ====================
 
     @EntityGraph(attributePaths = {"owner"})
     @Query("SELECT n FROM Note n WHERE n.owner = :owner AND n.archived = false " +
