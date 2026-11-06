@@ -493,6 +493,7 @@
                         </div>
                         <input type="hidden" name="textColor" id="selectedTextColor" value="#212529">
                     </div>
+
                     <div class="mb-0" th:if="${hasFamily}">
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input"
@@ -504,6 +505,9 @@
                             </label>
                         </div>
                     </div>
+                    <th:block th:unless="${hasFamily}">
+                        <div th:replace="~{fragments/family-hint :: notice('note')}"></div>
+                    </th:block>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
@@ -580,6 +584,9 @@
                             </label>
                         </div>
                     </div>
+                    <th:block th:unless="${hasFamily}">
+                        <div th:replace="~{fragments/family-hint :: notice('note')}"></div>
+                    </th:block>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>

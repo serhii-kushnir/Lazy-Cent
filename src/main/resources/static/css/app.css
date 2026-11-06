@@ -890,3 +890,40 @@ html.modal-scroll-lock,
 html.modal-scroll-lock body {
     overflow: hidden !important;
 }
+@media (max-width: 575.98px) {
+    .modal-dialog .modal-content {
+        /* fallback для старих браузерів */
+        max-height: calc(100vh - 1rem) !important;
+        /* dvh — правильна висота з урахуванням адресного рядка мобільного браузера */
+        max-height: calc(100dvh - 1rem) !important;
+        overflow: hidden;
+    }
+
+    /* Якщо modal-body + footer обгорнуті у <form> — форма теж flex column */
+    .modal-dialog .modal-content > form {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* Header і footer ніколи не стискаються і не скроляться */
+    .modal-dialog .modal-header,
+    .modal-dialog .modal-footer {
+        flex-shrink: 0;
+    }
+
+    /* Тіло — єдине, що скролиться */
+    .modal-dialog .modal-body {
+        overflow-y: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* iOS: тримаємо кнопки над home-indicator (safe area) */
+    .modal-dialog .modal-footer {
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+}

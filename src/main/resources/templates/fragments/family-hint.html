@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================================================
+     NOTICE: користувач не в сім'ї — підказка з посиланням
+     у налаштування сім'ї (settings drawer → family)
+     ============================================================ -->
+<th:block th:fragment="notice(type)">
+    <div class="alert alert-info mb-3 py-2 small" role="alert">
+        <div class="d-flex align-items-start gap-2">
+            <i class="fas fa-info-circle mt-1 flex-shrink-0"></i>
+            <div class="flex-grow-1">
+                <div th:if="${type == 'transaction'}"
+                     th:text="#{family.hint.needFamilyForTransaction}">
+                    Щоб поділитися транзакцією з сім'єю, вам потрібно створити або приєднатися до сім'ї.
+                </div>
+                <div th:if="${type == 'note'}"
+                     th:text="#{family.hint.needFamilyForNote}">
+                    Щоб поділитися нотаткою з сім'єю, вам потрібно створити або приєднатися до сім'ї.
+                </div>
+                <button type="button"
+                        class="btn btn-link btn-sm p-0 mt-1"
+                        onclick="window.openSettingsDrawer('family')">
+                    <span th:text="#{family.hint.openSettings}">Налаштування сім'ї</span>
+                    <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- ============================================================
+     WIDGET: користувач не в сім'ї — картка на головній
+     ============================================================ -->
+<th:block th:fragment="homeWidget">
+    <div class="bg-card-bg family-widget">
+        <div class="d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
+            <div class="icon-circle bg-secondary-subtle text-secondary"
+                 style="width: 48px; height: 48px; font-size: 1.2rem;">
+                <i class="fas fa-users-slash"></i>
+            </div>
+            <div class="flex-grow-1 text-start" style="min-width: 0;">
+                <h6 class="text-muted mb-1" th:text="#{family.hint.title}">Сімейний бюджет</h6>
+                <p class="mb-0 text-muted small"
+                   th:text="#{family.hint.needFamilyForHome}">
+                    Щоб вести спільний бюджет, створіть сім'ю або приєднайтеся до існуючої.
+                </p>
+            </div>
+            <button type="button"
+                    class="btn btn-primary btn-sm family-cta-btn"
+                    onclick="window.openSettingsDrawer('family')">
+                <i class="fas fa-plus me-1"></i>
+                <span th:text="#{family.hint.createOrJoin}">Створити / Приєднатися</span>
+            </button>
+        </div>
+    </div>
+    <style>
+        /* На мобільних CTA — на всю ширину, під текстом */
+        @media (max-width: 575.98px) {
+            .family-cta-btn {
+                width: 100%;
+                margin-top: 0.25rem;
+            }
+        }
+    </style>
+</th:block>
+
+</body>
+</html>

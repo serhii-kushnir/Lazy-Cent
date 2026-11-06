@@ -1,20 +1,34 @@
 /* =====================================================================
    LazyCent — settings panel (drawer + modals + timers + validation)
    ===================================================================== */
-
 window.openSettingsDrawer = function(section) {
-    const overlay = document.getElementById('settingsOverlay');
-    const drawer = document.getElementById('settingsDrawer');
-    if (!overlay || !drawer) return;
+    var hadOpenModal = false;
 
-    drawer.classList.add('open');
-    overlay.classList.add('open');
-    document.body.style.overflow = 'hidden';
-
-    const menuItem = document.querySelector('#drawerMenu .menu-item[data-section="' + section + '"]');
-    if (menuItem) {
-        menuItem.click();
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        var openModals = document.querySelectorAll('.modal.show');
+        if (openModals.length > 0) {
+            hadOpenModal = true;
+            openModals.forEach(function (m) {
+                var inst = bootstrap.Modal.getInstance(m);
+                if (inst) inst.hide();
+            });
+        }
     }
+
+    var delay = hadOpenModal ? 350 : 0;
+
+    setTimeout(function () {
+        var overlay = document.getElementById('settingsOverlay');
+        var drawer = document.getElementById('settingsDrawer');
+        if (!overlay || !drawer) return;
+
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        var menuItem = document.querySelector('#drawerMenu .menu-item[data-section="' + section + '"]');
+        if (menuItem) menuItem.click();
+    }, delay);
 };
 
 (function () {
