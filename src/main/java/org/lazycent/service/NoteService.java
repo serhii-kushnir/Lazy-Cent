@@ -178,13 +178,7 @@ public class NoteService {
 
     // ==================== BULK ====================
 
-    /**
-     * Архівує всі вказані нотатки, що належать користувачу.
-     *
-     * <p><b>Захист від IDOR:</b> {@code findAllById(ids)} може повернути
-     * чужі нотатки, якщо передати чужі id. Тому фільтруємо по
-     * {@code owner.id}. Зайві id — просто ігноруються.
-     */
+
     @Transactional
     public int bulkArchive(List<Long> ids, User user) {
         if (ids == null || ids.isEmpty() || user == null) return 0;
@@ -210,6 +204,21 @@ public class NoteService {
 
         if (notes.isEmpty()) return 0;
         noteRepository.deleteAll(notes);
+        return notes.size();
+    }
+
+    @Transactional
+    public int bulkUnarchive(List<Long> ids, User user) {
+        if (ids == null || ids.isEmpty() || user == null) return 0;
+
+        List<Note> notes = noteRepository.findAllById(ids).stream()
+                .filter(n -> Objects.equals(n.getOwner().getId(), user.getId()))
+                .filter(Note::isArchived)
+                .toList();
+
+        if (notes.isEmpty()) return 0;
+        notes.forEach(n -> n.setArchived(false));
+        noteRepository.saveAll(notes);
         return notes.size();
     }
 

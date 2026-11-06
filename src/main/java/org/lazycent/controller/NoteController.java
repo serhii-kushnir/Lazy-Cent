@@ -248,6 +248,22 @@ public class NoteController extends BaseController {
         }
     }
 
+    @PostMapping("/bulk/unarchive")
+    @ResponseBody
+    public Map<String, Object> bulkUnarchive(@RequestParam("ids") List<Long> ids,
+                                             Authentication authentication) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            return Map.of("success", false, "error", "Unauthorized");
+        }
+        try {
+            int count = noteService.bulkUnarchive(ids, currentUser);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            return Map.of("success", false, "error", e.getMessage());
+        }
+    }
+
     // ==================== COPY (сім'я) ====================
 
     @PostMapping("/copy/{id}")

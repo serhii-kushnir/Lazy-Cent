@@ -8,26 +8,56 @@
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
     <style>
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
 
         .animate-fade-up   { animation: fadeInUp   0.5s ease backwards; }
         .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
         .delay-1 { animation-delay: 0.05s; }
 
-        .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
+        .page-max {
+            max-width: 1920px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-        .btn:not(.btn-close), .btn-rounded, .nav-btn { border-radius: 0.5rem !important; }
-        .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
+        .btn:not(.btn-close),
+        .btn-rounded,
+        .nav-btn {
+            border-radius: 0.5rem !important;
+        }
+        .btn:not(.btn-close):not(.navbar-toggler) {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn:not(.btn-close):not(.navbar-toggler):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .btn-sm {
+            padding: 0.3rem 0.75rem;
+            font-size: 0.875rem;
+        }
 
-        .page-header-wrap { position: relative; z-index: 10; }
+        .page-header-wrap {
+            position: relative;
+            z-index: 10;
+        }
 
         .icon-circle {
-            width: 56px; height: 56px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; flex-shrink: 0;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
         }
 
         .notes-section {
@@ -46,22 +76,25 @@
             color: #212529 !important;
             border-bottom: 1px solid #dee2e6 !important;
         }
-        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
-        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
+        .cat-header-theme h6,
+        .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3,
+        .cat-header-theme h3 * { color: #212529 !important; }
+
         [data-bs-theme="dark"] .cat-header-theme {
             background-color: #1d2027 !important;
             color: #e6e6e6 !important;
             border-bottom-color: #2a2e37 !important;
         }
         [data-bs-theme="dark"] .cat-header-theme h6,
-        [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230, 230, 230, 0.75) !important; }
+        [data-bs-theme="dark"] .cat-header-theme h6 * {
+            color: rgba(230, 230, 230, 0.75) !important;
+        }
         [data-bs-theme="dark"] .cat-header-theme h3,
-        [data-bs-theme="dark"] .cat-header-theme h3 * { color: #ffffff !important; }
+        [data-bs-theme="dark"] .cat-header-theme h3 * {
+            color: #ffffff !important;
+        }
 
-        /* ============================================================
-           FIX #1: під-бари (toolbar, search, archive actions) мають
-           той самий фон, що й .cat-header-theme
-           ============================================================ */
         .notes-sub-bar {
             background-color: #ffffff !important;
         }
@@ -69,55 +102,84 @@
             background-color: #1d2027 !important;
         }
 
-        /* ===== VIEW TOGGLE ===== */
         .view-toggle {
-            display: flex; gap: 0.3rem;
+            display: flex;
+            gap: 0.3rem;
             background: var(--bs-secondary-bg);
-            border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0;
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+            flex-shrink: 0;
         }
         .view-toggle .btn {
-            border: none; padding: 0.5rem 1rem; font-size: 0.95rem;
-            border-radius: 0.375rem !important; background: transparent;
-            color: var(--bs-secondary-color); font-weight: 600;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.95rem;
+            border-radius: 0.375rem !important;
+            background: transparent;
+            color: var(--bs-secondary-color);
+            font-weight: 600;
             transition: all 0.2s ease;
-            display: inline-flex; align-items: center; gap: 0.4rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
             white-space: nowrap;
         }
         .view-toggle .btn .badge {
-            font-size: 0.7rem; padding: 0.15rem 0.45rem;
-            background: rgba(0,0,0,0.08); color: inherit;
-            border-radius: 0.75rem; font-weight: 700;
-            min-width: 1.5rem; text-align: center;
+            font-size: 0.7rem;
+            padding: 0.15rem 0.45rem;
+            background: rgba(0,0,0,0.08);
+            color: inherit;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            min-width: 1.5rem;
+            text-align: center;
         }
-        .view-toggle .btn.active .badge { background: var(--bs-primary); color: #fff; }
+        .view-toggle .btn.active .badge {
+            background: var(--bs-primary);
+            color: #fff;
+        }
 
         .cat-header-theme .view-toggle { background: #e9ecef !important; }
         .cat-header-theme .view-toggle .btn { color: #495057 !important; }
-        .cat-header-theme .view-toggle .btn .badge { background: rgba(0,0,0,0.1); color: #495057; }
+        .cat-header-theme .view-toggle .btn .badge {
+            background: rgba(0,0,0,0.1);
+            color: #495057;
+        }
         .cat-header-theme .view-toggle .btn.active {
-            background: #ffffff !important; color: #0d6efd !important;
+            background: #ffffff !important;
+            color: #0d6efd !important;
             box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
         }
-        .cat-header-theme .view-toggle .btn.active .badge { background: #0d6efd; color: #fff; }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255, 255, 255, 0.08) !important; }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
+        .cat-header-theme .view-toggle .btn.active .badge {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn .badge {
-            background: rgba(255,255,255,0.15); color: #e6e6e6;
+            background: rgba(255,255,255,0.15);
+            color: #e6e6e6;
         }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
-            background: #0d6efd !important; color: #ffffff !important; box-shadow: none !important;
+            background: #0d6efd !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
         }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active .badge {
-            background: rgba(255,255,255,0.25); color: #fff;
+            background: rgba(255,255,255,0.25);
+            color: #fff;
         }
 
-        /* ============================================================
-           FIX #4 + #5: Мобільна версія — 4 кнопки фільтру не влазять.
-           Робимо 2×2 grid на дуже малих екранах.
-           ============================================================ */
         @media (max-width: 575.98px) {
-            .view-toggle .btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
-
+            .view-toggle .btn {
+                padding: 0.4rem 0.7rem;
+                font-size: 0.8rem;
+            }
             .cat-header-theme > div.no-print {
                 width: 100% !important;
                 flex-direction: column !important;
@@ -146,9 +208,10 @@
             }
         }
 
-        /* ===== TOOLBAR (sort + size) ===== */
         .notes-toolbar {
-            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
             align-items: center;
             padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--bs-border-color);
@@ -165,15 +228,51 @@
             color: #fff;
         }
         .notes-toolbar .page-size-wrap {
-            display: flex; align-items: center; gap: 0.4rem;
-            font-size: 0.85rem; color: var(--bs-secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--bs-secondary-color);
         }
         .notes-toolbar .page-size-wrap select {
-            width: auto; min-width: 80px; border-radius: 0.5rem;
+            width: auto;
+            min-width: 80px;
+            border-radius: 0.5rem;
             font-size: 0.85rem;
         }
 
-        /* Мобільний toolbar — компактніший */
+        .notes-toolbar .layout-toggle {
+            display: flex;
+            gap: 0.25rem;
+            background: var(--bs-secondary-bg);
+            border-radius: 0.5rem;
+            padding: 0.2rem;
+            flex-shrink: 0;
+        }
+        .notes-toolbar .layout-toggle .btn {
+            border: none;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.85rem;
+            border-radius: 0.375rem !important;
+            background: transparent;
+            color: var(--bs-secondary-color);
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+        .notes-toolbar .layout-toggle .btn.active {
+            background: var(--bs-body-bg);
+            color: var(--bs-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        [data-bs-theme="dark"] .notes-toolbar .layout-toggle .btn.active {
+            background: #1d2027;
+            color: #6ea8fe;
+        }
+
         @media (max-width: 575.98px) {
             .notes-toolbar {
                 padding: 0.5rem 0.75rem;
@@ -193,42 +292,58 @@
                 font-size: 0.8rem;
                 padding: 0.25rem 1.5rem 0.25rem 0.5rem;
             }
+            .notes-toolbar .layout-toggle .btn {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.5rem;
+            }
+            .notes-toolbar .layout-toggle .btn span { display: none; }
         }
 
-        /* ===== SEARCH BAR ===== */
         .search-bar { position: relative; }
-        .search-bar .input-group-text { background: transparent; border-right: none; }
+        .search-bar .input-group-text {
+            background: transparent;
+            border-right: none;
+        }
         .search-bar .input-group > .btn { border-left: none; }
 
         #searchClear {
-            flex-shrink: 0; min-width: 44px;
+            flex-shrink: 0;
+            min-width: 44px;
             display: inline-flex !important;
-            align-items: center; justify-content: center;
+            align-items: center;
+            justify-content: center;
         }
         #searchClear:hover {
             background-color: rgba(220, 53, 69, 0.12);
-            border-color: #dc3545; color: #dc3545;
+            border-color: #dc3545;
+            color: #dc3545;
         }
-        [data-bs-theme="dark"] #searchClear { color: #adb5bd; border-color: #495057; }
+        [data-bs-theme="dark"] #searchClear {
+            color: #adb5bd;
+            border-color: #495057;
+        }
         [data-bs-theme="dark"] #searchClear:hover {
             background-color: rgba(248, 113, 113, 0.15);
-            border-color: #f87171; color: #f87171;
+            border-color: #f87171;
+            color: #f87171;
         }
 
         .search-loading {
-            position: absolute; right: 4.5rem; top: 50%;
+            position: absolute;
+            right: 4.5rem;
+            top: 50%;
             transform: translateY(-50%);
-            color: var(--bs-secondary-color); font-size: 0.85rem;
+            color: var(--bs-secondary-color);
+            font-size: 0.85rem;
             pointer-events: none;
         }
 
-        /* ===== NOTE CARDS ===== */
         .note-card {
-            position: relative;
             border: 1px solid var(--bs-border-color);
             border-radius: 1rem;
             height: 100%;
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
@@ -237,21 +352,134 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
-        .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1); }
-        .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15); }
-        [data-bs-theme="dark"] .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5); }
+        [data-bs-theme="dark"] .note-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .note-card.pinned {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .note-card.pinned:hover {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15);
+        }
+        [data-bs-theme="dark"] .note-card.pinned:hover {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5);
+        }
         .note-card .card-body:focus-visible {
             outline: 3px solid var(--bs-primary);
             outline-offset: -3px;
-            border-radius: 1rem 1rem 0 0;
+            border-radius: 0 0 0.5rem 0.5rem;
         }
 
-        /* ============================================================
-           FIX #3: візуальне виділення вибраної картки.
-           Використовуємо :has() (сучасні браузери) + клас .selected
-           (fallback через JS для старих).
-           ============================================================ */
+        .note-card .card-body {
+            flex: 1;
+            padding: 0.75rem 1rem 0.75rem;
+        }
+        .note-card .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+        .note-card .card-text {
+            font-size: 0.9rem;
+            max-height: 120px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 6;
+            -webkit-box-orient: vertical;
+            word-wrap: break-word;
+            margin-bottom: 0;
+        }
+        .note-card .card-footer {
+            background: transparent;
+            border-top: none;
+            padding: 0.25rem 0.75rem 0.6rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .note-card .btn-icon {
+            color: #5f6368;
+            padding: 0.3rem 0.5rem;
+            font-size: 0.9rem;
+            border-radius: 0.375rem;
+            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            min-height: 32px;
+        }
+        [data-bs-theme="dark"] .note-card .btn-icon { color: #bdc1c6; }
+        .note-card .btn-icon:hover {
+            background: rgba(26, 115, 232, 0.12);
+            color: #1a73e8;
+            transform: translateY(-1px);
+        }
+        .note-card .btn-icon.text-danger:hover {
+            background: rgba(220, 53, 69, 0.15);
+            color: #dc3545;
+        }
+        [data-bs-theme="dark"] .note-card .btn-icon:hover {
+            background: rgba(110, 168, 254, 0.2);
+            color: #6ea8fe;
+        }
+        [data-bs-theme="dark"] .note-card .btn-icon.text-danger:hover {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+        .note-card .btn-icon .pin-icon { color: #fbbc04; }
+
+        .note-card.archived { opacity: 0.7; }
+        .note-card.selected.archived,
+        .note-card.archived:has(.note-checkbox:checked) { opacity: 1; }
+
+        .note-checkbox.form-check-input {
+            flex-shrink: 0;
+            width: 1.15rem;
+            height: 1.15rem;
+            margin: 0.2rem 0 0 0;
+            cursor: pointer;
+            opacity: 0;
+            border: 2px solid #adb5bd;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            transition: opacity 0.15s ease,
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+        }
+        .note-checkbox.form-check-input:hover { border-color: var(--bs-primary); }
+        .note-checkbox.form-check-input:checked {
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+        }
+        [data-bs-theme="dark"] .note-checkbox.form-check-input {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: #6c757d;
+        }
+        [data-bs-theme="dark"] .note-checkbox.form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .note-card:hover .note-checkbox,
+        .note-card.selected .note-checkbox,
+        .note-checkbox:checked,
+        .note-checkbox:focus-visible,
+        #noteGrid.bulk-mode .note-checkbox { opacity: 1; }
+
+        @media (hover: none), (max-width: 767.98px) {
+            .note-checkbox.form-check-input { opacity: 1; }
+        }
+
         .note-card:has(.note-checkbox:checked),
         .note-card.selected {
             box-shadow: 0 0 0 3px var(--bs-primary), 0 4px 8px rgba(13, 110, 253, 0.35) !important;
@@ -259,7 +487,6 @@
         }
         .note-card.pinned:has(.note-checkbox:checked),
         .note-card.pinned.selected {
-            /* Жовте кільце (pinned) + синє кільце (selected) */
             box-shadow: 0 0 0 2px #fbbc04,
             0 0 0 5px var(--bs-primary),
             0 4px 8px rgba(13, 110, 253, 0.35) !important;
@@ -275,40 +502,52 @@
             0 4px 8px rgba(110, 168, 254, 0.4) !important;
         }
 
-        /* ===== BULK CHECKBOX ===== */
-        .note-select {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            z-index: 3;
-            opacity: 0;
-            transition: opacity 0.15s ease;
+        #noteGrid.list-view { flex-direction: column; }
+        #noteGrid.list-view > .note-card-wrapper {
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            margin-bottom: 0.25rem;
         }
-        .note-select .note-checkbox {
-            width: 1.15rem;
-            height: 1.15rem;
-            cursor: pointer;
-            background-color: #fff;
-            border: 2px solid #adb5bd;
+        #noteGrid.list-view .note-card {
+            flex-direction: row;
+            align-items: stretch;
+            height: auto;
+            min-height: 60px;
         }
-        .note-card:hover .note-select,
-        .note-card.selected .note-select,
-        #noteGrid.bulk-mode .note-select { opacity: 1; }
-        @media (max-width: 767.98px) {
-            .note-select { opacity: 1; }
+        #noteGrid.list-view .card-body {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        #noteGrid.list-view .card-title {
+            font-size: 1rem;
+            margin-bottom: 0.15rem;
+        }
+        #noteGrid.list-view .card-text {
+            -webkit-line-clamp: 1;
+            max-height: 1.5rem;
+            font-size: 0.85rem;
+        }
+        #noteGrid.list-view .card-footer {
+            flex-shrink: 0;
+            padding: 0.75rem 1rem 0.75rem 0;
+            align-self: center;
+            gap: 0.15rem;
+        }
+        @media (max-width: 575.98px) {
+            #noteGrid.list-view .card-text { display: none; }
+            #noteGrid.list-view .card-footer { padding-right: 0.5rem; }
         }
 
-        /* ===== DUPLICATE FORM ===== */
-        .note-duplicate-form {
-            display: inline-flex;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* ===== BULK BAR ===== */
         .bulk-bar {
             position: fixed;
-            bottom: 0; left: 0; right: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: #1d2027;
             border-top: 1px solid #2a2e37;
             color: #fff;
@@ -332,10 +571,16 @@
             color: #fff;
         }
         .bulk-bar .btn { font-size: 0.85rem; }
-        [data-bs-theme="light"] .bulk-bar .btn-outline-light { color: #dee2e6; border-color: #6c757d; }
-        [data-bs-theme="light"] .bulk-bar .btn-outline-light:hover { background: #6c757d; border-color: #6c757d; color: #fff; }
+        [data-bs-theme="light"] .bulk-bar .btn-outline-light {
+            color: #dee2e6;
+            border-color: #6c757d;
+        }
+        [data-bs-theme="light"] .bulk-bar .btn-outline-light:hover {
+            background: #6c757d;
+            border-color: #6c757d;
+            color: #fff;
+        }
 
-        /* FIX #5: мобільний bulk-bar */
         @media (max-width: 575.98px) {
             .bulk-bar { padding: 0.5rem 0.75rem; }
             .bulk-bar .bulk-buttons {
@@ -370,40 +615,6 @@
             .bulk-bar { transition: none; }
         }
 
-        .note-card.archived { opacity: 0.7; }
-        .note-card.selected.archived,
-        .note-card.archived:has(.note-checkbox:checked) { opacity: 1; }
-
-        .note-card .card-body { flex: 1; padding: 0.9rem 1rem 0.75rem; }
-        .note-card .card-title {
-            font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .note-card .card-text {
-            font-size: 0.9rem; max-height: 120px; overflow: hidden;
-            display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical;
-            word-wrap: break-word; margin-bottom: 0;
-        }
-        .note-card .card-footer {
-            background: transparent; border-top: none;
-            padding: 0.25rem 0.75rem 0.6rem;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .note-card .btn-icon {
-            color: #5f6368; padding: 0.3rem 0.5rem; font-size: 0.9rem;
-            border-radius: 0.375rem;
-            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-            background: transparent; border: none; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center;
-            min-width: 32px; min-height: 32px;
-        }
-        [data-bs-theme="dark"] .note-card .btn-icon { color: #bdc1c6; }
-        .note-card .btn-icon:hover { background: rgba(26, 115, 232, 0.12); color: #1a73e8; transform: translateY(-1px); }
-        .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
-        [data-bs-theme="dark"] .note-card .btn-icon:hover { background: rgba(110, 168, 254, 0.2); color: #6ea8fe; }
-        [data-bs-theme="dark"] .note-card .btn-icon.text-danger:hover { background: rgba(248, 113, 113, 0.2); color: #f87171; }
-        .note-card .btn-icon .pin-icon { color: #fbbc04; }
-
         .shared-badge {
             font-size: 0.65rem;
             padding: 0.2rem 0.5rem;
@@ -417,39 +628,71 @@
 
         .archived-divider { margin: 1.5rem 0 0.5rem; }
         .archived-divider .divider-label {
-            font-size: 0.85rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 1px;
-            color: var(--bs-secondary-color); white-space: nowrap; padding: 0 1rem;
-            display: inline-flex; align-items: center; gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--bs-secondary-color);
+            white-space: nowrap;
+            padding: 0 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .archived-divider hr { border-color: var(--bs-border-color); opacity: 0.6; margin: 0; }
+        .archived-divider hr {
+            border-color: var(--bs-border-color);
+            opacity: 0.6;
+            margin: 0;
+        }
 
-        .empty-notes { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
+        .empty-notes {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--bs-secondary-color);
+        }
         .empty-notes i { font-size: 4rem; opacity: 0.25; }
 
         .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
         .color-picker .color-option {
-            width: 30px; height: 30px; border-radius: 50%;
-            border: 2px solid transparent; cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
             transition: border 0.2s, transform 0.2s;
         }
-        .color-picker .color-option:hover { border-color: #5f6368; transform: scale(1.1); }
+        .color-picker .color-option:hover {
+            border-color: #5f6368;
+            transform: scale(1.1);
+        }
         .color-picker .color-option.selected {
             border-color: #1a73e8;
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25);
         }
-        .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
+        .text-color-picker .color-option[data-color="#ffffff"] {
+            border: 2px solid #ccc;
+        }
 
-        .char-counter { font-size: 0.75rem; color: var(--bs-secondary-color); text-align: right; margin-top: 0.25rem; }
+        .char-counter {
+            font-size: 0.75rem;
+            color: var(--bs-secondary-color);
+            text-align: right;
+            margin-top: 0.25rem;
+        }
 
         .kbd-hint {
-            font-size: 0.75rem; color: var(--bs-secondary-color);
-            margin-left: auto; white-space: nowrap;
+            font-size: 0.75rem;
+            color: var(--bs-secondary-color);
+            margin-left: auto;
+            white-space: nowrap;
         }
         .kbd-hint kbd {
-            background: var(--bs-secondary-bg); color: var(--bs-body-color);
-            border-radius: 4px; padding: 0.1rem 0.4rem;
-            font-size: 0.7rem; font-weight: 600;
+            background: var(--bs-secondary-bg);
+            color: var(--bs-body-color);
+            border-radius: 4px;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.7rem;
+            font-weight: 600;
             font-family: var(--bs-font-monospace);
             border: 1px solid var(--bs-border-color);
         }
@@ -462,15 +705,43 @@
             body, html { margin: 0 !important; padding: 0 !important; }
             nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
             .d-print-none, .view-toggle, .search-bar, .alert,
-            .notes-toolbar, .bulk-bar, .note-select { display: none !important; }
+            .notes-toolbar, .bulk-bar, .note-checkbox {
+                display: none !important;
+            }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
-            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
-            .print-header { display: flex !important; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #333; margin-bottom: 20px; }
-            .print-footer { text-align: center; font-size: 0.7rem; color: #666; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
-            .note-card, .notes-section { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
-            .cat-header-theme { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
-            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
+            .container-fluid, .page-max {
+                max-width: 100% !important;
+                padding: 10px !important;
+                margin: 0 !important;
+            }
+            .print-header {
+                display: flex !important;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 2px solid #333;
+                margin-bottom: 20px;
+            }
+            .print-footer {
+                text-align: center;
+                font-size: 0.7rem;
+                color: #666;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+                margin-top: 20px;
+            }
+            .note-card, .notes-section {
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+            }
+            .cat-header-theme {
+                background-color: #fff !important;
+                color: #000 !important;
+                border-bottom: 2px solid #333 !important;
+            }
+            .cat-header-theme h6,
+            .cat-header-theme h3 { color: #000 !important; }
         }
     </style>
 </head>
@@ -527,7 +798,6 @@
 
     <div class="notes-section mb-3 animate-fade-up delay-1">
 
-        <!-- Section header -->
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
             <div class="icon-circle bg-primary text-white">
                 <i class="fas fa-sticky-note"></i>
@@ -567,7 +837,6 @@
             </div>
         </div>
 
-        <!-- TOOLBAR: sort + size -->
         <div class="notes-toolbar notes-sub-bar">
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button"
@@ -594,6 +863,15 @@
                 </ul>
             </div>
 
+            <div class="layout-toggle" id="layoutToggle">
+                <button class="btn active" data-layout="cards" title="Картки">
+                    <i class="fas fa-th-large"></i> <span>Картки</span>
+                </button>
+                <button class="btn" data-layout="list" title="Список">
+                    <i class="fas fa-list"></i> <span>Список</span>
+                </button>
+            </div>
+
             <div class="page-size-wrap ms-auto">
                 <i class="fas fa-list-ol"></i>
                 <label for="pageSize" class="visually-hidden" th:text="#{notes.size.label}">Показати</label>
@@ -606,7 +884,6 @@
             </div>
         </div>
 
-        <!-- SEARCH BAR -->
         <div class="p-3 search-bar notes-sub-bar" style="border-bottom: 1px solid var(--bs-border-color);">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
@@ -624,18 +901,16 @@
             </span>
         </div>
 
-        <!-- Archive bulk actions -->
         <div th:if="${archivedTotal != null and archivedTotal > 0}"
              class="px-3 py-2 d-flex justify-content-end border-bottom notes-sub-bar"
              style="border-color: var(--bs-border-color) !important;">
-            <form method="post" th:action="@{/notes/archive/clear}"
-                  onsubmit="return confirm('Видалити всі нотатки з архіву? Цю дію не можна скасувати.');"
-                  class="d-inline">
+            <button type="button" class="btn btn-outline-danger btn-sm" id="clearArchiveBtn">
+                <i class="fas fa-trash me-1"></i>
+                Очистити архів (<span th:text="${archivedTotal}">0</span>)
+            </button>
+            <form id="clearArchiveForm" method="post"
+                  th:action="@{/notes/archive/clear}" style="display:none;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <button type="submit" class="btn btn-outline-danger btn-sm">
-                    <i class="fas fa-trash me-1"></i>
-                    Очистити архів (<span th:text="${archivedTotal}">0</span>)
-                </button>
             </form>
         </div>
 
@@ -669,9 +944,13 @@
             <span class="badge" id="bulkCount">0</span>
             <span class="d-none d-sm-inline" th:text="#{notes.bulk.selected}">вибрано</span>
         </span>
-        <button type="button" class="btn btn-sm btn-outline-light" data-action="archive">
+        <button type="button" class="btn btn-sm btn-outline-light d-none" data-action="archive">
             <i class="fas fa-archive me-1"></i>
             <span th:text="#{notes.bulk.archive}">Архівувати</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light d-none" data-action="unarchive">
+            <i class="fas fa-undo me-1"></i>
+            <span th:text="#{notes.bulk.unarchive}">Відновити</span>
         </button>
         <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">
             <i class="fas fa-trash me-1"></i>
@@ -685,9 +964,33 @@
     </div>
 </div>
 
-<!-- ==================== CREATE NOTE MODAL ==================== -->
+<!-- ==================== CONFIRM ACTION MODAL (зверху, без centered) ==================== -->
+<div class="modal fade no-print" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header border-0 text-white" id="confirmActionHeader"
+                 style="border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-question-circle me-2"></i>
+                    <span id="confirmActionTitle">Підтвердження</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-0" id="confirmActionMessage"></p>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+                        th:text="#{btn.cancel}">Скасувати</button>
+                <button type="button" class="btn" id="confirmActionBtn">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== CREATE NOTE MODAL (без centered) ==================== -->
 <div class="modal fade" id="createNoteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-primary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
@@ -763,9 +1066,9 @@
     </div>
 </div>
 
-<!-- ==================== EDIT NOTE MODAL ==================== -->
+<!-- ==================== EDIT NOTE MODAL (без centered) ==================== -->
 <div class="modal fade" id="editNoteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-primary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
@@ -842,9 +1145,9 @@
     </div>
 </div>
 
-<!-- ==================== DELETE NOTE MODAL ==================== -->
+<!-- ==================== DELETE NOTE MODAL (без centered) ==================== -->
 <div class="modal fade no-print" id="deleteNoteConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-danger text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
@@ -918,6 +1221,61 @@
             bootstrap.Toast.getOrCreateInstance(el).show();
         }
 
+        // ============================================================
+        // CONFIRM MODAL
+        // ============================================================
+        var confirmCallback = null;
+        var confirmModalEl = null;
+        var confirmBtnEl = null;
+
+        function initConfirmModal() {
+            confirmModalEl = document.getElementById('confirmActionModal');
+            confirmBtnEl = document.getElementById('confirmActionBtn');
+            if (!confirmModalEl || !confirmBtnEl) return;
+
+            confirmBtnEl.addEventListener('click', function () {
+                var inst = bootstrap.Modal.getInstance(confirmModalEl);
+                if (inst) inst.hide();
+                if (typeof confirmCallback === 'function') {
+                    var cb = confirmCallback;
+                    confirmCallback = null;
+                    cb();
+                }
+            });
+
+            confirmModalEl.addEventListener('hidden.bs.modal', function () {
+                confirmCallback = null;
+            });
+        }
+
+        function showConfirm(opts, onConfirm) {
+            if (!confirmModalEl) initConfirmModal();
+            if (!confirmModalEl) return;
+
+            var header = document.getElementById('confirmActionHeader');
+            var titleEl = document.getElementById('confirmActionTitle');
+            var msgEl = document.getElementById('confirmActionMessage');
+
+            titleEl.textContent = opts.title || 'Підтвердження';
+            msgEl.textContent = opts.message || '';
+            confirmCallback = onConfirm;
+
+            var colorClass = opts.danger ? 'bg-danger'
+                : opts.warning ? 'bg-warning'
+                    : 'bg-primary';
+            var btnClass = opts.danger ? 'btn-danger'
+                : opts.warning ? 'btn-warning'
+                    : 'btn-primary';
+
+            header.className = 'modal-header border-0 text-white ' + colorClass;
+            header.style.borderRadius = '1rem 1rem 0 0';
+
+            confirmBtnEl.className = 'btn ' + btnClass;
+            confirmBtnEl.textContent = opts.confirmLabel || 'Підтвердити';
+
+            bootstrap.Modal.getOrCreateInstance(confirmModalEl).show();
+        }
+
         function bindCounter(inputId, counterId, max) {
             var input = document.getElementById(inputId);
             var counter = document.getElementById(counterId);
@@ -942,11 +1300,14 @@
 
         document.addEventListener('DOMContentLoaded', function () {
 
+            initConfirmModal();
+
             bindCounter('createNoteTitle', 'createTitleCount', 255);
             bindCounter('createNoteContent', 'createContentCount', 5000);
             bindCounter('editNoteTitle', 'editTitleCount', 255);
             bindCounter('editNoteContent', 'editContentCount', 5000);
 
+            // ===== COLOR PICKERS =====
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -969,6 +1330,9 @@
                 });
             });
 
+            // ============================================================
+            // EDIT NOTE
+            // ============================================================
             window.editNote = function (id) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
@@ -1000,10 +1364,79 @@
                     if (el) el.dispatchEvent(new Event('input'));
                 });
 
+                // Оновлюємо action форми — UPDATE
                 document.getElementById('editNoteForm').action = '/notes/update/' + id;
+
+                // Відновлюємо оригінальний заголовок модалки (якщо був переключений на duplicate)
+                var modalTitle = document.querySelector('#editNoteModal .modal-title');
+                if (modalTitle && modalTitle.dataset.originalTitle) {
+                    modalTitle.innerHTML = modalTitle.dataset.originalTitle;
+                }
+
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
             };
 
+            // ============================================================
+            // DUPLICATE (fetch, без форми)
+            // ============================================================
+            // ============================================================
+            // DUPLICATE — відкриває модалку редагування з prefill
+            // (форма submit'иться на /notes/create, а не /notes/update/{id})
+            // ============================================================
+            window.duplicateNote = function (id, e) {
+                if (e) { e.preventDefault(); e.stopPropagation(); }
+
+                var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                if (!card) return;
+
+                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.trim() : '';
+                var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '';
+                var color = card.dataset.color || '#ffffff';
+                var textColor = card.dataset.textcolor || '#212529';
+                var isShared = card.dataset.shareWithFamily === 'true';
+
+                // Prefill: title + " (копія)", решта як у джерела
+                document.getElementById('editNoteId').value = '';
+                document.getElementById('editNoteTitle').value = title + ' (копія)';
+                document.getElementById('editNoteContent').value = content;
+
+                document.getElementById('editColorPicker').querySelectorAll('.color-option').forEach(function (el) {
+                    el.classList.toggle('selected', el.dataset.color === color);
+                });
+                document.getElementById('editSelectedColor').value = color;
+
+                document.getElementById('editTextColorPicker').querySelectorAll('.color-option').forEach(function (el) {
+                    el.classList.toggle('selected', el.dataset.color === textColor);
+                });
+                document.getElementById('editSelectedTextColor').value = textColor;
+
+                var shareInput = document.getElementById('editShareWithFamily');
+                if (shareInput) shareInput.checked = isShared;
+
+                ['editNoteTitle', 'editNoteContent'].forEach(function (elId) {
+                    var el = document.getElementById(elId);
+                    if (el) el.dispatchEvent(new Event('input'));
+                });
+
+                // КЛЮЧОВЕ: форма створює НОВУ нотатку
+                document.getElementById('editNoteForm').action = '/notes/create';
+
+                // Змінюємо заголовок модалки (запам'ятовуємо оригінал)
+                var modalTitle = document.querySelector('#editNoteModal .modal-title');
+                if (modalTitle) {
+                    if (!modalTitle.dataset.originalTitle) {
+                        modalTitle.dataset.originalTitle = modalTitle.innerHTML;
+                    }
+                    modalTitle.innerHTML = '<i class="fas fa-copy me-2"></i>' +
+                        'Дублювати нотатку';
+                }
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
+            };
+
+            // ============================================================
+            // PIN (optimistic)
+            // ============================================================
             window.togglePin = function (id, e) {
                 if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
@@ -1031,18 +1464,37 @@
                 }).catch(function () { location.reload(); });
             };
 
+            // ============================================================
+            // ARCHIVE (single) — confirm
+            // ============================================================
             window.toggleArchive = function (id, e) {
                 if (e) e.stopPropagation();
-                var csrf = document.querySelector('input[name="_csrf"]');
-                fetch('/notes/toggle-archive/' + id, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-                }).then(function (r) {
-                    if (r.ok) location.reload();
-                    else showToast('Не вдалося змінити стан', 'error');
-                }).catch(function () { showToast('Помилка мережі', 'error'); });
+                var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                if (!card) return;
+                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.trim() : '';
+                var isArchived = card.classList.contains('archived') || card.dataset.archived === 'true';
+
+                showConfirm({
+                    title: isArchived ? 'Розархівувати нотатку?' : 'Архівувати нотатку?',
+                    message: isArchived
+                        ? '«' + title + '» буде повернуто до активних нотаток.'
+                        : '«' + title + '» буде переміщено в архів.',
+                    confirmLabel: isArchived ? 'Розархівувати' : 'Архівувати'
+                }, function () {
+                    var csrf = document.querySelector('input[name="_csrf"]');
+                    fetch('/notes/toggle-archive/' + id, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
+                    }).then(function (r) {
+                        if (r.ok) location.reload();
+                        else showToast('Не вдалося змінити стан', 'error');
+                    }).catch(function () { showToast('Помилка мережі', 'error'); });
+                });
             };
 
+            // ============================================================
+            // DELETE (single) — окрема модалка з preview
+            // ============================================================
             window.deleteNote = function (id, e) {
                 if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
@@ -1061,6 +1513,9 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteNoteConfirmModal')).show();
             };
 
+            // ============================================================
+            // A11Y: Enter/Space на card-body
+            // ============================================================
             document.getElementById('noteGrid').addEventListener('keydown', function (e) {
                 var body = e.target.closest('.card-body[role="button"]');
                 if (!body) return;
@@ -1073,6 +1528,9 @@
                 }
             });
 
+            // ============================================================
+            // SORT / PAGE SIZE
+            // ============================================================
             document.querySelectorAll('[data-sort-choice]').forEach(function (link) {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -1087,6 +1545,38 @@
                 });
             }
 
+            // ============================================================
+            // LAYOUT TOGGLE
+            // ============================================================
+            var LAYOUT_KEY = 'lazycent-notes-layout';
+            var noteGrid = document.getElementById('noteGrid');
+            var layoutToggle = document.getElementById('layoutToggle');
+
+            function applyLayout(layout) {
+                if (!noteGrid || !layoutToggle) return;
+                if (layout === 'list') {
+                    noteGrid.classList.add('list-view');
+                } else {
+                    noteGrid.classList.remove('list-view');
+                }
+                layoutToggle.querySelectorAll('.btn').forEach(function (b) {
+                    b.classList.toggle('active', b.dataset.layout === layout);
+                });
+                localStorage.setItem(LAYOUT_KEY, layout);
+            }
+
+            if (layoutToggle) {
+                layoutToggle.addEventListener('click', function (e) {
+                    var btn = e.target.closest('button');
+                    if (!btn) return;
+                    applyLayout(btn.dataset.layout);
+                });
+                applyLayout(localStorage.getItem(LAYOUT_KEY) || 'cards');
+            }
+
+            // ============================================================
+            // FILTER
+            // ============================================================
             var currentFilter = 'all';
 
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
@@ -1150,26 +1640,43 @@
                 updateNoteCount();
             }
 
-            // ===== BULK SELECTION =====
+            // ============================================================
+            // BULK SELECTION
+            // ============================================================
             var selectedIds = new Set();
-            var noteGrid = document.getElementById('noteGrid');
             var bulkBar = document.getElementById('bulkBar');
 
             function updateBulkBar() {
-                if (selectedIds.size > 0) {
-                    bulkBar.classList.add('active');
-                    document.getElementById('bulkCount').textContent = selectedIds.size;
-                    noteGrid.classList.add('bulk-mode');
-                } else {
+                if (selectedIds.size === 0) {
                     bulkBar.classList.remove('active');
-                    noteGrid.classList.remove('bulk-mode');
+                    return;
                 }
+
+                bulkBar.classList.add('active');
+                document.getElementById('bulkCount').textContent = selectedIds.size;
+
+                // Визначити типи вибраних нотаток
+                var hasActive = false;
+                var hasArchived = false;
+                selectedIds.forEach(function (id) {
+                    var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                    if (!card) return;
+                    if (card.dataset.archived === 'true') hasArchived = true;
+                    else hasActive = true;
+                });
+
+                var archiveBtn = bulkBar.querySelector('[data-action="archive"]');
+                var unarchiveBtn = bulkBar.querySelector('[data-action="unarchive"]');
+
+                // Показати "Архівувати" тільки якщо є хоч одна активна
+                if (archiveBtn) archiveBtn.classList.toggle('d-none', !hasActive);
+                // Показати "Відновити" тільки якщо є хоч одна архівна
+                if (unarchiveBtn) unarchiveBtn.classList.toggle('d-none', !hasArchived);
             }
 
             function clearSelection() {
                 selectedIds.clear();
                 noteGrid.querySelectorAll('.note-checkbox').forEach(function (cb) { cb.checked = false; });
-                // FIX #3: зняти візуальне виділення
                 noteGrid.querySelectorAll('.note-card.selected').forEach(function (c) { c.classList.remove('selected'); });
                 updateBulkBar();
             }
@@ -1180,7 +1687,6 @@
                 var id = parseInt(cb.dataset.id, 10);
                 if (isNaN(id)) return;
 
-                // FIX #3: візуальне виділення картки (fallback для браузерів без :has())
                 var card = cb.closest('.note-card');
                 if (card) card.classList.toggle('selected', cb.checked);
 
@@ -1193,6 +1699,9 @@
                 btn.addEventListener('click', clearSelection);
             });
 
+            // ============================================================
+            // BULK ACTIONS — 3 дії: archive, unarchive, delete
+            // ============================================================
             bulkBar.addEventListener('click', function (e) {
                 var btn = e.target.closest('[data-action]');
                 if (!btn) return;
@@ -1202,33 +1711,76 @@
                 if (selectedIds.size === 0) return;
 
                 var count = selectedIds.size;
-                var msg = action === 'delete'
-                    ? 'Видалити ' + count + ' нотаток? Цю дію не можна скасувати.'
-                    : 'Архівувати ' + count + ' нотаток?';
-                if (!confirm(msg)) return;
+                var isDelete = action === 'delete';
+                var isUnarchive = action === 'unarchive';
 
-                var csrf = document.querySelector('input[name="_csrf"]');
-                var params = new URLSearchParams();
-                selectedIds.forEach(function (id) { params.append('ids', id); });
+                var title, message, confirmLabel, danger;
+                if (isDelete) {
+                    title = 'Видалити нотатки?';
+                    message = 'Видалити ' + count + ' нотаток? Цю дію не можна скасувати.';
+                    confirmLabel = 'Видалити';
+                    danger = true;
+                } else if (isUnarchive) {
+                    title = 'Відновити нотатки?';
+                    message = 'Повернути ' + count + ' нотаток з архіву?';
+                    confirmLabel = 'Відновити';
+                    danger = false;
+                } else {
+                    title = 'Архівувати нотатки?';
+                    message = 'Архівувати ' + count + ' нотаток?';
+                    confirmLabel = 'Архівувати';
+                    danger = false;
+                }
 
-                fetch('/notes/bulk/' + action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': csrf ? csrf.value : '',
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: params.toString()
-                }).then(function (r) {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json();
-                }).then(function (data) {
-                    if (data.success) location.reload();
-                    else showToast('Помилка: ' + (data.error || '?'), 'error');
-                }).catch(function (err) {
-                    showToast('Помилка: ' + err.message, 'error');
+                showConfirm({
+                    title: title,
+                    message: message,
+                    danger: danger,
+                    confirmLabel: confirmLabel
+                }, function () {
+                    var csrf = document.querySelector('input[name="_csrf"]');
+                    var params = new URLSearchParams();
+                    selectedIds.forEach(function (id) { params.append('ids', id); });
+
+                    fetch('/notes/bulk/' + action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf ? csrf.value : '',
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: params.toString()
+                    }).then(function (r) {
+                        if (!r.ok) throw new Error('HTTP ' + r.status);
+                        return r.json();
+                    }).then(function (data) {
+                        if (data.success) location.reload();
+                        else showToast('Помилка: ' + (data.error || '?'), 'error');
+                    }).catch(function (err) {
+                        showToast('Помилка: ' + err.message, 'error');
+                    });
                 });
             });
 
+            // ============================================================
+            // CLEAR ARCHIVE
+            // ============================================================
+            var clearArchiveBtn = document.getElementById('clearArchiveBtn');
+            if (clearArchiveBtn) {
+                clearArchiveBtn.addEventListener('click', function () {
+                    showConfirm({
+                        title: 'Очистити архів?',
+                        message: 'Видалити всі нотатки з архіву? Цю дію не можна скасувати.',
+                        danger: true,
+                        confirmLabel: 'Очистити'
+                    }, function () {
+                        document.getElementById('clearArchiveForm').submit();
+                    });
+                });
+            }
+
+            // ============================================================
+            // SEARCH
+            // ============================================================
             var searchInput = document.getElementById('searchInput');
             var searchClear = document.getElementById('searchClear');
             var searchLoading = document.getElementById('searchLoading');
@@ -1291,6 +1843,9 @@
                     });
             }
 
+            // ============================================================
+            // LOAD MORE
+            // ============================================================
             window.loadMore = function (type) {
                 var wrapper = document.getElementById(type + 'LoadMore');
                 if (!wrapper) return;
@@ -1340,6 +1895,9 @@
                 if (el) el.textContent = visible;
             }
 
+            // ============================================================
+            // KEYBOARD SHORTCUTS
+            // ============================================================
             document.addEventListener('keydown', function (e) {
                 var tag = (e.target.tagName || '').toUpperCase();
                 var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
