@@ -3,444 +3,583 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="#{allDays.title}">Всі дні - Lazy Cent</title>
+    <title th:text="#{allDays.title} + ' - ' + #{app.title}">Всі дні - Lazy Cent</title>
     <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
-    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>
-    <script src="/js/transaction-common.js" defer></script>
-    <div th:replace="~{fragments/head :: themeAssetsWithCharts(robots='noindex, nofollow')}"></div>
+    <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
     <style>
         /* ===== АНІМАЦІЇ ===== */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeInRow {
-            from { opacity: 0; transform: translateY(6px); }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes slideUpFade {
-            0% { opacity: 0; transform: translateY(30px) scale(0.95); }
-            60% { transform: translateY(-5px) scale(1.01); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes slideUpTable {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes blurFade {
-            0% { opacity: 0; filter: blur(10px); transform: scale(1.1); }
-            100% { opacity: 1; filter: blur(0); transform: scale(1); }
-        }
-        @keyframes pulseAppear {
-            0% { opacity: 0; transform: scale(0.8); }
-            50% { transform: scale(1.05); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes buttonSlide {
-            0% { opacity: 0; transform: translateY(-20px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
+        .animate-fade-up   { animation: fadeInUp   0.5s ease backwards; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
+        .delay-1 { animation-delay: 0.05s; }
 
-        .ledger-head-animated { animation: blurFade 0.8s ease forwards; opacity: 0; }
-        .balance-animated { animation: slideUpFade 0.7s ease forwards; opacity: 0; }
-        .chart-animated { animation: pulseAppear 0.8s ease forwards; opacity: 0; animation-delay: 0.2s; }
-        .table-wrap-animated { animation: slideUpTable 0.7s ease forwards; opacity: 0; animation-delay: 0.3s; }
-        .btn-animated { animation: buttonSlide 0.5s ease forwards; opacity: 0; }
-        .btn-animated:nth-child(1) { animation-delay: 0.1s; }
-        .btn-animated:nth-child(2) { animation-delay: 0.2s; }
-        .btn-animated:nth-child(3) { animation-delay: 0.3s; }
-        .toolbar-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; }
-        .stats-animated { animation: fadeIn 0.4s ease forwards; opacity: 0; animation-delay: 0.05s; text-align: center; }
-        .row-animate { animation: fadeInRow 0.3s ease forwards; opacity: 0; }
+        .page-max { max-width: 1920px; margin: 0 auto; }
 
-        .card-body { padding: 5px !important; }
-        .card-header { padding: 5px !important; }
-        .mt-4 { margin-top: 0.5rem !important; }
-        .mt-5 { margin-top: 1rem !important; }
-        .custom-container { width: 100%; margin: 0 auto; padding-left: 15px; padding-right: 15px; }
-
-        .category-input-group .form-select { border-radius: 0.375rem 0 0 0.375rem; }
-        .category-input-group .btn { border-radius: 0 0.375rem 0.375rem 0; border-left: none; }
-        [data-bs-theme="dark"] .category-input-group .btn { border-color: #3a3f4a; }
-
+        /* ===== КНОПКИ ===== */
+        .btn:not(.btn-close), .btn-rounded, .nav-btn { border-radius: 0.5rem !important; }
         .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .btn-rounded { border-radius: 50px !important; }
-
-        .card-day { transition: transform 0.2s, box-shadow 0.2s; }
-        .card-day:hover { transform: translateY(-3px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
-        [data-bs-theme="dark"] .card-day:hover { box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
-
-        .card-header .badge-count { font-size: 0.6rem; padding: 0.2rem 0.4rem; border-radius: 20px; margin-left: 2px; }
-        .card-header .badge-count.total { background-color: rgba(255,255,255,0.25); color: #fff; }
-        .card-header .badge-count.income { background-color: rgba(25,135,84,0.8); color: #fff; }
-        .card-header .badge-count.expense { background-color: rgba(220,53,69,0.8); color: #fff; }
-        [data-bs-theme="dark"] .card-header .badge-count.total { background-color: rgba(255,255,255,0.15); }
-        [data-bs-theme="dark"] .card-header .badge-count.income { background-color: rgba(25,135,84,0.6); }
-        [data-bs-theme="dark"] .card-header .badge-count.expense { background-color: rgba(220,53,69,0.6); }
-
-        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table-days { width: 100%; font-size: 0.85rem; border-collapse: collapse; }
-        .table-days th, .table-days td {
-            text-align: center !important; vertical-align: middle !important;
-            padding: 0.5rem 0.4rem; border-bottom: 1px solid #dee2e6;
+        .btn:not(.btn-close):not(.navbar-toggler):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        [data-bs-theme="dark"] .table-days th, [data-bs-theme="dark"] .table-days td { border-bottom-color: #2a2e37; }
-        .table-days th { background-color: #f8f9fa; font-weight: 600; white-space: nowrap; }
-        [data-bs-theme="dark"] .table-days th { background-color: #1d2027; color: #e6e6e6; }
+        .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
 
-        .table-days .col-date { width: 120px; min-width: 120px; }
-        .table-days .col-day { width: 120px; min-width: 120px; }
-        .table-days .col-number { width: 60px; min-width: 60px; }
-        .table-days .col-amount { width: 120px; min-width: 120px; }
+        .page-header-wrap { position: relative; z-index: 10; }
+
+        .icon-circle {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+        }
+
+        /* ===== КОНТЕЙНЕР ===== */
+        .days-section {
+            background-color: var(--bs-card-bg);
+            border-radius: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        [data-bs-theme="dark"] .days-section {
+            background-color: #212529 !important;
+            border: 1px solid #2a2e37;
+        }
+
+        /* ===== HEADER ===== */
+        .cat-header-theme {
+            background-color: #ffffff !important;
+            color: #212529 !important;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+        .cat-header-theme h6,
+        .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3,
+        .cat-header-theme h3 * { color: #212529 !important; }
+        [data-bs-theme="dark"] .cat-header-theme {
+            background-color: #1d2027 !important;
+            color: #e6e6e6 !important;
+            border-bottom-color: #2a2e37 !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme h6,
+        [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230,230,230,0.75) !important; }
+        [data-bs-theme="dark"] .cat-header-theme h3,
+        [data-bs-theme="dark"] .cat-header-theme h3 * { color: #ffffff !important; }
+
+        .sub-bar { background-color: #ffffff !important; }
+        [data-bs-theme="dark"] .sub-bar { background-color: #1d2027 !important; }
+
+        /* ===== VIEW TOGGLE ===== */
+        .view-toggle {
+            display: flex; gap: 0.3rem;
+            background: var(--bs-secondary-bg);
+            border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0;
+        }
+        .view-toggle .btn {
+            border: none; padding: 0.5rem 1rem; font-size: 0.95rem;
+            border-radius: 0.375rem !important; background: transparent;
+            color: var(--bs-secondary-color); font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            white-space: nowrap;
+        }
+        .cat-header-theme .view-toggle { background: #e9ecef !important; }
+        .cat-header-theme .view-toggle .btn { color: #495057 !important; }
+        .cat-header-theme .view-toggle .btn.active {
+            background: #ffffff !important;
+            color: #0d6efd !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
+        }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255,255,255,0.08) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255,255,255,0.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
+            background: #0d6efd !important;
+            color: #ffffff !important;
+            box-shadow: none !important;
+        }
+
+        @media (max-width: 575.98px) {
+            .view-toggle .btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+            .cat-header-theme > div.no-print {
+                width: 100% !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.5rem !important;
+            }
+            .cat-header-theme > div.no-print > .view-toggle {
+                width: 100% !important; height: auto !important;
+                flex-wrap: wrap; padding: 0.25rem !important; gap: 0.25rem !important;
+            }
+            .cat-header-theme > div.no-print > .view-toggle > .btn {
+                flex: 1 1 calc(50% - 0.25rem); min-width: 0;
+                height: 40px !important; font-size: 0.8rem;
+                padding: 0.3rem 0.5rem; justify-content: center;
+            }
+        }
+
+        /* ============================================================
+           TOTALS — 3 картки НАД секцією (без hover, статичні)
+           ============================================================ */
+        .totals-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0;
+        }
+        @media (max-width: 767.98px) {
+            .totals-row { grid-template-columns: 1fr; }
+        }
+
+        .total-card {
+            display: flex; align-items: center; gap: 0.85rem;
+            padding: 0.85rem 1rem;
+            background: var(--bs-card-bg);
+            border: 1px solid var(--bs-border-color);
+            border-radius: 1rem;
+            min-width: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        [data-bs-theme="dark"] .total-card {
+            background: #1d2027;
+            border-color: #2a2e37;
+        }
+        .total-card .total-icon {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.15rem; flex-shrink: 0;
+        }
+        .total-card .total-body { min-width: 0; flex: 1; }
+        .total-card .total-label {
+            font-size: 0.75rem; color: var(--bs-secondary-color);
+            text-transform: uppercase; letter-spacing: 0.4px;
+            margin-bottom: 0.15rem; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .total-card .total-value {
+            font-size: 1.15rem; font-weight: 700; line-height: 1.2;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .total-card .total-sub {
+            font-size: 0.72rem; color: var(--bs-secondary-color);
+            margin-top: 0.15rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* ===== TOOLBAR ===== */
+        .days-toolbar {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .days-toolbar .search-wrap { flex: 1 1 220px; min-width: 180px; }
+        .days-toolbar .search-wrap .input-group { flex-wrap: nowrap; }
+        .days-toolbar .search-wrap .input-group-text { background: transparent; border-right: none; }
+        .days-toolbar .search-wrap .form-control { border-left: none; border-right: none; }
+        .days-toolbar .search-wrap .btn-clear {
+            border: 1px solid var(--bs-border-color);
+            border-left: none;
+            border-radius: 0 0.375rem 0.375rem 0 !important;
+            color: var(--bs-secondary-color);
+            padding: 0.25rem 0.65rem;
+        }
+        .days-toolbar .search-wrap .btn-clear:hover {
+            background: rgba(220,53,69,0.1);
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+        [data-bs-theme="dark"] .days-toolbar .search-wrap .btn-clear { border-color: #3a3f4a; }
+
+        .days-toolbar .filter-group {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
+        }
+        .days-toolbar .filter-group .form-select-sm,
+        .days-toolbar .filter-group .form-control-sm {
+            width: auto; min-width: 110px;
+            border-radius: 0.5rem; font-size: 0.85rem;
+        }
+        .days-toolbar .filter-group .date-sep {
+            font-size: 0.8rem; color: var(--bs-secondary-color);
+        }
+        .days-toolbar .page-size-wrap {
+            display: flex; align-items: center; gap: 0.4rem;
+            font-size: 0.85rem; color: var(--bs-secondary-color);
+        }
+        .days-toolbar .page-size-wrap select {
+            width: auto; min-width: 80px; border-radius: 0.5rem; font-size: 0.85rem;
+        }
+        .days-toolbar .info-text {
+            font-size: 0.85rem; color: var(--bs-secondary-color);
+            margin-left: auto; white-space: nowrap;
+        }
+
+        @media (max-width: 575.98px) {
+            .days-toolbar {
+                padding: 0.5rem 0.75rem;
+                gap: 0.4rem;
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .days-toolbar .search-wrap { flex: 1 1 auto; min-width: 0; }
+            .days-toolbar .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.4rem;
+                width: 100%;
+            }
+            .days-toolbar .filter-group > * {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+            .days-toolbar .filter-group .date-sep { display: none; }
+            .days-toolbar .page-size-wrap {
+                width: 100%; justify-content: space-between;
+            }
+            .days-toolbar .page-size-wrap select { flex: 0 1 auto; width: auto; }
+            .days-toolbar .info-text {
+                width: 100%; text-align: center; margin-left: 0;
+                order: 99;
+            }
+            .days-toolbar #loadMoreBtn { width: 100%; }
+        }
+
+        /* ===== TABLE ===== */
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table-days {
+            width: 100%; font-size: 0.85rem;
+            border-collapse: collapse; margin-bottom: 0;
+        }
+        .table-days th, .table-days td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            padding: 0.55rem 0.4rem;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .table-days th {
+            background-color: var(--bs-tertiary-bg);
+            color: var(--bs-secondary-color);
+            font-weight: 600; font-size: 0.82rem;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--bs-border-color);
+            white-space: nowrap;
+        }
+        [data-bs-theme="dark"] .table-days th {
+            background-color: #23262e;
+            color: #9aa3b2;
+            border-bottom-color: #3a3f4a;
+        }
+        .table-days tbody tr:hover > td { background-color: rgba(124,58,237,0.05); }
+        [data-bs-theme="dark"] .table-days tbody tr:hover > td { background-color: rgba(167,139,250,0.1); }
+
+        .table-days .col-number  { width: 48px; min-width: 48px; max-width: 48px; }
+        .table-days .col-date    { width: 110px; min-width: 110px; }
+        .table-days .col-day     { width: 110px; min-width: 110px; }
+        .table-days .col-amount  { width: 120px; min-width: 120px; }
         .table-days .col-balance { width: 120px; min-width: 120px; }
-        .table-days .col-count { width: 100px; min-width: 100px; }
-        .table-days .col-actions { width: 140px; min-width: 140px; white-space: nowrap; }
-        .table-days .col-actions .btn { padding: 0.15rem 0.4rem; font-size: 0.7rem; margin: 0 1px; }
-        .table-days .col-actions .btn i { font-size: 0.75rem; }
-
-        .text-starting { color: #6c757d; }
-        .text-expense { color: #dc3545; }
-        .text-income { color: #198754; }
-        .text-balance-positive { color: #198754; }
-        .text-balance-negative { color: #dc3545; }
-        [data-bs-theme="dark"] .text-starting { color: #adb5bd; }
-        [data-bs-theme="dark"] .text-expense { color: #f87171; }
-        [data-bs-theme="dark"] .text-income { color: #6ee7b7; }
-        [data-bs-theme="dark"] .text-balance-positive { color: #6ee7b7; }
-        [data-bs-theme="dark"] .text-balance-negative { color: #f87171; }
+        .table-days .col-count   { width: 90px; min-width: 90px; }
+        .table-days .col-actions { width: 200px; min-width: 200px; white-space: nowrap; }
 
         .sortable { cursor: pointer; user-select: none; }
         .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; }
         .sortable:hover .sort-icon { opacity: 1; }
-        .sortable.active-asc .sort-icon { opacity: 1; color: #0d6efd; }
-        .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
+        .sortable.active-asc .sort-icon,
+        .sortable.active-desc .sort-icon { opacity: 1; color: var(--bs-primary); }
 
-        .table-toolbar {
-            display: flex; flex-wrap: wrap; align-items: center;
-            gap: 0.5rem 0.75rem; padding: 0.5rem 0;
-            border-bottom: 1px solid #dee2e6; margin-bottom: 0.5rem;
+        .text-expense { color: #dc3545; }
+        .text-income  { color: #198754; }
+        .text-balance-positive { color: #198754; }
+        .text-balance-negative { color: #dc3545; }
+        .text-starting { color: #6c757d; }
+        [data-bs-theme="dark"] .text-expense { color: #f87171; }
+        [data-bs-theme="dark"] .text-income { color: #6ee7b7; }
+        [data-bs-theme="dark"] .text-balance-positive { color: #6ee7b7; }
+        [data-bs-theme="dark"] .text-balance-negative { color: #f87171; }
+        [data-bs-theme="dark"] .text-starting { color: #adb5bd; }
+
+        /* ===== КАРТКИ — стиль «Витрати» / «Дохід» ===== */
+        .day-card-wrapper { display: flex; }
+        .day-card-wrapper .stat-card {
+            border-radius: 1rem;
+            border: none;
+            background-color: var(--bs-card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: 100%; width: 100%;
+            display: flex; flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        [data-bs-theme="dark"] .table-toolbar { border-bottom-color: #2a2e37; }
-        .search-input { flex: 1 1 200px; min-width: 150px; }
-        .search-input .input-group-text { background: transparent; border-right: none; }
-        .search-input .form-control { border-left: none; }
-
-        .filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-        .filter-group .form-control-sm, .filter-group .form-select-sm { width: auto; min-width: 100px; }
-        .filter-group .date-range { display: flex; align-items: center; gap: 0.3rem; }
-        .filter-group .date-range input[type="date"] { width: 130px; }
-        .filter-group .date-range .text-muted { font-size: 0.8rem; }
-
-        .day-filter { flex: 0 0 auto; min-width: 120px; max-width: 160px; }
-
-        .page-size-select { max-width: 100px; flex: 0 0 auto; }
-        .load-more-btn { flex: 0 0 auto; }
-        .info-text { font-size: 0.85rem; color: #666; margin-left: auto; white-space: nowrap; }
-        [data-bs-theme="dark"] .info-text { color: #9aa3b2; }
-
-        .view-toggle {
-            display: flex; gap: 0.3rem; background: #e9ecef;
-            border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0;
+        .day-card-wrapper .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        [data-bs-theme="dark"] .view-toggle { background: #2a2e37; }
-        .view-toggle .btn {
-            border: none; padding: 0.5rem 1.2rem; font-size: 1rem;
-            border-radius: 0.375rem; background: transparent;
-            color: #495057; font-weight: 600; transition: all 0.2s ease;
+        [data-bs-theme="dark"] .day-card-wrapper .stat-card {
+            background-color: #1d2027;
+            border: 1px solid #2a2e37;
         }
-        .view-toggle .btn.active { background: #fff; color: #0d6efd; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
-        [data-bs-theme="dark"] .view-toggle .btn { color: #adb5bd; }
-        [data-bs-theme="dark"] .view-toggle .btn.active { background: #1d2027; color: #6ea8fe; }
-        .view-toggle .btn i { margin-right: 0.3rem; }
-
-        .cards-view-container { display: none; }
-        .cards-view-container.show { display: block; }
-        .table-view-container { display: block; }
-        .table-view-container.hidden { display: none; }
-
-        @media (max-width: 768px) {
-            .table-days { font-size: 0.7rem; }
-            .table-days th, .table-days td { padding: 0.3rem 0.2rem; }
-            .table-days .col-date { min-width: 80px; }
-            .table-days .col-day { min-width: 70px; }
-            .table-days .col-amount { min-width: 80px; }
-            .table-days .col-balance { min-width: 80px; }
-            .table-days .col-actions { min-width: 100px; }
-            .table-days .col-actions .btn { font-size: 0.55rem; padding: 0.1rem 0.2rem; }
-            .table-days .col-actions .btn i { font-size: 0.6rem; }
-
-            .table-toolbar { gap: 0.4rem; }
-            .search-input { min-width: 100px; }
-            .filter-group .date-range input[type="date"] { width: 110px; }
-            .filter-group .form-control-sm, .filter-group .form-select-sm { min-width: 80px; }
-            .day-filter { min-width: 100px; max-width: 130px; }
-            .page-size-select { max-width: 70px; }
-            .load-more-btn { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
-            .info-text { font-size: 0.7rem; }
-            .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+        [data-bs-theme="dark"] .day-card-wrapper .stat-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .day-card-wrapper .stat-card .card-body {
+            padding: 1.1rem 1.15rem;
+            display: flex; flex-direction: column; flex: 1;
+        }
+        .day-card-wrapper .day-title {
+            display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 0.5rem;
+            margin-bottom: 1rem; padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .day-card-wrapper .day-title h6 {
+            font-size: 1rem; font-weight: 700; margin: 0;
+            color: var(--bs-body-color);
+            display: flex; flex-direction: column; gap: 0.15rem;
+        }
+        .day-card-wrapper .day-title h6 small {
+            font-size: 0.75rem; font-weight: 500;
+            color: var(--bs-secondary-color);
+        }
+        .day-card-wrapper .balance-big {
+            font-size: 1.15rem; font-weight: 700;
+            text-align: right; line-height: 1.2;
+        }
+        .day-card-wrapper .day-row-line {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 0.5rem; font-size: 0.85rem; margin-bottom: 0.4rem;
+        }
+        .day-card-wrapper .day-row-line .label {
+            color: var(--bs-secondary-color);
+            display: flex; align-items: center; gap: 0.35rem;
+        }
+        .day-card-wrapper .day-row-line .value {
+            font-weight: 600; white-space: nowrap;
+        }
+        .day-card-wrapper .day-actions {
+            display: flex; gap: 0.5rem;
+            margin-top: auto; padding-top: 1rem;
+        }
+        .day-card-wrapper .day-actions .btn {
+            flex: 1; font-size: 0.82rem; padding: 0.4rem 0.6rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 0.35rem;
         }
 
-        @media (max-width: 576px) {
-            .search-input { flex: 0 0 100%; min-width: unset; }
-            .filter-group { flex: 0 0 100%; justify-content: flex-start; }
-            .filter-group .date-range input[type="date"] { width: 100px; }
-            .day-filter { flex: 1 1 100%; min-width: unset; max-width: unset; }
-            .view-toggle .btn { padding: 0.3rem 0.6rem; font-size: 0.8rem; }
-        }
+        .view-container { display: block; }
+        .view-container.hidden { display: none; }
 
-        .toast {
-            background: #fff; border-left: 4px solid #0d6efd;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 250px;
-            border-radius: 8px; opacity: 0; transform: translateX(100%);
-            transition: all 0.5s ease;
+        .empty-state {
+            text-align: center; padding: 60px 20px;
+            color: var(--bs-secondary-color);
         }
-        .toast.show { opacity: 1; transform: translateX(0); }
-        .toast.success { border-left-color: #198754; }
-        .toast.error { border-left-color: #dc3545; }
-        .toast .toast-header { background: transparent; border-bottom: none; padding: 0.75rem 1rem 0.25rem 1rem; }
-        .toast .toast-body { padding: 0.25rem 1rem 0.75rem 1rem; font-size: 0.95rem; }
-        [data-bs-theme="dark"] .toast { background: #1d2027; color: #e6e6e6; border-color: #2a2e37; }
-        [data-bs-theme="dark"] .toast .toast-header { color: #e6e6e6; }
-        [data-bs-theme="dark"] .toast .btn-close { filter: invert(1); }
+        .empty-state i { font-size: 4rem; opacity: 0.25; }
 
-        .keyboard-hint { font-size: 0.9rem; color: #6c757d; margin-right: 1rem; }
-        [data-bs-theme="dark"] .keyboard-hint { color: #9aa3b2; }
-        .keyboard-hint kbd {
-            background: #e9ecef; color: #212529; border-radius: 4px;
-            padding: 0.2rem 0.6rem; font-size: 0.85rem; font-weight: 600;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        /* ===== МОДАЛКИ ===== */
+        .modal-dialog-centered { align-items: flex-start !important; }
+        .modal-dialog-centered .modal-content { margin-top: 1.75rem; }
+
+        .delete-details {
+            background: var(--bs-tertiary-bg);
+            border-radius: 0.5rem;
+            padding: 1rem; margin: 0.5rem 0;
         }
-        [data-bs-theme="dark"] .keyboard-hint kbd { background: #2a2e37; color: #e6e6e6; }
-
-        .delete-details { background: #f8f9fa; border-radius: 0.5rem; padding: 1rem; margin: 0.5rem 0; }
-        [data-bs-theme="dark"] .delete-details { background: #2a2e37; }
         .delete-details .row { margin-bottom: 0.3rem; }
-        .delete-details .label { font-weight: 600; color: #555; }
-        [data-bs-theme="dark"] .delete-details .label { color: #9aa3b2; }
-        .delete-details .value { color: var(--text-primary); word-break: break-word; }
-
-        .modal-content { border-radius: 1rem; }
-        .transaction-type-toggle { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
-        .transaction-type-toggle .btn { flex: 1; padding: 0.6rem; font-weight: 600; border-radius: 0.5rem; }
-        .transaction-type-toggle .btn.active-expense { background-color: #dc3545; color: #fff; border-color: #dc3545; }
-        .transaction-type-toggle .btn.active-income { background-color: #198754; color: #fff; border-color: #198754; }
-        .input-group-number { display: flex; gap: 0.5rem; align-items: center; }
-        .input-group-number .btn { flex: 0 0 40px; }
-        .input-group-number input { flex: 1; text-align: center; }
-        .char-counter { font-size: 0.8rem; color: #6c757d; text-align: right; margin-top: 0.25rem; }
-        [data-bs-theme="dark"] .char-counter { color: #9aa3b2; }
-        [data-bs-theme="dark"] .modal-content { background-color: #1d2027; color: #e6e6e6; }
-        [data-bs-theme="dark"] .modal-header { border-bottom-color: #2a2e37; }
-        [data-bs-theme="dark"] .modal-footer { border-top-color: #2a2e37; }
-        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select {
-            background-color: #23262e; color: #e6e6e6; border-color: #3a3f4a;
-        }
-        [data-bs-theme="dark"] .form-control:focus, [data-bs-theme="dark"] .form-select:focus {
-            background-color: #2a2e37; color: #fff;
-        }
-        [data-bs-theme="dark"] .btn-close { filter: invert(1); }
-
-        .chart-section { transition: all 0.3s ease; }
-        .chart-toggle-btn { cursor: pointer; user-select: none; }
-        .chart-toggle-btn .toggle-icon { transition: transform 0.3s ease; display: inline-block; }
-        .chart-toggle-btn .toggle-icon.rotated { transform: rotate(180deg); }
-        .chart-card .card-header { display: flex; justify-content: space-between; align-items: center; }
-
-        .analytics-toggle {
-            display: flex; gap: 0.3rem; background: #e9ecef;
-            border-radius: 0.5rem; padding: 0.15rem; flex-shrink: 0;
-        }
-        [data-bs-theme="dark"] .analytics-toggle { background: #2a2e37; }
-        .analytics-toggle .btn {
-            border: none; padding: 0.3rem 0.8rem; font-size: 0.8rem;
-            border-radius: 0.375rem; background: transparent;
-            color: #495057; font-weight: 600; transition: all 0.2s ease;
-        }
-        .analytics-toggle .btn.active { background: #fff; color: #0d6efd; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
-        [data-bs-theme="dark"] .analytics-toggle .btn { color: #adb5bd; }
-        [data-bs-theme="dark"] .analytics-toggle .btn.active { background: #1d2027; color: #6ea8fe; }
-        .analytics-toggle .btn i { margin-right: 0.2rem; }
-
-        .chart-row-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; }
-        .chart-col { flex: 0 0 auto; max-width: 50%; padding: 0 0.5rem; min-width: 280px; }
-        .chart-flex { display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-        .chart-container { max-height: 200px; max-width: 200px; flex-shrink: 0; }
-        .chart-container canvas { max-height: 200px; max-width: 200px; cursor: pointer; }
-        .chart-legend-table { font-size: 0.8rem; flex: 0 0 auto; min-width: 120px; text-align: left; }
-        .chart-legend-table td { padding: 0.1rem 0.3rem; }
-        .chart-legend-table .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 4px; }
-        .chart-legend-table .amount-col { text-align: right; font-weight: 600; }
-
-        [data-bs-theme="dark"] .chart-card .card-header {
-            background-color: #2a2e37 !important; color: #e6e6e6 !important;
-            border-bottom-color: #3a3f4a !important;
-        }
-        [data-bs-theme="dark"] .chart-card .card-body { background-color: #1d2027 !important; }
-        [data-bs-theme="dark"] .chart-legend-table td { color: #e6e6e6 !important; }
-        [data-bs-theme="dark"] .chart-legend-table .amount-col { color: #9aa3b2 !important; }
+        .delete-details .label { font-weight: 600; color: var(--bs-secondary-color); }
+        .delete-details .value { color: var(--bs-body-color); word-break: break-word; }
 
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            .container { max-width: 100% !important; padding: 0 4px !important; margin: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .btn-add-transaction, .modal, .modal-backdrop, .d-print-none, .table-toolbar { display: none !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
+            .d-print-none, .view-toggle, .days-toolbar, .alert, .totals-row {
+                display: none !important;
+            }
             .d-print-block { display: block !important; }
-            .d-print-flex { display: flex !important; }
-            .print-header { display: flex !important; justify-content: space-between; align-items: center; padding: 0 !important; margin: 0 0 4px 0 !important; border-bottom: 1px solid #333; line-height: 1.2; }
-            .print-header .logo { font-size: 1rem !important; font-weight: 700; color: #1B2430; }
-            .print-header h2 { font-size: 0.9rem !important; font-weight: 600; margin: 0; color: #333; }
-            .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
-            .table-days th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .table-days td { border-color: #ddd !important; }
-            .card { border: 1px solid #ddd !important; box-shadow: none !important; margin-bottom: 4px !important; }
-            .card .card-body { padding: 2px 6px !important; }
-            .card-header { padding: 2px 8px !important; }
-            .card-header h5 { font-size: 0.65rem !important; margin: 0 !important; }
-            .card-header .badge { font-size: 0.55rem !important; }
-            .chart-container canvas { max-height: 120px !important; max-width: 120px !important; }
-            .chart-card .card-header { padding: 2px 6px !important; }
-            .chart-card .card-header span { font-size: 0.6rem !important; }
-            .chart-card .card-body { padding: 4px !important; }
-            .chart-legend-table td { font-size: 0.5rem !important; padding: 1px 2px !important; }
-            .chart-legend-table .amount-col { font-size: 0.5rem !important; }
-            .chart-legend-table .color-dot { width: 6px !important; height: 6px !important; }
+            .d-print-flex  { display: flex !important; }
+            .container-fluid, .page-max {
+                max-width: 100% !important;
+                padding: 10px !important;
+                margin: 0 !important;
+            }
+            .print-header {
+                display: flex !important;
+                justify-content: space-between;
+                padding: 10px 0;
+                border-bottom: 2px solid #333;
+                margin-bottom: 20px;
+            }
+            .print-footer {
+                text-align: center;
+                font-size: 0.7rem;
+                color: #666;
+                border-top: 1px solid #ddd;
+                padding-top: 10px;
+                margin-top: 20px;
+            }
+            .table-days th {
+                background-color: #333 !important; color: #fff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .days-section, .stat-card { border: 1px solid #ddd !important; box-shadow: none !important; }
+            .cat-header-theme { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
+            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
         }
     </style>
 </head>
 <body>
+
 <nav th:replace="~{fragments/navbar :: navbar('all-days')}"></nav>
 <div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
 
-<div class="container-fluid custom-container mt-4">
+<span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
 
-    <!-- БЛОК ДЛЯ ДРУКУ -->
+<div class="container-fluid px-3 px-md-4 mt-4 page-max">
+
     <div class="print-header d-print-flex" style="display: none;">
         <span class="logo">💰 LazyCent</span>
         <h2 th:text="#{allDays.title}">Всі дні</h2>
     </div>
 
-    <!-- ВЕРХНЯ ПАНЕЛЬ -->
-    <!-- ВЕРХНЯ ПАНЕЛЬ -->
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-2 no-print toolbar-animated gap-3">
-        <h5 class="no-print mb-0 text-center text-sm-start">
-            <i class="fas fa-calendar-alt me-2"></i>
-            <span th:text="#{allDays.title}">Всі дні</span>
-        </h5>
-        <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-end">
-            <button class="btn btn-primary btn-sm btn-add-transaction btn-rounded btn-animated"
-                    data-bs-toggle="modal" data-bs-target="#transactionModal">
-                <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати</span>
-            </button>
-            <button class="btn btn-warning btn-sm btn-rounded btn-animated" onclick="window.print()">
-                <i class="fas fa-print me-1"></i> <span th:text="#{btn.print}">Друк</span>
-            </button>
+    <!-- ========== PAGE HEADER ========== -->
+    <div class="page-header-wrap mb-4 animate-fade-down">
+        <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
+            <h2 class="mb-0 fw-bold">
+                <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                <span th:text="#{allDays.title}">Всі дні</span>
+            </h2>
+            <div class="position-absolute end-0 no-print d-flex gap-2">
+                <a th:href="@{/all-days/export}" class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i>
+                    <span th:text="#{allDays.action.export}">Експорт</span>
+                </a>
+                <button class="btn btn-warning" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>
+                    <span th:text="#{allDays.action.print}">Друк</span>
+                </button>
+            </div>
+        </div>
+        <div class="d-lg-none">
+            <h2 class="mb-3 fw-bold text-center">
+                <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                <span th:text="#{allDays.title}">Всі дні</span>
+            </h2>
+            <div class="d-grid gap-2 mb-2 no-print">
+                <a th:href="@{/all-days/export}" class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i>
+                    <span th:text="#{allDays.action.export}">Експорт</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- ===== WARNING: обмеження історії ===== -->
-    <div th:if="${isLimited}" class="alert alert-info no-print toolbar-animated" role="alert">
+    <!-- ===== WARNING ===== -->
+    <div th:if="${isLimited}" class="alert alert-info no-print animate-fade-up" role="alert">
         <i class="fas fa-info-circle me-2"></i>
         <span th:text="#{allDays.limited(${allBudgets.size()}, ${totalDays})}">
-        Показано останні 180 з 730 днів.
-    </span>
+            Показано останні 180 з 730 днів.
+        </span>
         <a href="/totals" class="alert-link ms-2" th:text="#{allDays.limited.viewAll}">
             Переглянути всю історію →
         </a>
     </div>
 
-    <!-- ===== ДІАГРАМИ ===== -->
-    <div class="chart-section chart-animated" id="chartSection">
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card chart-card">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem;">
-                        <span><i class="fas fa-chart-pie me-2"></i><span th:text="#{allDays.analytics}">Аналітика по днях</span></span>
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <div class="analytics-toggle" id="analyticsToggle">
-                                <button class="btn active" data-mode="charts" th:title="#{day.analytics.charts}">
-                                    <i class="fas fa-chart-pie"></i> <span class="d-none d-sm-inline" th:text="#{day.analytics.charts}">Кругові</span>
-                                </button>
-                                <button class="btn" data-mode="bar" th:title="#{day.analytics.bar}">
-                                    <i class="fas fa-chart-bar"></i> <span class="d-none d-sm-inline" th:text="#{day.analytics.bar}">Стовпчики</span>
-                                </button>
-                                <button class="btn" data-mode="both" th:title="#{day.analytics.both}">
-                                    <i class="fas fa-chart-simple"></i> <span class="d-none d-sm-inline" th:text="#{day.analytics.both}">Обидва</span>
-                                </button>
-                            </div>
-                            <button class="btn btn-sm btn-outline-secondary chart-toggle-btn" id="toggleChartBtn" th:title="#{allDays.analytics}">
-                                <i class="fas fa-chevron-up toggle-icon" id="chartToggleIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="card-body" id="chartBody">
-                        <div class="chart-row-container" id="chartsContainer">
-                            <div class="chart-col" id="expenseChartCol">
-                                <div class="text-center">
-                                    <h6 class="text-danger mb-1"><i class="fas fa-arrow-down me-1"></i><span th:text="#{allDays.analytics.expenses}">Витрати за днями</span></h6>
-                                    <div class="chart-flex">
-                                        <div class="chart-container mx-auto"><canvas id="expenseChart"></canvas></div>
-                                        <div class="chart-legend-table" id="expenseLegend"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="chart-col" id="incomeChartCol">
-                                <div class="text-center">
-                                    <h6 class="text-success mb-1"><i class="fas fa-arrow-up me-1"></i><span th:text="#{allDays.analytics.incomes}">Доходи за днями</span></h6>
-                                    <div class="chart-flex">
-                                        <div class="chart-container mx-auto"><canvas id="incomeChart"></canvas></div>
-                                        <div class="chart-legend-table" id="incomeLegend"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-3" id="barChartRow">
-                            <div class="col-12">
-                                <div class="text-center">
-                                    <h6 class="text-primary mb-1"><i class="fas fa-chart-bar me-1"></i><span th:text="#{allDays.analytics.balance}">Баланс по днях</span></h6>
-                                    <div style="max-height: 300px; max-width: 100%;">
-                                        <canvas id="barChart" style="max-height: 280px; width: 100%;"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div th:if="${allBudgets.empty}" class="empty-note" th:text="#{allDays.noData}">Немає даних за обраний період</div>
-                    </div>
-                </div>
+    <!-- ============================================================
+         TOTALS — 3 картки НАД секцією (без hover, статичні)
+         ============================================================ -->
+    <div class="totals-row no-print animate-fade-up" id="totalsRow">
+
+        <!-- Баланс -->
+        <div class="total-card">
+            <div class="total-icon bg-primary-subtle text-primary">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="total-body">
+                <div class="total-label" th:text="#{allDays.totals.balance}">Поточний баланс</div>
+                <div class="total-value" id="totalsBalance">0,00 ₴</div>
+                <div class="total-sub" id="totalsBalanceSub">—</div>
+            </div>
+        </div>
+
+        <!-- Найбільше витрат -->
+        <div class="total-card">
+            <div class="total-icon bg-danger-subtle text-danger">
+                <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="total-body">
+                <div class="total-label" th:text="#{allDays.totals.topExpense}">Найбільше витрат</div>
+                <div class="total-value text-danger" id="totalsTopExpense">0,00 ₴</div>
+                <div class="total-sub" id="totalsTopExpenseSub">—</div>
+            </div>
+        </div>
+
+        <!-- Найбільше доходів -->
+        <div class="total-card">
+            <div class="total-icon bg-success-subtle text-success">
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="total-body">
+                <div class="total-label" th:text="#{allDays.totals.topIncome}">Найбільше доходів</div>
+                <div class="total-value text-success" id="totalsTopIncome">0,00 ₴</div>
+                <div class="total-sub" id="totalsTopIncomeSub">—</div>
             </div>
         </div>
     </div>
 
-    <!-- ===== КАРТКА ===== -->
-    <div class="card shadow mt-4 table-wrap-animated">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 0.5rem; background-color: var(--bs-card-bg); border-bottom: 1px solid var(--bs-border-color);">
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <h5 class="mb-0"><i class="fas fa-list-ul me-2"></i><span th:text="#{allDays.heading}">Дні</span></h5>
+    <!-- ========== MAIN SECTION ========== -->
+    <div class="days-section mb-3 animate-fade-up delay-1">
+
+        <!-- Section header -->
+        <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
+            <div class="icon-circle bg-primary text-white">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="flex-grow-1 text-start" style="min-width: 0;">
+                <h6 class="mb-0" th:text="#{allDays.heading}">Дні</h6>
+                <h3 class="mb-0">
+                    <span id="headerDayCount"
+                          th:text="${allBudgets != null ? allBudgets.size() : 0}">0</span>
+                </h3>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="viewToggle">
                     <button class="btn active" data-view="table" th:title="#{day.table}">
-                        <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
+                        <i class="fas fa-table"></i>
+                        <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
                     </button>
                     <button class="btn" data-view="cards" th:title="#{day.cards}">
-                        <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
+                        <i class="fas fa-th-large"></i>
+                        <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
                     </button>
                 </div>
             </div>
-            <span class="badge" style="font-size: 1rem; padding: 0.5rem 0.8rem; background-color: var(--bs-secondary-bg); color: var(--bs-body-color);">
-                <span th:text="#{common.total}">Всього</span>: <span id="totalRowsCount">0</span>
-            </span>
         </div>
-        <div class="card-body">
 
-            <!-- ПАНЕЛЬ ІНСТРУМЕНТІВ -->
-            <div class="table-toolbar no-print">
-                <div class="input-group search-input">
+        <!-- Toolbar -->
+        <div class="days-toolbar sub-bar">
+
+            <div class="search-wrap">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" th:placeholder="#{common.searchAll}">
+                    <input type="text" id="searchInput" class="form-control"
+                           th:placeholder="#{common.searchAll}"
+                           autocomplete="off">
+                    <button type="button" id="searchClear"
+                            class="btn btn-clear"
+                            th:title="#{allDays.search.clear}"
+                            th:aria-label="#{allDays.search.clear}">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
+            </div>
 
-                <select id="dayFilter" class="form-select form-select-sm day-filter">
+            <div class="filter-group">
+                <select id="dayFilter" class="form-select form-select-sm">
                     <option value="" th:text="#{allDays.filter.allDays}">Всі дні</option>
                     <option value="Понеділок" th:text="#{day.monday}">Понеділок</option>
                     <option value="Вівторок" th:text="#{day.tuesday}">Вівторок</option>
@@ -451,99 +590,136 @@
                     <option value="Неділя" th:text="#{day.sunday}">Неділя</option>
                 </select>
 
-                <div class="filter-group">
-                    <span class="text-muted small" th:text="#{common.from}">від</span>
-                    <input type="date" id="dateFrom" class="form-control form-control-sm">
-                    <span class="text-muted small" th:text="#{common.to}">до</span>
-                    <input type="date" id="dateTo" class="form-control form-control-sm">
-                    <button class="btn btn-outline-secondary btn-sm" id="clearDateFilter" th:title="#{btn.clear}">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
-                    <option value="0" selected th:text="#{common.all}">Всі</option>
-                    <option value="20">20</option>
+                <input type="date" id="dateFrom" class="form-control form-control-sm">
+                <span class="date-sep">→</span>
+                <input type="date" id="dateTo" class="form-control form-control-sm">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        id="clearDateFilter" th:title="#{btn.clear}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="page-size-wrap">
+                <i class="fas fa-list-ol"></i>
+                <label for="pageSize" class="visually-hidden" th:text="#{allDays.show.rows}">Показати</label>
+                <select id="pageSize" class="form-select form-select-sm">
+                    <option value="20" selected>20</option>
                     <option value="50">50</option>
                     <option value="100">100</option>
+                    <option value="0" th:text="#{allDays.show.all}">Всі</option>
                 </select>
-                <button id="loadMoreBtn" class="btn btn-primary btn-sm load-more-btn">
-                    <i class="fas fa-plus-circle me-1"></i> <span th:text="#{common.loadMore}">Завантажити ще</span>
-                </button>
-                <span class="info-text" id="visibleInfo">—</span>
             </div>
 
-            <!-- ===== ТАБЛИЦЯ ДНІВ ===== -->
-            <div id="tableView" class="table-view-container">
-                <div class="table-responsive">
-                    <table class="table-days" id="daysTable">
-                        <thead>
-                        <tr>
-                            <th class="col-number">№</th>
-                            <th class="col-date sortable active-desc" data-sort="date" data-type="string"><span th:text="#{allDays.col.date}">Дата</span> <i class="fas fa-sort-down sort-icon"></i></th>
-                            <th class="col-day sortable" data-sort="day" data-type="string"><span th:text="#{allDays.col.day}">День</span> <i class="fas fa-sort sort-icon"></i></th>
-                            <th class="col-amount sortable" data-sort="expenses" data-type="number"><span th:text="#{allDays.col.expenses}">Витрати</span> <i class="fas fa-sort sort-icon"></i></th>
-                            <th class="col-amount sortable" data-sort="incomes" data-type="number"><span th:text="#{allDays.col.incomes}">Доходи</span> <i class="fas fa-sort sort-icon"></i></th>
-                            <th class="col-balance sortable" data-sort="balance" data-type="number">
-                                <i class="fas fa-balance-scale me-1"></i><span th:text="#{allDays.col.balance}">Баланс</span>
-                                <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="col-count sortable" data-sort="count" data-type="number"><span th:text="#{allDays.col.transactions}">Транзакцій</span> <i class="fas fa-sort sort-icon"></i></th>
-                            <th class="col-actions no-print" th:text="#{allDays.col.actions}">Дії</th>
-                        </tr>
-                        </thead>
-                        <tbody id="daysTableBody">
-                        <tr th:each="budget, stat : ${allBudgets}" class="day-row"
-                            th:data-date="${budget.date}"
-                            th:data-dayname="${budget.dayName}"
-                            th:data-expenses="${budget.totalExpenses}"
-                            th:data-incomes="${budget.totalIncomes}"
-                            th:data-balance="${budget.remainingBalance}"
-                            th:data-starting="${budget.startingBalance}"
-                            th:data-expense-count="${budget.expenses.size()}"
-                            th:data-income-count="${budget.incomes.size()}"
-                            th:data-id="${budget.id}">
-                            <td class="col-number" th:text="${stat.index + 1}"></td>
-                            <td class="col-date" th:text="${budget.date}"></td>
-                            <td class="col-day" th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></td>
-                            <td class="col-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-balance" th:classappend="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
-                                th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                            <td class="col-count" th:text="${budget.expenses.size() + budget.incomes.size()}"></td>
-                            <td class="col-actions no-print">
-                                <a th:href="'/day/' + ${budget.date}" class="btn btn-sm btn-outline-primary" th:title="#{allDays.viewDay}">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <button class="btn btn-sm btn-outline-danger action-delete-day"
-                                        th:data-id="${budget.id}"
-                                        th:data-date="${budget.date}"
-                                        th:data-dayname="${budget.dayName}"
-                                        th:data-expenses="${budget.totalExpenses}"
-                                        th:data-incomes="${budget.totalIncomes}"
-                                        th:data-balance="${budget.remainingBalance}"
-                                        th:data-starting="${budget.startingBalance}"
-                                        th:data-expense-count="${budget.expenses.size()}"
-                                        th:data-income-count="${budget.incomes.size()}"
-                                        th:title="#{allDays.deleteDay}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr th:if="${allBudgets.empty}" id="emptyRow">
-                            <td colspan="8" class="text-center text-muted py-3" th:text="#{common.noData}">Немає даних</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <button id="loadMoreBtn" class="btn btn-primary btn-sm no-print">
+                <i class="fas fa-plus-circle me-1"></i>
+                <span th:text="#{common.loadMore}">Завантажити ще</span>
+            </button>
 
-            <!-- ===== КАРТКИ ДНІВ ===== -->
-            <div id="cardsView" class="cards-view-container">
-                <div class="row" id="daysContainer">
+            <span class="info-text" id="visibleInfo">—</span>
+        </div>
+
+        <!-- TABLE -->
+        <div id="tableView" class="view-container">
+            <div class="table-responsive">
+                <table class="table-days" id="daysTable">
+                    <thead>
+                    <tr>
+                        <th class="col-number">№</th>
+                        <th class="col-date sortable active-desc" data-sort="date" data-type="string">
+                            <span th:text="#{allDays.col.date}">Дата</span>
+                            <i class="fas fa-sort-down sort-icon"></i>
+                        </th>
+                        <th class="col-day sortable" data-sort="day" data-type="string">
+                            <span th:text="#{allDays.col.day}">День</span>
+                            <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-amount sortable" data-sort="expenses" data-type="number">
+                            <span th:text="#{allDays.col.expenses}">Витрати</span>
+                            <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-amount sortable" data-sort="incomes" data-type="number">
+                            <span th:text="#{allDays.col.incomes}">Доходи</span>
+                            <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-balance sortable" data-sort="balance" data-type="number">
+                            <i class="fas fa-balance-scale me-1"></i>
+                            <span th:text="#{allDays.col.balance}">Баланс</span>
+                            <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-count sortable" data-sort="count" data-type="number">
+                            <span th:text="#{allDays.col.transactions}">Транзакцій</span>
+                            <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-actions no-print" th:text="#{allDays.col.actions}">Дії</th>
+                    </tr>
+                    </thead>
+                    <tbody id="daysTableBody">
+                    <tr th:each="budget, stat : ${allBudgets}" class="day-row"
+                        th:data-date="${budget.date}"
+                        th:data-dayname="${budget.dayName}"
+                        th:data-expenses="${budget.totalExpenses}"
+                        th:data-incomes="${budget.totalIncomes}"
+                        th:data-balance="${budget.remainingBalance}"
+                        th:data-starting="${budget.startingBalance}"
+                        th:data-expense-count="${budget.expenses.size()}"
+                        th:data-income-count="${budget.incomes.size()}"
+                        th:data-id="${budget.id}">
+                        <td class="col-number" th:text="${stat.index + 1}"></td>
+                        <td class="col-date" th:text="${budget.date}"></td>
+                        <td class="col-day"
+                            th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></td>
+                        <td class="col-amount text-expense"
+                            th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                        <td class="col-amount text-income"
+                            th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                        <td class="col-balance"
+                            th:classappend="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
+                            th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                        <td class="col-count"
+                            th:text="${budget.expenses.size() + budget.incomes.size()}"></td>
+                        <td class="col-actions no-print">
+                            <a th:href="'/day/' + ${budget.date}"
+                               class="btn btn-sm btn-outline-primary"
+                               th:title="#{allDays.viewDay}">
+                                <i class="fas fa-eye me-1"></i>
+                                <span th:text="#{btn.view}">Переглянути</span>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger action-delete-day ms-1"
+                                    th:data-id="${budget.id}"
+                                    th:data-date="${budget.date}"
+                                    th:data-dayname="${budget.dayName}"
+                                    th:data-expenses="${budget.totalExpenses}"
+                                    th:data-incomes="${budget.totalIncomes}"
+                                    th:data-balance="${budget.remainingBalance}"
+                                    th:data-starting="${budget.startingBalance}"
+                                    th:data-expense-count="${budget.expenses.size()}"
+                                    th:data-income-count="${budget.incomes.size()}"
+                                    th:title="#{allDays.deleteDay}">
+                                <i class="fas fa-trash me-1"></i>
+                                <span th:text="#{btn.delete}">Видалити</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr th:if="${allBudgets.empty}">
+                        <td colspan="8" class="text-center text-muted py-3"
+                            th:text="#{common.noData}">Немає даних</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CARDS -->
+        <div id="cardsView" class="view-container hidden">
+            <div class="p-3">
+                <div class="row g-3" id="daysContainer">
                     <div th:if="${allBudgets.empty}" class="col-12">
-                        <div class="alert alert-warning" th:text="#{allDays.noData}">Немає даних.</div>
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-times"></i>
+                            <p class="mt-3 mb-0" th:text="#{allDays.noData}">Немає даних.</p>
+                        </div>
                     </div>
-                    <div th:each="budget : ${allBudgets}" class="col-md-4 mb-3 day-card"
+                    <div th:each="budget : ${allBudgets}" class="col-12 col-sm-6 col-md-4 col-xl-3 day-card-wrapper"
                          th:data-date="${budget.date}"
                          th:data-dayname="${budget.dayName}"
                          th:data-expenses="${budget.totalExpenses}"
@@ -553,26 +729,60 @@
                          th:data-expense-count="${budget.expenses.size()}"
                          th:data-income-count="${budget.incomes.size()}"
                          th:data-id="${budget.id}">
-                        <div class="card card-day h-100">
-                            <div class="card-header"
-                                 th:classappend="${budget.remainingBalance >= 0} ? 'bg-success text-white' : 'bg-danger text-white'"
-                                 style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 2px;">
-                                <h5 class="mb-0" style="font-size: 0.95rem;">
-                                    <i class="fas fa-calendar-day me-1"></i>
-                                    <span th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></span>,
-                                    <span th:text="${budget.date}"></span>
-                                </h5>
-                                <div style="display: flex; gap: 2px; flex-wrap: wrap; align-items: center;">
-                                    <span class="badge-count total" th:title="#{common.transactions}">
-                                        <i class="fas fa-list"></i> <span th:text="${budget.expenses.size() + budget.incomes.size()}"></span>
+                        <div class="stat-card">
+                            <div class="card-body">
+                                <div class="day-title">
+                                    <h6>
+                                        <span>
+                                            <i class="fas fa-calendar-day me-1"></i>
+                                            <span th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></span>
+                                        </span>
+                                        <small th:text="${budget.date}"></small>
+                                    </h6>
+                                    <div class="balance-big"
+                                         th:classappend="${budget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"
+                                         th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></div>
+                                </div>
+
+                                <div class="day-row-line">
+                                    <span class="label">
+                                        <i class="fas fa-flag-checkered"></i>
+                                        <span th:text="#{allDays.startingBalance}">Початковий баланс</span>
                                     </span>
-                                    <span class="badge-count income" th:title="#{common.income}">
-                                        <i class="fas fa-arrow-up"></i> <span th:text="${budget.incomes.size()}"></span>
+                                    <span class="value text-starting"
+                                          th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
+                                </div>
+                                <div class="day-row-line">
+                                    <span class="label text-expense">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span th:text="#{common.expense}">Витрати</span>
                                     </span>
-                                    <span class="badge-count expense" th:title="#{common.expense}">
-                                        <i class="fas fa-arrow-down"></i> <span th:text="${budget.expenses.size()}"></span>
+                                    <span class="value text-expense"
+                                          th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
+                                </div>
+                                <div class="day-row-line">
+                                    <span class="label text-income">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span th:text="#{common.income}">Доходи</span>
                                     </span>
-                                    <button class="btn btn-sm btn-outline-light btn-delete-day action-delete-day"
+                                    <span class="value text-income"
+                                          th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></span>
+                                </div>
+                                <div class="day-row-line">
+                                    <span class="label">
+                                        <i class="fas fa-list"></i>
+                                        <span th:text="#{allDays.col.transactions}">Транзакцій</span>
+                                    </span>
+                                    <span class="value"
+                                          th:text="${budget.expenses.size() + budget.incomes.size()}"></span>
+                                </div>
+
+                                <div class="day-actions no-print">
+                                    <a th:href="'/day/' + ${budget.date}" class="btn btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                        <span th:text="#{btn.view}">Переглянути</span>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger action-delete-day"
                                             th:data-id="${budget.id}"
                                             th:data-date="${budget.date}"
                                             th:data-dayname="${budget.dayName}"
@@ -584,236 +794,85 @@
                                             th:data-income-count="${budget.incomes.size()}"
                                             th:title="#{allDays.deleteDay}">
                                         <i class="fas fa-trash"></i>
+                                        <span th:text="#{btn.delete}">Видалити</span>
                                     </button>
                                 </div>
-                            </div>
-                            <div class="card-body">
-                                <p><i class="fas fa-flag-checkered text-secondary me-2"></i>
-                                    <span class="text-starting" th:text="#{allDays.startingBalance} + ':'">Початковий баланс:</span>
-                                    <strong class="value-amount text-starting" th:text="${#numbers.formatDecimal(budget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
-                                </p>
-                                <p><i class="fas fa-arrow-down text-danger me-2"></i>
-                                    <span class="text-expense" th:text="#{common.expense} + ':'">Витрати:</span>
-                                    <strong class="value-amount text-expense" th:text="${#numbers.formatDecimal(budget.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
-                                </p>
-                                <p><i class="fas fa-arrow-up text-success me-2"></i>
-                                    <span class="text-income" th:text="#{common.income} + ':'">Доходи:</span>
-                                    <strong class="value-amount text-income" th:text="${#numbers.formatDecimal(budget.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
-                                </p>
-                                <p class="balance-row"><i class="fas fa-balance-scale me-2"></i>
-                                    <span th:text="#{common.balance} + ':'">Баланс:</span>
-                                    <strong class="value-amount" th:classappend="${budget.remainingBalance >= 0} ? 'text-balance-positive' : 'text-balance-negative'"
-                                            th:text="${#numbers.formatDecimal(budget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></strong>
-                                </p>
-                                <a th:href="'/day/' + ${budget.date}" class="btn btn-primary w-100 mt-2">
-                                    <i class="fas fa-eye me-1"></i><span th:text="#{btn.view}">Переглянути</span>
-                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="noResults" class="no-results" style="display: none; text-align: center; padding: 3rem 0; color: var(--text-muted);">
-                    <i class="fas fa-search fa-3x mb-3" style="opacity: 0.4;"></i>
-                    <h5 th:text="#{common.noData}">Нічого не знайдено</h5>
-                    <p class="text-muted" th:text="#{common.searchAll}">Спробуйте змінити параметри пошуку або фільтра</p>
-                </div>
             </div>
+        </div>
 
+        <div id="noResults" class="empty-state no-print" style="display: none;">
+            <i class="fas fa-search"></i>
+            <h5 class="mt-3" th:text="#{common.noData}">Нічого не знайдено</h5>
+            <p class="mb-0" th:text="#{common.searchAll}">Спробуйте змінити параметри пошуку</p>
         </div>
     </div>
 
     <div class="print-footer d-print-block" style="display: none;">
         <span th:text="#{footer.copyright}">© 2026 LazyCent</span>
     </div>
-
 </div>
 
-<!-- ===== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ ТРАНЗАКЦІЇ ===== -->
-<div class="modal fade no-print" id="transactionModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i><span th:text="#{modal.addTransaction}">Додати нову транзакцію</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="transactionForm" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <div class="modal-body">
-                    <input type="hidden" name="type" id="transactionType" value="EXPENSE">
-
-                    <div class="mb-3">
-                        <label class="form-label" th:text="#{modal.type}">Тип</label>
-                        <div class="transaction-type-toggle">
-                            <button type="button" class="btn btn-outline-danger active-expense" id="typeExpenseBtn">
-                                <i class="fas fa-arrow-down me-1"></i> <span th:text="#{modal.type.expense}">Витрата</span>
-                            </button>
-                            <button type="button" class="btn btn-outline-success" id="typeIncomeBtn">
-                                <i class="fas fa-arrow-up me-1"></i> <span th:text="#{modal.type.income}">Дохід</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionDate" class="form-label" th:text="#{modal.date}">Дата</label>
-                        <input type="date" class="form-control" id="transactionDate" name="date" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionTime" class="form-label" th:text="#{modal.time}">Час</label>
-                        <input type="time" class="form-control" id="transactionTime" name="time" step="60">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="categorySelect" class="form-label" th:text="#{modal.category}">Категорія</label>
-                        <div class="input-group category-input-group">
-                            <select class="form-select" id="categorySelect" name="categoryId" required>
-                                <option value="" th:text="#{common.loading}">Завантаження...</option>
-                            </select>
-                            <button type="button" class="btn btn-outline-secondary" onclick="openCategorySettings()" th:title="#{modal.category.addTitle}">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <div class="invalid-feedback" th:text="#{modal.enterCategory}">Виберіть категорію</div>
-                        <div class="form-text text-muted" th:utext="#{modal.category.hint}">Не знайшли потрібну категорію?</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionName" class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" class="form-control" id="transactionName" name="description"
-                               th:placeholder="#{modal.name.placeholder}" required>
-                        <div class="invalid-feedback" th:text="#{modal.fillField}">Заповніть це поле</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionAmount" class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
-                        <div class="input-group-number">
-                            <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
-                            <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
-                        </div>
-                        <div class="invalid-feedback" th:text="#{modal.enterAmount}">Введіть суму</div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionQuantity" class="form-label" th:text="#{modal.quantity}">Кількість</label>
-                        <div class="input-group-number">
-                            <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
-                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
-                                   placeholder="1" value="1" min="1">
-                            <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionBuyer" class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" th:placeholder="#{common.buyer}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionSeller" class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" class="form-control" id="transactionSeller" name="seller" th:placeholder="#{common.seller}">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="transactionDetails" class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
-                                  th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
-                        <div class="char-counter"><span id="charCount">0</span> / 250</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary" th:text="#{modal.save}">Зберегти транзакцію</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Підтвердження видалення ДНЯ -->
+<!-- ==================== MODAL: DELETE DAY ==================== -->
 <div class="modal fade no-print" id="deleteDayConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span th:text="#{delete.dayConfirm}">Підтвердження видалення дня</span></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <div class="modal-content" style="border-radius: 1rem; overflow: hidden;">
+            <div class="modal-header bg-danger text-white border-0" style="border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="#{delete.dayConfirm}">Підтвердження видалення дня</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-center" th:text="#{delete.dayQuestion}">Ви впевнені, що хочете видалити цей день та всі його транзакції?</p>
-                <p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
+                <p class="text-center" th:text="#{delete.dayQuestion}">
+                    Ви впевнені, що хочете видалити цей день та всі його транзакції?
+                </p>
+                <p class="text-muted small text-center" th:text="#{delete.note}">
+                    Цю дію не можна скасувати.
+                </p>
                 <hr>
                 <div class="delete-details">
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{common.date}">Дата:</div><div class="col-8 value" id="deleteDate"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{common.day}">День:</div><div class="col-8 value" id="deleteDayName"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.startingBalance}">Початковий баланс:</div><div class="col-8 value" id="deleteStartingBalance"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{common.expense}">Витрати:</div><div class="col-8 value" id="deleteExpenses"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{common.income}">Доходи:</div><div class="col-8 value" id="deleteIncomes"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{common.balance}">Баланс:</div><div class="col-8 value" id="deleteBalance"></div></div>
-                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{delete.totalTransactions}">Всього транзакцій:</div><div class="col-8 value" id="deleteTotalTransactions"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{common.date}">Дата:</div><div class="col-8 value" id="deleteDate"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{common.day}">День:</div><div class="col-8 value" id="deleteDayName"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{delete.startingBalance}">Початковий баланс:</div><div class="col-8 value" id="deleteStartingBalance"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{common.expense}">Витрати:</div><div class="col-8 value" id="deleteExpenses"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{common.income}">Доходи:</div><div class="col-8 value" id="deleteIncomes"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{common.balance}">Баланс:</div><div class="col-8 value" id="deleteBalance"></div></div>
+                    <div class="row"><div class="col-4 label" th:text="#{delete.totalTransactions}">Всього транзакцій:</div><div class="col-8 value" id="deleteTotalTransactions"></div></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        th:text="#{btn.cancel}">Скасувати</button>
                 <form id="deleteDayForm" method="post" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <button type="submit" class="btn btn-danger" th:text="#{delete.deleteDay}">Видалити день</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>
+                        <span th:text="#{delete.deleteDay}">Видалити день</span>
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
-
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
 
-<!--
-  P2.a: спільна логіка транзакцій винесена у /js/transaction-common.js.
-  Тут залишається ЛИШЕ специфічне для all-days:
-    • chart rendering (по днях, не по категоріях)
-    • analytics toggle + chart collapse
-    • фільтри ДНІВ: search, dayName, dates, pageSize
-    • view toggle (таблиця/картки) для ДНІВ
-    • sorting ДНІВ
-    • handleDeleteDay (модалка підтвердження видалення дня)
-
-  Видалено мертвий код (не використовується на цій сторінці):
-    • editExpenseModal, editIncomeModal, cloneModal, deleteConfirmModal
-    • обробники .action-edit, .action-duplicate, .action-delete
-    • showToast
--->
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         'use strict';
 
-        // ===== P2.a: init спільної логіки транзакцій =====
-        window.LazyCentTx.init({
-            currencySymbol: /*[[${currencySymbol}]]*/ '₴',
-            buildActionUrl: function (type, dateStr) {
-                if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
-                return type === 'EXPENSE'
-                    ? '/day/' + dateStr + '/expense'
-                    : '/day/' + dateStr + '/income';
-            },
-            i18n: {
-                noCategories: /*[[#{settings.categories.noExpenses}]]*/ 'Немає категорій'
-            }
-        });
-
-        // ===== ЛОКАЛЬНИЙ КОД =====
-        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
-
         var i18n = {
-            showing:        /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
-            allLoaded:      /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
-            loadMore:       /*[[#{common.loadMore}]]*/ 'Завантажити ще',
-            chartNotLoaded: /*[[#{common.noData}]]*/ 'Chart.js не завантажено.',
-            chartError:     /*[[#{toast.error}]]*/ 'Помилка діаграми.',
-            dayBalance:     /*[[#{common.balance}]]*/ 'Баланс'
+            showing:   /*[[#{common.showing}]]*/    'Показано: {0} з {1}',
+            allLoaded: /*[[#{common.allLoaded}]]*/  'Всі завантажено',
+            loadMore:  /*[[#{common.loadMore}]]*/   'Завантажити ще',
+            asOf:      /*[[#{allDays.totals.asOf}]]*/ 'станом на {0}'
         };
 
         function fmt(template) {
@@ -823,240 +882,156 @@
             });
         }
 
-        // ===== ЗМІННІ =====
-        var allDayCards = [];
-        var allDayRows = [];
-        var totalRowsSpan = document.getElementById('totalRowsCount');
+        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
+
+        var allDayCards = document.querySelectorAll('.day-card-wrapper');
+        var allDayRows = document.querySelectorAll('.day-row');
+        var totalRowsSpan = document.getElementById('headerDayCount');
         var searchInput = document.getElementById('searchInput');
+        var searchClear = document.getElementById('searchClear');
         var dateFrom = document.getElementById('dateFrom');
         var dateTo = document.getElementById('dateTo');
         var dayFilter = document.getElementById('dayFilter');
         var clearDateBtn = document.getElementById('clearDateFilter');
         var noResults = document.getElementById('noResults');
-        var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var pageSizeSelect = document.getElementById('pageSize');
         var loadMoreBtn = document.getElementById('loadMoreBtn');
         var visibleInfo = document.getElementById('visibleInfo');
         var viewToggle = document.getElementById('viewToggle');
         var cardsView = document.getElementById('cardsView');
         var tableView = document.getElementById('tableView');
-        var chartBody = document.getElementById('chartBody');
-        var chartIcon = document.getElementById('chartToggleIcon');
 
-        var CHART_PALETTE = ['#C9A227','#B5533C','#4F7942','#1B2430','#8C7A5B','#D4A373','#6D6875','#B5838D','#2A9D8F','#E76F51','#264653','#F4A261','#E9C46A','#A8DADC','#457B9D'];
+        // ========== TOTALS ==========
+        var totalsBalanceEl = document.getElementById('totalsBalance');
+        var totalsBalanceSub = document.getElementById('totalsBalanceSub');
+        var totalsTopExpenseEl = document.getElementById('totalsTopExpense');
+        var totalsTopExpenseSub = document.getElementById('totalsTopExpenseSub');
+        var totalsTopIncomeEl = document.getElementById('totalsTopIncome');
+        var totalsTopIncomeSub = document.getElementById('totalsTopIncomeSub');
 
-        function getCategoryColor(name, index) {
-            if (!name) return '#6c757d';
-            if (index !== undefined && index < CHART_PALETTE.length) return CHART_PALETTE[index];
-            var hash = 0;
-            for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-            return CHART_PALETTE[Math.abs(hash % CHART_PALETTE.length)];
-        }
+        function recalcTotals(items) {
+            // Сортуємо за датою ASC, щоб знайти найновіший день
+            var sortedByDate = items.slice().sort(function (a, b) {
+                return (a.dataset.date || '').localeCompare(b.dataset.date || '');
+            });
 
-        // ===== ЗБІР ДАНИХ ДЛЯ ДІАГРАМ =====
-        function getFilteredDayData() {
-            var isCardsMode = cardsView.classList.contains('show');
-            var items = isCardsMode ? document.querySelectorAll('.day-card') : document.querySelectorAll('#daysTableBody .day-row');
-            var dates = [], expenses = [], incomes = [], balances = [];
+            var currentBalance = 0;
+            var lastDate = null;
+            if (sortedByDate.length > 0) {
+                var last = sortedByDate[sortedByDate.length - 1];
+                currentBalance = parseFloat(last.dataset.balance) || 0;
+                lastDate = last.dataset.date || null;
+            }
+
+            // Max expenses / income
+            var maxExpense = -Infinity;
+            var maxExpenseDate = null;
+            var maxIncome = -Infinity;
+            var maxIncomeDate = null;
+
             items.forEach(function (item) {
-                if (item.style.display === 'none') return;
-                var date = item.dataset.date || '';
-                if (date) {
-                    dates.push(date);
-                    expenses.push(parseFloat(item.dataset.expenses) || 0);
-                    incomes.push(parseFloat(item.dataset.incomes) || 0);
-                    balances.push(parseFloat(item.dataset.balance) || 0);
+                var expenses = parseFloat(item.dataset.expenses) || 0;
+                var incomes  = parseFloat(item.dataset.incomes)  || 0;
+                var dateStr  = item.dataset.date || '';
+
+                if (expenses > maxExpense) {
+                    maxExpense = expenses;
+                    maxExpenseDate = dateStr;
+                }
+                if (incomes > maxIncome) {
+                    maxIncome = incomes;
+                    maxIncomeDate = dateStr;
                 }
             });
-            return { dates: dates, expenses: expenses, incomes: incomes, balances: balances };
-        }
 
-        // ===== ДІАГРАМИ =====
-        function renderExpenseChart() {
-            var canvas = document.getElementById('expenseChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            var data = getFilteredDayData();
-            var filteredDates = [], filteredAmounts = [];
-            data.dates.forEach(function (date, idx) {
-                if (data.expenses[idx] > 0) { filteredDates.push(date); filteredAmounts.push(data.expenses[idx]); }
-            });
-            var col = document.getElementById('expenseChartCol');
-            if (filteredDates.length === 0) { if (col) col.style.display = 'none'; return; }
-            if (col) col.style.display = '';
-            var colors = filteredDates.map(function (n, i) { return getCategoryColor(n, i); });
-            if (window.expenseChartInstance) window.expenseChartInstance.destroy();
-            window.expenseChartInstance = new Chart(canvas, {
-                type: 'doughnut',
-                data: { labels: filteredDates, datasets: [{ data: filteredAmounts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
-            });
-            var legendContainer = document.getElementById('expenseLegend');
-            if (legendContainer) {
-                var total = filteredAmounts.reduce(function (a, b) { return a + b; }, 0);
-                var html = '<table class="chart-legend-table"><tbody>';
-                filteredDates.forEach(function (name, idx) {
-                    var amount = filteredAmounts[idx];
-                    var color = getCategoryColor(name, idx);
-                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                    html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
-                });
-                legendContainer.innerHTML = html + '</tbody></table>';
+            var n = items.length;
+
+            // ===== Поточний баланс =====
+            totalsBalanceEl.textContent = fmtMoney(currentBalance);
+            totalsBalanceEl.className = 'total-value ' + (currentBalance >= 0 ? 'text-success' : 'text-danger');
+            totalsBalanceSub.textContent = lastDate
+                ? fmtAsOf(lastDate)
+                : '—';
+
+            // ===== Найбільше витрат =====
+            if (n === 0 || maxExpense < 0) {
+                totalsTopExpenseEl.textContent = fmtMoney(0);
+                totalsTopExpenseSub.textContent = '—';
+            } else {
+                totalsTopExpenseEl.textContent = fmtMoney(maxExpense);
+                totalsTopExpenseSub.textContent = maxExpenseDate || '—';
+            }
+
+            // ===== Найбільше доходів =====
+            if (n === 0 || maxIncome < 0) {
+                totalsTopIncomeEl.textContent = fmtMoney(0);
+                totalsTopIncomeSub.textContent = '—';
+            } else {
+                totalsTopIncomeEl.textContent = fmtMoney(maxIncome);
+                totalsTopIncomeSub.textContent = maxIncomeDate || '—';
             }
         }
 
-        function renderIncomeChart() {
-            var canvas = document.getElementById('incomeChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            var data = getFilteredDayData();
-            var filteredDates = [], filteredAmounts = [];
-            data.dates.forEach(function (date, idx) {
-                if (data.incomes[idx] > 0) { filteredDates.push(date); filteredAmounts.push(data.incomes[idx]); }
-            });
-            var col = document.getElementById('incomeChartCol');
-            if (filteredDates.length === 0) { if (col) col.style.display = 'none'; return; }
-            if (col) col.style.display = '';
-            var colors = filteredDates.map(function (n, i) { return getCategoryColor(n, i + 5); });
-            if (window.incomeChartInstance) window.incomeChartInstance.destroy();
-            window.incomeChartInstance = new Chart(canvas, {
-                type: 'doughnut',
-                data: { labels: filteredDates, datasets: [{ data: filteredAmounts, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, cutout: '55%' }
-            });
-            var legendContainer = document.getElementById('incomeLegend');
-            if (legendContainer) {
-                var total = filteredAmounts.reduce(function (a, b) { return a + b; }, 0);
-                var html = '<table class="chart-legend-table"><tbody>';
-                filteredDates.forEach(function (name, idx) {
-                    var amount = filteredAmounts[idx];
-                    var color = getCategoryColor(name, idx + 5);
-                    var percent = total > 0 ? ((amount / total) * 100).toFixed(1) : 0;
-                    html += '<tr><td><span class="color-dot" style="background-color:' + color + '"></span></td><td class="category-col">' + name + '</td><td class="amount-col">' + amount.toFixed(2) + ' ' + currencySymbol + '</td><td class="amount-col" style="color:#888;font-size:0.75rem;">(' + percent + '%)</td></tr>';
-                });
-                legendContainer.innerHTML = html + '</tbody></table>';
-            }
+        /** Підпис «станом на 2026-11-08». */
+        function fmtAsOf(isoDate) {
+            return i18n.asOf.replace('{0}', isoDate);
         }
 
-        function renderBarChart() {
-            var canvas = document.getElementById('barChart');
-            if (!canvas) return;
-            if (typeof Chart === 'undefined') { canvas.parentElement.innerHTML = '<p class="text-muted">' + i18n.chartNotLoaded + '</p>'; return; }
-            var savedMode = localStorage.getItem('alldays-analytics-mode') || 'both';
-            var shouldShowBar = (savedMode === 'bar' || savedMode === 'both');
-            var data = getFilteredDayData();
-            var row = document.getElementById('barChartRow');
-            if (!row) return;
-            if (data.dates.length === 0 || !shouldShowBar) { row.style.display = 'none'; return; }
-            row.style.display = '';
-            if (window.barChartInstance) window.barChartInstance.destroy();
-            var barColors = data.balances.map(function (b) { return b >= 0 ? '#198754' : '#dc3545'; });
-            window.barChartInstance = new Chart(canvas, {
-                type: 'bar',
-                data: { labels: data.dates, datasets: [{ label: i18n.dayBalance, data: data.balances, backgroundColor: barColors, borderColor: barColors, borderWidth: 1 }] },
-                options: {
-                    responsive: true, maintainAspectRatio: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: true, ticks: { maxRotation: 45, minRotation: 30, autoSkip: true, maxTicksLimit: 15 } },
-                        y: { beginAtZero: true, ticks: { callback: function (v) { return v + ' ' + currencySymbol; } } }
-                    }
-                }
-            });
+        function fmtMoney(v) {
+            var num = (v || 0).toFixed(2).replace('.', ',');
+            var parts = num.split(',');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return parts.join(',') + ' ' + currencySymbol;
         }
 
-        function renderAllCharts() {
-            setTimeout(function () { renderExpenseChart(); renderIncomeChart(); renderBarChart(); }, 100);
+        function pluralizeDays(n) {
+            var mod10 = n % 10;
+            var mod100 = n % 100;
+            if (mod10 === 1 && mod100 !== 11) return 'день';
+            if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'дні';
+            return 'днів';
         }
 
-        // ===== ANALYTICS TOGGLE + CHART COLLAPSE =====
-        var analyticsToggle = document.getElementById('analyticsToggle');
-        var chartsContainer = document.getElementById('chartsContainer');
-
-        function setAnalyticsMode(mode) {
-            analyticsToggle.querySelectorAll('.btn').forEach(function (btn) {
-                btn.classList.toggle('active', btn.dataset.mode === mode);
-            });
-            if (mode === 'charts') { chartsContainer.style.display = 'flex'; barRow().style.display = 'none'; }
-            else if (mode === 'bar') { chartsContainer.style.display = 'none'; barRow().style.display = ''; }
-            else { chartsContainer.style.display = 'flex'; barRow().style.display = ''; }
-            localStorage.setItem('alldays-analytics-mode', mode);
-            setTimeout(renderAllCharts, 100);
-        }
-        function barRow() { return document.getElementById('barChartRow'); }
-
-        setAnalyticsMode(localStorage.getItem('alldays-analytics-mode') || 'both');
-        analyticsToggle.addEventListener('click', function (e) {
-            var btn = e.target.closest('.btn');
-            if (!btn || btn.classList.contains('active')) return;
-            setAnalyticsMode(btn.dataset.mode);
-        });
-
-        var toggleChartBtn = document.getElementById('toggleChartBtn');
-        if (toggleChartBtn && chartBody) {
-            if (localStorage.getItem('alldays-chart-collapsed') === 'true') {
-                chartBody.style.display = 'none';
-                chartIcon.className = 'fas fa-chevron-down toggle-icon';
-            }
-            toggleChartBtn.addEventListener('click', function () {
-                var isHidden = chartBody.style.display === 'none';
-                if (isHidden) {
-                    chartBody.style.display = '';
-                    chartIcon.className = 'fas fa-chevron-up toggle-icon';
-                    localStorage.setItem('alldays-chart-collapsed', 'false');
-                    setTimeout(renderAllCharts, 100);
-                } else {
-                    chartBody.style.display = 'none';
-                    chartIcon.className = 'fas fa-chevron-down toggle-icon';
-                    localStorage.setItem('alldays-chart-collapsed', 'true');
-                }
-            });
-        }
-
-        // ===== INIT DAY DATA =====
-        allDayCards = document.querySelectorAll('.day-card');
-        allDayRows = document.querySelectorAll('.day-row');
-
-        // ===== VIEW TOGGLE =====
+        // ========== VIEW ==========
         function setViewMode(mode) {
             if (mode === 'cards') {
-                cardsView.classList.add('show');
+                cardsView.classList.remove('hidden');
                 tableView.classList.add('hidden');
                 viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="cards"]').classList.add('active');
             } else {
-                cardsView.classList.remove('show');
+                cardsView.classList.add('hidden');
                 tableView.classList.remove('hidden');
                 viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
             }
             applyFiltersAndPaginate();
         }
-
         viewToggle.addEventListener('click', function (e) {
             var btn = e.target.closest('button');
             if (!btn) return;
             setViewMode(btn.dataset.view);
-            setTimeout(renderAllCharts, 200);
         });
 
-        // ===== ФІЛЬТРИ + ПАГІНАЦІЯ =====
+        // ========== FILTERS + PAGINATION ==========
         var currentPage = 1;
-        var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
+        var pageSize = parseInt(pageSizeSelect.value) || 20;
         var filteredItems = [];
 
         function getFilteredItems() {
             var searchTerm = searchInput.value.toLowerCase().trim();
             var fromVal = dateFrom.value, toVal = dateTo.value, dayVal = dayFilter.value.trim();
-            var isCardsMode = cardsView.classList.contains('show');
+            var isCardsMode = !cardsView.classList.contains('hidden');
             var items = isCardsMode ? allDayCards : allDayRows;
             var result = [];
+
             items.forEach(function (item) {
                 var dateStr = item.dataset.date || '';
                 var dayName = (item.dataset.dayname || '');
-                var expenseCount = parseInt(item.dataset.expenseCount) || 0;
-                var incomeCount = parseInt(item.dataset.incomeCount) || 0;
-                var count = expenseCount + incomeCount;
+                var count = (parseInt(item.dataset.expenseCount) || 0)
+                    + (parseInt(item.dataset.incomeCount) || 0);
                 var match = true;
+
                 if (searchTerm) {
                     var fullText = (dayName + ' ' + dateStr + ' ' + (item.dataset.expenses || '0') + ' '
                         + (item.dataset.incomes || '0') + ' ' + (item.dataset.balance || '0') + ' ' + count).toLowerCase();
@@ -1065,6 +1040,7 @@
                 if (match && fromVal && dateStr < fromVal) match = false;
                 if (match && toVal && dateStr > toVal) match = false;
                 if (match && dayVal && dayName !== dayVal) match = false;
+
                 if (match) result.push(item);
             });
             return result;
@@ -1073,9 +1049,12 @@
         function updateUI() {
             var total = filteredItems.length;
             totalRowsSpan.textContent = total;
-            var isCardsMode = cardsView.classList.contains('show');
+
+            var isCardsMode = !cardsView.classList.contains('hidden');
             var items = isCardsMode ? allDayCards : allDayRows;
             items.forEach(function (item) { item.style.display = 'none'; });
+
+            recalcTotals(filteredItems);
 
             if (pageSize === 0) {
                 filteredItems.forEach(function (item) { item.style.display = ''; });
@@ -1083,14 +1062,7 @@
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
                 noResults.style.display = total === 0 ? 'block' : 'none';
-                if (!isCardsMode) {
-                    document.querySelectorAll('#daysTableBody .day-row').forEach(function (row, idx) {
-                        if (row.style.display === 'none') return;
-                        var numCell = row.querySelector('.col-number');
-                        if (numCell) numCell.textContent = idx + 1;
-                    });
-                }
-                setTimeout(renderAllCharts, 100);
+                if (!isCardsMode) renumber();
                 return;
             }
 
@@ -1105,33 +1077,39 @@
                 ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
                 : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
             noResults.style.display = total === 0 ? 'block' : 'none';
-            if (!isCardsMode) {
-                document.querySelectorAll('#daysTableBody .day-row').forEach(function (row, idx) {
-                    if (row.style.display === 'none') return;
-                    var numCell = row.querySelector('.col-number');
-                    if (numCell) numCell.textContent = idx + 1;
-                });
-            }
-            setTimeout(renderAllCharts, 100);
+            if (!isCardsMode) renumber();
+        }
+
+        function renumber() {
+            var n = 1;
+            document.querySelectorAll('#daysTableBody .day-row').forEach(function (row) {
+                if (row.style.display === 'none') return;
+                var numCell = row.querySelector('.col-number');
+                if (numCell) numCell.textContent = n++;
+            });
         }
 
         function applyFiltersAndPaginate() {
             filteredItems = getFilteredItems();
             currentPage = 1;
             updateUI();
-            setTimeout(renderAllCharts, 200);
         }
-
         function loadMore() {
             if (pageSize === 0) return;
             var total = filteredItems.length;
-            var shown = Math.min(currentPage * pageSize, total);
-            if (shown >= total) { loadMoreBtn.disabled = true; return; }
+            if (Math.min(currentPage * pageSize, total) >= total) return;
             currentPage++;
             updateUI();
         }
 
         searchInput.addEventListener('input', applyFiltersAndPaginate);
+        if (searchClear) {
+            searchClear.addEventListener('click', function () {
+                searchInput.value = '';
+                applyFiltersAndPaginate();
+                searchInput.focus();
+            });
+        }
         dateFrom.addEventListener('change', applyFiltersAndPaginate);
         dateTo.addEventListener('change', applyFiltersAndPaginate);
         dayFilter.addEventListener('change', applyFiltersAndPaginate);
@@ -1147,7 +1125,7 @@
         });
         loadMoreBtn.addEventListener('click', loadMore);
 
-        // ===== СОРТУВАННЯ =====
+        // ========== SORT ==========
         function sortRowsBy(column, direction) {
             if (!allDayRows.length) return;
             var th = document.querySelector('.sortable[data-sort="' + column + '"]');
@@ -1166,6 +1144,8 @@
             });
             var tbody = document.getElementById('daysTableBody');
             rowsArray.forEach(function (row) { tbody.appendChild(row); });
+            allDayRows = Array.from(tbody.querySelectorAll('.day-row'));
+
             document.querySelectorAll('.sortable').forEach(function (t) {
                 t.classList.remove('active-asc', 'active-desc');
                 var icon = t.querySelector('.sort-icon');
@@ -1184,50 +1164,44 @@
                 var column = this.dataset.sort;
                 var currentDir = this.classList.contains('active-asc') ? 'asc'
                     : (this.classList.contains('active-desc') ? 'desc' : null);
-                var direction = 'asc';
-                if (currentDir === 'asc') direction = 'desc';
-                else if (currentDir === 'desc') direction = 'asc';
+                var direction = currentDir === 'asc' ? 'desc' : 'asc';
                 sortRowsBy(column, direction);
             });
         });
 
-        // ===== ВИДАЛЕННЯ ДНЯ =====
+        // ========== DELETE ==========
         document.addEventListener('click', function (e) {
-            var deleteBtn = e.target.closest('.action-delete-day');
-            if (!deleteBtn) return;
-            handleDeleteDay(deleteBtn);
+            var btn = e.target.closest('.action-delete-day');
+            if (!btn) return;
+            e.preventDefault();
+            handleDeleteDay(btn);
         });
 
         function handleDeleteDay(btn) {
-            var id = btn.dataset.id;
             document.getElementById('deleteDate').textContent = btn.dataset.date || '—';
             document.getElementById('deleteDayName').textContent = btn.dataset.dayname || '—';
-            document.getElementById('deleteStartingBalance').textContent = (parseFloat(btn.dataset.starting) || 0).toFixed(2) + ' ' + currencySymbol;
-            document.getElementById('deleteExpenses').textContent = (parseFloat(btn.dataset.expenses) || 0).toFixed(2) + ' ' + currencySymbol;
-            document.getElementById('deleteIncomes').textContent = (parseFloat(btn.dataset.incomes) || 0).toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteStartingBalance').textContent =
+                (parseFloat(btn.dataset.starting) || 0).toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteExpenses').textContent =
+                (parseFloat(btn.dataset.expenses) || 0).toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteIncomes').textContent =
+                (parseFloat(btn.dataset.incomes) || 0).toFixed(2) + ' ' + currencySymbol;
             var balance = parseFloat(btn.dataset.balance) || 0;
             var balanceEl = document.getElementById('deleteBalance');
             balanceEl.textContent = balance.toFixed(2) + ' ' + currencySymbol;
-            balanceEl.className = 'value';
-            balanceEl.classList.add(balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
+            balanceEl.className = 'value ' + (balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
             document.getElementById('deleteTotalTransactions').textContent =
                 (parseInt(btn.dataset.expenseCount) || 0) + (parseInt(btn.dataset.incomeCount) || 0);
-            document.getElementById('deleteDayForm').action = '/day/delete/' + id;
-            new bootstrap.Modal(document.getElementById('deleteDayConfirmModal')).show();
+            document.getElementById('deleteDayForm').action = '/day/delete/' + btn.dataset.id;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteDayConfirmModal')).show();
         }
 
-        // ===== INIT =====
+        // ========== INIT ==========
         setViewMode('table');
-
-        // Сортуємо за датою (від новіших до старіших) при завантаженні
         sortRowsBy('date', 'desc');
-
-        setTimeout(renderAllCharts, 300);
-
-        [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-            .forEach(function (el) { new bootstrap.Tooltip(el); });
     });
 </script>
+
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
 </html>

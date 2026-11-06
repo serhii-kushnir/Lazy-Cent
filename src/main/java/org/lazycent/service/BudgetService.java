@@ -520,4 +520,11 @@ public class BudgetService {
 
         log.info("Всі дані для користувача {} (id={}) видалено", user.getUsername(), user.getId());
     }
+
+    @Transactional(readOnly = true)
+    public List<DayBudget> getAllBudgetsUnlimited(User user) {
+        if (user == null) return List.of();
+        // findAllByOwnerOrderByDateAsc вже має @EntityGraph для expenses/incomes
+        return dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
+    }
 }
