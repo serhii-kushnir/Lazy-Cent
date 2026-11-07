@@ -19,24 +19,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Експорт днів у .xlsx — один аркуш «Дні».
- *
- * <p>Структура:
- * <ol>
- *   <li>Заголовок (назва + кількість записів)</li>
- *   <li><b>Блок Totals</b>: Поточний баланс / Найбільше витрат / Найбільше доходів</li>
- *   <li>Таблиця: № · Дата · День · Початковий баланс · Витрати · Доходи · Баланс · Транзакцій</li>
- *   <li>Футер (URL + timestamp)</li>
- * </ol>
- *
- * <p><b>Totals:</b>
- * <ul>
- *   <li>Поточний баланс — balance останнього дня (за датою), а не сума</li>
- *   <li>Найбільше витрат — день з MAX(totalExpenses)</li>
- *   <li>Найбільше доходів — день з MAX(totalIncomes)</li>
- * </ul>
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -48,10 +30,8 @@ public class AllDaysExportService {
     @Value("${app.url:http://localhost:8080}")
     private String appUrl;
 
-    private static final DateTimeFormatter TS_FORMAT =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-    private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final DateTimeFormatter TS_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     public byte[] export(User user, Locale locale) throws IOException {
         List<DayBudget> days = budgetService.getAllBudgetsUnlimited(user);
@@ -74,7 +54,6 @@ public class AllDaysExportService {
 
         CellStyle titleStyle   = createTitleStyle(wb);
         CellStyle totalsLabel  = createTotalsLabelStyle(wb);
-        CellStyle totalsValue  = createTotalsValueStyle(wb);
         CellStyle totalsValueM = createTotalsMoneyStyle(wb);
         CellStyle totalsSub    = createTotalsSubStyle(wb);
         CellStyle headerStyle  = createHeaderStyle(wb);
@@ -109,10 +88,7 @@ public class AllDaysExportService {
         tb1Val.setCellStyle(totalsValueM);
 
         Cell tb1Sub = tb1.createCell(4);
-        tb1Sub.setCellValue(t.lastDate != null
-                ? msg("allDays.export.asOf", locale,
-                t.lastDate.format(DATE_FMT))
-                : "—");
+        tb1Sub.setCellValue(t.lastDate != null ? msg("allDays.export.asOf", locale, t.lastDate.format(DATE_FMT)) : "—");
         tb1Sub.setCellStyle(totalsSub);
         sheet.addMergedRegion(new CellRangeAddress(row, row, 4, 7));
         row++;
@@ -129,9 +105,7 @@ public class AllDaysExportService {
         tb2Val.setCellStyle(totalsValueM);
 
         Cell tb2Sub = tb2.createCell(4);
-        tb2Sub.setCellValue(t.maxExpenseDate != null
-                ? t.maxExpenseDate.format(DATE_FMT)
-                : "—");
+        tb2Sub.setCellValue(t.maxExpenseDate != null ? t.maxExpenseDate.format(DATE_FMT) : "—");
         tb2Sub.setCellStyle(totalsSub);
         sheet.addMergedRegion(new CellRangeAddress(row, row, 4, 7));
         row++;
@@ -148,9 +122,7 @@ public class AllDaysExportService {
         tb3Val.setCellStyle(totalsValueM);
 
         Cell tb3Sub = tb3.createCell(4);
-        tb3Sub.setCellValue(t.maxIncomeDate != null
-                ? t.maxIncomeDate.format(DATE_FMT)
-                : "—");
+        tb3Sub.setCellValue(t.maxIncomeDate != null ? t.maxIncomeDate.format(DATE_FMT) : "—");
         tb3Sub.setCellStyle(totalsSub);
         sheet.addMergedRegion(new CellRangeAddress(row, row, 4, 7));
         row++;
@@ -179,38 +151,14 @@ public class AllDaysExportService {
         int idx = 1;
         for (DayBudget d : days) {
             Row r = sheet.createRow(row++);
-
-            Cell c0 = r.createCell(0);
-            c0.setCellValue(idx++);
-            c0.setCellStyle(centerStyle);
-
-            Cell c1 = r.createCell(1);
-            c1.setCellValue(d.getDate() != null ? d.getDate().format(DATE_FMT) : "");
-            c1.setCellStyle(centerStyle);
-
-            Cell c2 = r.createCell(2);
-            c2.setCellValue(d.getDayName() != null ? d.getDayName() : "");
-            c2.setCellStyle(bodyStyle);
-
-            Cell c3 = r.createCell(3);
-            c3.setCellValue(d.getStartingBalance() != null ? d.getStartingBalance() : 0.0);
-            c3.setCellStyle(moneyStyle);
-
-            Cell c4 = r.createCell(4);
-            c4.setCellValue(d.getTotalExpenses());
-            c4.setCellStyle(moneyStyle);
-
-            Cell c5 = r.createCell(5);
-            c5.setCellValue(d.getTotalIncomes());
-            c5.setCellStyle(moneyStyle);
-
-            Cell c6 = r.createCell(6);
-            c6.setCellValue(d.getRemainingBalance() != null ? d.getRemainingBalance() : 0.0);
-            c6.setCellStyle(moneyStyle);
-
-            Cell c7 = r.createCell(7);
-            c7.setCellValue(d.getExpenses().size() + d.getIncomes().size());
-            c7.setCellStyle(centerStyle);
+            Cell c0 = r.createCell(0); c0.setCellValue(idx++); c0.setCellStyle(centerStyle);
+            Cell c1 = r.createCell(1); c1.setCellValue(d.getDate() != null ? d.getDate().format(DATE_FMT) : ""); c1.setCellStyle(centerStyle);
+            Cell c2 = r.createCell(2); c2.setCellValue(d.getDayName() != null ? d.getDayName() : ""); c2.setCellStyle(bodyStyle);
+            Cell c3 = r.createCell(3); c3.setCellValue(d.getStartingBalance() != null ? d.getStartingBalance() : 0.0); c3.setCellStyle(moneyStyle);
+            Cell c4 = r.createCell(4); c4.setCellValue(d.getTotalExpenses()); c4.setCellStyle(moneyStyle);
+            Cell c5 = r.createCell(5); c5.setCellValue(d.getTotalIncomes()); c5.setCellStyle(moneyStyle);
+            Cell c6 = r.createCell(6); c6.setCellValue(d.getRemainingBalance() != null ? d.getRemainingBalance() : 0.0); c6.setCellStyle(moneyStyle);
+            Cell c7 = r.createCell(7); c7.setCellValue(d.getExpenses().size() + d.getIncomes().size()); c7.setCellStyle(centerStyle);
         }
 
         // ==================== FOOTER ====================
@@ -232,45 +180,28 @@ public class AllDaysExportService {
         sheet.setColumnWidth(6, 16 * 256);
         sheet.setColumnWidth(7, 12 * 256);
 
-        // Freeze: заголовок + 3 totals + пуста строка + header таблиці = 6 рядків
+        // ✅ FIX: Заголовок(1) + empty(1) + 3 totals(3) + empty(1) + header(1) = 7 рядків
         sheet.createFreezePane(0, 7);
     }
 
-    /**
-     * Рахує Totals: поточний баланс (останній день за датою),
-     * макс. витрати / макс. доходи (по всіх днях).
-     */
     private Totals calculateTotals(List<DayBudget> days) {
         Totals t = new Totals();
         if (days == null || days.isEmpty()) return t;
 
-        // Поточний баланс — balance ОСТАННЬОГО дня (max date)
-        DayBudget last = days.stream()
-                .filter(d -> d.getDate() != null)
-                .max(Comparator.comparing(DayBudget::getDate))
-                .orElse(null);
+        DayBudget last = days.stream().filter(d -> d.getDate() != null).max(Comparator.comparing(DayBudget::getDate)).orElse(null);
         if (last != null) {
-            t.currentBalance = last.getRemainingBalance() != null
-                    ? last.getRemainingBalance() : 0.0;
+            t.currentBalance = last.getRemainingBalance() != null ? last.getRemainingBalance() : 0.0;
             t.lastDate = last.getDate();
         }
 
-        // Max expenses / max income
         double maxExp = Double.NEGATIVE_INFINITY;
         double maxInc = Double.NEGATIVE_INFINITY;
 
         for (DayBudget d : days) {
             double exp = d.getTotalExpenses();
             double inc = d.getTotalIncomes();
-
-            if (exp > maxExp) {
-                maxExp = exp;
-                t.maxExpenseDate = d.getDate();
-            }
-            if (inc > maxInc) {
-                maxInc = inc;
-                t.maxIncomeDate = d.getDate();
-            }
+            if (exp > maxExp) { maxExp = exp; t.maxExpenseDate = d.getDate(); }
+            if (inc > maxInc) { maxInc = inc; t.maxIncomeDate = d.getDate(); }
         }
 
         t.maxExpense = maxExp == Double.NEGATIVE_INFINITY ? 0.0 : maxExp;
@@ -278,7 +209,6 @@ public class AllDaysExportService {
         return t;
     }
 
-    /** Внутрішній DTO для Totals. */
     private static class Totals {
         double currentBalance = 0.0;
         java.time.LocalDate lastDate = null;
@@ -289,7 +219,6 @@ public class AllDaysExportService {
     }
 
     // ==================== STYLES ====================
-
     private CellStyle createTitleStyle(XSSFWorkbook wb) {
         CellStyle s = wb.createCellStyle();
         Font f = wb.createFont();
@@ -312,14 +241,6 @@ public class AllDaysExportService {
         s.setBorderTop(BorderStyle.THIN);
         s.setBorderBottom(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.THIN);
-        return s;
-    }
-
-    private CellStyle createTotalsValueStyle(XSSFWorkbook wb) {
-        CellStyle s = wb.createCellStyle();
-        Font f = wb.createFont();
-        f.setBold(true);
-        s.setFont(f);
         return s;
     }
 

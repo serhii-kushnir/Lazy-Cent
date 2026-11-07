@@ -90,7 +90,7 @@ public class DayController extends BaseController {
     public String deleteDay(@PathVariable Long id,
                             Authentication authentication,
                             RedirectAttributes redirectAttributes,
-                            jakarta.servlet.http.HttpServletRequest request) {
+                            HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
@@ -103,8 +103,10 @@ public class DayController extends BaseController {
                     msg("toast.day.deleteError", e.getMessage()));
         }
 
+        // ✅ Повертаємось на ту саму сторінку (зберігаємо пагінацію),
+        // якщо реферера немає — на /all-days
         String target = redirectToReferer(request);
-        if (target == null || target.equals("redirect:/")) {
+        if (target.equals("redirect:/")) {
             return "redirect:/all-days";
         }
         return target;
@@ -155,12 +157,10 @@ public class DayController extends BaseController {
                 .map(e -> e.getDefaultMessage())
                 .filter(java.util.Objects::nonNull)
                 .findFirst()
-                // FIX: локалізований fallback замість "Невірні дані"
                 .orElseGet(() -> msg("error.form.invalid"));
     }
 
     private String successMessageFor(TransactionType type) {
-        // FIX: локалізовані повідомлення
         return type == TransactionType.EXPENSE
                 ? msg("toast.expense.added")
                 : msg("toast.income.added");

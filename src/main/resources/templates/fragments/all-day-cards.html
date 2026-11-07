@@ -2,10 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!--
-  Фрагмент "cards" — набір карток днів.
-  Аналогічно до rows: без проміжного фрагменту card(budget).
--->
 <th:block th:fragment="cards">
     <div th:each="budget : ${allBudgets}"
          class="col-12 col-sm-6 col-md-4 col-xl-3 day-card-wrapper"
@@ -26,7 +22,7 @@
                             <i class="fas fa-calendar-day me-1"></i>
                             <span th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></span>
                         </span>
-                        <small th:text="${budget.date}"></small>
+                        <small th:text="${#temporals.format(budget.date, 'dd.MM.yyyy')}"></small>
                     </h6>
                     <div class="balance-big"
                          th:classappend="${budget.remainingBalance >= 0} ? 'text-success' : 'text-danger'"

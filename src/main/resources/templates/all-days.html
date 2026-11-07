@@ -17,6 +17,15 @@
             from { opacity: 0; transform: translateY(-20px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes highlightNew {
+            0% { background-color: rgba(13, 110, 253, 0.15); }
+            100% { background-color: transparent; }
+        }
+        @keyframes highlightNewDark {
+            0% { background-color: rgba(110, 168, 254, 0.2); }
+            100% { background-color: transparent; }
+        }
+
         .animate-fade-up   { animation: fadeInUp   0.5s ease backwards; }
         .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
         .delay-1 { animation-delay: 0.05s; }
@@ -58,10 +67,8 @@
             color: #212529 !important;
             border-bottom: 1px solid #dee2e6 !important;
         }
-        .cat-header-theme h6,
-        .cat-header-theme h6 * { color: #6c757d !important; }
-        .cat-header-theme h3,
-        .cat-header-theme h3 * { color: #212529 !important; }
+        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
         [data-bs-theme="dark"] .cat-header-theme {
             background-color: #1d2027 !important;
             color: #e6e6e6 !important;
@@ -124,7 +131,7 @@
         }
 
         /* ============================================================
-           TOTALS — 3 картки НАД секцією (без hover, статичні)
+           TOTALS — 3 картки
            ============================================================ */
         .totals-row {
             display: grid;
@@ -269,14 +276,23 @@
             text-transform: uppercase; letter-spacing: 0.5px;
             border-bottom: 2px solid var(--bs-border-color);
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         [data-bs-theme="dark"] .table-days th {
             background-color: #23262e;
             color: #9aa3b2;
             border-bottom-color: #3a3f4a;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         .table-days tbody tr:hover > td { background-color: rgba(124,58,237,0.05); }
         [data-bs-theme="dark"] .table-days tbody tr:hover > td { background-color: rgba(167,139,250,0.1); }
+
+        /* Анімація для нових рядків */
+        .day-row.row-new > td { animation: highlightNew 2s ease forwards; }
+        [data-bs-theme="dark"] .day-row.row-new > td { animation-name: highlightNewDark; }
 
         .table-days .col-number  { width: 48px; min-width: 48px; max-width: 48px; }
         .table-days .col-date    { width: 110px; min-width: 110px; }
@@ -303,7 +319,55 @@
         [data-bs-theme="dark"] .text-balance-negative { color: #f87171; }
         [data-bs-theme="dark"] .text-starting { color: #adb5bd; }
 
-        /* ===== КАРТКИ — стиль «Витрати» / «Дохід» ===== */
+        /* ===== STICKY COLUMNS (MOBILE) ===== */
+        @media (max-width: 767.98px) {
+            .table-days th.col-number, .table-days td.col-number {
+                position: sticky; left: 0; z-index: 11;
+                background-color: var(--bs-body-bg);
+            }
+            .table-days th.col-number {
+                z-index: 12; background-color: var(--bs-tertiary-bg) !important;
+            }
+            .table-days th.col-date, .table-days td.col-date {
+                position: sticky; left: 48px; z-index: 11;
+                background-color: var(--bs-body-bg);
+            }
+            .table-days th.col-date {
+                z-index: 12; background-color: var(--bs-tertiary-bg) !important;
+            }
+
+            /* Виправлення фону для темної теми */
+            [data-bs-theme="dark"] .table-days td.col-number,
+            [data-bs-theme="dark"] .table-days td.col-date {
+                background-color: #212529;
+            }
+            [data-bs-theme="dark"] .table-days th.col-number,
+            [data-bs-theme="dark"] .table-days th.col-date {
+                background-color: #23262e !important;
+            }
+
+            /* Hover ефект для sticky колонок */
+            .table-days tbody tr:hover > td.col-number,
+            .table-days tbody tr:hover > td.col-date {
+                background-color: #f5f4fb;
+            }
+            [data-bs-theme="dark"] .table-days tbody tr:hover > td.col-number,
+            [data-bs-theme="dark"] .table-days tbody tr:hover > td.col-date {
+                background-color: #24262e;
+            }
+
+            /* Тінь, що відділяє sticky колонки при скролі */
+            .table-days td.col-date::after, .table-days th.col-date::after {
+                content: ''; position: absolute; top: 0; right: -6px; width: 6px; height: 100%;
+                background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none;
+            }
+            [data-bs-theme="dark"] .table-days td.col-date::after,
+            [data-bs-theme="dark"] .table-days th.col-date::after {
+                background: linear-gradient(to right, rgba(0,0,0,0.3), transparent);
+            }
+        }
+
+        /* ===== КАРТКИ ===== */
         .day-card-wrapper { display: flex; }
         .day-card-wrapper .stat-card {
             border-radius: 1rem;
@@ -487,39 +551,27 @@
     </div>
 
     <!-- ============================================================
-         TOTALS — 3 картки НАД секцією (без hover, статичні)
+         TOTALS — 3 картки
          ============================================================ -->
     <div class="totals-row no-print animate-fade-up" id="totalsRow">
-
-        <!-- Баланс -->
         <div class="total-card">
-            <div class="total-icon bg-primary-subtle text-primary">
-                <i class="fas fa-wallet"></i>
-            </div>
+            <div class="total-icon bg-primary-subtle text-primary"><i class="fas fa-wallet"></i></div>
             <div class="total-body">
                 <div class="total-label" th:text="#{allDays.totals.balance}">Поточний баланс</div>
                 <div class="total-value" id="totalsBalance">0,00 ₴</div>
                 <div class="total-sub" id="totalsBalanceSub">—</div>
             </div>
         </div>
-
-        <!-- Найбільше витрат -->
         <div class="total-card">
-            <div class="total-icon bg-danger-subtle text-danger">
-                <i class="fas fa-arrow-down"></i>
-            </div>
+            <div class="total-icon bg-danger-subtle text-danger"><i class="fas fa-arrow-down"></i></div>
             <div class="total-body">
                 <div class="total-label" th:text="#{allDays.totals.topExpense}">Найбільше витрат</div>
                 <div class="total-value text-danger" id="totalsTopExpense">0,00 ₴</div>
                 <div class="total-sub" id="totalsTopExpenseSub">—</div>
             </div>
         </div>
-
-        <!-- Найбільше доходів -->
         <div class="total-card">
-            <div class="total-icon bg-success-subtle text-success">
-                <i class="fas fa-arrow-up"></i>
-            </div>
+            <div class="total-icon bg-success-subtle text-success"><i class="fas fa-arrow-up"></i></div>
             <div class="total-body">
                 <div class="total-label" th:text="#{allDays.totals.topIncome}">Найбільше доходів</div>
                 <div class="total-value text-success" id="totalsTopIncome">0,00 ₴</div>
@@ -533,24 +585,20 @@
 
         <!-- Section header -->
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
-            <div class="icon-circle bg-primary text-white">
-                <i class="fas fa-calendar-alt"></i>
-            </div>
+            <div class="icon-circle bg-primary text-white"><i class="fas fa-calendar-alt"></i></div>
             <div class="flex-grow-1 text-start" style="min-width: 0;">
                 <h6 class="mb-0" th:text="#{allDays.heading}">Дні</h6>
                 <h3 class="mb-0">
-                    <span id="headerDayCount" th:text="${allBudgets.size()}">0</span>
+                    <span id="headerDayCount" th:text="${allBudgets != null ? allBudgets.size() : 0}">0</span>
                 </h3>
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="viewToggle">
                     <button class="btn active" data-view="table" th:title="#{day.table}">
-                        <i class="fas fa-table"></i>
-                        <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
+                        <i class="fas fa-table"></i><span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
                     </button>
                     <button class="btn" data-view="cards" th:title="#{day.cards}">
-                        <i class="fas fa-th-large"></i>
-                        <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
+                        <i class="fas fa-th-large"></i><span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
                     </button>
                 </div>
             </div>
@@ -558,17 +606,13 @@
 
         <!-- Toolbar -->
         <div class="days-toolbar sub-bar">
-
             <div class="search-wrap">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" id="searchInput" class="form-control"
-                           th:placeholder="#{common.searchAll}"
-                           autocomplete="off">
-                    <button type="button" id="searchClear"
-                            class="btn btn-clear"
-                            th:title="#{allDays.search.clear}"
-                            th:aria-label="#{allDays.search.clear}">
+                           th:placeholder="#{common.searchAll}" autocomplete="off">
+                    <button type="button" id="searchClear" class="btn btn-clear"
+                            th:title="#{allDays.search.clear}" th:aria-label="#{allDays.search.clear}">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -664,7 +708,7 @@
         <!-- CARDS -->
         <div id="cardsView" class="view-container hidden">
             <div class="p-3">
-                <div id="daysContainer" class="row g-3">
+                <div class="row g-3" id="daysContainer">
                     <div th:if="${allBudgets.empty}" class="col-12">
                         <div class="empty-state">
                             <i class="fas fa-calendar-times"></i>
@@ -700,12 +744,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-center" th:text="#{delete.dayQuestion}">
-                    Ви впевнені, що хочете видалити цей день та всі його транзакції?
-                </p>
-                <p class="text-muted small text-center" th:text="#{delete.note}">
-                    Цю дію не можна скасувати.
-                </p>
+                <p class="text-center" th:text="#{delete.dayQuestion}">Ви впевнені, що хочете видалити цей день та всі його транзакції?</p>
+                <p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
                 <hr>
                 <div class="delete-details">
                     <div class="row"><div class="col-4 label" th:text="#{common.date}">Дата:</div><div class="col-8 value" id="deleteDate"></div></div>
@@ -718,13 +758,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                        th:text="#{btn.cancel}">Скасувати</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
                 <form id="deleteDayForm" method="post" style="display:inline;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i>
-                        <span th:text="#{delete.deleteDay}">Видалити день</span>
+                        <i class="fas fa-trash me-1"></i><span th:text="#{delete.deleteDay}">Видалити день</span>
                     </button>
                 </form>
             </div>
@@ -748,8 +786,6 @@
             asOf:      /*[[#{allDays.totals.asOf}]]*/ 'станом на {0}'
         };
 
-        // ==================== I18N: day names (raw UA → localized) ====================
-
         var DAY_NAMES_I18N = {
             "Понеділок": /*[[#{day.monday}]]*/    "Понеділок",
             "Вівторок":  /*[[#{day.tuesday}]]*/   "Вівторок",
@@ -759,16 +795,10 @@
             "Субота":    /*[[#{day.saturday}]]*/  "Субота",
             "Неділя":    /*[[#{day.sunday}]]*/    "Неділя"
         };
-
-        function localizedDayName(raw) {
-            return DAY_NAMES_I18N[raw] || raw;
-        }
-
+        function localizedDayName(raw) { return DAY_NAMES_I18N[raw] || raw; }
         function fmt(template) {
             var args = Array.prototype.slice.call(arguments, 1);
-            return template.replace(/\{(\d+)\}/g, function (m, i) {
-                return args[i] !== undefined ? args[i] : m;
-            });
+            return template.replace(/\{(\d+)\}/g, function (m, i) { return args[i] !== undefined ? args[i] : m; });
         }
 
         var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
@@ -796,7 +826,6 @@
         var cardsView     = document.getElementById('cardsView');
         var tableView     = document.getElementById('tableView');
 
-        // TOTALS
         var totalsBalanceEl       = document.getElementById('totalsBalance');
         var totalsBalanceSub      = document.getElementById('totalsBalanceSub');
         var totalsTopExpenseEl    = document.getElementById('totalsTopExpense');
@@ -805,17 +834,13 @@
         var totalsTopIncomeSub    = document.getElementById('totalsTopIncomeSub');
 
         // ==================== HELPERS ====================
-        function isCardsMode() {
-            return !cardsView.classList.contains('hidden');
-        }
-
+        function isCardsMode() { return !cardsView.classList.contains('hidden'); }
         function fmtMoney(v) {
             var num = (v || 0).toFixed(2).replace('.', ',');
             var parts = num.split(',');
             parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             return parts.join(',') + ' ' + currencySymbol;
         }
-
         function fmtAsOf(isoDate) {
             if (!isoDate) return '—';
             var parts = isoDate.split('-');
@@ -825,10 +850,7 @@
 
         // ==================== TOTALS ====================
         function recalcTotals(items) {
-            var sortedByDate = items.slice().sort(function (a, b) {
-                return (a.dataset.date || '').localeCompare(b.dataset.date || '');
-            });
-
+            var sortedByDate = items.slice().sort(function (a, b) { return (a.dataset.date || '').localeCompare(b.dataset.date || ''); });
             var currentBalance = 0;
             var lastDate = null;
             if (sortedByDate.length > 0) {
@@ -837,46 +859,31 @@
                 lastDate = last.dataset.date || null;
             }
 
-            var maxExpense = -Infinity;
-            var maxExpenseDate = null;
-            var maxIncome = -Infinity;
-            var maxIncomeDate = null;
+            var maxExpense = -Infinity, maxExpenseDate = null;
+            var maxIncome = -Infinity, maxIncomeDate = null;
 
             items.forEach(function (item) {
-                var expenses = parseFloat(item.dataset.expenses) || 0;
-                var incomes  = parseFloat(item.dataset.incomes)  || 0;
-                var dateStr  = item.dataset.date || '';
-
-                if (expenses > maxExpense) {
-                    maxExpense = expenses;
-                    maxExpenseDate = dateStr;
-                }
-                if (incomes > maxIncome) {
-                    maxIncome = incomes;
-                    maxIncomeDate = dateStr;
-                }
+                var exp = parseFloat(item.dataset.expenses) || 0;
+                var inc = parseFloat(item.dataset.incomes) || 0;
+                var date = item.dataset.date || '';
+                if (exp > maxExpense) { maxExpense = exp; maxExpenseDate = date; }
+                if (inc > maxIncome) { maxIncome = inc; maxIncomeDate = date; }
             });
-
-            var n = items.length;
 
             totalsBalanceEl.textContent = fmtMoney(currentBalance);
             totalsBalanceEl.className = 'total-value ' + (currentBalance >= 0 ? 'text-success' : 'text-danger');
             totalsBalanceSub.textContent = lastDate ? fmtAsOf(lastDate) : '—';
 
-            if (n === 0 || maxExpense < 0) {
-                totalsTopExpenseEl.textContent = fmtMoney(0);
-                totalsTopExpenseSub.textContent = '—';
+            if (items.length === 0 || maxExpense < 0) {
+                totalsTopExpenseEl.textContent = fmtMoney(0); totalsTopExpenseSub.textContent = '—';
             } else {
-                totalsTopExpenseEl.textContent = fmtMoney(maxExpense);
-                totalsTopExpenseSub.textContent = maxExpenseDate ? fmtAsOf(maxExpenseDate) : '—';
+                totalsTopExpenseEl.textContent = fmtMoney(maxExpense); totalsTopExpenseSub.textContent = maxExpenseDate ? fmtAsOf(maxExpenseDate) : '—';
             }
 
-            if (n === 0 || maxIncome < 0) {
-                totalsTopIncomeEl.textContent = fmtMoney(0);
-                totalsTopIncomeSub.textContent = '—';
+            if (items.length === 0 || maxIncome < 0) {
+                totalsTopIncomeEl.textContent = fmtMoney(0); totalsTopIncomeSub.textContent = '—';
             } else {
-                totalsTopIncomeEl.textContent = fmtMoney(maxIncome);
-                totalsTopIncomeSub.textContent = maxIncomeDate ? fmtAsOf(maxIncomeDate) : '—';
+                totalsTopIncomeEl.textContent = fmtMoney(maxIncome); totalsTopIncomeSub.textContent = maxIncomeDate ? fmtAsOf(maxIncomeDate) : '—';
             }
         }
 
@@ -903,33 +910,36 @@
 
         // ==================== FILTERS (client-side) ====================
         var filteredItems = [];
+        var searchDebounceTimer;
+
+        function saveFilters() {
+            try {
+                sessionStorage.setItem('allDays_filters', JSON.stringify({
+                    search: searchInput.value,
+                    day: dayFilter.value,
+                    from: dateFrom.value,
+                    to: dateTo.value
+                }));
+            } catch (e) {}
+        }
 
         function getFilteredItems() {
             var searchTerm = searchInput.value.toLowerCase().trim();
             var fromVal = dateFrom.value, toVal = dateTo.value, dayVal = dayFilter.value.trim();
-            var items = isCardsMode()
-                ? document.querySelectorAll('.day-card-wrapper')
-                : document.querySelectorAll('.day-row');
+            var items = isCardsMode() ? document.querySelectorAll('.day-card-wrapper') : document.querySelectorAll('.day-row');
             var result = [];
 
             items.forEach(function (item) {
                 var dateStr = item.dataset.date || '';
                 var dayNameRaw = (item.dataset.dayname || '');
                 var dayNameLoc = localizedDayName(dayNameRaw);
-                var count = (parseInt(item.dataset.expenseCount) || 0)
-                    + (parseInt(item.dataset.incomeCount) || 0);
+                var count = (parseInt(item.dataset.expenseCount) || 0) + (parseInt(item.dataset.incomeCount) || 0);
                 var match = true;
 
                 if (searchTerm) {
-                    // Шукаємо І по сирому (UA з БД), І по локалізованому імені.
-                    // Це дозволяє шукати "monday" в en-локалі і "понеділок" — в будь-якій.
-                    var fullText = (dayNameRaw + ' ' + dayNameLoc + ' ' + dateStr + ' '
-                        + (item.dataset.expenses || '0') + ' '
-                        + (item.dataset.incomes || '0') + ' '
-                        + (item.dataset.balance || '0') + ' ' + count).toLowerCase();
+                    var fullText = (dayNameRaw + ' ' + dayNameLoc + ' ' + dateStr + ' ' + (item.dataset.expenses || '0') + ' ' + (item.dataset.incomes || '0') + ' ' + (item.dataset.balance || '0') + ' ' + count).toLowerCase();
                     match = fullText.indexOf(searchTerm) !== -1;
                 }
-                // Дропдаун має value = сирий ("Понеділок"), тому порівнюємо з сирим.
                 if (match && fromVal && dateStr < fromVal) match = false;
                 if (match && toVal && dateStr > toVal) match = false;
                 if (match && dayVal && dayNameRaw !== dayVal) match = false;
@@ -943,7 +953,6 @@
             var total = filteredItems.length;
             totalRowsSpan.textContent = total;
 
-            // Ховаємо все, показуємо тільки відфільтроване
             document.querySelectorAll('.day-row').forEach(function (el) { el.style.display = 'none'; });
             document.querySelectorAll('.day-card-wrapper').forEach(function (el) { el.style.display = 'none'; });
             filteredItems.forEach(function (item) { item.style.display = ''; });
@@ -953,9 +962,7 @@
             if (serverHasMore) {
                 visibleInfo.textContent = fmt(i18n.showing, total, serverTotalDays);
                 loadMoreBtn.disabled = isLoadingMore;
-                loadMoreBtn.innerHTML = isLoadingMore
-                    ? '<i class="fas fa-spinner fa-spin me-1"></i>'
-                    : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
+                loadMoreBtn.innerHTML = isLoadingMore ? '<i class="fas fa-spinner fa-spin me-1"></i>' : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
             } else {
                 visibleInfo.textContent = fmt(i18n.showing, total, total);
                 loadMoreBtn.disabled = true;
@@ -978,10 +985,15 @@
         function applyFiltersAndPaginate() {
             filteredItems = getFilteredItems();
             updateUI();
+            saveFilters();
         }
 
         // ==================== FILTER EVENTS ====================
-        searchInput.addEventListener('input', applyFiltersAndPaginate);
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(applyFiltersAndPaginate, 300); // 300ms debounce
+        });
+
         if (searchClear) {
             searchClear.addEventListener('click', function () {
                 searchInput.value = '';
@@ -998,7 +1010,6 @@
             applyFiltersAndPaginate();
         });
 
-        // ==================== PAGE SIZE → RELOAD ====================
         pageSizeSelect.addEventListener('change', function () {
             var url = new URL(window.location.href);
             url.searchParams.set('size', this.value);
@@ -1006,22 +1017,27 @@
             window.location.href = url.toString();
         });
 
-        // ==================== SERVER "LOAD MORE" (AJAX) ====================
+        // ==================== SERVER "LOAD MORE" ====================
         function loadMore() {
             if (!serverHasMore || isLoadingMore) return;
             isLoadingMore = true;
-            updateUI();  // показує спінер на кнопці
+            updateUI();
 
             var nextPage = currentServerPage + 1;
-            var url = '/all-days/more?page=' + nextPage + '&size=' + serverPageSize;
-
-            fetch(url, { headers: { 'Accept': 'application/json' } })
+            fetch('/all-days/more?page=' + nextPage + '&size=' + serverPageSize, { headers: { 'Accept': 'application/json' } })
                 .then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
                 .then(function (data) {
                     if (data.error) throw new Error(data.error);
 
                     if (data.rows) {
-                        document.getElementById('daysTableBody').insertAdjacentHTML('beforeend', data.rows);
+                        var tempDiv = document.createElement('tbody');
+                        tempDiv.innerHTML = data.rows;
+                        var newRows = Array.from(tempDiv.querySelectorAll('.day-row'));
+                        newRows.forEach(function (row) {
+                            row.classList.add('row-new');
+                            document.getElementById('daysTableBody').appendChild(row);
+                        });
+                        setTimeout(function () { newRows.forEach(function (r) { r.classList.remove('row-new'); }); }, 2000);
                     }
                     if (data.cards) {
                         document.getElementById('daysContainer').insertAdjacentHTML('beforeend', data.cards);
@@ -1029,14 +1045,11 @@
 
                     currentServerPage = data.currentPage;
                     serverHasMore = data.hasMore;
-
-                    // Пересортувати нові + старі разом
-                    var activeTh = document.querySelector('.sortable.active-asc, .sortable.active-desc');
                     isLoadingMore = false;
+
+                    var activeTh = document.querySelector('.sortable.active-asc, .sortable.active-desc');
                     if (activeTh) {
-                        var column = activeTh.dataset.sort;
-                        var dir = activeTh.classList.contains('active-asc') ? 'asc' : 'desc';
-                        sortRowsBy(column, dir);
+                        sortRowsBy(activeTh.dataset.sort, activeTh.classList.contains('active-asc') ? 'asc' : 'desc');
                     } else {
                         sortRowsBy('date', 'desc');
                     }
@@ -1058,28 +1071,18 @@
             var dataType = th ? th.dataset.type : 'string';
 
             function extractValue(el) {
-                if (column === 'count') {
-                    return (parseInt(el.dataset.expenseCount) || 0)
-                        + (parseInt(el.dataset.incomeCount) || 0);
-                }
-                if (column === 'dayname') {
-                    // Сортуємо за локалізованим ім'ям: "Monday, Tuesday..." в EN,
-                    // "Понеділок, Вівторок..." в UA
-                    return localizedDayName(el.dataset.dayname || '');
-                }
+                if (column === 'count') return (parseInt(el.dataset.expenseCount) || 0) + (parseInt(el.dataset.incomeCount) || 0);
+                if (column === 'dayname') return localizedDayName(el.dataset.dayname || '');
                 return el.dataset[column] || '';
             }
 
             rowsArray.sort(function (a, b) {
-                var aVal = extractValue(a);
-                var bVal = extractValue(b);
+                var aVal = extractValue(a), bVal = extractValue(b);
                 if (dataType === 'number') {
-                    aVal = parseFloat(aVal) || 0;
-                    bVal = parseFloat(bVal) || 0;
+                    aVal = parseFloat(aVal) || 0; bVal = parseFloat(bVal) || 0;
                     return direction === 'asc' ? aVal - bVal : bVal - aVal;
                 }
-                aVal = aVal.toString().toLowerCase();
-                bVal = bVal.toString().toLowerCase();
+                aVal = aVal.toString().toLowerCase(); bVal = bVal.toString().toLowerCase();
                 return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
             });
 
@@ -1094,9 +1097,7 @@
             if (th) {
                 th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
                 var icon = th.querySelector('.sort-icon');
-                if (icon) icon.className = direction === 'asc'
-                    ? 'fas fa-sort-up sort-icon'
-                    : 'fas fa-sort-down sort-icon';
+                if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
             }
             applyFiltersAndPaginate();
         }
@@ -1104,8 +1105,7 @@
         document.querySelectorAll('.sortable').forEach(function (th) {
             th.addEventListener('click', function () {
                 var column = this.dataset.sort;
-                var currentDir = this.classList.contains('active-asc') ? 'asc'
-                    : (this.classList.contains('active-desc') ? 'desc' : null);
+                var currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
                 var direction = currentDir === 'asc' ? 'desc' : 'asc';
                 sortRowsBy(column, direction);
             });
@@ -1121,24 +1121,28 @@
 
         function handleDeleteDay(btn) {
             document.getElementById('deleteDate').textContent = btn.dataset.date || '—';
-            document.getElementById('deleteDayName').textContent = btn.dataset.dayname || '—';
-            document.getElementById('deleteStartingBalance').textContent =
-                (parseFloat(btn.dataset.starting) || 0).toFixed(2) + ' ' + currencySymbol;
-            document.getElementById('deleteExpenses').textContent =
-                (parseFloat(btn.dataset.expenses) || 0).toFixed(2) + ' ' + currencySymbol;
-            document.getElementById('deleteIncomes').textContent =
-                (parseFloat(btn.dataset.incomes) || 0).toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteDayName').textContent = localizedDayName(btn.dataset.dayname) || '—';
+            document.getElementById('deleteStartingBalance').textContent = (parseFloat(btn.dataset.starting) || 0).toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteExpenses').textContent = (parseFloat(btn.dataset.expenses) || 0).toFixed(2) + ' ' + currencySymbol;
+            document.getElementById('deleteIncomes').textContent = (parseFloat(btn.dataset.incomes) || 0).toFixed(2) + ' ' + currencySymbol;
             var balance = parseFloat(btn.dataset.balance) || 0;
             var balanceEl = document.getElementById('deleteBalance');
             balanceEl.textContent = balance.toFixed(2) + ' ' + currencySymbol;
             balanceEl.className = 'value ' + (balance >= 0 ? 'text-balance-positive' : 'text-balance-negative');
-            document.getElementById('deleteTotalTransactions').textContent =
-                (parseInt(btn.dataset.expenseCount) || 0) + (parseInt(btn.dataset.incomeCount) || 0);
+            document.getElementById('deleteTotalTransactions').textContent = (parseInt(btn.dataset.expenseCount) || 0) + (parseInt(btn.dataset.incomeCount) || 0);
             document.getElementById('deleteDayForm').action = '/day/delete/' + btn.dataset.id;
             bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteDayConfirmModal')).show();
         }
 
         // ==================== INIT ====================
+        try {
+            var savedFilters = JSON.parse(sessionStorage.getItem('allDays_filters') || '{}');
+            if (savedFilters.search) searchInput.value = savedFilters.search;
+            if (savedFilters.day) dayFilter.value = savedFilters.day;
+            if (savedFilters.from) dateFrom.value = savedFilters.from;
+            if (savedFilters.to) dateTo.value = savedFilters.to;
+        } catch (e) {}
+
         setViewMode('table');
     });
 </script>

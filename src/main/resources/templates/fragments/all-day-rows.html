@@ -2,16 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!--
-  Фрагмент "rows" — набір <tr> для таблиці днів.
-  Використовується:
-    - у all-days.html (початковий рендер)
-    - у /all-days/more (AJAX)
-
-  ⚠️ НЕ використовуємо окремий фрагмент row(budget) з th:replace="::row(${budget})",
-  бо це призводило до "budget is null" через особливості th:each + th:replace
-  на одному елементі в самопосиланні.
--->
 <th:block th:fragment="rows">
     <tr th:each="budget : ${allBudgets}" class="day-row"
         th:data-date="${budget.date}"
@@ -24,7 +14,7 @@
         th:data-income-count="${budget.incomes.size()}"
         th:data-id="${budget.id}">
         <td class="col-number"></td>
-        <td class="col-date" th:text="${budget.date}"></td>
+        <td class="col-date" th:text="${#temporals.format(budget.date, 'dd.MM.yyyy')}"></td>
         <td class="col-day"
             th:text="${dayNames[budget.dayName]} ?: ${budget.dayName}"></td>
         <td class="col-amount text-expense"
