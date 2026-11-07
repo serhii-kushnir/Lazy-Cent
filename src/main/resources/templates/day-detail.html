@@ -159,7 +159,7 @@
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .table-transactions {
             table-layout: fixed; width: 100%; font-size: 0.8rem;
-            border-collapse: collapse; min-width: 800px;
+            border-collapse: collapse; min-width: 900px;
         }
         .table-transactions th, .table-transactions td {
             border-bottom: 1px solid var(--bs-border-color);
@@ -207,11 +207,12 @@
         .table-transactions .col-type { width: 90px; min-width: 90px; max-width: 90px; text-align: center; white-space: nowrap; }
         .table-transactions .col-center { width: auto; white-space: nowrap; text-align: center; }
 
-        /* ✅ ОБМЕЖЕННЯ НАЗВИ */
+        /* ✅ Обмеження найменування та додано колонку "Спільна" */
         .table-transactions .col-name {
             width: auto; min-width: 140px; max-width: 220px;
             text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
+        .table-transactions .col-shared { width: 80px; min-width: 80px; text-align: center; }
         .table-transactions .col-amount { width: auto; white-space: nowrap; text-align: center; }
         .table-transactions .col-actions { width: 140px; min-width: 140px; max-width: 140px; text-align: center; white-space: nowrap; }
         .table-transactions .col-buyer-seller { width: 140px; min-width: 100px; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
@@ -360,7 +361,6 @@
             }
             .days-toolbar #loadMoreBtn { width: 100%; }
 
-            /* 6. View Toggle на всю ширину */
             .cat-header-theme > div.no-print {
                 width: 100% !important;
                 flex-direction: column !important;
@@ -377,7 +377,6 @@
                 padding: 0.3rem 0.5rem; justify-content: center;
             }
 
-            /* 7. Модальні вікна на мобільних */
             .modal-footer {
                 flex-direction: column-reverse;
                 align-items: stretch;
@@ -393,24 +392,47 @@
             }
         }
 
+        /* ✅ 4. ВИПРАВЛЕНО ДРУК */
         @media print {
-            body, html { margin: 0 !important; padding: 0 !important; }
-            .container { max-width: 100% !important; padding: 0 4px !important; margin: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .btn-add-transaction, .modal, .modal-backdrop, .d-print-none, .days-toolbar { display: none !important; }
+            @page { margin: 10mm; }
+            body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; color: #000 !important; }
+            .container-fluid, .page-max { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+
+            /* Приховуємо все зайве */
+            nav.navbar, footer, .no-print, .btn, .btn-add-transaction,
+            .modal, .modal-backdrop, .d-print-none, .days-toolbar,
+            .cat-header-theme, .print-footer, .stat-card .icon-circle,
+            .col-actions, .col-shared, .col-num { display: none !important; }
+
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
-            .print-header { display: flex !important; justify-content: space-between; align-items: center; padding: 0 !important; margin: 0 0 4px 0 !important; border-bottom: 1px solid #333; line-height: 1.2; }
-            .print-header .logo { font-size: 1rem !important; font-weight: 700; color: #1B2430; }
-            .print-header h2 { font-size: 0.9rem !important; font-weight: 600; margin: 0; color: #333; }
-            .print-footer { text-align: center; font-size: 0.6rem !important; color: #666; border-top: 1px solid #ccc; padding-top: 2px !important; margin-top: 4px !important; }
-            .table-transactions th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; padding: 2px 4px !important; font-size: 0.6rem !important; position: static !important; }
-            .table-transactions td { border-color: #ddd !important; padding: 1px 4px !important; font-size: 0.6rem !important; }
-            .category-text, .type-text { color: #000 !important; }
+
+            .print-header { display: flex !important; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 2px solid #333; margin-bottom: 15px; }
+            .print-header .logo { font-size: 1.2rem; font-weight: 700; color: #000; }
+            .print-header h2 { font-size: 1rem; font-weight: 600; margin: 0; color: #000; }
+
+            /* Налаштування таблиці */
+            .days-section { border: none !important; box-shadow: none !important; overflow: visible !important; }
+            .table-responsive { overflow: visible !important; }
+            .table-transactions { width: 100% !important; min-width: 0 !important; table-layout: auto !important; font-size: 0.8rem; }
+            .table-transactions th, .table-transactions td { border: 1px solid #ddd !important; padding: 4px !important; color: #000 !important; }
+            .table-transactions th { background-color: #f0f0f0 !important; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+            /* Приховуємо колонку "Дії" та "Спільна" в таблиці */
+            .table-transactions th.col-actions, .table-transactions td.col-actions,
+            .table-transactions th.col-shared, .table-transactions td.col-shared,
+            .table-transactions th.col-num, .table-transactions td.col-num { display: none !important; }
+
             .type-text.expense { color: #dc3545 !important; }
             .type-text.income { color: #198754 !important; }
-            .stat-card, .days-section { border: 1px solid #ddd !important; box-shadow: none !important; margin-bottom: 4px !important; }
-            .cat-header-theme { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
-            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
+
+            /* Балансові картки (друкуємо як звичайний текст) */
+            .row.stats-animated { display: flex !important; flex-wrap: wrap !important; gap: 10px !important; margin-bottom: 15px !important; }
+            .row.stats-animated .col-12 { width: 25% !important; flex: 0 0 25% !important; }
+            .stat-card { border: 1px solid #ddd !important; box-shadow: none !important; background: #fff !important; }
+            .stat-card .card-body { padding: 5px !important; }
+            .stat-card h6 { font-size: 0.7rem !important; color: #666 !important; margin-bottom: 2px !important; }
+            .stat-card h3 { font-size: 0.9rem !important; margin: 0 !important; color: #000 !important; }
         }
     </style>
 </head>
@@ -435,12 +457,11 @@
                 <span th:text="(${dayNames[dayBudget.dayName]} ?: ${dayBudget.dayName}) + ', ' + ${#temporals.format(dayBudget.date, 'dd.MM.yyyy')}"></span>
             </h2>
             <div class="position-absolute end-0 no-print d-flex gap-2">
-                <!-- 8. Кнопка Спільні транзакції -->
                 <a th:href="@{/family/shared}" class="btn btn-info text-white d-none d-md-inline-flex align-items-center justify-content-center">
                     <i class="fas fa-users me-1"></i> <span th:text="#{family.shared.title}">Спільні транзакції</span>
                 </a>
-                <!-- 3. Експорт -->
-                <a th:href="@{/totals/export(startDate=${dayBudget.date}, endDate=${dayBudget.date})}" class="btn btn-success">
+                <!-- 5. Оновлено експорт -->
+                <a th:href="@{'/day/' + ${dayBudget.date} + '/export'}" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{btn.export}">Експорт</span>
                 </a>
                 <button class="btn btn-warning d-none d-md-inline-flex align-items-center justify-content-center" onclick="window.print()">
@@ -453,12 +474,11 @@
                 <i class="fas fa-calendar-day me-2 text-primary"></i>
                 <span th:text="(${dayNames[dayBudget.dayName]} ?: ${dayBudget.dayName}) + ', ' + ${#temporals.format(dayBudget.date, 'dd.MM.yyyy')}"></span>
             </h2>
-            <!-- Мобільна версія: Експорт + Спільні -->
             <div class="d-grid gap-2 mb-2 no-print">
                 <a th:href="@{/family/shared}" class="btn btn-info text-white">
                     <i class="fas fa-users me-1"></i> <span th:text="#{family.shared.title}">Спільні транзакції</span>
                 </a>
-                <a th:href="@{/totals/export(startDate=${dayBudget.date}, endDate=${dayBudget.date})}" class="btn btn-success">
+                <a th:href="@{'/day/' + ${dayBudget.date} + '/export'}" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{btn.export}">Експорт</span>
                 </a>
             </div>
@@ -473,7 +493,6 @@
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle bg-secondary-subtle text-secondary"><i class="fas fa-flag-checkered"></i></div>
                         <div class="flex-grow-1 text-start">
-                            <!-- 1. Початковий баланс -->
                             <h6 class="text-muted mb-0" th:text="#{day.startingBalance}">Початковий баланс</h6>
                             <h3 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h3>
                         </div>
@@ -513,7 +532,6 @@
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle" th:classappend="${dayBudget.remainingBalance >= 0} ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"><i class="fas fa-balance-scale"></i></div>
                         <div class="flex-grow-1 text-start">
-                            <!-- 2. Залишок балансу -->
                             <h6 class="text-muted mb-0" th:text="#{day.balance}">Залишок балансу</h6>
                             <h3 class="mb-0" th:classappend="${dayBudget.remainingBalance >= 0} ? 'text-success' : 'text-danger'" th:text="${#numbers.formatDecimal(dayBudget.remainingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h3>
                         </div>
@@ -566,7 +584,6 @@
                     <option value="income" th:text="#{type.incomeFilter}">Доходи</option>
                 </select>
 
-                <!-- 5. Додано фільтр Всі / Власні / Спільні -->
                 <select id="shareFilter" class="form-select form-select-sm">
                     <option value="all" th:text="#{common.all}">Всі</option>
                     <option value="own" th:text="#{common.own}">Власні</option>
@@ -607,6 +624,10 @@
                         <th class="col-type" th:text="#{common.type}">Тип</th>
                         <th class="col-center sortable active-desc" data-sort="time" data-type="string"><span th:text="#{common.time}">Час</span> <i class="fas fa-sort-down sort-icon"></i></th>
                         <th class="col-name sortable" data-sort="name" data-type="string"><span th:text="#{common.description}">Найменування</span> <i class="fas fa-sort sort-icon"></i></th>
+
+                        <!-- 1. Колонка Спільна -->
+                        <th class="col-shared" th:text="#{badge.shared}">Спільна</th>
+
                         <th class="col-center sortable" data-sort="quantity" data-type="number"><span th:text="#{common.quantity}">Кількість</span> <i class="fas fa-sort sort-icon"></i></th>
                         <th class="col-center sortable" data-sort="amount" data-type="number"><span th:text="#{common.amount}">Сума</span> <i class="fas fa-sort sort-icon"></i></th>
                         <th class="col-buyer-seller sortable" data-sort="buyer" data-type="string"><span th:text="#{common.buyer}">Покупець</span> <i class="fas fa-sort sort-icon"></i></th>
@@ -622,13 +643,16 @@
                         <td class="col-num"></td>
                         <td class="col-type"><span class="type-text expense" th:text="#{type.EXPENSE}">Витрата</span></td>
                         <td class="col-center"><span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span><span th:unless="${expense.time != null}" class="text-muted">—</span></td>
-                        <!-- 4. Обмеження найменування -->
                         <td class="col-name" th:title="${expense.description}">
                             <span th:text="${expense.description}"></span>
-                            <span th:if="${expense.shareWithFamily}" class="badge bg-info text-dark ms-1" th:title="#{badge.shared.tooltip}">
-                                    <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
-                                </span>
                         </td>
+
+                        <!-- 1. Галочка у колонці Спільна -->
+                        <td class="col-shared">
+                            <i th:if="${expense.shareWithFamily}" class="fas fa-check text-info" title="Спільна"></i>
+                            <i th:unless="${expense.shareWithFamily}" class="fas fa-minus text-muted opacity-25"></i>
+                        </td>
+
                         <td class="col-center" th:text="${expense.quantity ?: 1}"></td>
                         <td class="col-center text-danger" th:text="${#numbers.formatDecimal(expense.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                         <td class="col-buyer-seller" th:text="${expense.buyer}" th:title="${expense.buyer}"></td>
@@ -660,10 +684,14 @@
                         <td class="col-center"><span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span><span th:unless="${income.time != null}" class="text-muted">—</span></td>
                         <td class="col-name" th:title="${income.description}">
                             <span th:text="${income.description}"></span>
-                            <span th:if="${income.shareWithFamily}" class="badge bg-info text-dark ms-1" th:title="#{badge.shared.tooltip}">
-                                    <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
-                                </span>
                         </td>
+
+                        <!-- 1. Галочка у колонці Спільна -->
+                        <td class="col-shared">
+                            <i th:if="${income.shareWithFamily}" class="fas fa-check text-info" title="Спільна"></i>
+                            <i th:unless="${income.shareWithFamily}" class="fas fa-minus text-muted opacity-25"></i>
+                        </td>
+
                         <td class="col-center" th:text="${income.quantity ?: 1}"></td>
                         <td class="col-center text-success" th:text="${#numbers.formatDecimal(income.amount, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
                         <td class="col-buyer-seller" th:text="${income.buyer}" th:title="${income.buyer}"></td>
@@ -689,7 +717,7 @@
                         </td>
                     </tr>
                     <tr th:if="${dayBudget.expenses.empty and dayBudget.incomes.empty}" id="emptyRow">
-                        <td colspan="11" class="text-center text-muted py-3" th:text="#{day.noTransactions}">Немає транзакцій за цей день</td>
+                        <td colspan="12" class="text-center text-muted py-3" th:text="#{day.noTransactions}">Немає транзакцій за цей день</td>
                     </tr>
                     </tbody>
                 </table>
@@ -957,8 +985,7 @@
 
                     <div class="mb-3">
                         <label for="transactionName" class="form-label" th:text="#{modal.name}">Найменування</label>
-                        <input type="text" class="form-control" id="transactionName" name="description"
-                               th:placeholder="#{modal.name.placeholder}" required>
+                        <input type="text" class="form-control" id="transactionName" name="description" maxlength="255" th:placeholder="#{modal.name.placeholder}" required>
                         <div class="invalid-feedback" th:text="#{modal.fillField}">Заповніть це поле</div>
                     </div>
 
@@ -966,8 +993,7 @@
                         <label for="transactionAmount" class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount"
-                                   th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
+                            <input type="number" step="0.01" class="form-control" id="transactionAmount" name="amount" th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
                         <div class="invalid-feedback" th:text="#{modal.enterAmount}">Введіть суму</div>
@@ -977,34 +1003,30 @@
                         <label for="transactionQuantity" class="form-label" th:text="#{modal.quantity}">Кількість</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="quantityMinus">-</button>
-                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity"
-                                   placeholder="1" value="1" min="1">
+                            <input type="number" step="1" class="form-control" id="transactionQuantity" name="quantity" placeholder="1" value="1" min="1">
                             <button type="button" class="btn btn-outline-secondary" id="quantityPlus">+</button>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label for="transactionBuyer" class="form-label" th:text="#{modal.buyer}">Покупець</label>
-                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" th:placeholder="#{common.buyer}">
+                        <input type="text" class="form-control" id="transactionBuyer" name="buyer" maxlength="100" th:placeholder="#{common.buyer}">
                     </div>
 
                     <div class="mb-3">
                         <label for="transactionSeller" class="form-label" th:text="#{modal.seller}">Продавець</label>
-                        <input type="text" class="form-control" id="transactionSeller" name="seller" th:placeholder="#{common.seller}">
+                        <input type="text" class="form-control" id="transactionSeller" name="seller" maxlength="100" th:placeholder="#{common.seller}">
                     </div>
 
                     <div class="mb-3">
                         <label for="transactionDetails" class="form-label" th:text="#{modal.details}">Деталі</label>
-                        <textarea class="form-control" id="transactionDetails" name="details" rows="3"
-                                  th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
+                        <textarea class="form-control" id="transactionDetails" name="details" rows="3" th:placeholder="#{modal.details.placeholder}" maxlength="250"></textarea>
                         <div class="char-counter"><span id="charCount">0</span> / 250</div>
                     </div>
 
                     <div class="mb-3" th:if="${hasFamily}">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="transactionShareWithFamily"
-                                   name="shareWithFamily" value="true">
+                            <input type="checkbox" class="form-check-input" id="transactionShareWithFamily" name="shareWithFamily" value="true">
                             <label class="form-check-label" for="transactionShareWithFamily">
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
@@ -1074,18 +1096,17 @@
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editExpenseId">
                     <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label><select name="categoryId" class="form-select" id="editExpenseCategory" required><option th:each="cat : ${expenseCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label><input type="text" name="description" class="form-control" id="editExpenseDescription" required></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label><input type="text" name="buyer" class="form-control" id="editExpenseBuyer"></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label><input type="text" name="seller" class="form-control" id="editExpenseSeller"></div>
+                    <!-- ✅ 3. Додано maxlength="255" -->
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label><input type="text" name="description" class="form-control" id="editExpenseDescription" maxlength="255" required></div>
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label><input type="text" name="buyer" class="form-control" id="editExpenseBuyer" maxlength="100"></div>
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label><input type="text" name="seller" class="form-control" id="editExpenseSeller" maxlength="100"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.amount}">Сума</label><input type="number" step="0.01" name="amount" class="form-control" id="editExpenseAmount" required></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editExpenseQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label><input type="time" class="form-control" id="editExpenseTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label><textarea name="details" class="form-control" id="editExpenseDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editExpenseCharCount">0</span> / 250</div></div>
                     <div class="mb-3" th:if="${hasFamily}">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="editExpenseShareWithFamily"
-                                   name="shareWithFamily" value="true">
+                            <input type="checkbox" class="form-check-input" id="editExpenseShareWithFamily" name="shareWithFamily" value="true">
                             <label class="form-check-label" for="editExpenseShareWithFamily">
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
@@ -1096,7 +1117,6 @@
                         <div th:replace="~{fragments/family-hint :: notice('transaction')}"></div>
                     </th:block>
                 </div>
-
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
@@ -1121,18 +1141,17 @@
                 <div class="modal-body">
                     <input type="hidden" name="id" id="editIncomeId">
                     <div class="mb-3"><label class="form-label" th:text="#{modal.category}">Категорія</label><select name="categoryId" class="form-select" id="editIncomeCategory" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label><input type="text" name="description" class="form-control" id="editIncomeDescription" required></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label><input type="text" name="buyer" class="form-control" id="editIncomeBuyer"></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label><input type="text" name="seller" class="form-control" id="editIncomeSeller"></div>
+                    <!-- ✅ 3. Додано maxlength="255" -->
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label><input type="text" name="description" class="form-control" id="editIncomeDescription" maxlength="255" required></div>
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label><input type="text" name="buyer" class="form-control" id="editIncomeBuyer" maxlength="100"></div>
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label><input type="text" name="seller" class="form-control" id="editIncomeSeller" maxlength="100"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.amount}">Сума</label><input type="number" step="0.01" name="amount" class="form-control" id="editIncomeAmount" required></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="editIncomeQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label><input type="time" class="form-control" id="editIncomeTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label><textarea name="details" class="form-control" id="editIncomeDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="editIncomeCharCount">0</span> / 250</div></div>
                     <div class="mb-3" th:if="${hasFamily}">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="editIncomeShareWithFamily"
-                                   name="shareWithFamily" value="true">
+                            <input type="checkbox" class="form-check-input" id="editIncomeShareWithFamily" name="shareWithFamily" value="true">
                             <label class="form-check-label" for="editIncomeShareWithFamily">
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
@@ -1183,25 +1202,23 @@
                         </select>
                         <div class="invalid-feedback" th:text="#{modal.enterCategory}">Виберіть категорію</div>
                     </div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label><input type="text" name="description" class="form-control" id="cloneDescription" required></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneBuyer"></div>
-                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label><input type="text" name="seller" class="form-control" id="cloneSeller"></div>
+                    <!-- ✅ 3. Додано maxlength="255" -->
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.name}">Найменування</label><input type="text" name="description" class="form-control" id="cloneDescription" maxlength="255" required></div>
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.buyer}">Покупець</label><input type="text" name="buyer" class="form-control" id="cloneBuyer" maxlength="100"></div>
+                    <div class="mb-3"><label class="form-label" th:text="#{modal.seller}">Продавець</label><input type="text" name="seller" class="form-control" id="cloneSeller" maxlength="100"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.amount}">Сума</label><input type="number" step="0.01" name="amount" class="form-control" id="cloneAmount" required></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.quantity}">Кількість</label><input type="number" step="1" name="quantity" class="form-control" id="cloneQuantity" min="1"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.time}">Час</label><input type="time" class="form-control" id="cloneTime" name="time" step="60"></div>
                     <div class="mb-3"><label class="form-label" th:text="#{modal.details}">Деталі</label><textarea name="details" class="form-control" id="cloneDetails" rows="2" maxlength="250"></textarea><div class="char-counter"><span id="cloneCharCount">0</span> / 250</div></div>
                     <div class="mb-3" th:if="${hasFamily}">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="cloneShareWithFamily"
-                                   name="shareWithFamily" value="true">
+                            <input type="checkbox" class="form-check-input" id="cloneShareWithFamily" name="shareWithFamily" value="true">
                             <label class="form-check-label" for="cloneShareWithFamily">
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
                             </label>
                         </div>
                     </div>
-
                 </div>
                 <div class="modal-footer">
                     <span class="keyboard-hint"><kbd>Ctrl+Enter</kbd> · <kbd>Esc</kbd></span>
@@ -1471,7 +1488,6 @@
                 var searchMatch = (searchText === '') || rowText.includes(searchText);
                 var categoryMatch = (filterCategory === '') || (rowCategory === filterCategory);
 
-                // 5. Логіка фільтру Власні/Спільні
                 var shareMatch = (filterShare === 'all' ||
                     (filterShare === 'shared' && isShared) ||
                     (filterShare === 'own' && !isShared));
@@ -1531,7 +1547,7 @@
             var rowsArray = Array.from(allRows);
             var th = document.querySelector('.sortable[data-sort="' + column + '"]');
             var dataType = th ? th.dataset.type : 'string';
-            var indexMap = { 'time': 2, 'name': 3, 'quantity': 4, 'amount': 5, 'buyer': 6, 'seller': 7, 'category': 9 };
+            var indexMap = { 'time': 2, 'name': 3, 'quantity': 5, 'amount': 6, 'buyer': 7, 'seller': 8, 'category': 10 };
             var idx = indexMap[column];
             if (idx === undefined) return;
             rowsArray.sort(function (a, b) {

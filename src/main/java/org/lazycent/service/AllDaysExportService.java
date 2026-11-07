@@ -33,6 +33,9 @@ public class AllDaysExportService {
     private static final DateTimeFormatter TS_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
+    /**
+     * Експорт усіх днів користувача.
+     */
     public byte[] export(User user, Locale locale) throws IOException {
         List<DayBudget> days = budgetService.getAllBudgetsUnlimited(user);
 
@@ -40,6 +43,13 @@ public class AllDaysExportService {
             log.warn("Excel export: {} days — це може зайняти багато часу й пам'яті", days.size());
         }
 
+        return exportDays(days, locale);
+    }
+
+    /**
+     * Експорт конкретного списку днів (використовується для одного дня).
+     */
+    public byte[] exportDays(List<DayBudget> days, Locale locale) throws IOException {
         try (XSSFWorkbook wb = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
@@ -180,7 +190,7 @@ public class AllDaysExportService {
         sheet.setColumnWidth(6, 16 * 256);
         sheet.setColumnWidth(7, 12 * 256);
 
-        // ✅ FIX: Заголовок(1) + empty(1) + 3 totals(3) + empty(1) + header(1) = 7 рядків
+        // Заголовок(1) + empty(1) + 3 totals(3) + empty(1) + header(1) = 7 рядків
         sheet.createFreezePane(0, 7);
     }
 

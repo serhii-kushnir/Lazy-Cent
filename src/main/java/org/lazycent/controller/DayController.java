@@ -17,6 +17,11 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.lazycent.service.AllDaysExportService;
+import org.springframework.context.i18n.LocaleContextHolder;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
 import java.time.LocalDate;
 
@@ -27,6 +32,29 @@ public class DayController extends BaseController {
 
     private final BudgetService budgetService;
     private final CategoryService categoryService;
+    private final AllDaysExportService allDaysExportService; // Додайте в конструктор (або @RequiredArgsConstructor)
+
+    @GetMapping("/day/{date}/export")
+    public void exportDay(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                          Authentication authentication,
+                          HttpServletResponse response) throws IOException {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        DayBudget dayBudget = budgetService.getOrCreateDayBudget(date, currentUser);
+
+        // Використовуємо існуючий сервіс для експорту, передаючи лише 1 день
+        byte[] xlsx = allDaysExportService.exportDays(List.of(dayBudget), LocaleContextHolder.getLocale());
+
+        String filename = "day-" + date + ".xlsx";
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        response.setContentLength(xlsx.length);
+        response.getOutputStream().write(xlsx);
+    }
 
     // ==================== ДЕНЬ ====================
 
