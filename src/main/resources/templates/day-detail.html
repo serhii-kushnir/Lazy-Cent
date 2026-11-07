@@ -2146,6 +2146,35 @@
             }, 300);
         })();
 
+        // ===== ГАРЯЧІ КЛАВІШІ =====
+        document.addEventListener('keydown', function(e) {
+            // Ігноруємо, якщо фокус у полі вводу
+            const tag = document.activeElement.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement.isContentEditable) {
+                return;
+            }
+            // Ігноруємо, якщо відкрита модалка
+            if (document.querySelector('.modal.show')) {
+                return;
+            }
+
+            // Стрілка Вліво — попередній день
+            if (e.key === 'ArrowLeft') {
+                const prevUrl = /*[[@{/day/{date}(date=${#temporals.format(dayBudget.date.minusDays(1), 'yyyy-MM-dd')})}]]*/ '';
+                if (prevUrl) window.location.href = prevUrl;
+            }
+            // Стрілка Вправо — наступний день
+            else if (e.key === 'ArrowRight') {
+                const nextUrl = /*[[@{/day/{date}(date=${#temporals.format(dayBudget.date.plusDays(1), 'yyyy-MM-dd')})}]]*/ '';
+                if (nextUrl) window.location.href = nextUrl;
+            }
+            // Клавіша 'n' або 'N' — нова транзакція
+            else if (e.key === 'n' || e.key === 'N') {
+                e.preventDefault();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('transactionModal')).show();
+            }
+        });
+
     });
 </script>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
