@@ -207,11 +207,28 @@
         .days-toolbar .filter-group {
             display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem;
         }
-        .days-toolbar .filter-group .form-select-sm,
-        .days-toolbar .filter-group .form-control-sm {
+        .days-toolbar .filter-group .form-select-sm {
             width: auto; min-width: 110px;
             border-radius: 0.5rem; font-size: 0.85rem;
         }
+
+        /* === ВИПРАВЛЕНО: Поля для дат === */
+        .days-toolbar .date-field {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex: 0 1 auto;
+        }
+        .days-toolbar .date-field .date-label {
+            font-size: 0.85rem;
+            color: var(--bs-secondary-color);
+            white-space: nowrap;
+            margin: 0;
+        }
+        .days-toolbar .date-field .form-control {
+            width: auto; min-width: 120px; font-size: 0.85rem;
+        }
+
         .days-toolbar .filter-group .date-sep {
             font-size: 0.8rem; color: var(--bs-secondary-color);
         }
@@ -238,14 +255,32 @@
             .days-toolbar .filter-group {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 0.4rem;
+                gap: 0.6rem;
                 width: 100%;
             }
             .days-toolbar .filter-group > * {
                 width: 100% !important;
                 min-width: 0 !important;
             }
+
+            /* На мобільних підписи "від"/"до" стають НАД полем */
+            .days-toolbar .date-field {
+                display: flex !important;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.15rem;
+            }
+            .days-toolbar .date-field .date-label {
+                font-size: 0.8rem;
+                font-weight: 600;
+            }
+            .days-toolbar .date-field .form-control {
+                width: 100% !important;
+                min-width: 0 !important;
+            }
+
             .days-toolbar .filter-group .date-sep { display: none; }
+
             .days-toolbar .page-size-wrap {
                 width: 100%; justify-content: space-between;
             }
@@ -269,6 +304,8 @@
             padding: 0.55rem 0.4rem;
             border-bottom: 1px solid var(--bs-border-color);
         }
+
+        /* ✅ Шапка залипає ТІЛЬКИ зверху */
         .table-days th {
             background-color: var(--bs-tertiary-bg);
             color: var(--bs-secondary-color);
@@ -318,54 +355,6 @@
         [data-bs-theme="dark"] .text-balance-positive { color: #6ee7b7; }
         [data-bs-theme="dark"] .text-balance-negative { color: #f87171; }
         [data-bs-theme="dark"] .text-starting { color: #adb5bd; }
-
-        /* ===== STICKY COLUMNS (MOBILE) ===== */
-        @media (max-width: 767.98px) {
-            .table-days th.col-number, .table-days td.col-number {
-                position: sticky; left: 0; z-index: 11;
-                background-color: var(--bs-body-bg);
-            }
-            .table-days th.col-number {
-                z-index: 12; background-color: var(--bs-tertiary-bg) !important;
-            }
-            .table-days th.col-date, .table-days td.col-date {
-                position: sticky; left: 48px; z-index: 11;
-                background-color: var(--bs-body-bg);
-            }
-            .table-days th.col-date {
-                z-index: 12; background-color: var(--bs-tertiary-bg) !important;
-            }
-
-            /* Виправлення фону для темної теми */
-            [data-bs-theme="dark"] .table-days td.col-number,
-            [data-bs-theme="dark"] .table-days td.col-date {
-                background-color: #212529;
-            }
-            [data-bs-theme="dark"] .table-days th.col-number,
-            [data-bs-theme="dark"] .table-days th.col-date {
-                background-color: #23262e !important;
-            }
-
-            /* Hover ефект для sticky колонок */
-            .table-days tbody tr:hover > td.col-number,
-            .table-days tbody tr:hover > td.col-date {
-                background-color: #f5f4fb;
-            }
-            [data-bs-theme="dark"] .table-days tbody tr:hover > td.col-number,
-            [data-bs-theme="dark"] .table-days tbody tr:hover > td.col-date {
-                background-color: #24262e;
-            }
-
-            /* Тінь, що відділяє sticky колонки при скролі */
-            .table-days td.col-date::after, .table-days th.col-date::after {
-                content: ''; position: absolute; top: 0; right: -6px; width: 6px; height: 100%;
-                background: linear-gradient(to right, rgba(0,0,0,0.08), transparent); pointer-events: none;
-            }
-            [data-bs-theme="dark"] .table-days td.col-date::after,
-            [data-bs-theme="dark"] .table-days th.col-date::after {
-                background: linear-gradient(to right, rgba(0,0,0,0.3), transparent);
-            }
-        }
 
         /* ===== КАРТКИ ===== */
         .day-card-wrapper { display: flex; }
@@ -630,9 +619,20 @@
                     <option value="Неділя" th:text="#{day.sunday}">Неділя</option>
                 </select>
 
-                <input type="date" id="dateFrom" class="form-control form-control-sm">
-                <span class="date-sep">→</span>
-                <input type="date" id="dateTo" class="form-control form-control-sm">
+                <!-- Date From -->
+                <div class="date-field">
+                    <span class="date-label" th:text="#{common.from}">від</span>
+                    <input type="date" id="dateFrom" class="form-control form-control-sm" aria-label="Від">
+                </div>
+
+                <span class="date-sep d-none d-sm-inline">→</span>
+
+                <!-- Date To -->
+                <div class="date-field">
+                    <span class="date-label" th:text="#{common.to}">до</span>
+                    <input type="date" id="dateTo" class="form-control form-control-sm" aria-label="До">
+                </div>
+
                 <button type="button" class="btn btn-outline-secondary btn-sm"
                         id="clearDateFilter" th:title="#{btn.clear}">
                     <i class="fas fa-times"></i>
