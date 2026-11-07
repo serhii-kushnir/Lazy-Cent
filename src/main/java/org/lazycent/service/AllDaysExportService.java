@@ -56,6 +56,10 @@ public class AllDaysExportService {
     public byte[] export(User user, Locale locale) throws IOException {
         List<DayBudget> days = budgetService.getAllBudgetsUnlimited(user);
 
+        if (days.size() > 5000) {
+            log.warn("Excel export: {} days — це може зайняти багато часу й пам'яті", days.size());
+        }
+
         try (XSSFWorkbook wb = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
@@ -229,7 +233,7 @@ public class AllDaysExportService {
         sheet.setColumnWidth(7, 12 * 256);
 
         // Freeze: заголовок + 3 totals + пуста строка + header таблиці = 6 рядків
-        sheet.createFreezePane(0, 6);
+        sheet.createFreezePane(0, 7);
     }
 
     /**

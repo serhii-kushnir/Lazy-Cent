@@ -7,6 +7,7 @@ import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
 import org.lazycent.repository.UserRepository;
 import org.lazycent.service.CategoryService;
+import org.lazycent.service.TemplateDataService;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
@@ -26,15 +27,14 @@ public class GlobalControllerAdvice {
     private final CategoryService categoryService;
     private final MessageSource messageSource;
     private final UserRepository userRepository;
+    private final TemplateDataService templateDataService;
+
 
     // ==================== ВАЛЮТА ====================
 
     @ModelAttribute("currencySymbol")
     public String getCurrencySymbol() {
-        String code = getPreferredCurrency();
-        return Currency.fromCode(code)
-                .map(Currency::getSymbol)
-                .orElse(Currency.defaultCurrency().getSymbol());
+        return templateDataService.currencySymbol();
     }
 
     @ModelAttribute("preferredCurrency")
@@ -98,20 +98,9 @@ public class GlobalControllerAdvice {
 
     // ==================== ДНІ ТИЖНЯ (ЛОКАЛІЗОВАНІ) ====================
 
-    /**
-     * Мапа: українська назва дня з БД → локалізована назва для поточного locale.
-     */
     @ModelAttribute("dayNames")
     public Map<String, String> populateDayNames() {
-        Map<String, String> map = new HashMap<>();
-        map.put("Понеділок", msg("day.monday"));
-        map.put("Вівторок",  msg("day.tuesday"));
-        map.put("Середа",    msg("day.wednesday"));
-        map.put("Четвер",    msg("day.thursday"));
-        map.put("П'ятниця",  msg("day.friday"));
-        map.put("Субота",    msg("day.saturday"));
-        map.put("Неділя",    msg("day.sunday"));
-        return map;
+        return templateDataService.dayNames();
     }
 
     // ==================== СІМ'Я ====================

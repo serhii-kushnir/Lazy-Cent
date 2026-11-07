@@ -76,7 +76,7 @@ public class NoteApiController extends BaseController {
             // ✅ FIX: створюємо IWebExchange, а потім WebContext
             var application = JakartaServletWebApplication.buildApplication(request.getServletContext());
             var exchange = application.buildExchange(request, response);
-            WebContext webCtx = new WebContext(exchange, request.getLocale());
+            WebContext webCtx = new WebContext(exchange, org.springframework.context.i18n.LocaleContextHolder.getLocale());
 
             List<Note> notes = result.getContent();
             StringBuilder html = new StringBuilder();
@@ -121,7 +121,7 @@ public class NoteApiController extends BaseController {
             // ✅ FIX: створюємо IWebExchange, а потім WebContext
             var application = JakartaServletWebApplication.buildApplication(request.getServletContext());
             var exchange = application.buildExchange(request, response);
-            WebContext webCtx = new WebContext(exchange, request.getLocale());
+            WebContext webCtx = new WebContext(exchange, org.springframework.context.i18n.LocaleContextHolder.getLocale());
 
             webCtx.setVariable("notes", activePage.getContent());
             webCtx.setVariable("archivedNotes", archivedPage.getContent());

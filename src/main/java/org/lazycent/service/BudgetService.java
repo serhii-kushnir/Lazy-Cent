@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import java.util.ArrayList;
 import java.util.Collections;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -38,6 +42,22 @@ public class BudgetService {
             1, "Понеділок", 2, "Вівторок", 3, "Середа", 4, "Четвер",
             5, "П'ятниця", 6, "Субота", 7, "Неділя"
     );
+
+    @Transactional(readOnly = true)
+    public Page<DayBudget> getAllBudgetsPaged(User user, int page, int size) {
+        if (user == null) return Page.empty();
+
+        int pageSize = Math.max(1, Math.min(size, 200));
+        Pageable pageable = PageRequest.of(Math.max(0, page), pageSize);
+
+        Page<LocalDate> datePage = dayBudgetRepository.findRecentDatesPaged(user, pageable);
+        if (datePage.isEmpty()) return Page.empty(pageable);
+
+        List<DayBudget> days = dayBudgetRepository
+                .findByOwnerAndDateInOrderByDateDesc(user, datePage.getContent());
+
+        return new PageImpl<>(days, pageable, datePage.getTotalElements());
+    }
 
     // ==================== ОСНОВНІ МЕТОДИ ====================
 
@@ -129,10 +149,6 @@ public class BudgetService {
 
     // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
-    /**
-     * Перераховує {@code remainingBalance} для одного дня і каскадно
-     * оновлює всі наступні дні.
-     */
     private void updateDayBudgetBalance(DayBudget dayBudget) {
         double totalExpenses = dayBudget.getTotalExpenses();
         double totalIncomes = dayBudget.getTotalIncomes();
@@ -147,21 +163,6 @@ public class BudgetService {
         recalculateBalancesAfter(dayBudget.getDate(), dayBudget.getOwner());
     }
 
-    /**
-     * Перераховує {@code startingBalance} і {@code remainingBalance} для
-     * всіх днів користувача, що йдуть СТРОГО ПІСЛЯ {@code fromDate}.
-     *
-     * <p><b>Семантика {@code fromDate}:</b> це «якір» — день, чий
-     * {@code remainingBalance} уже правильний і НЕ потребує перерахунку.
-     * Метод бере його як початковий баланс для наступних днів.
-     *
-     * <p><b>Особливий випадок:</b> якщо {@code fromDate} не існує в БД
-     * (наприклад, у {@code deleteDay} ми передаємо {@code deletedDate-1},
-     * а видалили найперший день) — початковий баланс = 0.0.
-     *
-     * <p>Метод ідемпотентний: якщо всі баланси вже правильні, нічого
-     * не зміниться (Hibernate не зробить UPDATE, якщо значення ті самі).
-     */
     private void recalculateBalancesAfter(LocalDate fromDate, User user) {
         double previousBalance = dayBudgetRepository
                 .findByDateAndOwner(fromDate, user)
@@ -236,26 +237,6 @@ public class BudgetService {
         return total;
     }
 
-    /**
-     * Повертає останні {@code maxDaysLoaded} днів користувача у
-     * хронологічному порядку (ASC), щоб шаблон не змінювався.
-     *
-     * <p><b>Двоетапна вибірка (P2):</b>
-     * <ol>
-     *   <li>Крок 1 — {@code findRecentDates} вибирає ТІЛЬКИ дати з
-     *       SQL-пагінацією. Hibernate додає {@code LIMIT ? OFFSET ?},
-     *       у пам'ять вантажаться лише {@code maxDaysLoaded} дат.</li>
-     *   <li>Крок 2 — {@code findByOwnerAndDateInOrderByDateAsc}
-     *       завантажує дні з {@code @EntityGraph} за конкретними датами.
-     *       Оскільки це НЕ {@code Pageable}, Hibernate не робить
-     *       in-memory pagination — генерує нормальний {@code JOIN FETCH}.</li>
-     * </ol>
-     *
-     * <p>Раніше був один виклик {@code findByOwnerOrderByDateDesc} без
-     * {@code @EntityGraph}, що давало {@code LazyInitializationException}
-     * у view (див. fix P0). Тепер — обидві проблеми (lazy + in-memory
-     * pagination) вирішені одночасно.
-     */
     @Transactional(readOnly = true)
     public List<DayBudget> getAllBudgets(User user) {
         if (user == null) {
@@ -415,19 +396,6 @@ public class BudgetService {
 
     // ==================== ВИДАЛЕННЯ ДНЯ ====================
 
-    /**
-     * Видаляє день разом з усіма транзакціями та перераховує баланси
-     * для всіх наступних днів.
-     *
-     * <p><b>Чому anchor = {@code deletedDate.minusDays(1)}, а не {@code deletedDate}:</b>
-     * видалений день уже НЕ існує в БД. Його {@code findByDateAndOwner}
-     * поверне {@code empty}, і ми отримаємо {@code previousBalance = 0.0},
-     * що зламає всі наступні баланси. День ПЕРЕД видаленим не чіпали —
-     * його {@code remainingBalance} і є правильний якір.
-     *
-     * <p>Якщо видаляємо найперший день — {@code deletedDate-1} не існує,
-     * тоді {@code previousBalance} коректно дорівнює {@code 0.0}.
-     */
     @Transactional
     public void deleteDay(Long dayBudgetId, User user) {
         DayBudget dayBudget = dayBudgetRepository.findById(dayBudgetId)
@@ -485,23 +453,6 @@ public class BudgetService {
 
     // ==================== ОЧИЩЕННЯ ДАНИХ ====================
 
-    /**
-     * Видаляє всі бюджетні дані користувача.
-     *
-     * <p><b>Порядок і flush критичні:</b>
-     * <ol>
-     *   <li>{@code day_budget} — каскадно видалить {@code expense} і
-     *       {@code income} (бо {@code cascade = ALL, orphanRemoval = true}).
-     *       Але flush ПОТРІБЕН: без нього наступний {@code deleteAll(categories)}
-     *       виконається ДО того, як Hibernate видалить expense/income, і
-     *       FK {@code expense.category_id → category.id} заблокує видалення
-     *       категорій.</li>
-     *   <li>{@code category} — після того, як усі expense/income зникли.</li>
-     *   <li>{@code budget_plans}, {@code category_budget_limits} — FK на
-     *       {@code users}, але не на {@code category}, тому порядок
-     *       з category неважливий.</li>
-     * </ol>
-     */
     @Transactional
     public void clearAllUserData(User user) {
         // 1. Дні бюджету (каскадно видалить expense/income)

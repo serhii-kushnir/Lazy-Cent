@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -39,8 +38,7 @@ public class MailService {
      * його можна ретраїти без побічних ефектів.
      */
     @Async("mailExecutor")
-    public void sendPasswordResetEmail(String to, String token) {
-        Locale locale = LocaleContextHolder.getLocale();
+    public void sendPasswordResetEmail(String to, String token, Locale locale) {
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
@@ -52,6 +50,6 @@ public class MailService {
                 locale));
 
         mailSender.send(message);
-        log.info("Лист для відновлення пароля надіслано на {}", to);
+        log.info("Лист для відновлення пароля надіслано на {} (locale={})", to, locale);
     }
 }

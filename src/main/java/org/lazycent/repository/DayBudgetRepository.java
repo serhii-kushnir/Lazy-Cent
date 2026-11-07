@@ -2,6 +2,7 @@ package org.lazycent.repository;
 
 import org.lazycent.model.DayBudget;
 import org.lazycent.model.User;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -32,6 +33,13 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     })
     Optional<DayBudget> findByDateAndOwner(LocalDate date, User owner);
 
+    /**
+     * Використовується {@code AllDaysExportService} — повна вибірка для Excel.
+     *
+     * <p>⚠️ {@code @EntityGraph} тут генерує декартів добуток при 4+ JOIN FETCH.
+     * При 700+ днях × 5 транзакцій це може дати ~5к рядків SQL. Для експорту
+     * прийнятно (викликається раз на запит), але не для відображення.
+     */
     @EntityGraph(attributePaths = {
             "expenses", "expenses.category",
             "incomes", "incomes.category"
@@ -53,7 +61,8 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     // ==================== ДВОЕТАПНА ВИБІРКА (P2) ====================
 
     /**
-     * КРОК 1: вибирає ТІЛЬКИ дати, з SQL-пагінацією.
+     * КРОК 1 (варіант A — для /home, обмежений список):
+     * вибирає ТІЛЬКИ дати, з SQL-пагінацією.
      *
      * <p>Без {@code @EntityGraph} — тому Hibernate додає
      * {@code LIMIT ? OFFSET ?} в SQL, а не в пам'ять.
@@ -62,7 +71,19 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     List<LocalDate> findRecentDates(@Param("owner") User owner, Pageable pageable);
 
     /**
-     * КРОК 2: завантажує дні з колекціями за конкретним списком дат.
+     * КРОК 1 (варіант B — для /all-days, з реальною пагінацією через {@link Page}).
+     *
+     * <p>Той самий SQL, але з окремим {@code countQuery} — Hibernate виконає
+     * його для {@link Page#getTotalElements()}. Повертає {@link Page} з датами
+     * у DESC-порядку (найновіші першими).
+     */
+    @Query(value = "SELECT b.date FROM DayBudget b WHERE b.owner = :owner ORDER BY b.date DESC",
+           countQuery = "SELECT COUNT(b) FROM DayBudget b WHERE b.owner = :owner")
+    Page<LocalDate> findRecentDatesPaged(@Param("owner") User owner, Pageable pageable);
+
+    /**
+     * КРОК 2 (ASC — для /home та getAllBudgets):
+     * завантажує дні з колекціями за конкретним списком дат.
      *
      * <p>Тут {@code @EntityGraph} вже безпечний — ми НЕ використовуємо
      * {@code Pageable}, тому немає in-memory pagination. Кількість
@@ -73,6 +94,16 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
             "incomes", "incomes.category"
     })
     List<DayBudget> findByOwnerAndDateInOrderByDateAsc(User owner, Collection<LocalDate> dates);
+
+    /**
+     * КРОК 2 (DESC — для /all-days з пагінацією):
+     * те саме, але в DESC-порядку — щоб збігалося з {@link #findRecentDatesPaged}.
+     */
+    @EntityGraph(attributePaths = {
+            "expenses", "expenses.category",
+            "incomes", "incomes.category"
+    })
+    List<DayBudget> findByOwnerAndDateInOrderByDateDesc(User owner, Collection<LocalDate> dates);
 
     // ==================== ІНШІ ====================
 

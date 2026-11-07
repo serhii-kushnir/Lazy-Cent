@@ -89,20 +89,25 @@ public class DayController extends BaseController {
     @PostMapping("/day/delete/{id}")
     public String deleteDay(@PathVariable Long id,
                             Authentication authentication,
-                            RedirectAttributes redirectAttributes) {
+                            RedirectAttributes redirectAttributes,
+                            jakarta.servlet.http.HttpServletRequest request) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
 
         try {
             budgetService.deleteDay(id, currentUser);
-            // FIX: локалізоване повідомлення замість хардкоду
             redirectAttributes.addFlashAttribute("successMessage", msg("toast.day.deleted"));
         } catch (Exception e) {
             log.error("Error deleting day: ", e);
             redirectAttributes.addFlashAttribute("errorMessage",
                     msg("toast.day.deleteError", e.getMessage()));
         }
-        return "redirect:/all-days";
+
+        String target = redirectToReferer(request);
+        if (target == null || target.equals("redirect:/")) {
+            return "redirect:/all-days";
+        }
+        return target;
     }
 
     // ==================== ХЕЛПЕРИ ====================

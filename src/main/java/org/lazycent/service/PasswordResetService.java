@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -41,21 +42,20 @@ public class PasswordResetService {
             return;
         }
 
-        // 1. Видалити попередні токени — і ОДРАЗУ flush, щоб delete
-        //    гарантовано виконався ДО наступного insert.
         tokenRepository.deleteByUserId(user.getId());
         tokenRepository.flush();
 
-        // 2. Створити новий токен
         String token = UUID.randomUUID().toString().replace("-", "");
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
         resetToken.setUser(user);
         tokenRepository.save(resetToken);
 
-        // 3. Подія — listener відпрацює після COMMIT
+        // ✅ Захоплюємо локаль ЗАРАЗ, у request-потоці (LocaleContextHolder тут валідний)
+        Locale locale = LocaleContextHolder.getLocale();
+
         eventPublisher.publishEvent(
-                new PasswordResetRequestedEvent(user.getEmail(), token));
+                new PasswordResetRequestedEvent(user.getEmail(), token, locale));
 
         log.info("Токен відновлення пароля створено для користувача {}", user.getUsername());
     }
