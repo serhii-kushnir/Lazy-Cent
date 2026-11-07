@@ -61,19 +61,18 @@ public class BudgetService {
 
     // ==================== ОСНОВНІ МЕТОДИ ====================
 
-    @Transactional
+    @Transactional(readOnly = true)
     public DayBudget getOrCreateDayBudget(LocalDate date, User user) {
         return dayBudgetRepository.findByDateAndOwner(date, user)
                 .orElseGet(() -> {
+                    // Створюємо об'єкт в пам'яті, але НЕ зберігаємо в БД (без save)
                     DayBudget newBudget = new DayBudget();
                     newBudget.setDate(date);
                     newBudget.setDayName(getDayName(date));
                     newBudget.setStartingBalance(getLastRemainingBalance(date, user));
                     newBudget.setRemainingBalance(0.0);
                     newBudget.setOwner(user);
-                    DayBudget saved = dayBudgetRepository.save(newBudget);
-                    updateDayBudgetBalance(saved);
-                    return saved;
+                    return newBudget;
                 });
     }
 
@@ -93,7 +92,16 @@ public class BudgetService {
     @Transactional
     public void addTransaction(TransactionRequest request, TransactionType type, User user) {
         LocalDate date = request.getDate();
-        DayBudget dayBudget = getOrCreateDayBudget(date, user);
+        DayBudget dayBudget = dayBudgetRepository.findByDateAndOwner(date, user)
+                .orElseGet(() -> {
+                    // Ось тут ми вже реально створюємо день, бо додається транзакція
+                    DayBudget newBudget = new DayBudget();
+                    newBudget.setDate(date);
+                    newBudget.setDayName(getDayName(date));
+                    newBudget.setStartingBalance(getLastRemainingBalance(date, user));
+                    newBudget.setOwner(user);
+                    return dayBudgetRepository.save(newBudget);
+                });
 
         Category category = categoryService.getCategoryByIdAndType(
                 request.getCategoryId(), user, type.name());
