@@ -10,6 +10,7 @@ import org.lazycent.model.User;
 import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.service.BudgetService;
 import org.lazycent.service.CategoryService;
+import org.lazycent.service.DayExportService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -32,7 +33,25 @@ public class DayController extends BaseController {
 
     private final BudgetService budgetService;
     private final CategoryService categoryService;
-    private final AllDaysExportService allDaysExportService; // Додайте в конструктор (або @RequiredArgsConstructor)
+    private final DayExportService dayExportService;
+
+    @PostMapping("/day/{date}/copy-from")
+    public String copyDay(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate sourceDate,
+                          Authentication authentication,
+                          RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        try {
+            budgetService.copyTransactions(sourceDate, date, currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.day.copied"));
+        } catch (Exception e) {
+            log.error("Error copying transactions", e);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/day/" + date;
+    }
 
     @GetMapping("/day/{date}/export")
     public void exportDay(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -46,8 +65,8 @@ public class DayController extends BaseController {
 
         DayBudget dayBudget = budgetService.getOrCreateDayBudget(date, currentUser);
 
-        // Використовуємо існуючий сервіс для експорту, передаючи лише 1 день
-        byte[] xlsx = allDaysExportService.exportDays(List.of(dayBudget), LocaleContextHolder.getLocale());
+        // Використовуємо новий DayExportService
+        byte[] xlsx = dayExportService.export(dayBudget, LocaleContextHolder.getLocale());
 
         String filename = "day-" + date + ".xlsx";
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

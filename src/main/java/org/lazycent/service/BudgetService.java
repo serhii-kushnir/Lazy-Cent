@@ -43,6 +43,57 @@ public class BudgetService {
             5, "П'ятниця", 6, "Субота", 7, "Неділя"
     );
 
+    @Transactional
+    public void copyTransactions(LocalDate sourceDate, LocalDate targetDate, User user) {
+        DayBudget source = dayBudgetRepository.findByDateAndOwner(sourceDate, user).orElse(null);
+        if (source == null || (source.getExpenses().isEmpty() && source.getIncomes().isEmpty())) {
+            return;
+        }
+
+        DayBudget target = dayBudgetRepository.findByDateAndOwner(targetDate, user)
+                .orElseGet(() -> {
+                    DayBudget b = new DayBudget();
+                    b.setDate(targetDate);
+                    b.setDayName(getDayName(targetDate));
+                    b.setStartingBalance(getLastRemainingBalance(targetDate, user));
+                    b.setOwner(user);
+                    return dayBudgetRepository.save(b);
+                });
+
+        for (Expense e : source.getExpenses()) {
+            Expense copy = new Expense();
+            copy.setDayBudget(target);
+            copy.setCategory(e.getCategory());
+            copy.setDescription(e.getDescription());
+            copy.setAmount(e.getAmount());
+            copy.setQuantity(e.getQuantity());
+            copy.setDetails(e.getDetails());
+            copy.setShareWithFamily(e.getShareWithFamily());
+            copy.setTime(e.getTime());
+            copy.setBuyer(e.getBuyer());
+            copy.setSeller(e.getSeller());
+            target.getExpenses().add(copy);
+        }
+
+        for (Income i : source.getIncomes()) {
+            Income copy = new Income();
+            copy.setDayBudget(target);
+            copy.setCategory(i.getCategory());
+            copy.setDescription(i.getDescription());
+            copy.setAmount(i.getAmount());
+            copy.setQuantity(i.getQuantity());
+            copy.setDetails(i.getDetails());
+            copy.setShareWithFamily(i.getShareWithFamily());
+            copy.setTime(i.getTime());
+            copy.setBuyer(i.getBuyer());
+            copy.setSeller(i.getSeller());
+            target.getIncomes().add(copy);
+        }
+
+        dayBudgetRepository.save(target);
+        updateDayBudgetBalance(target);
+    }
+
     @Transactional(readOnly = true)
     public Page<DayBudget> getAllBudgetsPaged(User user, int page, int size) {
         if (user == null) return Page.empty();
