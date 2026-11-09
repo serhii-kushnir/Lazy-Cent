@@ -1,5 +1,6 @@
 package org.lazycent.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.lazycent.model.dto.BudgetDashboardDto;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.service.BudgetExportService;
 import org.lazycent.service.BudgetPlanningService;
+import org.lazycent.service.BudgetService;
 import org.lazycent.service.CategoryService;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
@@ -35,6 +37,27 @@ public class BudgetController extends BaseController {
     private final CategoryService categoryService;
     private final DayBudgetRepository dayBudgetRepository;
     private final BudgetExportService budgetExportService;
+    private final BudgetService budgetService;
+
+    @PostMapping("/day/{id}/starting-balance")
+    public String updateStartingBalance(@PathVariable Long id,
+                                        @RequestParam Double amount,
+                                        Authentication authentication,
+                                        RedirectAttributes redirectAttributes,
+                                        HttpServletRequest request) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
+
+        try {
+            budgetService.updateStartingBalance(id, amount, currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", msg("toast.day.balanceUpdated"));
+        } catch (Exception e) {
+            log.error("Помилка оновлення початкового балансу: ", e);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return redirectToReferer(request);
+    }
 
     // ===================== EXPENSE BUDGET =====================
 

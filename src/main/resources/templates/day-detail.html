@@ -47,6 +47,14 @@
             background-color: #1d2027;
             border: 1px solid #2a2e37;
         }
+        .clickable-card {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .clickable-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
 
         /* ===== КОНТЕЙНЕР ===== */
         .days-section {
@@ -307,6 +315,25 @@
         .empty-state { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-state i { font-size: 4rem; opacity: 0.25; }
 
+        /* ФІКС ДЛЯ МОБІЛЬНОЇ ТАБЛИЦІ */
+        .mobile-sticky-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 15px;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 991.98px) {
+            .mobile-sticky-empty-state {
+                position: sticky;
+                left: 0;
+                width: 100vw;
+                max-width: 100%;
+            }
+        }
+
         /* ===== МОДАЛКИ ===== */
         .modal-dialog-centered { align-items: flex-start !important; }
         .modal-dialog-centered .modal-content { margin-top: 1.75rem; }
@@ -539,53 +566,47 @@
         <!-- Desktop -->
         <div class="d-none d-lg-flex align-items-center justify-content-between gap-3 flex-wrap">
 
-            <!-- Left: prev + title + next + today -->
+            <!-- Left: prev + date picker + next -->
             <div class="d-flex align-items-center gap-2">
                 <a th:href="@{/day/{date}(date=${#temporals.format(dayBudget.date.minusDays(1), 'yyyy-MM-dd')})}"
                    class="btn btn-outline-secondary btn-sm" title="Попередній день">
                     <i class="fas fa-chevron-left"></i>
                 </a>
-                <h2 class="mb-0 fw-bold text-nowrap">
-                    <i class="fas fa-calendar-day me-2 text-primary"></i>
-                    <span th:text="(${dayNames[dayBudget.dayName]} ?: ${dayBudget.dayName}) + ', ' + ${#temporals.format(dayBudget.date, 'dd.MM.yyyy')}"></span>
-                </h2>
+
+                <!-- Календар (з рамкою) -->
+                <input type="date"
+                       class="form-control form-control-lg fw-bold text-primary border border-2 border-primary-subtle shadow-sm px-3"
+                       style="width: auto; font-size: 1.25rem; background: var(--bs-card-bg); cursor: pointer; border-radius: 0.75rem;"
+                       th:value="${dayBudget.date}"
+                       onchange="window.location.href='/day/' + this.value">
+
                 <a th:href="@{/day/{date}(date=${#temporals.format(dayBudget.date.plusDays(1), 'yyyy-MM-dd')})}"
                    class="btn btn-outline-secondary btn-sm" title="Наступний день">
                     <i class="fas fa-chevron-right"></i>
                 </a>
-                <a th:href="@{/day/{date}(date=${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')})}"
-                   class="btn btn-outline-primary btn-sm ms-2" th:title="#{budget.today}">
-                    <i class="fas fa-calendar-day me-1"></i>
-                    <span th:text="#{budget.today}">Сьогодні</span>
-                </a>
             </div>
 
-            <!-- Right: actions -->
+            <!-- Right: actions (новий порядок) -->
             <div class="d-flex gap-2 no-print flex-wrap justify-content-lg-end align-items-center">
-
-                <!-- Кнопка Додати -->
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal">
-                    <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати</span>
-                </button>
-
-                <!-- Вибір дати -->
-                <input type="date" class="form-control" style="width: 150px;"
-                       th:value="${dayBudget.date}"
-                       onchange="window.location.href='/day/' + this.value">
-
-                <div class="vr mx-1 d-none d-xl-block" style="height: 24px; align-self: center;"></div>
 
                 <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#copyDayModal">
                     <i class="fas fa-copy me-1"></i> <span th:text="#{btn.duplicate}">Дублювати</span>
                 </button>
-                <a th:href="@{/family/shared}" class="btn btn-info text-white">
-                    <i class="fas fa-users me-1"></i> <span th:text="#{family.shared.title}">Спільні</span>
-                </a>
                 <a th:href="@{'/day/' + ${dayBudget.date} + '/export'}" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{btn.export}">Експорт</span>
                 </a>
                 <button class="btn btn-warning" onclick="window.print()">
                     <i class="fas fa-print me-1"></i> <span th:text="#{btn.print}">Друк</span>
+                </button>
+
+                <div class="vr mx-1 d-none d-xl-block" style="height: 24px; align-self: center;"></div>
+
+                <a th:href="@{/family/shared}" class="btn btn-info text-white">
+                    <i class="fas fa-users me-1"></i> <span th:text="#{family.shared.title}">Спільні транзакції</span>
+                </a>
+
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal">
+                    <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати</span>
                 </button>
             </div>
         </div>
@@ -593,50 +614,51 @@
         <!-- Mobile -->
         <div class="d-lg-none">
 
-            <!-- Row: prev + title + next -->
+            <!-- Row: prev + date picker + next + today -->
             <div class="d-flex align-items-center gap-2 mb-3">
                 <a th:href="@{/day/{date}(date=${#temporals.format(dayBudget.date.minusDays(1), 'yyyy-MM-dd')})}"
                    class="btn btn-outline-secondary btn-sm flex-shrink-0">
                     <i class="fas fa-chevron-left"></i>
                 </a>
-                <h2 class="mb-0 fw-bold text-center flex-grow-1" style="font-size: 1.05rem;">
-                    <i class="fas fa-calendar-day me-1 text-primary"></i>
-                    <span th:text="(${dayNames[dayBudget.dayName]} ?: ${dayBudget.dayName}) + ', ' + ${#temporals.format(dayBudget.date, 'dd.MM.yyyy')}"></span>
-                </h2>
+
+                <!-- Календар (з рамкою) -->
+                <input type="date"
+                       class="form-control text-center fw-bold text-primary border border-2 border-primary-subtle shadow-sm px-2 flex-grow-1"
+                       style="font-size: 1rem; background: var(--bs-card-bg); cursor: pointer; border-radius: 0.5rem; height: 38px;"
+                       th:value="${dayBudget.date}"
+                       onchange="window.location.href='/day/' + this.value">
+
                 <a th:href="@{/day/{date}(date=${#temporals.format(dayBudget.date.plusDays(1), 'yyyy-MM-dd')})}"
                    class="btn btn-outline-secondary btn-sm flex-shrink-0">
                     <i class="fas fa-chevron-right"></i>
                 </a>
+
+                <!-- Кнопка "Сьогодні" для мобільної версії -->
+                <a th:href="@{/day/{date}(date=${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')})}"
+                   class="btn btn-outline-primary btn-sm flex-shrink-0"
+                   th:title="#{budget.today}">
+                    <i class="fas fa-calendar-day"></i>
+                </a>
             </div>
 
-            <!-- Today -->
-            <a th:href="@{/day/{date}(date=${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')})}"
-               class="btn btn-outline-primary btn-sm w-100 mb-2 no-print">
-                <i class="fas fa-calendar-day me-1"></i>
-                <span th:text="#{budget.today}">Сьогодні</span>
-            </a>
-
-            <!-- Actions -->
+            <!-- Actions (новий порядок) -->
             <div class="d-grid gap-2 mb-2 no-print">
-                <!-- Кнопка Додати -->
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal">
-                    <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати</span>
-                </button>
-
-                <!-- Вибір дати -->
-                <input type="date" class="form-control"
-                       th:value="${dayBudget.date}"
-                       onchange="window.location.href='/day/' + this.value">
-
                 <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#copyDayModal">
                     <i class="fas fa-copy me-1"></i> <span th:text="#{btn.duplicate}">Дублювати</span>
                 </button>
-                <a th:href="@{/family/shared}" class="btn btn-info text-white">
-                    <i class="fas fa-users me-1"></i> <span th:text="#{family.shared.title}">Спільні</span>
-                </a>
                 <a th:href="@{'/day/' + ${dayBudget.date} + '/export'}" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{btn.export}">Експорт</span>
                 </a>
+
+                <hr class="my-1">
+
+                <a th:href="@{/family/shared}" class="btn btn-info text-white">
+                    <i class="fas fa-users me-1"></i> <span th:text="#{family.shared.title}">Спільні транзакції</span>
+                </a>
+
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#transactionModal">
+                    <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати</span>
+                </button>
             </div>
         </div>
     </div>
@@ -644,7 +666,7 @@
     <!-- ========== BALANCE CARDS ========== -->
     <div class="row g-3 mb-4 stats-animated">
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card">
+            <div class="stat-card clickable-card" data-bs-toggle="modal" data-bs-target="#editStartingBalanceModal" title="Натисніть, щоб скоригувати">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center gap-3">
                         <div class="icon-circle bg-secondary-subtle text-secondary"><i class="fas fa-flag-checkered"></i></div>
@@ -652,6 +674,7 @@
                             <h6 class="text-muted mb-0" th:text="#{day.startingBalance}">Початковий баланс</h6>
                             <h3 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(dayBudget.startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0.00 ₴</h3>
                         </div>
+                        <i class="fas fa-pencil-alt text-muted opacity-50"></i>
                     </div>
                 </div>
             </div>
@@ -792,7 +815,7 @@
                     </thead>
                     <tbody id="transactionsBody">
                     <!-- Витрати -->
-                    <tr th:each="expense : ${dayBudget.expenses}" class="transaction-row" data-type="expense" th:data-id="${expense.id}" th:data-shared="${expense.shareWithFamily ?: false}">
+                    <tr th:each="expense : ${dayBudget.expenses}" class="transaction-row" data-type="expense" th:data-id="${expense.id}" th:data-shared="${expense.shareWithFamily ?: false}" th:data-amount="${expense.amount}" th:data-category="${expense.category.name}">
                         <td class="col-num"></td>
                         <td class="col-type"><span class="type-text expense" th:text="#{type.EXPENSE}">Витрата</span></td>
                         <td class="col-center"><span th:if="${expense.time != null}" th:text="${#temporals.format(expense.time, 'HH:mm')}"></span><span th:unless="${expense.time != null}" class="text-muted">—</span></td>
@@ -828,7 +851,7 @@
                         </td>
                     </tr>
                     <!-- Доходи -->
-                    <tr th:each="income : ${dayBudget.incomes}" class="transaction-row" data-type="income" th:data-id="${income.id}" th:data-shared="${income.shareWithFamily ?: false}">
+                    <tr th:each="income : ${dayBudget.incomes}" class="transaction-row" data-type="income" th:data-id="${income.id}" th:data-shared="${income.shareWithFamily ?: false}" th:data-amount="${income.amount}" th:data-category="${income.category.name}">
                         <td class="col-num"></td>
                         <td class="col-type"><span class="type-text income" th:text="#{type.INCOME}">Дохід</span></td>
                         <td class="col-center"><span th:if="${income.time != null}" th:text="${#temporals.format(income.time, 'HH:mm')}"></span><span th:unless="${income.time != null}" class="text-muted">—</span></td>
@@ -866,16 +889,26 @@
 
                     <!-- КРАСИВИЙ ПОРОЖНІЙ СТАН (ТАБЛИЦЯ) -->
                     <tr th:if="${dayBudget.expenses.empty and dayBudget.incomes.empty}" id="emptyRow">
-                        <td colspan="12" class="text-center py-5">
-                            <div class="d-flex flex-column align-items-center justify-content-center">
+                        <td colspan="12" class="p-0 border-0">
+                            <div class="mobile-sticky-empty-state">
                                 <div class="bg-primary-subtle text-primary rounded-circle mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2.5rem;">
                                     <i class="fas fa-receipt"></i>
                                 </div>
-                                <h4 class="fw-bold text-body mb-2" th:text="#{day.noTransactions}">Немає транзакцій за цей день</h4>
-                                <p class="text-muted mb-4" style="max-width: 400px;">Додайте свою першу витрату або дохід, щоб почати вести облік за цей день.</p>
-                                <button class="btn btn-primary btn-lg rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#transactionModal">
-                                    <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати транзакцію</span>
-                                </button>
+                                <h4 class="fw-bold text-body mb-2 text-center" th:text="#{day.noTransactions}">Немає транзакцій за цей день</h4>
+                                <p class="text-muted mb-4 text-center" style="max-width: 400px;">Додайте свою першу витрату або дохід, щоб почати вести облік за цей день.</p>
+
+                                <div class="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-center" style="max-width: 450px;">
+                                    <button class="btn btn-primary btn-lg rounded-pill px-4 w-100 w-sm-auto" data-bs-toggle="modal" data-bs-target="#transactionModal">
+                                        <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати транзакцію</span>
+                                    </button>
+                                    <form th:action="@{'/day/' + ${dayBudget.date} + '/copy-from'}" method="post" class="w-100 w-sm-auto m-0">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="sourceDate" th:value="${#temporals.format(dayBudget.date.minusDays(1), 'yyyy-MM-dd')}">
+                                        <button type="submit" class="btn btn-outline-secondary btn-lg rounded-pill px-4 w-100">
+                                            <i class="fas fa-copy me-1"></i> Скопіювати за вчора
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -895,11 +928,21 @@
                             <div class="bg-primary-subtle text-primary rounded-circle mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2.5rem;">
                                 <i class="fas fa-receipt"></i>
                             </div>
-                            <h4 class="fw-bold text-body mb-2" th:text="#{day.noTransactions}">Немає транзакцій за цей день</h4>
-                            <p class="text-muted mb-4" style="max-width: 400px;">Додайте свою першу витрату або дохід, щоб почати вести облік за цей день.</p>
-                            <button class="btn btn-primary btn-lg rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#transactionModal">
-                                <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати транзакцію</span>
-                            </button>
+                            <h4 class="fw-bold text-body mb-2 text-center" th:text="#{day.noTransactions}">Немає транзакцій за цей день</h4>
+                            <p class="text-muted mb-4 text-center" style="max-width: 400px;">Додайте свою першу витрату або дохід, щоб почати вести облік за цей день.</p>
+
+                            <div class="d-flex flex-column flex-sm-row gap-2 w-100 justify-content-center" style="max-width: 450px;">
+                                <button class="btn btn-primary btn-lg rounded-pill px-4 w-100 w-sm-auto" data-bs-toggle="modal" data-bs-target="#transactionModal">
+                                    <i class="fas fa-plus me-1"></i> <span th:text="#{btn.add}">Додати транзакцію</span>
+                                </button>
+                                <form th:action="@{'/day/' + ${dayBudget.date} + '/copy-from'}" method="post" class="w-100 w-sm-auto m-0">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="sourceDate" th:value="${#temporals.format(dayBudget.date.minusDays(1), 'yyyy-MM-dd')}">
+                                    <button type="submit" class="btn btn-outline-secondary btn-lg rounded-pill px-4 w-100">
+                                        <i class="fas fa-copy me-1"></i> Скопіювати за вчора
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -1110,6 +1153,41 @@
 
 <!-- ===== МОДАЛЬНІ ВІКНА ===== -->
 
+<!-- Модалка редагування початкового балансу -->
+<div class="modal fade no-print" id="editStartingBalanceModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header bg-secondary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title"><i class="fas fa-flag-checkered me-2"></i><span th:text="#{day.editStartingBalance}">Коригувати початковий баланс</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{'/day/' + ${dayBudget.id} + '/starting-balance'}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Зміна цього значення автоматично перерахує залишок на цей день та всі наступні дні.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <span th:text="#{day.startingBalance}">Початковий баланс</span>
+                            (<span th:text="${currencySymbol}">₴</span>)
+                        </label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                            <input type="number" lang="en" step="0.01" class="form-control" name="amount"
+                                   th:value="${dayBudget.startingBalance}" inputmode="decimal"
+                                   onkeydown="if(['e','E','+'].includes(event.key)) event.preventDefault()"
+                                   required autofocus>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                    <button type="submit" class="btn btn-secondary px-4" th:text="#{btn.save}">Зберегти</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Додавання транзакції -->
 <div class="modal fade no-print" id="transactionModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -1170,7 +1248,6 @@
                         <label for="transactionAmount" class="form-label"><span th:text="#{modal.amount}">Сума</span> (<span th:text="${currencySymbol}">₴</span>)</label>
                         <div class="input-group-number">
                             <button type="button" class="btn btn-outline-secondary" id="amountMinus">-</button>
-                            <!-- ДОДАНО lang="en" -->
                             <input type="number" lang="en" step="0.01" class="form-control" id="transactionAmount" name="amount" th:placeholder="#{modal.amountPlaceholder}" value="0.00" required>
                             <button type="button" class="btn btn-outline-secondary" id="amountPlus">+</button>
                         </div>
@@ -1652,14 +1729,12 @@
                 loadMoreBtn.disabled = true;
                 loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
                 visibleInfo.textContent = fmt(i18n.showing, total, total);
-                // Прибираємо анімацію при повному завантаженні
                 updateCards(visibleRows);
                 return;
             }
 
             var shown = Math.min(currentPage * pageSize, total);
             var rowsToShow = visibleRows.slice(0, shown);
-
             for (var i = 0; i < shown; i++) {
                 if (visibleRows[i]) {
                     visibleRows[i].style.display = '';
@@ -1667,7 +1742,6 @@
                     if (numCell) numCell.textContent = i + 1;
                 }
             }
-
             var allShown = (shown >= total);
             loadMoreBtn.disabled = allShown;
             loadMoreBtn.innerHTML = allShown
@@ -1675,7 +1749,6 @@
                 : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
             visibleInfo.textContent = fmt(i18n.showing, shown, total);
 
-            // Анімуємо ТІЛЬКИ нові рядки, якщо це завантаження через пагінацію
             if (isLoadingMore) {
                 var startIdx = (currentPage - 1) * pageSize;
                 var newRows = rowsToShow.slice(startIdx);
@@ -1708,7 +1781,7 @@
         function applyFiltersAndLoad() {
             visibleRows = getFilteredRows();
             currentPage = 1;
-            updateUI();
+            updateUI(false);
             saveFilters();
             noResults.style.display = visibleRows.length === 0 ? 'block' : 'none';
         }
@@ -1719,7 +1792,7 @@
             var shown = Math.min(currentPage * pageSize, total);
             if (shown >= total) { loadMoreBtn.disabled = true; return; }
             currentPage++;
-            updateUI(true); // <--- ДОДАНО true
+            updateUI(true);
         }
 
         searchInput.addEventListener('input', function () {
@@ -1906,11 +1979,10 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
 
-                    // Перевірка на помилку валідації з сервера
                     const errorMatch = html.match(/const errorMessage\s*=\s*["']([^"']+)["']/);
                     if (errorMatch && errorMatch[1] && errorMatch[1] !== 'null') {
                         showToast(errorMatch[1], 'error');
-                        return; // Не закриваємо модалку, якщо є помилка
+                        return;
                     }
 
                     const newStats = doc.querySelector('.stats-animated');
@@ -1955,7 +2027,6 @@
         document.addEventListener('submit', function(e) {
             const form = e.target;
 
-            // Примусова перевірка суми
             if (form.id === 'transactionForm') {
                 const amountInput = document.getElementById('transactionAmount');
                 const val = parseFloat(amountInput.value);
@@ -1967,7 +2038,6 @@
                 }
             }
 
-            // Якщо попередні скрипти вже скасували відправку - виходимо
             if (e.defaultPrevented) return;
 
             const ajaxForms = ['transactionForm', 'editExpenseForm', 'editIncomeForm', 'cloneForm', 'deleteForm', 'copyDayForm'];
@@ -2148,28 +2218,17 @@
 
         // ===== ГАРЯЧІ КЛАВІШІ =====
         document.addEventListener('keydown', function(e) {
-            // Ігноруємо, якщо фокус у полі вводу
             const tag = document.activeElement.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement.isContentEditable) {
-                return;
-            }
-            // Ігноруємо, якщо відкрита модалка
-            if (document.querySelector('.modal.show')) {
-                return;
-            }
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement.isContentEditable) return;
+            if (document.querySelector('.modal.show')) return;
 
-            // Стрілка Вліво — попередній день
             if (e.key === 'ArrowLeft') {
                 const prevUrl = /*[[@{/day/{date}(date=${#temporals.format(dayBudget.date.minusDays(1), 'yyyy-MM-dd')})}]]*/ '';
                 if (prevUrl) window.location.href = prevUrl;
-            }
-            // Стрілка Вправо — наступний день
-            else if (e.key === 'ArrowRight') {
+            } else if (e.key === 'ArrowRight') {
                 const nextUrl = /*[[@{/day/{date}(date=${#temporals.format(dayBudget.date.plusDays(1), 'yyyy-MM-dd')})}]]*/ '';
                 if (nextUrl) window.location.href = nextUrl;
-            }
-            // Клавіша 'n' або 'N' — нова транзакція
-            else if (e.key === 'n' || e.key === 'N') {
+            } else if (e.key === 'n' || e.key === 'N') {
                 e.preventDefault();
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('transactionModal')).show();
             }

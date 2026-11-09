@@ -471,6 +471,30 @@ public class BudgetService {
         recalculateBalancesAfter(deletedDate.minusDays(1), user);
     }
 
+    @Transactional
+    public void updateStartingBalance(Long dayBudgetId, Double newBalance, User user) {
+        DayBudget day = dayBudgetRepository.findById(dayBudgetId)
+                .orElseThrow(() -> new EntityNotFoundException("День", dayBudgetId));
+        if (!day.getOwner().equals(user)) {
+            throw new AccessDeniedException("Цей день не належить вам");
+        }
+
+        day.setStartingBalance(newBalance);
+
+        // Перераховуємо баланс поточного дня
+        double totalExpenses = day.getTotalExpenses();
+        double totalIncomes = day.getTotalIncomes();
+        day.setRemainingBalance(newBalance + totalIncomes - totalExpenses);
+
+        dayBudgetRepository.save(day);
+
+        // Перераховуємо всі наступні дні
+        recalculateBalancesAfter(day.getDate(), user);
+
+        log.info("Оновлено початковий баланс для дня {} користувача {} на суму {}",
+                day.getDate(), user.getUsername(), newBalance);
+    }
+
     // ==================== ПІДСУМКИ ====================
 
     public TotalBudget getTodaySummary(User user) {
