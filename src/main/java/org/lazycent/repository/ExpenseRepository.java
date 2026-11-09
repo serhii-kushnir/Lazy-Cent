@@ -115,4 +115,16 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
 
+    /**
+     * Сума витрат за всі дні СТРОГО ДО {@code date} (не включаючи сам день).
+     * Для обчислення накопиченого балансу.
+     */
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+            "WHERE e.dayBudget.owner = :user AND e.dayBudget.date < :date")
+    Double sumExpensesBefore(@Param("user") User user, @Param("date") LocalDate date);
+
+    @Query("SELECT COALESCE(SUM(e.amount), 0) FROM Expense e " +
+            "WHERE e.dayBudget.owner = :user AND e.dayBudget.date <= :date")
+    Double sumExpensesUpTo(@Param("user") User user, @Param("date") LocalDate date);
+
 }

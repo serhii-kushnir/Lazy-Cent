@@ -118,4 +118,43 @@ public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
     Optional<DayBudget> findFirstByOwnerAndDateBeforeOrderByDateDesc(User owner, LocalDate date);
 
     long countByOwner(User owner);
+
+    /**
+     * Останній день до {@code date}, де користувач ВСТАНОВИВ startingBalance вручну.
+     * Це "anchor" — від нього рахуємо баланс.
+     */
+    @Query("SELECT b FROM DayBudget b " +
+            "WHERE b.owner = :user AND b.date < :date " +
+            "AND b.startingBalance IS NOT NULL " +
+            "ORDER BY b.date DESC")
+    List<DayBudget> findAnchorsBefore(@Param("user") User user,
+                                      @Param("date") LocalDate date,
+                                      Pageable pageable);
+
+    /**
+     * Повертає агреговані суми доходів/витрат по днях за період.
+     *
+     * <p><b>Навіщо:</b> для стратегії COMPUTED — щоб обчислити
+     * {@code remainingBalance} для всіх днів одним запитом замість N.
+     *
+     * <p><b>Формат результату:</b> кожен елемент масиву — це
+     * {@code [LocalDate date, Double incomeSum, Double expenseSum]}.
+     *
+     * <p><b>Чому {@code List<Object[]>}, а не DTO:</b> JPQL не підтримує
+     * конструктор для aggregate-проекції без окремого класу. Можна додати
+     * {@code DailyDeltaDto}, але для одного методу — зайве.
+     */
+    @Query("SELECT b.date, " +
+            "COALESCE(SUM(i.amount), 0.0), " +
+            "COALESCE(SUM(e.amount), 0.0) " +
+            "FROM DayBudget b " +
+            "LEFT JOIN b.incomes i " +
+            "LEFT JOIN b.expenses e " +
+            "WHERE b.owner = :user AND b.date BETWEEN :start AND :end " +
+            "GROUP BY b.date " +
+            "ORDER BY b.date ASC")
+    List<Object[]> sumDailyDeltas(@Param("user") User user,
+                                  @Param("start") LocalDate start,
+                                  @Param("end") LocalDate end);
+
 }

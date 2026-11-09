@@ -112,4 +112,12 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             @Param("familyId") Long familyId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
+
+    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i " +
+            "WHERE i.dayBudget.owner = :user AND i.dayBudget.date < :date")
+    Double sumIncomesBefore(@Param("user") User user, @Param("date") LocalDate date);
+
+    @Query("SELECT COALESCE(SUM(i.amount), 0) FROM Income i " +
+            "WHERE i.dayBudget.owner = :user AND i.dayBudget.date <= :date")
+    Double sumIncomesUpTo(@Param("user") User user, @Param("date") LocalDate date);
 }

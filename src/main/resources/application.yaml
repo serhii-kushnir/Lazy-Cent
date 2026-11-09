@@ -98,6 +98,8 @@ app:
   url: ${APP_URL:http://localhost:8080}
   days:
     max-loaded: ${DAYS_MAX_LOADED:180}
+  balance:
+    strategy: COMPUTED
   demo:
     # Дефолт false — щоб випадковий деплой без DEMO_ENABLED не створив
     # юзера demo/demo. У application-test.yaml теж false.
