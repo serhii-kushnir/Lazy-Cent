@@ -22,21 +22,9 @@ public class MailService {
     @Value("${spring.mail.from}")
     private String fromEmail;
 
-    @Value("${app.url:http://localhost:8081}")
+    @Value("${app.url:http://localhost:8080}")
     private String appUrl;
 
-    /**
-     * Надсилає лист для відновлення пароля у фоновому потоці.
-     *
-     * <p><b>Чому без try-catch:</b> метод {@code @Async} — виняток у
-     * ньому не потрапляє до користувача (HTTP-відповідь уже пішла).
-     * Ловити його тут безглуздо; замість цього
-     * {@code AsyncConfig.getAsyncUncaughtExceptionHandler()} залогує
-     * його з класом і методом, а в майбутньому — інкрементує метрику.
-     *
-     * <p>Метод ідемпотентний за призначенням (надсилання листа), тож
-     * його можна ретраїти без побічних ефектів.
-     */
     @Async("mailExecutor")
     public void sendPasswordResetEmail(String to, String token, Locale locale) {
 
@@ -46,10 +34,21 @@ public class MailService {
         message.setSubject(messageSource.getMessage("mail.passwordReset.subject", null, locale));
         message.setText(messageSource.getMessage(
                 "mail.passwordReset.body",
-                new Object[]{ appUrl, token },
+                new Object[]{ normalizedAppUrl(), token },
                 locale));
 
         mailSender.send(message);
         log.info("Лист для відновлення пароля надіслано на {} (locale={})", to, locale);
+    }
+
+    private String normalizedAppUrl() {
+        if (appUrl == null || appUrl.isEmpty()) {
+            return "";
+        }
+        int end = appUrl.length();
+        while (end > 0 && appUrl.charAt(end - 1) == '/') {
+            end--;
+        }
+        return appUrl.substring(0, end);
     }
 }

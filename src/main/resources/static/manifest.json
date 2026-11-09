@@ -1,12 +1,16 @@
 {
+  "id": "/app",
   "name": "Lazy Cent — Фінансовий помічник",
   "short_name": "Lazy Cent",
   "description": "Простий спосіб відстежувати витрати, планувати бюджет і досягати фінансових цілей.",
   "start_url": "/home",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#14161a",
   "theme_color": "#0d6efd",
   "orientation": "portrait-primary",
+  "lang": "uk",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/img/icons/icon-192x192.png",
