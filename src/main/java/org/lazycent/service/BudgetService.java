@@ -6,25 +6,23 @@ import org.lazycent.exception.EntityNotFoundException;
 import org.lazycent.model.*;
 import org.lazycent.model.dto.TransactionRequest;
 import org.lazycent.repository.*;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -42,26 +40,10 @@ public class BudgetService {
     @Value("${app.days.max-loaded:180}")
     private int maxDaysLoaded;
 
-    @Value("${app.balance.strategy:STORED}")
-    private String balanceStrategy;
-
     private static final Map<Integer, String> DAY_NAMES = Map.of(
-            1, "Понеділок",
-            2, "Вівторок",
-            3, "Середа",
-            4, "Четвер",
-            5, "П'ятниця",
-            6, "Субота",
-            7, "Неділя"
+            1, "Понеділок", 2, "Вівторок", 3, "Середа", 4, "Четвер",
+            5, "П'ятниця", 6, "Субота", 7, "Неділя"
     );
-
-    // ==================== СТРАТЕГІЯ ====================
-
-    private boolean isComputedStrategy() {
-        return "COMPUTED".equalsIgnoreCase(balanceStrategy);
-    }
-
-    // ==================== КОПІЮВАННЯ ====================
 
     @Transactional
     public void copyTransactions(LocalDate sourceDate, LocalDate targetDate, User user) {
@@ -114,90 +96,39 @@ public class BudgetService {
         updateDayBudgetBalance(target);
     }
 
-    // ==================== ПАГІНАЦІЯ ====================
-
     @Transactional(readOnly = true)
     public Page<DayBudget> getAllBudgetsPaged(User user, int page, int size) {
-        if (user == null) {
-            return Page.empty();
-        }
+        if (user == null) return Page.empty();
 
         int pageSize = Math.max(1, Math.min(size, 200));
         Pageable pageable = PageRequest.of(Math.max(0, page), pageSize);
 
         Page<LocalDate> datePage = dayBudgetRepository.findRecentDatesPaged(user, pageable);
-        if (datePage.isEmpty()) {
-            return Page.empty(pageable);
-        }
+        if (datePage.isEmpty()) return Page.empty(pageable);
 
         List<DayBudget> days = dayBudgetRepository
                 .findByOwnerAndDateInOrderByDateDesc(user, datePage.getContent());
 
-        if (isComputedStrategy() && !days.isEmpty()) {
-            days.sort(Comparator.comparing(DayBudget::getDate));
-            double running = days.get(0).getStartingBalance() != null
-                    ? days.get(0).getStartingBalance()
-                    : 0.0;
-            for (DayBudget b : days) {
-                b.setStartingBalance(running);
-                running += b.getTotalIncomes() - b.getTotalExpenses();
-                b.setRemainingBalance(running);
-            }
-            Collections.reverse(days);
-        }
-
         return new PageImpl<>(days, pageable, datePage.getTotalElements());
     }
 
-    // ==================== ОСНОВНІ ====================
+    // ==================== ОСНОВНІ МЕТОДИ ====================
 
     @Transactional(readOnly = true)
     public DayBudget getOrCreateDayBudget(LocalDate date, User user) {
-        DayBudget budget = dayBudgetRepository.findByDateAndOwner(date, user)
+        return dayBudgetRepository.findByDateAndOwner(date, user)
                 .orElseGet(() -> {
                     DayBudget newBudget = new DayBudget();
                     newBudget.setDate(date);
                     newBudget.setDayName(getDayName(date));
-                    newBudget.setStartingBalance(0.0);
+                    newBudget.setStartingBalance(getLastRemainingBalance(date, user));
                     newBudget.setRemainingBalance(0.0);
                     newBudget.setOwner(user);
                     return newBudget;
                 });
-
-        if (isComputedStrategy()) {
-            Double computedStarting = computeStartingBalance(date, user);
-            budget.setStartingBalance(computedStarting);
-            budget.setRemainingBalance(
-                    computedStarting + budget.getTotalIncomes() - budget.getTotalExpenses());
-        }
-
-        return budget;
-    }
-
-    private Double computeStartingBalance(LocalDate date, User user) {
-        List<DayBudget> chain = dayBudgetRepository.findByOwnerAndDateBetween(
-                user, LocalDate.MIN, date.minusDays(1));
-        if (chain.isEmpty()) {
-            return 0.0;
-        }
-
-        chain.sort(Comparator.comparing(DayBudget::getDate));
-        double running = 0.0;
-        boolean anchorFound = false;
-        for (DayBudget d : chain) {
-            if (!anchorFound && d.getId() != null && d.getStartingBalance() != null) {
-                running = d.getStartingBalance();
-                anchorFound = true;
-            }
-            running += d.getTotalIncomes() - d.getTotalExpenses();
-        }
-        return running;
     }
 
     private Double getLastRemainingBalance(LocalDate currentDate, User user) {
-        if (isComputedStrategy()) {
-            return computeStartingBalance(currentDate, user);
-        }
         return dayBudgetRepository
                 .findFirstByOwnerAndDateBeforeOrderByDateDesc(user, currentDate)
                 .map(DayBudget::getRemainingBalance)
@@ -278,16 +209,10 @@ public class BudgetService {
     // ==================== ОНОВЛЕННЯ БАЛАНСІВ ====================
 
     private void updateDayBudgetBalance(DayBudget dayBudget) {
-        if (isComputedStrategy()) {
-            dayBudgetRepository.save(dayBudget);
-            return;
-        }
-
         double totalExpenses = dayBudget.getTotalExpenses();
         double totalIncomes = dayBudget.getTotalIncomes();
         double previousBalance = dayBudget.getStartingBalance() != null
-                ? dayBudget.getStartingBalance()
-                : 0.0;
+                ? dayBudget.getStartingBalance() : 0.0;
 
         dayBudget.setRemainingBalance(previousBalance + totalIncomes - totalExpenses);
         dayBudgetRepository.save(dayBudget);
@@ -295,15 +220,30 @@ public class BudgetService {
         recalculateBalancesAfter(dayBudget.getDate(), dayBudget.getOwner());
     }
 
+    /**
+     * Перераховує {@code startingBalance}/{@code remainingBalance} для днів після {@code fromDate}.
+     *
+     * <p><b>Оптимізація (P1.14):</b> якщо для дня N і {@code startingBalance}, і
+     * {@code remainingBalance} співпадають зі старими значеннями — то для дня N+1
+     * {@code previousBalance} теж не змінився, а транзакції дня N+1 не змінювались.
+     * Отже, всі наступні дні залишаються валідними → {@code break}.
+     *
+     * <p>Типові операції:
+     * <ul>
+     *   <li>Додав транзакцію в <b>останній</b> день — 0 днів після (нічого не перераховуємо).</li>
+     *   <li>Додав транзакцію в <b>середину</b> — перераховуємо до кінця (N UPDATE), як і раніше.</li>
+     *   <li>Додав +100 income і -100 expense в один день (delta = 0) — перерахунок 0 днів.</li>
+     * </ul>
+     *
+     * <p><b>Точність:</b> {@code 1e-9} — толерантність до {@code double}.
+     * Валютні суми мають точність до копійки, тому {@code 1e-9} гарантовано
+     * ловить «реально не змінилось».
+     */
     private void recalculateBalancesAfter(LocalDate fromDate, User user) {
-        DayBudget anchor = dayBudgetRepository.findByDateAndOwner(fromDate, user).orElse(null);
-        if (anchor == null) {
-            return;
-        }
-
-        double previousBalance = anchor.getRemainingBalance() != null
-                ? anchor.getRemainingBalance()
-                : 0.0;
+        double previousBalance = dayBudgetRepository
+                .findByDateAndOwner(fromDate, user)
+                .map(d -> d.getRemainingBalance() != null ? d.getRemainingBalance() : 0.0)
+                .orElse(0.0);
 
         List<DayBudget> subsequent = dayBudgetRepository
                 .findByOwnerAndDateAfterOrderByDateAsc(user, fromDate);
@@ -312,39 +252,43 @@ public class BudgetService {
             return;
         }
 
+        List<DayBudget> toSave = new ArrayList<>();
+        int recalculated = 0;
+
         for (DayBudget budget : subsequent) {
-            double oldStarting = budget.getStartingBalance() != null
-                    ? budget.getStartingBalance()
-                    : 0.0;
-            double oldRemaining = budget.getRemainingBalance() != null
-                    ? budget.getRemainingBalance()
-                    : 0.0;
+            double oldStart = budget.getStartingBalance() != null ? budget.getStartingBalance() : 0.0;
+            double oldRemaining = budget.getRemainingBalance() != null ? budget.getRemainingBalance() : 0.0;
+
+            double dayExpenses = budget.getTotalExpenses();
+            double dayIncomes = budget.getTotalIncomes();
+            double newBalance = previousBalance + dayIncomes - dayExpenses;
+
+            boolean startUnchanged = Math.abs(oldStart - previousBalance) < 1e-9;
+            boolean remainingUnchanged = Math.abs(oldRemaining - newBalance) < 1e-9;
+
+            if (startUnchanged && remainingUnchanged) {
+                // Баланс цього дня вже правильний → всі наступні теж.
+                break;
+            }
 
             budget.setStartingBalance(previousBalance);
-            double newBalance = previousBalance
-                    + budget.getTotalIncomes()
-                    - budget.getTotalExpenses();
             budget.setRemainingBalance(newBalance);
-
-            if (Math.abs(oldStarting - previousBalance) < 0.001
-                    && Math.abs(oldRemaining - newBalance) < 0.001) {
-                return;
-            }
+            toSave.add(budget);
             previousBalance = newBalance;
+            recalculated++;
         }
 
-        dayBudgetRepository.saveAll(subsequent);
+        if (!toSave.isEmpty()) {
+            dayBudgetRepository.saveAll(toSave);
+            log.debug("Перераховано {} днів (з {} переглянутих) для {} починаючи з {}",
+                    recalculated, subsequent.size(), user.getUsername(), fromDate.plusDays(1));
+        }
     }
 
     // ==================== ОТРИМАННЯ ДАНИХ ====================
-
     @Transactional(readOnly = true)
     public TotalBudget getTotalBudget(LocalDate startDate, LocalDate endDate, User user) {
         List<DayBudget> budgets = dayBudgetRepository.findByOwnerAndDateBetween(user, startDate, endDate);
-
-        if (isComputedStrategy() && !budgets.isEmpty()) {
-            recomputeBalancesInMemory(budgets);
-        }
 
         double totalExpenses = 0.0;
         double totalIncomes = 0.0;
@@ -402,51 +346,9 @@ public class BudgetService {
         List<DayBudget> result = dayBudgetRepository
                 .findByOwnerAndDateInOrderByDateAsc(user, recentDates);
 
-        if (isComputedStrategy()) {
-            recomputeBalancesInMemory(result);
-        }
-
         log.info("Отримано {} днів для користувача {} (ліміт {})",
                 result.size(), user.getUsername(), maxDaysLoaded);
         return result;
-    }
-
-    @Transactional(readOnly = true)
-    public List<DayBudget> getAllBudgetsUnlimited(User user) {
-        if (user == null) {
-            return List.of();
-        }
-        List<DayBudget> days = dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
-        if (isComputedStrategy()) {
-            recomputeBalancesInMemory(days);
-        }
-        return days;
-    }
-
-    // ==================== COMPUTED BALANCE ====================
-
-    private void recomputeBalancesInMemory(List<DayBudget> days) {
-        if (days == null || days.isEmpty()) {
-            return;
-        }
-
-        days.sort(Comparator.comparing(DayBudget::getDate));
-
-        double running = 0.0;
-        boolean anchorFound = false;
-
-        for (DayBudget d : days) {
-            if (!anchorFound && d.getId() != null && d.getStartingBalance() != null) {
-                running = d.getStartingBalance();
-                anchorFound = true;
-            }
-
-            d.setStartingBalance(running);
-
-            double delta = d.getTotalIncomes() - d.getTotalExpenses();
-            running += delta;
-            d.setRemainingBalance(running);
-        }
     }
 
     // ==================== ДУБЛЮВАННЯ ====================
@@ -499,7 +401,7 @@ public class BudgetService {
         return original.getDayBudget().getDate();
     }
 
-    // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ====================
+    // ==================== РЕДАГУВАННЯ/ВИДАЛЕННЯ ТРАНЗАКЦІЙ ====================
 
     @Transactional
     public void deleteExpense(Long expenseId, User user) {
@@ -594,9 +496,7 @@ public class BudgetService {
         dayBudgetRepository.delete(dayBudget);
         dayBudgetRepository.flush();
 
-        if (!isComputedStrategy()) {
-            recalculateBalancesAfter(deletedDate.minusDays(1), user);
-        }
+        recalculateBalancesAfter(deletedDate.minusDays(1), user);
     }
 
     @Transactional
@@ -615,9 +515,7 @@ public class BudgetService {
 
         dayBudgetRepository.save(day);
 
-        if (!isComputedStrategy()) {
-            recalculateBalancesAfter(day.getDate(), user);
-        }
+        recalculateBalancesAfter(day.getDate(), user);
 
         log.info("Оновлено початковий баланс для дня {} користувача {} на суму {}",
                 day.getDate(), user.getUsername(), newBalance);
@@ -662,7 +560,7 @@ public class BudgetService {
         return income.getDayBudget().getDate();
     }
 
-    // ==================== ОЧИЩЕННЯ ====================
+    // ==================== ОЧИЩЕННЯ ДАНИХ ====================
 
     @Transactional
     public void clearAllUserData(User user) {
@@ -678,5 +576,11 @@ public class BudgetService {
         categoryBudgetLimitRepository.deleteByOwner(user);
 
         log.info("Всі дані для користувача {} (id={}) видалено", user.getUsername(), user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<DayBudget> getAllBudgetsUnlimited(User user) {
+        if (user == null) return List.of();
+        return dayBudgetRepository.findAllByOwnerOrderByDateAsc(user);
     }
 }

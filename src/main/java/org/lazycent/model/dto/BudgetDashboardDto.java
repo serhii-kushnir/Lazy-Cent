@@ -3,7 +3,6 @@ package org.lazycent.model.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.lazycent.model.Category;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +33,8 @@ public class BudgetDashboardDto {
     private Double incomesDeltaPercent;
 
     private List<CategoryBudgetDto> categories;
+
     private Map<LocalDate, Double> dailyExpenses;
-    private Map<Category, Double> categoryExpenses;
+
+    private Map<String, Double> categoryExpenses;
 }

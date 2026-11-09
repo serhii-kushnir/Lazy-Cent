@@ -151,14 +151,15 @@ public class BudgetPlanningService {
                 .filter(c -> "EXPENSE".equalsIgnoreCase(c.getType()))
                 .toList();
 
-        Map<Category, Double> categoryExpenses = new HashMap<>();
+        // P1.15: Map<String, Double> замість Map<Category, Double>
+        Map<String, Double> categoryExpenses = new LinkedHashMap<>();
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
 
         for (Category cat : expenseCategories) {
             double spent = expensesByCategoryName.getOrDefault(cat.getName(), 0.0);
 
             if (spent > 0) {
-                categoryExpenses.put(cat, spent);
+                categoryExpenses.put(cat.getName(), spent);
             }
 
             CategoryBudgetLimit limitEntity = limitsByCategory.get(cat.getId());
@@ -179,6 +180,16 @@ public class BudgetPlanningService {
 
             categoryDtos.add(new CategoryBudgetDto(cat, spent, limit, percentUsed, status, note));
         }
+
+        // Сортуємо за сумою DESC для стабільного порядку в графіках
+        categoryExpenses = categoryExpenses.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
 
         categoryDtos.sort(
                 Comparator
@@ -236,7 +247,6 @@ public class BudgetPlanningService {
                     (totalExpenses - previousMonthExpenses) / previousMonthExpenses * 100.0;
         }
 
-        // NEW: over-limit count + total excess
         int overLimitCount = 0;
         double overLimitTotal = 0.0;
         for (CategoryBudgetDto dto : categoryDtos) {
@@ -316,7 +326,6 @@ public class BudgetPlanningService {
         if (totalIncomes == null) totalIncomes = 0.0;
         if (totalExpenses == null) totalExpenses = 0.0;
 
-        // ===== Дохід проти минулого місяця =====
         LocalDate prevStart = start.minusMonths(1);
         LocalDate prevEnd   = prevStart.withDayOfMonth(prevStart.lengthOfMonth());
         Double previousMonthIncomes =
@@ -341,16 +350,18 @@ public class BudgetPlanningService {
             incomesByCategoryName.merge(dto.getCategoryName(), dto.getTotalAmount(), Double::sum);
         }
 
-        // ⚠️ саме INCOME-категорії
         List<Category> incomeCategories = categoryService.getAllCategories(user).stream()
                 .filter(c -> "INCOME".equalsIgnoreCase(c.getType()))
                 .toList();
 
-        Map<Category, Double> categoryIncomes = new HashMap<>();
+        // P1.15: Map<String, Double> замість Map<Category, Double>
+        Map<String, Double> categoryIncomes = new LinkedHashMap<>();
         List<CategoryBudgetDto> categoryDtos = new ArrayList<>();
         for (Category cat : incomeCategories) {
             double received = incomesByCategoryName.getOrDefault(cat.getName(), 0.0);
-            if (received > 0) categoryIncomes.put(cat, received);
+            if (received > 0) {
+                categoryIncomes.put(cat.getName(), received);
+            }
 
             CategoryBudgetLimit targetEntity = targetsByCategory.get(cat.getId());
             double target = targetEntity != null && targetEntity.getLimitAmount() != null
@@ -358,7 +369,6 @@ public class BudgetPlanningService {
             String note = targetEntity != null ? targetEntity.getNote() : null;
 
             double percentUsed = target > 0 ? (received / target * 100) : 0.0;
-            // ✅ інверсія статусу: високий % = добре
             String status;
             if (target == 0) status = "NO_TARGET";
             else if (percentUsed >= 100) status = "ACHIEVED";
@@ -367,6 +377,16 @@ public class BudgetPlanningService {
 
             categoryDtos.add(new CategoryBudgetDto(cat, received, target, percentUsed, status, note));
         }
+
+        categoryIncomes = categoryIncomes.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (a, b) -> a,
+                        LinkedHashMap::new
+                ));
+
         categoryDtos.sort(
                 Comparator.comparingInt((CategoryBudgetDto d) ->
                                 (d.getLimit() != null && d.getLimit() > 0) ? 0 : 1)
@@ -374,7 +394,6 @@ public class BudgetPlanningService {
                                 Comparator.reverseOrder())
                         .thenComparing(d -> d.getCategory().getName(), String.CASE_INSENSITIVE_ORDER));
 
-        // Дні, що пройшли
         LocalDate today = LocalDate.now();
         int daysInMonth = start.lengthOfMonth();
         int daysPassed;
@@ -384,13 +403,12 @@ public class BudgetPlanningService {
 
         double dailyAverage = daysPassed > 0 ? totalIncomes / daysPassed : 0.0;
         double projectedTotalIncomes = dailyAverage * daysInMonth;
-        double projectedBalance = projectedTotalIncomes - targetIncome;  // «наскільки перевищимо»
+        double projectedBalance = projectedTotalIncomes - targetIncome;
         int daysRemaining = Math.max(daysInMonth - daysPassed, 0);
 
         double dailyNeeded = (daysRemaining > 0 && remainingToTarget > 0)
                 ? remainingToTarget / daysRemaining : 0.0;
 
-        // «Behind» — категорії, де отримано < 80% цілі
         int behindCount = 0;
         double deficitTotal = 0.0;
         for (CategoryBudgetDto dto : categoryDtos) {
@@ -412,7 +430,7 @@ public class BudgetPlanningService {
         dto.setProjectedTotalExpenses(projectedTotalIncomes);
         dto.setDaysRemaining(daysRemaining);
         dto.setDailyRemainingBudget(dailyNeeded);
-        dto.setOverLimitCount(behindCount);     // семантика: «відстає»
+        dto.setOverLimitCount(behindCount);
         dto.setOverLimitTotal(deficitTotal);
         dto.setIncomesDeltaPercent(incomesDeltaPercent);
         dto.setCategories(categoryDtos);
@@ -421,8 +439,6 @@ public class BudgetPlanningService {
         return dto;
     }
 
-    // Копіювання цілей з минулого місяця — той самий copyLimitsFromMonth, але
-// категорії фільтруємо на INCOME
     @Transactional
     public int copyIncomeTargetsFromMonth(User user, int fromMonth, int fromYear,
                                           int toMonth, int toYear) {

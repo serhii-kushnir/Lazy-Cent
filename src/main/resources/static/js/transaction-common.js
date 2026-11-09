@@ -250,23 +250,32 @@
             const openModals = document.querySelectorAll('.modal.show');
             if (openModals.length === 0) return;
 
+            // Esc — закриваємо ТІЛЬКИ верхню (останню відкриту) модалку.
+            // Раніше закривались усі — втрачався введений текст у вкладених
+            // (наприклад, editExpenseModal + deleteConfirmModal зверху).
             if (e.key === 'Escape') {
-                openModals.forEach(function (m) {
-                    const inst = bootstrap.Modal.getInstance(m);
-                    if (inst) inst.hide();
-                });
-                e.preventDefault();
+                const top = openModals[openModals.length - 1];
+                const inst = bootstrap.Modal.getInstance(top);
+                if (inst) {
+                    inst.hide();
+                    e.preventDefault();
+                }
                 return;
             }
+
+            // Ctrl/Cmd+Enter — сабміт форми верхньої модалки
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                for (const modal of openModals) {
-                    const form = modal.querySelector(
-                        'form:not(#deleteForm):not(#deleteDayForm)');
-                    if (form) {
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) { submitBtn.click(); e.preventDefault(); break; }
-                        else { form.submit(); e.preventDefault(); break; }
+                const top = openModals[openModals.length - 1];
+                const form = top.querySelector(
+                    'form:not(#deleteForm):not(#deleteDayForm)');
+                if (form) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.click();
+                    } else {
+                        form.submit();
                     }
+                    e.preventDefault();
                 }
             }
         });
@@ -283,8 +292,6 @@
         if (!cfg.i18n) cfg.i18n = {};
         cfg.i18n.noCategories = cfg.i18n.noCategories || 'Немає категорій';
 
-        // Експортуємо як глобальні — щоб інші шаблони (day-detail, totals,
-        // all-days) могли викликати без переписування.
         window.populateCategories = populateCategories;
         window.fetchCategories = fetchCategories;
         window.openCategorySettings = openCategorySettings;
@@ -297,7 +304,6 @@
         initTypeButtons();
         initWarmKeys();
 
-        // Початковий стан
         setTransactionType('EXPENSE');
     }
 

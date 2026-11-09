@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 @Slf4j
 public class BudgetController extends BaseController {
 
-    private final BudgetPlanningService budgetPlanningService;   // ← ось правильне ім'я
+    private final BudgetPlanningService budgetPlanningService;
     private final CategoryService categoryService;
     private final DayBudgetRepository dayBudgetRepository;
     private final BudgetExportService budgetExportService;
@@ -77,14 +77,10 @@ public class BudgetController extends BaseController {
 
         BudgetDashboardDto dashboard = budgetPlanningService.getDashboard(user, month, year);
 
-        Map<String, Double> categoryExpenses = new LinkedHashMap<>();
-        if (dashboard.getCategoryExpenses() != null) {
-            for (Map.Entry<Category, Double> entry : dashboard.getCategoryExpenses().entrySet()) {
-                if (entry.getValue() > 0) {
-                    categoryExpenses.put(entry.getKey().getName(), entry.getValue());
-                }
-            }
-        }
+        // P1.15: DTO вже містить Map<String, Double> — без конвертації
+        Map<String, Double> categoryExpenses = dashboard.getCategoryExpenses() != null
+                ? dashboard.getCategoryExpenses()
+                : Map.of();
 
         int prevMonth = (month == 1) ? 12 : month - 1;
         int prevYear = (month == 1) ? year - 1 : year;
