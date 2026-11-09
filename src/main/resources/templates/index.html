@@ -241,10 +241,16 @@
     <script>
         (function () {
             document.documentElement.classList.add('js');
+
             let saved = null;
             try { saved = localStorage.getItem('lazycent-theme'); } catch (e) {}
-            if (saved) { document.documentElement.setAttribute('data-bs-theme', saved); }
-            else { const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches; document.documentElement.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light'); }
+
+            if (saved === 'dark' || saved === 'light') {
+                document.documentElement.setAttribute('data-bs-theme', saved);
+            } else {
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light');
+            }
         })();
     </script>
 </head>

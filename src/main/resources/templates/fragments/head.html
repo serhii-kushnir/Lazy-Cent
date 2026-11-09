@@ -1,24 +1,11 @@
-<!--
-  Спільні head-ресурси.
-  Підключається так:
-    <div th:replace="~{fragments/head :: themeAssets}"></div>            ← без Chart.js
-    <div th:replace="~{fragments/head :: themeAssetsWithCharts}"></div>  ← з Chart.js
-
-  P2.b: Chart.js (~200 КБ) винесено в окремий фрагмент. Сторінки без
-  графіків (login, register, notes, privacy, terms, budget, ...) його
-  більше не вантажать.
--->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- head.html, фрагмент themeAssets -->
-<meta name="robots" th:content="${robots != null ? robots : 'index, follow'}">
-
 <!-- ==================== БЕЗ Chart.js ==================== -->
 <th:block th:fragment="themeAssets">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <meta name="robots" th:content="${robots != null ? robots : 'index, follow'}">
+    <meta name="robots" th:content="${robots}">
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -36,7 +23,8 @@
 <!-- ==================== З Chart.js ==================== -->
 <th:block th:fragment="themeAssetsWithCharts">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <meta name="robots" th:content="${robots != null ? robots : 'index, follow'}">
+    <meta name="robots" th:content="${robots}">
+    <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -52,19 +40,17 @@
     <th:block th:insert="~{fragments/head :: themeInit}"></th:block>
 </th:block>
 
-<!--
-  Ініціалізація теми виконується ДО першого рендеру.
-  Інлайн обов'язковий — інакше буде FOUC (світла тема блимне).
--->
 <th:block th:fragment="themeInit">
     <script>
         (function () {
-            const saved = localStorage.getItem('lazycent-theme');
-            if (saved) {
+            let saved = null;
+            try { saved = localStorage.getItem('lazycent-theme'); } catch (e) {}
+
+            if (saved === 'dark' || saved === 'light') {
                 document.documentElement.setAttribute('data-bs-theme', saved);
             } else {
-                document.documentElement.setAttribute('data-bs-theme', 'dark');
-                localStorage.setItem('lazycent-theme', 'dark');
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light');
             }
         })();
     </script>

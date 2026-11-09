@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.lazycent.model.DayBudget;
 import org.lazycent.model.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,13 +34,24 @@ public class AllDaysExportService {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     /**
+     * Скільки рядків тримати в пам'яті під час стрімінгу.
+     * SXSSF вивантажує решту в тимчасовий файл на диску.
+     */
+    private static final int SXSSF_WINDOW = 100;
+
+    /**
      * Експорт усіх днів користувача.
+     *
+     * <p><b>P2.31:</b> використовує {@link SXSSFWorkbook} — потоковий запис
+     * замість повного DOM в пам'яті. При 5000+ днях XSSF займав сотні МБ
+     * (ризик OOM); SXSSF тримає константну пам'ять (~100 рядків у RAM +
+     * тимчасовий файл на диску).
      */
     public byte[] export(User user, Locale locale) throws IOException {
         List<DayBudget> days = budgetService.getAllBudgetsUnlimited(user);
 
         if (days.size() > 5000) {
-            log.warn("Excel export: {} days — це може зайняти багато часу й пам'яті", days.size());
+            log.warn("Excel export: {} days — це може зайняти багато часу", days.size());
         }
 
         return exportDays(days, locale);
@@ -48,9 +59,12 @@ public class AllDaysExportService {
 
     /**
      * Експорт конкретного списку днів (використовується для одного дня).
+     *
+     * <p>Try-with-resources гарантує {@code close()} для SXSSFWorkbook,
+     * що викликає {@code dispose()} і видаляє тимчасові файли.
      */
     public byte[] exportDays(List<DayBudget> days, Locale locale) throws IOException {
-        try (XSSFWorkbook wb = new XSSFWorkbook();
+        try (SXSSFWorkbook wb = new SXSSFWorkbook(SXSSF_WINDOW);
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             buildSheet(wb, days, locale);
@@ -59,7 +73,7 @@ public class AllDaysExportService {
         }
     }
 
-    private void buildSheet(XSSFWorkbook wb, List<DayBudget> days, Locale locale) {
+    private void buildSheet(SXSSFWorkbook wb, List<DayBudget> days, Locale locale) {
         Sheet sheet = wb.createSheet(msg("allDays.export.title", locale));
 
         CellStyle titleStyle   = createTitleStyle(wb);
@@ -229,7 +243,10 @@ public class AllDaysExportService {
     }
 
     // ==================== STYLES ====================
-    private CellStyle createTitleStyle(XSSFWorkbook wb) {
+    // P2.31: параметр — Workbook (інтерфейс), а не XSSFWorkbook,
+    // бо методи викликаються і для SXSSFWorkbook (через Workbook).
+
+    private CellStyle createTitleStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         Font f = wb.createFont();
         f.setBold(true);
@@ -238,7 +255,7 @@ public class AllDaysExportService {
         return s;
     }
 
-    private CellStyle createTotalsLabelStyle(XSSFWorkbook wb) {
+    private CellStyle createTotalsLabelStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         Font f = wb.createFont();
         f.setBold(true);
@@ -254,7 +271,7 @@ public class AllDaysExportService {
         return s;
     }
 
-    private CellStyle createTotalsMoneyStyle(XSSFWorkbook wb) {
+    private CellStyle createTotalsMoneyStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         s.setDataFormat(wb.createDataFormat().getFormat("#,##0.00"));
         Font f = wb.createFont();
@@ -267,7 +284,7 @@ public class AllDaysExportService {
         return s;
     }
 
-    private CellStyle createTotalsSubStyle(XSSFWorkbook wb) {
+    private CellStyle createTotalsSubStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         Font f = wb.createFont();
         f.setFontHeightInPoints((short) 9);
@@ -282,7 +299,7 @@ public class AllDaysExportService {
         return s;
     }
 
-    private CellStyle createHeaderStyle(XSSFWorkbook wb) {
+    private CellStyle createHeaderStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         Font f = wb.createFont();
         f.setBold(true);
@@ -300,7 +317,7 @@ public class AllDaysExportService {
         return s;
     }
 
-    private CellStyle createBodyStyle(XSSFWorkbook wb) {
+    private CellStyle createBodyStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         s.setBorderBottom(BorderStyle.THIN);
         s.setBorderLeft(BorderStyle.HAIR);
@@ -310,20 +327,20 @@ public class AllDaysExportService {
         return s;
     }
 
-    private CellStyle createCenterStyle(XSSFWorkbook wb) {
+    private CellStyle createCenterStyle(Workbook wb) {
         CellStyle s = createBodyStyle(wb);
         s.setAlignment(HorizontalAlignment.CENTER);
         return s;
     }
 
-    private CellStyle createMoneyStyle(XSSFWorkbook wb) {
+    private CellStyle createMoneyStyle(Workbook wb) {
         CellStyle s = createBodyStyle(wb);
         s.setDataFormat(wb.createDataFormat().getFormat("#,##0.00"));
         s.setAlignment(HorizontalAlignment.RIGHT);
         return s;
     }
 
-    private CellStyle createFooterStyle(XSSFWorkbook wb) {
+    private CellStyle createFooterStyle(Workbook wb) {
         CellStyle s = wb.createCellStyle();
         Font f = wb.createFont();
         f.setFontHeightInPoints((short) 9);

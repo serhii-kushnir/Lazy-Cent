@@ -35,6 +35,8 @@ window.openSettingsDrawer = function(section) {
     'use strict';
 
     // ==================== FAMILY PANEL LOGIC ====================
+    // P0.3: XSS fix — побудова через createElement/textContent замість innerHTML
+    // з ${username}/${email}. OAuth2-користувачі можуть мати name з HTML-тегами.
     window.FamilyPanel = {
         data: null,
         pendingActionId: null,
@@ -116,7 +118,6 @@ window.openSettingsDrawer = function(section) {
                     const li = document.createElement('li');
                     li.className = 'list-group-item d-flex justify-content-between align-items-center px-2 py-2 mb-1 border-0 rounded bg-body-tertiary';
 
-                    // Info block
                     const info = document.createElement('div');
                     info.className = 'flex-grow-1 text-truncate';
                     info.style.minWidth = '0';
@@ -127,7 +128,7 @@ window.openSettingsDrawer = function(section) {
                     const nameSpan = document.createElement('span');
                     nameSpan.className = 'fw-bold text-truncate';
                     nameSpan.style.fontSize = '0.85rem';
-                    nameSpan.textContent = m.username || '';   // ✅ SAFE
+                    nameSpan.textContent = m.username || '';
                     nameRow.appendChild(nameSpan);
 
                     if (m.isOwner) {
@@ -148,7 +149,7 @@ window.openSettingsDrawer = function(section) {
                     const emailDiv = document.createElement('div');
                     emailDiv.className = 'text-muted text-truncate';
                     emailDiv.style.fontSize = '0.65rem';
-                    emailDiv.textContent = m.email || '';   // ✅ SAFE
+                    emailDiv.textContent = m.email || '';
 
                     info.appendChild(nameRow);
                     info.appendChild(emailDiv);
@@ -166,7 +167,7 @@ window.openSettingsDrawer = function(section) {
                         transferIcon.className = 'fas fa-crown';
                         transferIcon.style.fontSize = '0.75rem';
                         transferBtn.appendChild(transferIcon);
-                        const mId = m.id, mName = m.username;   // closure
+                        const mId = m.id, mName = m.username;
                         transferBtn.addEventListener('click', () => {
                             window.FamilyPanel.openTransferModal(mId, mName);
                         });
@@ -190,7 +191,7 @@ window.openSettingsDrawer = function(section) {
                     list.appendChild(li);
                 });
 
-// --- РЕНДЕР ЗАПИТІВ (безпечно, без innerHTML) ---
+                // --- РЕНДЕР ЗАПИТІВ (безпечно, без innerHTML) ---
                 const reqBlock = document.getElementById('pendingRequestsBlock');
                 if (isOwner && this.data.pendingRequests && this.data.pendingRequests.length > 0) {
                     reqBlock.style.display = 'block';
@@ -207,12 +208,12 @@ window.openSettingsDrawer = function(section) {
                         const nameDiv = document.createElement('div');
                         nameDiv.className = 'fw-bold text-truncate';
                         nameDiv.style.fontSize = '0.85rem';
-                        nameDiv.textContent = r.username || '';   // ✅ SAFE
+                        nameDiv.textContent = r.username || '';
 
                         const emailDiv = document.createElement('div');
                         emailDiv.className = 'text-muted text-truncate';
                         emailDiv.style.fontSize = '0.65rem';
-                        emailDiv.textContent = r.email || '';     // ✅ SAFE
+                        emailDiv.textContent = r.email || '';
 
                         info.appendChild(nameDiv);
                         info.appendChild(emailDiv);
@@ -292,14 +293,12 @@ window.openSettingsDrawer = function(section) {
             }
         },
 
-        // --- ACTIONS ---
         clearRejected: function() { this.post('/api/family/clear-rejected', {}).then(() => this.loadData()).catch(e => this.showToast(e.message, true)); },
         cancelRequest: function() { this.post('/api/family/cancel-request', {}).then(() => this.loadData()).catch(e => this.showToast(e.message, true)); },
         copyCode: function() {
             navigator.clipboard.writeText(this.data.inviteCode).then(() => this.showToast('Код скопійовано!', false));
         },
 
-        // --- MODALS TRIGGERING ---
         openEditNameModal: function() {
             document.getElementById('editFamilyNameInput').value = this.data.familyName;
             document.getElementById('editFamilyNameInput').classList.remove('is-invalid');
@@ -320,11 +319,9 @@ window.openSettingsDrawer = function(section) {
             bootstrap.Modal.getOrCreateInstance(document.getElementById('removeMemberModal')).show();
         },
 
-        // --- API CALLS FROM MODALS ---
         confirmEditName: function() {
             const input = document.getElementById('editFamilyNameInput');
             const name = input.value.trim();
-            // ВИПРАВЛЕНО: регулярний вираз без зайвих екрануючих слешів
             const pattern = /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-_'.]+$/;
 
             if (name.length < 2 || name.length > 20 || !pattern.test(name)) {
@@ -375,7 +372,6 @@ window.openSettingsDrawer = function(section) {
             return;
         }
 
-        // ==================== ВІДКРИТТЯ / ЗАКРИТТЯ ====================
         function openPanel() {
             drawer.classList.add('open');
             overlay.classList.add('open');
@@ -459,7 +455,6 @@ window.openSettingsDrawer = function(section) {
                 e.preventDefault();
                 e.stopPropagation();
 
-                // ВИПРАВЛЕНО: регулярний вираз без зайвих екрануючих слешів
                 const namePattern = /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s\-_'.]+$/;
                 const name = createInput.value.trim();
                 let isValid = true;
@@ -518,7 +513,6 @@ window.openSettingsDrawer = function(section) {
             });
         }
 
-        // --- Прив'язка кнопок модальних вікон ---
         const bindBtn = (id, fn) => {
             const btn = document.getElementById(id);
             if (btn) btn.addEventListener('click', fn);
@@ -566,7 +560,7 @@ window.openSettingsDrawer = function(section) {
             system: i18n.themeSystem || 'Системна'
         };
 
-        function setDrawerTheme(theme) {
+        function setDrawerTheme(theme, save) {
             if (theme === 'system') {
                 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 root.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light');
@@ -575,14 +569,28 @@ window.openSettingsDrawer = function(section) {
                         ? THEME_LABELS.dark + ' (' + THEME_LABELS.system + ')'
                         : THEME_LABELS.light + ' (' + THEME_LABELS.system + ')';
                 }
-            } else {
+            } else if (theme === 'dark' || theme === 'light') {
                 root.setAttribute('data-bs-theme', theme);
                 if (currentThemeLabel) {
                     currentThemeLabel.textContent =
                         theme === 'dark' ? THEME_LABELS.dark : THEME_LABELS.light;
                 }
+            } else {
+                // невідоме значення — fallback на system
+                theme = 'system';
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                root.setAttribute('data-bs-theme', systemDark ? 'dark' : 'light');
+                if (currentThemeLabel) {
+                    currentThemeLabel.textContent = systemDark
+                        ? THEME_LABELS.dark + ' (' + THEME_LABELS.system + ')'
+                        : THEME_LABELS.light + ' (' + THEME_LABELS.system + ')';
+                }
             }
-            localStorage.setItem('lazycent-theme', theme);
+            // P2.23: зберігаємо в localStorage ТІЛЬКИ при явному виборі (клік по кнопці)
+            // або при першій ініціалізації (щоб зафіксувати 'system').
+            if (save) {
+                localStorage.setItem('lazycent-theme', theme);
+            }
             updateThemeButtonsDrawer(theme);
         }
 
@@ -595,14 +603,27 @@ window.openSettingsDrawer = function(section) {
             });
         }
 
+        // P2.23: 'system' як явний default — узгоджено з head.html та index.html
         const savedTheme = localStorage.getItem('lazycent-theme') || 'system';
-        setDrawerTheme(savedTheme);
+        setDrawerTheme(savedTheme, true);   // save=true → зафіксуємо 'system' при першій ініціалізації
 
         themeBtns.forEach(btn => {
             btn.addEventListener('click', function () {
-                setDrawerTheme(this.dataset.theme);
+                setDrawerTheme(this.dataset.theme, true);   // явний вибір → зберігаємо
             });
         });
+
+        // Слухаємо зміну системної теми — якщо зараз 'system', оновлюємо
+        if (window.matchMedia) {
+            const mq = window.matchMedia('(prefers-color-scheme: dark)');
+            const handler = function() {
+                if (localStorage.getItem('lazycent-theme') === 'system') {
+                    setDrawerTheme('system', false);
+                }
+            };
+            if (mq.addEventListener) mq.addEventListener('change', handler);
+            else if (mq.addListener) mq.addListener(handler);
+        }
 
         // ==================== ВИДАЛЕННЯ КАТЕГОРІЇ ====================
         const deleteCategoryModal = document.getElementById('deleteCategoryConfirmModal');
