@@ -196,11 +196,13 @@ public class FamilyService {
         return familyRepository.findById(familyId).orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public boolean isOwner(User user) {
-        if (user == null) return false;
         Long familyId = user.getFamilyId();
         if (familyId == null) return false;
-        return familyRepository.isOwnerById(familyId, user.getId());
+        return familyRepository.findById(familyId)
+                .map(f -> f.getOwner().getId().equals(user.getId()))
+                .orElse(false);
     }
 
     @Transactional(readOnly = true)

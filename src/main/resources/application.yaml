@@ -114,11 +114,15 @@ app:
     # Cron для щоденного очищення прострочених токенів.
     cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
   logging:
-    level:
-    org.lazycent: INFO
-    org.hibernate.SQL: WARN
     file:
       enabled: ${LOG_TO_FILE:false}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.lazycent: ${LOG_LEVEL_APP:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:WARN}
 
 # ===================== ACTUATOR =====================
 management:

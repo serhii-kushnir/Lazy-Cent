@@ -34,7 +34,7 @@ public class Category {
     @Column(nullable = false)
     private Long version;
 
-    @NotBlank(message = "{validation.category.name.blank}")
+    @NotBlank(message = "{validation.category.name.notblank}")
     @Size(max = 100, message = "{validation.category.name.max}")
     @Column(nullable = false)
     private String name;
@@ -42,7 +42,7 @@ public class Category {
     @Column(name = "name_lower", nullable = false)
     private String nameLower;
 
-    @NotBlank(message = "{validation.category.type.blank}")
+    @NotBlank(message = "{validation.category.type.notblank}")
     @Pattern(regexp = "EXPENSE|INCOME", message = "{validation.category.type.pattern}")
     @Column(nullable = false)
     private String type;

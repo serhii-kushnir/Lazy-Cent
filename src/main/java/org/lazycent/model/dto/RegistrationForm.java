@@ -10,19 +10,19 @@ import lombok.Data;
 @Data
 public class RegistrationForm {
 
-    @NotBlank(message = "{validation.username.blank}")
+    @NotBlank(message = "{validation.username.notblank}")
     @Pattern(
             regexp = "^[a-zA-Z0-9_]{6,30}$",
             message = "{validation.username.pattern}"
     )
     private String username;
 
-    @NotBlank(message = "{validation.email.blank}")
-    @Email(message = "{validation.email.format}")
+    @NotBlank(message = "{validation.email.notblank}")
+    @Email(message = "{validation.email.invalid}")
     @Size(max = 100, message = "{validation.email.max}")
     private String email;
 
-    @NotBlank(message = "{validation.password.blank}")
+    @NotBlank(message = "{validation.password.notblank}")
     @Size(min = 6, max = 100, message = "{validation.password.size}")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).+$",
@@ -30,12 +30,12 @@ public class RegistrationForm {
     )
     private String password;
 
-    @NotBlank(message = "{validation.passwordConfirm.blank}")
+    @NotBlank(message = "{validation.passwordConfirm.notblank}")
     private String passwordConfirm;
 
-    @AssertTrue(message = "{validation.privacy.required}")
+    @AssertTrue(message = "{validation.privacyConsent}")
     private boolean privacyConsent;
 
-    @AssertTrue(message = "{validation.terms.required}")
+    @AssertTrue(message = "{validation.termsConsent}")
     private boolean termsConsent;
 }
