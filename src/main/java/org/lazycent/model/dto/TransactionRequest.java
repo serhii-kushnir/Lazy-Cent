@@ -10,34 +10,34 @@ import java.time.LocalTime;
 @Data
 public class TransactionRequest {
 
-    @NotNull(message = "Категорія обов'язкова")
+    @NotNull(message = "{validation.category.required}")
     private Long categoryId;
 
-    @NotBlank(message = "Опис не може бути порожнім")
-    @Size(max = 255, message = "Опис не може перевищувати 255 символів")
+    @NotBlank(message = "{validation.description.blank}")
+    @Size(max = 255, message = "{validation.description.max}")
     private String description;
 
-    @NotNull(message = "Сума обов'язкова")
-    @Positive(message = "Сума має бути більшою за 0")
+    @NotNull(message = "{validation.amount.required}")
+    @Positive(message = "{validation.amount.positive}")
     private Double amount;
 
-    @Min(value = 1, message = "Кількість має бути не менше 1")
+    @Min(value = 1, message = "{validation.quantity.min}")
     private Integer quantity = 1;
 
-    @Size(max = 500, message = "Деталі не можуть перевищувати 500 символів")
+    @Size(max = 500, message = "{validation.details.max}")
     private String details;
 
     private Boolean shareWithFamily = false;
 
     private LocalTime time;
 
-    @Size(max = 100, message = "Покупець не може перевищувати 100 символів")
+    @Size(max = 100, message = "{validation.buyer.max}")
     private String buyer;
 
-    @Size(max = 100, message = "Продавець не може перевищувати 100 символів")
+    @Size(max = 100, message = "{validation.seller.max}")
     private String seller;
 
-    @NotNull(message = "Дата обов'язкова")
+    @NotNull(message = "{validation.date.required}")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate date;
 }

@@ -34,16 +34,16 @@ public class Category {
     @Column(nullable = false)
     private Long version;
 
-    @NotBlank(message = "Назва категорії не може бути порожньою")
-    @Size(max = 100, message = "Назва категорії не може перевищувати 100 символів")
+    @NotBlank(message = "{validation.category.name.blank}")
+    @Size(max = 100, message = "{validation.category.name.max}")
     @Column(nullable = false)
     private String name;
 
     @Column(name = "name_lower", nullable = false)
     private String nameLower;
 
-    @NotBlank(message = "Тип категорії обов'язковий")
-    @Pattern(regexp = "EXPENSE|INCOME", message = "Тип категорії може бути лише EXPENSE або INCOME")
+    @NotBlank(message = "{validation.category.type.blank}")
+    @Pattern(regexp = "EXPENSE|INCOME", message = "{validation.category.type.pattern}")
     @Column(nullable = false)
     private String type;
 

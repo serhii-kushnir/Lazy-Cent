@@ -109,40 +109,88 @@ window.openSettingsDrawer = function(section) {
                 document.getElementById('deleteFamilyBtn').style.display = isOwner ? 'block' : 'none';
                 document.getElementById('leaveFamilyBtn').style.display = isOwner ? 'none' : 'block';
 
-                // --- РЕНДЕР УЧАСНИКІВ ---
+                // --- РЕНДЕР УЧАСНИКІВ (безпечно, без innerHTML) ---
                 const list = document.getElementById('familyMembersList');
                 list.innerHTML = '';
                 this.data.members.forEach(m => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item d-flex justify-content-between align-items-center px-2 py-2 mb-1 border-0 rounded bg-body-tertiary';
 
-                    let badges = '';
-                    if (m.isOwner) badges += '<span class="badge bg-primary ms-1" style="font-size:0.55rem;">Власник</span>';
-                    if (m.id === this.data.currentUserId) badges += '<span class="badge bg-secondary ms-1" style="font-size:0.55rem;">(ви)</span>';
+                    // Info block
+                    const info = document.createElement('div');
+                    info.className = 'flex-grow-1 text-truncate';
+                    info.style.minWidth = '0';
 
-                    let html = `
-                        <div class="flex-grow-1 text-truncate" style="min-width: 0;">
-                            <div class="d-flex align-items-center">
-                                <span class="fw-bold text-truncate" style="font-size:0.85rem;">${m.username}</span>
-                                ${badges}
-                            </div>
-                            <div class="text-muted text-truncate" style="font-size:0.65rem;">${m.email}</div>
-                        </div>
-                    `;
+                    const nameRow = document.createElement('div');
+                    nameRow.className = 'd-flex align-items-center';
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'fw-bold text-truncate';
+                    nameSpan.style.fontSize = '0.85rem';
+                    nameSpan.textContent = m.username || '';   // ✅ SAFE
+                    nameRow.appendChild(nameSpan);
+
+                    if (m.isOwner) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-primary ms-1';
+                        badge.style.fontSize = '0.55rem';
+                        badge.textContent = 'Власник';
+                        nameRow.appendChild(badge);
+                    }
+                    if (m.id === this.data.currentUserId) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-secondary ms-1';
+                        badge.style.fontSize = '0.55rem';
+                        badge.textContent = '(ви)';
+                        nameRow.appendChild(badge);
+                    }
+
+                    const emailDiv = document.createElement('div');
+                    emailDiv.className = 'text-muted text-truncate';
+                    emailDiv.style.fontSize = '0.65rem';
+                    emailDiv.textContent = m.email || '';   // ✅ SAFE
+
+                    info.appendChild(nameRow);
+                    info.appendChild(emailDiv);
+                    li.appendChild(info);
 
                     if (isOwner && !m.isOwner) {
-                        html += `
-                            <div class="btn-group btn-group-sm ms-2 flex-shrink-0">
-                                <button class="btn btn-outline-primary btn-sm py-1 px-3" onclick="FamilyPanel.openTransferModal(${m.id}, '${m.username}')" title="Передати права"><i class="fas fa-crown" style="font-size:0.75rem;"></i></button>
-                                <button class="btn btn-outline-danger btn-sm py-1 px-3" onclick="FamilyPanel.openRemoveModal(${m.id}, '${m.username}')" title="Видалити"><i class="fas fa-user-minus" style="font-size:0.75rem;"></i></button>
-                            </div>
-                        `;
+                        const btnGroup = document.createElement('div');
+                        btnGroup.className = 'btn-group btn-group-sm ms-2 flex-shrink-0';
+
+                        const transferBtn = document.createElement('button');
+                        transferBtn.type = 'button';
+                        transferBtn.className = 'btn btn-outline-primary btn-sm py-1 px-3';
+                        transferBtn.title = 'Передати права';
+                        const transferIcon = document.createElement('i');
+                        transferIcon.className = 'fas fa-crown';
+                        transferIcon.style.fontSize = '0.75rem';
+                        transferBtn.appendChild(transferIcon);
+                        const mId = m.id, mName = m.username;   // closure
+                        transferBtn.addEventListener('click', () => {
+                            window.FamilyPanel.openTransferModal(mId, mName);
+                        });
+
+                        const removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.className = 'btn btn-outline-danger btn-sm py-1 px-3';
+                        removeBtn.title = 'Видалити';
+                        const removeIcon = document.createElement('i');
+                        removeIcon.className = 'fas fa-user-minus';
+                        removeIcon.style.fontSize = '0.75rem';
+                        removeBtn.appendChild(removeIcon);
+                        removeBtn.addEventListener('click', () => {
+                            window.FamilyPanel.openRemoveModal(mId, mName);
+                        });
+
+                        btnGroup.appendChild(transferBtn);
+                        btnGroup.appendChild(removeBtn);
+                        li.appendChild(btnGroup);
                     }
-                    li.innerHTML = html;
                     list.appendChild(li);
                 });
 
-                // --- РЕНДЕР ЗАПИТІВ ---
+// --- РЕНДЕР ЗАПИТІВ (безпечно, без innerHTML) ---
                 const reqBlock = document.getElementById('pendingRequestsBlock');
                 if (isOwner && this.data.pendingRequests && this.data.pendingRequests.length > 0) {
                     reqBlock.style.display = 'block';
@@ -152,16 +200,56 @@ window.openSettingsDrawer = function(section) {
                         const li = document.createElement('li');
                         li.className = 'list-group-item d-flex justify-content-between align-items-center px-2 py-2 mb-1 border-0 rounded bg-warning-subtle';
 
-                        li.innerHTML = `
-                            <div class="flex-grow-1 text-truncate" style="min-width: 0;">
-                                <div class="fw-bold text-truncate" style="font-size:0.85rem;">${r.username}</div>
-                                <div class="text-muted text-truncate" style="font-size:0.65rem;">${r.email}</div>
-                            </div>
-                            <div class="btn-group btn-group-sm ms-2 flex-shrink-0">
-                                <button class="btn btn-success btn-sm py-1 px-3" onclick="FamilyPanel.approveReq(${r.id})" title="Прийняти"><i class="fas fa-check" style="font-size:0.75rem;"></i></button>
-                                <button class="btn btn-outline-danger btn-sm py-1 px-3" onclick="FamilyPanel.rejectReq(${r.id})" title="Відхилити"><i class="fas fa-times" style="font-size:0.75rem;"></i></button>
-                            </div>
-                        `;
+                        const info = document.createElement('div');
+                        info.className = 'flex-grow-1 text-truncate';
+                        info.style.minWidth = '0';
+
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'fw-bold text-truncate';
+                        nameDiv.style.fontSize = '0.85rem';
+                        nameDiv.textContent = r.username || '';   // ✅ SAFE
+
+                        const emailDiv = document.createElement('div');
+                        emailDiv.className = 'text-muted text-truncate';
+                        emailDiv.style.fontSize = '0.65rem';
+                        emailDiv.textContent = r.email || '';     // ✅ SAFE
+
+                        info.appendChild(nameDiv);
+                        info.appendChild(emailDiv);
+                        li.appendChild(info);
+
+                        const btnGroup = document.createElement('div');
+                        btnGroup.className = 'btn-group btn-group-sm ms-2 flex-shrink-0';
+
+                        const approveBtn = document.createElement('button');
+                        approveBtn.type = 'button';
+                        approveBtn.className = 'btn btn-success btn-sm py-1 px-3';
+                        approveBtn.title = 'Прийняти';
+                        const approveIcon = document.createElement('i');
+                        approveIcon.className = 'fas fa-check';
+                        approveIcon.style.fontSize = '0.75rem';
+                        approveBtn.appendChild(approveIcon);
+                        const reqId = r.id;
+                        approveBtn.addEventListener('click', () => {
+                            window.FamilyPanel.approveReq(reqId);
+                        });
+
+                        const rejectBtn = document.createElement('button');
+                        rejectBtn.type = 'button';
+                        rejectBtn.className = 'btn btn-outline-danger btn-sm py-1 px-3';
+                        rejectBtn.title = 'Відхилити';
+                        const rejectIcon = document.createElement('i');
+                        rejectIcon.className = 'fas fa-times';
+                        rejectIcon.style.fontSize = '0.75rem';
+                        rejectBtn.appendChild(rejectIcon);
+                        rejectBtn.addEventListener('click', () => {
+                            window.FamilyPanel.rejectReq(reqId);
+                        });
+
+                        btnGroup.appendChild(approveBtn);
+                        btnGroup.appendChild(rejectBtn);
+                        li.appendChild(btnGroup);
+
                         reqList.appendChild(li);
                     });
                 } else {
@@ -176,7 +264,7 @@ window.openSettingsDrawer = function(section) {
             }
             return fetch(url, { method: 'POST', headers: headers, body: new URLSearchParams(body) })
                 .then(res => res.json().then(data => {
-                    if (!res.ok) throw new Error(data.error || 'Помилка');
+                    if (!res.ok) throw new Error(data.message || data.error || 'Помилка');
                     return data;
                 }));
         },

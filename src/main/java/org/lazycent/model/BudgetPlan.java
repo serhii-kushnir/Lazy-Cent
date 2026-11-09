@@ -6,7 +6,13 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "budget_plans", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "budget_month", "budget_year"}))
+@Table(
+        name = "budget_plans",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_budget_plans_type",
+                columnNames = {"user_id", "budget_month", "budget_year", "plan_type"}
+        )
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,6 +25,7 @@ public class BudgetPlan {
     @EqualsAndHashCode.Include
     private Long id;
 
+    /** "EXPENSE" | "INCOME". Частина уникального ключа. */
     @Column(name = "plan_type", nullable = false, length = 20)
     private String planType = "EXPENSE";
 

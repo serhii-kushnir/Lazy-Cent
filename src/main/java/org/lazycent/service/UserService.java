@@ -86,30 +86,43 @@ public class UserService {
 
             boolean changed = false;
 
-            if (name != null && !name.isEmpty() && !name.equals(existing.getUsername())) {
-                existing.setUsername(name);
+            // name змінилось — оновлюємо, але з fallback на унікальність
+            if (name != null && !name.isBlank() && !name.equals(existing.getUsername())) {
+                existing.setUsername(resolveUniqueUsername(name, existing.getId()));
                 changed = true;
             }
 
-            if (email != null && !email.isEmpty() && !email.equals(existing.getEmail())) {
-                existing.setEmail(email);
-                changed = true;
+            if (email != null && !email.isBlank() && !email.equals(existing.getEmail())) {
+                // email має unique constraint → перевіряємо, що не зайнятий
+                User emailOwner = userRepository.findByEmail(email).orElse(null);
+                if (emailOwner == null || emailOwner.getId().equals(existing.getId())) {
+                    existing.setEmail(email);
+                    changed = true;
+                } else {
+                    log.warn("Email '{}' уже зайнятий користувачем id={}, пропускаю оновлення",
+                            email, emailOwner.getId());
+                }
             }
 
             return changed ? userRepository.save(existing) : existing;
         }
 
-        if (email != null && !email.isEmpty()) {
+        // Спроба зв'язати локальний акаунт через email
+        if (email != null && !email.isBlank()) {
             User byEmail = userRepository.findByEmail(email).orElse(null);
 
             if (byEmail != null) {
                 if (byEmail.getProvider() == null || byEmail.getProvider().isEmpty()) {
                     log.info("Зв'язуємо локальний акаунт '{}' з OAuth2-провайдером {}",
                             byEmail.getUsername(), provider);
+
                     byEmail.setProvider(provider);
                     byEmail.setProviderId(providerId);
-                    if (name != null && !name.isEmpty()) {
-                        byEmail.setUsername(name);
+
+                    // Не перезаписуємо username, якщо він уже зайнятий кимось іншим.
+                    if (name != null && !name.isBlank() && !name.equals(byEmail.getUsername())) {
+                        String resolved = resolveUniqueUsername(name, byEmail.getId());
+                        byEmail.setUsername(resolved);
                     }
                     return userRepository.save(byEmail);
                 }
@@ -130,24 +143,20 @@ public class UserService {
         return createNewOAuth2User(provider, providerId, email, name);
     }
 
-    @Deprecated
-    @Transactional
-    public User saveOAuth2User(String provider, String providerId, String email, String name) {
-        return saveOrUpdateOAuth2User(provider, providerId, email, name);
-    }
-
     private User createNewOAuth2User(String provider, String providerId, String email, String name) {
         User newUser = new User();
 
-        String username;
-        if (name != null && !name.isEmpty()) {
-            username = name;
+        String rawUsername;
+        if (name != null && !name.isBlank()) {
+            rawUsername = name;
         } else if (email != null && !email.isEmpty()) {
-            username = email;
+            rawUsername = email;
         } else {
-            username = provider + "_" + providerId;
+            rawUsername = provider + "_" + providerId;
         }
-        newUser.setUsername(username);
+
+        // Завжди гарантуємо унікальність username
+        newUser.setUsername(resolveUniqueUsername(rawUsername, null));
 
         newUser.setEmail(email != null && !email.isEmpty() ? email : null);
         newUser.setProvider(provider);
@@ -162,6 +171,58 @@ public class UserService {
         log.info("Створено нового OAuth2-користувача: {} (provider={}, email={})",
                 savedUser.getUsername(), provider, savedUser.getEmail());
         return savedUser;
+    }
+
+    /**
+     * Повертає username, який гарантовано унікальний у БД.
+     *
+     * <p><b>Стратегія:</b>
+     * <ol>
+     *   <li>Якщо {@code candidate} вільний — повертаємо як є.</li>
+     *   <li>Якщо зайнятий <b>цим самим</b> користувачем ({@code selfId}) — повертаємо як є
+     *       (перейменування на самого себе не вважається колізією).</li>
+     *   <li>Інакше — додаємо суфікс {@code _2}, {@code _3}, ... поки не знайдемо вільний.</li>
+     * </ol>
+     *
+     * <p><b>Чому не UUID-суфікс:</b> для UX — користувачу легше бачити "John Doe_2",
+     * ніж "John Doe_a1b2c3d4". Плюс це детерміновано — повторний вхід дасть той самий суфікс.
+     *
+     * <p><b>Race condition:</b> між {@code findByUsername} і {@code save} хтось може
+     * вставити той самий username. Тоді {@code DataIntegrityViolationException} —
+     * але це винятковий випадок, і він усе одно краще за 500 без пояснень.
+     */
+    private String resolveUniqueUsername(String candidate, Long selfId) {
+        if (candidate == null || candidate.isBlank()) {
+            candidate = "user";
+        }
+        // Обрізаємо до 255 (обмеження users.username)
+        String base = candidate.length() > 240 ? candidate.substring(0, 240) : candidate;
+
+        User owner = userRepository.findByUsername(base).orElse(null);
+        if (owner == null || (selfId != null && owner.getId().equals(selfId))) {
+            return base;
+        }
+
+        // Пробуємо base_2 ... base_999
+        for (int i = 2; i <= 999; i++) {
+            String attempt = base + "_" + i;
+            User existing = userRepository.findByUsername(attempt).orElse(null);
+            if (existing == null || (selfId != null && existing.getId().equals(selfId))) {
+                return attempt;
+            }
+        }
+
+        // Крайній випадок: якщо навіть _999 зайнятий (малоймовірно) — UUID-суфікс
+        String fallback = base + "_" + UUID.randomUUID().toString().substring(0, 8);
+        log.warn("Не вдалося знайти унікальний username для '{}', використовую fallback '{}'",
+                base, fallback);
+        return fallback;
+    }
+
+    @Deprecated
+    @Transactional
+    public User saveOAuth2User(String provider, String providerId, String email, String name) {
+        return saveOrUpdateOAuth2User(provider, providerId, email, name);
     }
 
     // ==================== ОНОВЛЕННЯ ПРОФІЛЮ ====================

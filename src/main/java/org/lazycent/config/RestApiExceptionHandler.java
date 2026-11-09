@@ -24,16 +24,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Глобальний обробник помилок для AJAX/REST endpoints.
- * <p>
- * <b>Чому {@code @Order(HIGHEST_PRECEDENCE)}:</b> {@link GlobalExceptionHandler}
- * має {@code @ExceptionHandler(Exception.class)} без selector-а і без `@Order`.
- * Spring MVC обирає перший advice, який може обробити помилку. Без явного
- * пріоритету {@code GlobalExceptionHandler} (той самий {@code LOWEST_PRECEDENCE})
- * вигравав, і REST-відповідь перетворювалася на HTML-редірект.
- */
-@RestControllerAdvice(assignableTypes = CategoryRestController.class)
+
+@RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RequiredArgsConstructor
 @Slf4j

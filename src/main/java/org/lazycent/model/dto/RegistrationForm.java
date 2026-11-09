@@ -7,46 +7,35 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-/**
- * DTO для форми реєстрації.
- */
 @Data
 public class RegistrationForm {
 
-    @NotBlank(message = "Ім'я користувача не може бути порожнім.")
+    @NotBlank(message = "{validation.username.blank}")
     @Pattern(
             regexp = "^[a-zA-Z0-9_]{6,30}$",
-            message = "Ім'я користувача має містити 6-30 символів (літери, цифри, підкреслення)."
+            message = "{validation.username.pattern}"
     )
     private String username;
 
-    @NotBlank(message = "Електронна пошта не може бути порожньою.")
-    @Email(message = "Введіть коректну електронну пошту.")
-    @Size(max = 100, message = "Email не може перевищувати 100 символів.")
+    @NotBlank(message = "{validation.email.blank}")
+    @Email(message = "{validation.email.format}")
+    @Size(max = 100, message = "{validation.email.max}")
     private String email;
 
-    /**
-     * Пароль: мінімум 6 символів, мала літера, велика літера, цифра
-     * і будь-який не-алфанумерик (спецсимвол).
-     *
-     * <p>{@code [^a-zA-Z0-9]} — будь-який символ поза діапазоном латиниці
-     * та цифр. Це покриває {@code @ $ ! % * ? & # + - _ = ~ ^ ( ) [ ] { } ...}
-     * та будь-які юнікод-символи (кирилиця, емодзі, тощо).
-     */
-    @NotBlank(message = "Пароль не може бути порожнім.")
-    @Size(min = 6, max = 100, message = "Пароль має містити щонайменше 6 символів.")
+    @NotBlank(message = "{validation.password.blank}")
+    @Size(min = 6, max = 100, message = "{validation.password.size}")
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).+$",
-            message = "Пароль має містити малу та велику літеру, цифру і спецсимвол."
+            message = "{validation.password.pattern}"
     )
     private String password;
 
-    @NotBlank(message = "Підтвердження пароля не може бути порожнім.")
+    @NotBlank(message = "{validation.passwordConfirm.blank}")
     private String passwordConfirm;
 
-    @AssertTrue(message = "Необхідно погодитися з Політикою конфіденційності.")
+    @AssertTrue(message = "{validation.privacy.required}")
     private boolean privacyConsent;
 
-    @AssertTrue(message = "Необхідно погодитися з Умовами використання.")
+    @AssertTrue(message = "{validation.terms.required}")
     private boolean termsConsent;
 }

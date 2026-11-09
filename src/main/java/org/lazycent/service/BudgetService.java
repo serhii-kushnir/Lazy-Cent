@@ -223,33 +223,38 @@ public class BudgetService {
     }
 
     private void recalculateBalancesAfter(LocalDate fromDate, User user) {
-        double previousBalance = dayBudgetRepository
-                .findByDateAndOwner(fromDate, user)
-                .map(DayBudget::getRemainingBalance)
-                .orElse(0.0);
+        DayBudget anchor = dayBudgetRepository.findByDateAndOwner(fromDate, user).orElse(null);
+        if (anchor == null) return;
+
+        double previousBalance = anchor.getRemainingBalance() != null
+                ? anchor.getRemainingBalance() : 0.0;
 
         List<DayBudget> subsequent = dayBudgetRepository
                 .findByOwnerAndDateAfterOrderByDateAsc(user, fromDate);
 
-        if (subsequent.isEmpty()) {
-            return;
-        }
+        if (subsequent.isEmpty()) return;
+
+        // Fast path: якщо в наступних днях немає транзакцій, то startingBalance
+        // зміниться однаково для всіх — можна пропустити масовий UPDATE.
+        // (опційно — залежить від бізнес-логіки)
 
         for (DayBudget budget : subsequent) {
+            double oldStarting = budget.getStartingBalance() != null ? budget.getStartingBalance() : 0.0;
+            double oldRemaining = budget.getRemainingBalance() != null ? budget.getRemainingBalance() : 0.0;
+
             budget.setStartingBalance(previousBalance);
-
-            double dayExpenses = budget.getTotalExpenses();
-            double dayIncomes = budget.getTotalIncomes();
-
-            double newBalance = previousBalance + dayIncomes - dayExpenses;
+            double newBalance = previousBalance + budget.getTotalIncomes()
+                    - budget.getTotalExpenses();
             budget.setRemainingBalance(newBalance);
+
+            if (Math.abs(oldStarting - previousBalance) < 0.001
+                    && Math.abs(oldRemaining - newBalance) < 0.001) {
+                return;
+            }
             previousBalance = newBalance;
         }
 
         dayBudgetRepository.saveAll(subsequent);
-
-        log.debug("Перераховано баланси для {} наступних днів користувача {} (починаючи з {})",
-                subsequent.size(), user.getUsername(), fromDate.plusDays(1));
     }
 
     // ==================== ОТРИМАННЯ ДАНИХ ====================

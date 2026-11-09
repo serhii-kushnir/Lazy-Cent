@@ -12,10 +12,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
+<!-- head.html, фрагмент themeAssets -->
+<meta name="robots" th:content="${robots != null ? robots : 'index, follow'}">
+
 <!-- ==================== БЕЗ Chart.js ==================== -->
 <th:block th:fragment="themeAssets">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <meta name="robots" th:content="${robots}">
+    <meta name="robots" th:content="${robots != null ? robots : 'index, follow'}">
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -23,8 +26,8 @@
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.png">
     <meta name="theme-color" content="#0d6efd">
 
-    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">   ← ДОДАТИ
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">       ← ДОДАТИ
     <link rel="stylesheet" href="/css/app.css">
 
     <th:block th:insert="~{fragments/head :: themeInit}"></th:block>
@@ -33,16 +36,15 @@
 <!-- ==================== З Chart.js ==================== -->
 <th:block th:fragment="themeAssetsWithCharts">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <meta name="robots" th:content="${robots}">
-    <!-- PWA Meta Tags -->
+    <meta name="robots" th:content="${robots != null ? robots : 'index, follow'}">
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/img/icons/icon-192x192.png">
     <meta name="theme-color" content="#0d6efd">
 
-    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">   ← ДОДАТИ
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">       ← ДОДАТИ
     <link rel="stylesheet" href="/css/app.css">
 
     <script src="/lib/chart.js/chart.umd.min.js"></script>

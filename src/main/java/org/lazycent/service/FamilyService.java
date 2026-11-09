@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -168,18 +169,22 @@ public class FamilyService {
     public List<User> getFamilyMembers(User user) {
         Long familyId = user.getFamilyId();
         if (familyId == null) return List.of();
+
+        Long ownerId = familyRepository.findOwnerIdByFamilyId(familyId).orElse(null);
+        if (ownerId == null) return List.of();
+
         Family f = familyRepository.findById(familyId).orElse(null);
         if (f == null) return List.of();
 
-        // 👇 Сортуємо: власник завжди перший, інші - за алфавітом 👇
+        final Long finalOwnerId = ownerId;
         return userRepository.findByFamily(f).stream()
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .sorted((u1, u2) -> {
-                    boolean isU1Owner = u1.getId().equals(f.getOwner().getId());
-                    boolean isU2Owner = u2.getId().equals(f.getOwner().getId());
-                    if (isU1Owner) return -1; // u1 йде першим
-                    if (isU2Owner) return 1;  // u2 йде першим
-                    return u1.getUsername().compareToIgnoreCase(u2.getUsername()); // інші за алфавітом
+                    boolean isU1Owner = u1.getId().equals(finalOwnerId);
+                    boolean isU2Owner = u2.getId().equals(finalOwnerId);
+                    if (isU1Owner) return -1;
+                    if (isU2Owner) return 1;
+                    return u1.getUsername().compareToIgnoreCase(u2.getUsername());
                 })
                 .toList();
     }
@@ -192,10 +197,10 @@ public class FamilyService {
     }
 
     public boolean isOwner(User user) {
+        if (user == null) return false;
         Long familyId = user.getFamilyId();
         if (familyId == null) return false;
-        Family f = familyRepository.findById(familyId).orElse(null);
-        return f != null && f.getOwner().getId().equals(user.getId());
+        return familyRepository.isOwnerById(familyId, user.getId());
     }
 
     @Transactional(readOnly = true)
