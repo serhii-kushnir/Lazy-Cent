@@ -4,12 +4,6 @@
     <!--
       Керує file-appenders.
       За замовчуванням false: логи тільки в stdout.
-      Це правильний режим для Fly.io, Docker, Kubernetes — там
-      stdout збирається платформою (fly logs, docker logs, kubectl logs).
-      Файли в контейнері все одно ефемерні і не потрапляють у централізоване сховище.
-
-      Увімкнути для локальної розробки: LOG_TO_FILE=true або
-      app.logging.file.enabled=true в application.yaml.
     -->
     <springProperty scope="context" name="LOG_TO_FILE"
                     source="app.logging.file.enabled"

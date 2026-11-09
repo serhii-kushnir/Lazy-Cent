@@ -29,7 +29,6 @@ public class GlobalControllerAdvice {
     private final UserRepository userRepository;
     private final TemplateDataService templateDataService;
 
-
     // ==================== ВАЛЮТА ====================
 
     @ModelAttribute("currencySymbol")
@@ -109,7 +108,8 @@ public class GlobalControllerAdvice {
     public boolean hasFamily() {
         User user = getCurrentUser();
         if (user == null) return false;
-        // Беремо свіжі дані з БД, ігноруючи кеш сесії
+        if (user.getFamilyId() != null) return true;   // швидкий шлях
+        // Повільний — тільки якщо зараз false (після join/approve з іншої сесії)
         return userRepository.findById(user.getId())
                 .map(u -> u.getFamilyId() != null)
                 .orElse(false);

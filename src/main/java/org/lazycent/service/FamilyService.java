@@ -19,7 +19,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +79,6 @@ public class FamilyService {
         return saved;
     }
 
-
     @Transactional
     public void joinFamily(User user, String inviteCode) {
         User managed = userRepository.findById(user.getId())
@@ -100,7 +98,6 @@ public class FamilyService {
         Family family = familyRepository.findByInviteCode(code)
                 .orElseThrow(() -> new ValidationException("Невірний код-запрошення"));
 
-        // Видаляємо стару відхилену заявку до цієї ж сім'ї, якщо є
         joinRequestRepository.findByFamilyAndUser(family, managed)
                 .ifPresent(joinRequestRepository::delete);
 
@@ -123,8 +120,6 @@ public class FamilyService {
             log.info("{} cancelled join request", managed.getUsername());
         });
     }
-
-
 
     @Transactional
     public void deleteFamily(User owner) {
@@ -169,19 +164,14 @@ public class FamilyService {
     public List<User> getFamilyMembers(User user) {
         Long familyId = user.getFamilyId();
         if (familyId == null) return List.of();
-
-        Long ownerId = familyRepository.findOwnerIdByFamilyId(familyId).orElse(null);
-        if (ownerId == null) return List.of();
-
         Family f = familyRepository.findById(familyId).orElse(null);
         if (f == null) return List.of();
 
-        final Long finalOwnerId = ownerId;
         return userRepository.findByFamily(f).stream()
-                .filter(Objects::nonNull)
+                .filter(java.util.Objects::nonNull)
                 .sorted((u1, u2) -> {
-                    boolean isU1Owner = u1.getId().equals(finalOwnerId);
-                    boolean isU2Owner = u2.getId().equals(finalOwnerId);
+                    boolean isU1Owner = u1.getId().equals(f.getOwner().getId());
+                    boolean isU2Owner = u2.getId().equals(f.getOwner().getId());
                     if (isU1Owner) return -1;
                     if (isU2Owner) return 1;
                     return u1.getUsername().compareToIgnoreCase(u2.getUsername());
@@ -189,13 +179,26 @@ public class FamilyService {
                 .toList();
     }
 
+    /**
+     * Повертає сім'ю користувача з eager-fetch {@code owner}.
+     *
+     * <p><b>P1.13 / P1.16:</b> {@code owner} — LAZY. Без eager-fetch
+     * {@code family.getOwner().getId()} працює (Hibernate-трюк), але
+     * {@code family.getOwner().getUsername()} уже кине {@code LazyInitializationException}
+     * поза транзакцією (наприклад, у {@code FamilyApiController.getData}).
+     * {@code findByIdWithOwner} гарантує, що {@code owner} завантажений.
+     */
     @Transactional(readOnly = true)
     public Family getFamily(User user) {
         Long familyId = user.getFamilyId();
         if (familyId == null) return null;
-        return familyRepository.findById(familyId).orElse(null);
+        return familyRepository.findByIdWithOwner(familyId).orElse(null);
     }
 
+    /**
+     * P1.13: {@code @Transactional(readOnly = true)} — гарантує, що
+     * {@code f.getOwner()} (LAZY proxy) доступний в межах сесії.
+     */
     @Transactional(readOnly = true)
     public boolean isOwner(User user) {
         Long familyId = user.getFamilyId();
@@ -213,13 +216,13 @@ public class FamilyService {
 
         List<SharedTransactionDto> all = new ArrayList<>();
 
-        // 👇 Оновлені виклики без currentUser.getId() 👇
         all.addAll(expenseRepository.findSharedExpensesByFamily(familyId, start, end));
         all.addAll(incomeRepository.findSharedIncomesByFamily(familyId, start, end));
 
         all.sort(Comparator.comparing(SharedTransactionDto::date).reversed());
         return all;
     }
+
     // ==================== JOIN REQUESTS ====================
 
     @Transactional(readOnly = true)
@@ -267,7 +270,6 @@ public class FamilyService {
         family.setName(trimmed);
         familyRepository.save(family);
 
-        // Сповіщаємо інших учасників
         List<User> members = userRepository.findByFamily(family);
         for (User m : members) {
             if (!m.getId().equals(managed.getId())) {
@@ -294,10 +296,9 @@ public class FamilyService {
         incomeRepository.clearSharedFlagForUser(member);
 
         member.setFamily(null);
-        member.setNotificationMessage("Власник сім'ї видалив вас зі списку учасників."); // Сповіщення видаленому
+        member.setNotificationMessage("Власник сім'ї видалив вас зі списку учасників.");
         userRepository.save(member);
 
-        // Сповіщаємо тих, хто залишився
         List<User> remainingMembers = userRepository.findByFamily(family);
         for (User m : remainingMembers) {
             m.setNotificationMessage("Учасника " + member.getUsername() + " було видалено з сім'ї.");
@@ -320,7 +321,6 @@ public class FamilyService {
         managed.setFamily(null);
         userRepository.save(managed);
 
-        // Сповіщаємо всіх, хто залишився (включаючи власника)
         List<User> remainingMembers = userRepository.findByFamily(family);
         for (User m : remainingMembers) {
             m.setNotificationMessage("Учасник " + managed.getUsername() + " покинув вашу сім'ю.");
@@ -350,7 +350,6 @@ public class FamilyService {
         family.setOwner(newOwner);
         familyRepository.save(family);
 
-        // Сповіщаємо всіх учасників
         List<User> members = userRepository.findByFamily(family);
         for (User m : members) {
             if (m.getId().equals(managedOwner.getId())) {
@@ -386,7 +385,6 @@ public class FamilyService {
         userRepository.save(newMember);
         joinRequestRepository.delete(request);
 
-        // Сповіщаємо всіх, хто вже в сім'ї
         List<User> members = userRepository.findByFamily(family);
         for (User m : members) {
             if (!m.getId().equals(newMember.getId())) {
@@ -442,5 +440,4 @@ public class FamilyService {
             return fallback;
         }
     }
-
 }

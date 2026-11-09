@@ -10,7 +10,6 @@ spring:
     name: lazycent
 
   # ===================== h2 =====================
-
   h2:
     console:
       enabled: true
@@ -22,8 +21,6 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE}
     driver-class-name: org.h2.Driver
-    # Дефолти для локального запуску без env-змінних:
-    #   H2 створює БД з user=sa і порожнім паролем.
     username: ${DB_USER:sa}
     password: ${DB_PASS:}
 
@@ -93,36 +90,34 @@ server:
         path: /
         persistent: false
 
-# ===================== APP =====================
-app:
-  url: ${APP_URL:http://localhost:8080}
-  days:
-    max-loaded: ${DAYS_MAX_LOADED:180}
-  balance:
-    strategy: COMPUTED
-  demo:
-    # Дефолт false — щоб випадковий деплой без DEMO_ENABLED не створив
-    # юзера demo/demo. У application-test.yaml теж false.
-    enabled: ${DEMO_ENABLED:false}
-    default-user: ${DEMO_USER:demo}
-    default-password: ${DEMO_PASSWORD:}
-    random-days: ${DEMO_RANDOM_DAYS:14}
-  # Уніфіковане property для reverse proxy.
-  # Використовується RateLimitFilter і RedirectUtils.
-  trust-proxy: ${TRUST_PROXY:false}
-  password-reset:
-    # Cron для щоденного очищення прострочених токенів.
-    cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
-  logging:
-    file:
-      enabled: ${LOG_TO_FILE:false}
-
+# ===================== LOGGING =====================
+# P1.17: правильні Spring Boot logging levels (root-level, без префіксу "app.").
+# Раніше було "app.logging.level.*" — Spring Boot це ігнорував.
+# logback-spring.xml більше не перебиває ці рівні (прибрано <logger> для org.lazycent / org.hibernate.SQL).
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
     org.lazycent: ${LOG_LEVEL_APP:INFO}
     org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:WARN}
+    org.springframework.security: INFO
+
+# ===================== APP =====================
+app:
+  url: ${APP_URL:http://localhost:8080}
+  days:
+    max-loaded: ${DAYS_MAX_LOADED:180}
+  demo:
+    enabled: ${DEMO_ENABLED:false}
+    default-user: ${DEMO_USER:demo}
+    default-password: ${DEMO_PASSWORD:}
+    random-days: ${DEMO_RANDOM_DAYS:14}
+  trust-proxy: ${TRUST_PROXY:false}
+  password-reset:
+    cleanup-cron: ${PASSWORD_RESET_CLEANUP_CRON:0 0 3 * * *}
+  logging:
+    file:
+      enabled: ${LOG_TO_FILE:false}
 
 # ===================== ACTUATOR =====================
 management:

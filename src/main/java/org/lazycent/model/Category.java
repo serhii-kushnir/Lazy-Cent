@@ -47,17 +47,6 @@ public class Category {
     @Column(nullable = false)
     private String type;
 
-    /**
-     * P2.c: {@code owner} тепер LAZY.
-     *
-     * <p><b>Де читається:</b>
-     * <ul>
-     *   <li>{@code CategoryService.getCategoryById/deleteCategory/updateCategory} — всередині {@code @Transactional};</li>
-     *   <li>Thymeleaf — {@code owner} НЕ використовується (шаблони читають тільки {@code name}, {@code id}, {@code type}).</li>
-     * </ul>
-     *
-     * <p><b>Ризик LazyInit:</b> відсутній. Усі місця, де потрібен {@code owner}, або в транзакції, або в WHERE-фільтрі репозиторію.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User owner;
