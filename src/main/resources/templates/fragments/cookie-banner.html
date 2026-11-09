@@ -32,8 +32,10 @@
             const banner = document.getElementById('cookieBanner');
             if (!banner) return;
 
-            const STORAGE_KEY = 'lazycent-cookie-consent';
-            const saved = localStorage.getItem(STORAGE_KEY);
+            const STORAGE_KEY = 'lc_cookie_consent';
+            let saved = null;
+            try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+
             if (!saved) {
                 setTimeout(() => { banner.style.display = 'block'; }, 600);
             }
@@ -42,17 +44,12 @@
             const rejectBtn = banner.querySelector('.cookie-btn-reject');
 
             function saveChoice(choice) {
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                        choice: choice,
-                        timestamp: Date.now()
-                    }));
-                } catch (e) { /* ignore */ }
+                try { localStorage.setItem(STORAGE_KEY, choice); } catch (e) {}
                 banner.style.display = 'none';
             }
 
-            if (acceptBtn) acceptBtn.addEventListener('click', () => saveChoice('accept'));
-            if (rejectBtn) rejectBtn.addEventListener('click', () => saveChoice('reject'));
+            if (acceptBtn) acceptBtn.addEventListener('click', () => saveChoice('all'));
+            if (rejectBtn) rejectBtn.addEventListener('click', () => saveChoice('necessary'));
         })();
     </script>
 </th:block>

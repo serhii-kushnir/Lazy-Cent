@@ -149,12 +149,11 @@
                 </executions>
                 <configuration>
                     <excludes>
-                        <exclude>**/LazyCentApplication.class</exclude>
                         <exclude>**/*Application*.class</exclude>
                         <exclude>**/*Config*.class</exclude>
                         <exclude>org/lazycent/model/**</exclude>
                         <exclude>**/model/dto/**</exclude>
-                        <exclude>**/event/**</exclude>   <!-- records без логіки -->
+                        <exclude>**/event/**</exclude>
                         <exclude>**/exception/package-info.class</exclude>
                     </excludes>
                 </configuration>

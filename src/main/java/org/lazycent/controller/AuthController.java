@@ -51,7 +51,6 @@ public class AuthController extends BaseController {
             );
         }
 
-        // FIX: локалізовані повідомлення через msg()
         if (form.getPassword() != null && form.getPasswordConfirm() != null
                 && !form.getPassword().equals(form.getPasswordConfirm())) {
             fieldErrors.put("passwordConfirm", msg("error.password.mismatch"));
@@ -76,7 +75,9 @@ public class AuthController extends BaseController {
 
         try {
             userService.registerUser(form.getUsername(), form.getPassword(), form.getEmail());
-            redirect.addFlashAttribute("successMessage", msg("error.registration.success"));
+            // P2.22: ключ перейменовано з error.registration.success на ok.registration.success
+            // (це успіх, а не помилка). Семантично коректно + легше шукати в логах.
+            redirect.addFlashAttribute("successMessage", msg("ok.registration.success"));
             return "redirect:/login";
         } catch (Exception e) {
             redirect.addFlashAttribute("errorMessage", e.getMessage());

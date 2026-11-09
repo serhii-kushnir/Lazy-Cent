@@ -11,7 +11,6 @@ import org.lazycent.model.dto.CategoryBudgetDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
-import org.apache.poi.ss.usermodel.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -323,7 +322,6 @@ public class BudgetExportService {
         row = addSummaryRow(sheet, row, msg("incomeBudget.received", locale),
                 d.getTotalIncomes(), labelStyle, boldMoneyStyle);
 
-        // Залишок або перевиконання
         String remainingLabel = (d.getRemainingBudget() != null && d.getRemainingBudget() <= 0)
                 ? msg("incomeBudget.overachieved", locale)
                 : msg("incomeBudget.remaining", locale);
@@ -406,7 +404,6 @@ public class BudgetExportService {
 
     /**
      * Локалізація статусу для income-дашборду.
-     * ACHIEVED — ціль досягнута, ON_TRACK — на шляху, BEHIND — відстає, NO_TARGET — без цілі.
      */
     private String localizedIncomeStatus(String status, Locale locale) {
         if (status == null) return "";
