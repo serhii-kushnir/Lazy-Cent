@@ -2016,6 +2016,12 @@
 
             applyFilterAndDivider('all');
         });
+
+        // Наприкінці DOMContentLoaded у notes.html
+        if (/*[[${openCreateModal}]]*/ false) {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('createNoteModal')).show();
+        }
+
     })();
 </script>
 

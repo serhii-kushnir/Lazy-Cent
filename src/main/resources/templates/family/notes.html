@@ -3,229 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="#{notes.family.title} + ' - Lazy Cent'">Нотатки сім'ї - Lazy Cent</title>
+    <title th:text="#{notes.family.title} + ' - ' + #{app.title}">Нотатки сім'ї - Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
     <style>
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
-        .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
+        .animate-fade-up { animation: fadeInUp 0.5s ease backwards; }
+        .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
         .delay-1 { animation-delay: 0.05s; }
 
         .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
-
-        .btn:not(.btn-close),
-        .btn.rounded-pill,
-        .btn.rounded-circle,
-        .btn-rounded,
-        .nav-btn { border-radius: 0.5rem !important; }
+        .btn:not(.btn-close), .btn-rounded, .nav-btn { border-radius: 0.5rem !important; }
         .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
 
         .page-header-wrap { position: relative; z-index: 10; }
+        .icon-circle { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
 
-        .icon-circle {
-            width: 56px; height: 56px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; flex-shrink: 0;
-        }
+        .notes-section { background-color: var(--bs-card-bg); border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        [data-bs-theme="dark"] .notes-section { background-color: #212529 !important; border: 1px solid #2a2e37; }
 
-        .notes-section {
-            background-color: var(--bs-card-bg);
-            border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-        [data-bs-theme="dark"] .notes-section {
-            background-color: #212529 !important;
-            border: 1px solid #2a2e37;
-        }
+        .cat-header-theme { background-color: #ffffff !important; color: #212529 !important; border-bottom: 1px solid #dee2e6 !important; }
+        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
+        [data-bs-theme="dark"] .cat-header-theme { background-color: #1d2027 !important; color: #e6e6e6 !important; border-bottom-color: #2a2e37 !important; }
+        [data-bs-theme="dark"] .cat-header-theme h6, [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230, 230, 230, 0.75) !important; }
+        [data-bs-theme="dark"] .cat-header-theme h3, [data-bs-theme="dark"] .cat-header-theme h3 * { color: #ffffff !important; }
 
-        .cat-header-theme {
-            background-color: #ffffff !important;
-            color: #212529 !important;
-            border-bottom: 1px solid #dee2e6 !important;
-        }
-        .cat-header-theme h6,
-        .cat-header-theme h6 * { color: #6c757d !important; }
-        .cat-header-theme h3,
-        .cat-header-theme h3 * { color: #212529 !important; }
+        .notes-sub-bar { background-color: #ffffff !important; }
+        [data-bs-theme="dark"] .notes-sub-bar { background-color: #1d2027 !important; }
 
-        [data-bs-theme="dark"] .cat-header-theme {
-            background-color: #1d2027 !important;
-            color: #e6e6e6 !important;
-            border-bottom-color: #2a2e37 !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme h6,
-        [data-bs-theme="dark"] .cat-header-theme h6 * {
-            color: rgba(230, 230, 230, 0.75) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme h3,
-        [data-bs-theme="dark"] .cat-header-theme h3 * {
-            color: #ffffff !important;
-        }
-
-        .view-toggle {
-            display: flex; gap: 0.3rem;
-            background: var(--bs-secondary-bg);
-            border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0;
-        }
-        .view-toggle .btn {
-            border: none; padding: 0.5rem 1.2rem; font-size: 1rem;
-            border-radius: 0.375rem !important; background: transparent;
-            color: var(--bs-secondary-color); font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        .view-toggle .btn.active {
-            background: var(--bs-body-bg); color: var(--bs-primary);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-        }
+        .view-toggle { display: flex; gap: 0.3rem; background: var(--bs-secondary-bg); border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0; }
+        .view-toggle .btn { border: none; padding: 0.5rem 1rem; font-size: 0.95rem; border-radius: 0.375rem !important; background: transparent; color: var(--bs-secondary-color); font-weight: 600; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
         .cat-header-theme .view-toggle { background: #e9ecef !important; }
         .cat-header-theme .view-toggle .btn { color: #495057 !important; }
-        .cat-header-theme .view-toggle .btn.active {
-            background: #ffffff !important;
-            color: #0d6efd !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle {
-            background: rgba(255, 255, 255, 0.08) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn {
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
-            background: #0d6efd !important;
-            color: #ffffff !important;
-            box-shadow: none !important;
-        }
-        @media (max-width: 767.98px) {
-            .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
-        }
+        .cat-header-theme .view-toggle .btn.active { background: #ffffff !important; color: #0d6efd !important; box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255, 255, 255, 0.08) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #ffffff !important; box-shadow: none !important; }
 
+        /* ===== TOOLBAR ===== */
+        .notes-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
+        .notes-toolbar .dropdown .btn { border-radius: 0.5rem; font-size: 0.85rem; padding: 0.4rem 0.75rem; }
+        .notes-toolbar .dropdown-menu { min-width: 220px; }
+        .notes-toolbar .dropdown-item.active, .notes-toolbar .dropdown-item:active { background-color: var(--bs-primary); color: #fff; }
+
+        /* Стилі для кнопки "Завантажити ще" */
+        .load-more-btn { font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 0.5rem; transition: all 0.2s; }
+        .load-more-btn:hover { background-color: var(--bs-primary); color: white; }
+
+        .notes-toolbar #memberFilter { width: auto; max-width: 200px; border-radius: 0.5rem; font-size: 0.85rem; }
+
+        .search-bar { position: relative; }
         .search-bar .input-group-text { background: transparent; border-right: none; }
-        .search-bar .form-control { border-left: none; }
+        .search-bar .input-group > .btn { border-left: none; }
+        #searchClear { flex-shrink: 0; min-width: 44px; display: inline-flex !important; align-items: center; justify-content: center; }
+        #searchClear:hover { background-color: rgba(220, 53, 69, 0.12); border-color: #dc3545; color: #dc3545; }
+        [data-bs-theme="dark"] #searchClear { color: #adb5bd; border-color: #495057; }
+        [data-bs-theme="dark"] #searchClear:hover { background-color: rgba(248, 113, 113, 0.15); border-color: #f87171; color: #f87171; }
 
-        /* ===== NOTE CARDS ===== */
-        .note-card {
-            border: 1px solid var(--bs-border-color);
-            border-radius: 1rem;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            overflow: hidden;
-        }
-        .note-card.is-mine { cursor: pointer; }
-        .note-card.is-mine:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-        [data-bs-theme="dark"] .note-card.is-mine:hover {
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-        }
-        .note-card .card-body {
-            flex: 1;
-            padding: 0.9rem 1rem 0.75rem;
-        }
-        .note-card .card-title {
-            font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .note-card .card-text {
-            font-size: 0.9rem; max-height: 120px; overflow: hidden;
-            display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical;
-            word-wrap: break-word; margin-bottom: 0;
-        }
-        .note-card .card-footer {
-            background: transparent; border-top: none;
-            padding: 0.25rem 0.75rem 0.6rem;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .note-card .btn-icon {
-            color: #5f6368; padding: 0.3rem 0.5rem; font-size: 0.9rem;
-            border-radius: 0.375rem; transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-            background: transparent; border: none; cursor: pointer;
-            display: inline-flex; align-items: center; justify-content: center;
-            min-width: 32px; min-height: 32px;
-        }
+        /* NOTE CARDS */
+        .note-card { border: 1px solid var(--bs-border-color); border-radius: 1rem; height: 100%; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; cursor: pointer; }
+        .note-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+        [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        .note-card .card-body { flex: 1; padding: 0.9rem 1rem 0.75rem; }
+        .note-card .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .note-card .card-text { font-size: 0.9rem; max-height: 120px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; word-wrap: break-word; margin-bottom: 0; }
+        .note-card .card-footer { background: transparent; border-top: none; padding: 0.25rem 0.75rem 0.6rem; display: flex; justify-content: space-between; align-items: center; }
+        .note-card .btn-icon { color: #5f6368; padding: 0.3rem 0.5rem; font-size: 0.9rem; border-radius: 0.375rem; transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; }
         [data-bs-theme="dark"] .note-card .btn-icon { color: #bdc1c6; }
         .note-card .btn-icon:hover { background: rgba(26, 115, 232, 0.12); color: #1a73e8; transform: translateY(-1px); }
         .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
-        [data-bs-theme="dark"] .note-card .btn-icon:hover { background: rgba(110, 168, 254, 0.2); color: #6ea8fe; }
-        [data-bs-theme="dark"] .note-card .btn-icon.text-danger:hover { background: rgba(248, 113, 113, 0.2); color: #f87171; }
-        .note-card .btn-icon .pin-icon { color: #fbbc04; }
 
-        /* ===== AUTHOR BADGE ===== */
-        .author-badge {
-            display: inline-flex; align-items: center; gap: 0.4rem;
-            font-size: 0.72rem; font-weight: 600;
-            padding: 0.2rem 0.6rem;
-            background: rgba(13, 202, 240, 0.12);
-            color: #0b7285;
-            border-radius: 0.5rem;
-            white-space: nowrap;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        [data-bs-theme="dark"] .author-badge {
-            background: rgba(13, 202, 240, 0.18);
-            color: #7ee0f0;
-        }
-        .author-badge .author-avatar {
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: #0dcaf0;
-            color: #000;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.62rem;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-        .author-badge.is-me {
-            background: rgba(25, 135, 84, 0.12);
-            color: #0f5132;
-        }
-        [data-bs-theme="dark"] .author-badge.is-me {
-            background: rgba(25, 135, 84, 0.2);
-            color: #6ee7b7;
-        }
-        .author-badge.is-me .author-avatar {
-            background: #198754;
-            color: #fff;
-        }
+        /* AUTHOR BADGE */
+        .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+        [data-bs-theme="dark"] .author-badge { background: rgba(13, 202, 240, 0.18); color: #7ee0f0; }
+        .author-badge .author-avatar { width: 20px; height: 20px; border-radius: 50%; background: #0dcaf0; color: #000; display: inline-flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; flex-shrink: 0; }
+        .author-badge.is-me { background: rgba(25, 135, 84, 0.12); color: #0f5132; }
+        [data-bs-theme="dark"] .author-badge.is-me { background: rgba(25, 135, 84, 0.2); color: #6ee7b7; }
+        .author-badge.is-me .author-avatar { background: #198754; color: #fff; }
 
-        /* ===== EMPTY STATE ===== */
-        .empty-notes {
-            text-align: center; padding: 60px 20px;
-            color: var(--bs-secondary-color);
-        }
+        .empty-notes { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-notes i { font-size: 4rem; opacity: 0.25; }
 
+        .kbd-hint { font-size: 0.75rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
+        .kbd-hint kbd { background: var(--bs-secondary-bg); color: var(--bs-body-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 600; font-family: var(--bs-font-monospace); border: 1px solid var(--bs-border-color); }
+
+        /* Color picker */
+        .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+        .color-picker .color-option { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: border 0.2s, transform 0.2s; }
+        .color-picker .color-option:hover { border-color: #5f6368; transform: scale(1.1); }
+        .color-picker .color-option.selected { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25); }
+        .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
+
+        /* ===== MOBILE ADAPTATION ===== */
         @media (max-width: 575.98px) {
-            .cat-header-theme > div.no-print {
+            .notes-toolbar {
+                padding: 0.5rem 0.75rem;
+                gap: 0.5rem;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: stretch;
+            }
+            .notes-toolbar .dropdown {
+                flex: 1 1 calc(50% - 0.25rem);
+                width: auto;
+            }
+            .notes-toolbar .dropdown .btn {
                 width: 100%;
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 0.5rem !important;
+                text-align: left;
+                font-size: 0.8rem;
+                padding: 0.35rem 0.5rem;
             }
-            .cat-header-theme > div.no-print > .view-toggle {
-                width: 100% !important;
-                height: 42px !important;
+            .notes-toolbar .dropdown-menu {
+                min-width: 100%;
+                width: 100%;
             }
-            .cat-header-theme > div.no-print > .view-toggle > .btn {
-                flex: 1;
-                height: 36px !important;
+            .notes-toolbar #memberFilter {
+                flex: 1 1 calc(50% - 0.25rem);
+                width: auto;
+                max-width: none;
+                font-size: 0.8rem;
+                padding: 0.35rem 1.5rem 0.35rem 0.5rem;
             }
+            .notes-toolbar .load-more-btn {
+                flex: 1 1 100%;
+                width: 100%;
+                margin-top: 0.25rem;
+            }
+
+            .cat-header-theme > div.no-print { width: 100% !important; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
+            .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; height: auto !important; flex-wrap: wrap; padding: 0.25rem !important; gap: 0.25rem !important; }
+            .cat-header-theme > div.no-print > .view-toggle > .btn { flex: 1 1 calc(33.33% - 0.25rem); min-width: 0; height: 40px !important; font-size: 0.8rem; padding: 0.3rem 0.5rem; justify-content: center; }
+            .kbd-hint { display: none; }
         }
 
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
-            .d-print-none, .view-toggle, .search-bar, .alert { display: none !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .view-toggle, .search-bar, .alert, .notes-toolbar { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
             .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
@@ -253,37 +171,40 @@
 
     <!-- ========== PAGE HEADER ========== -->
     <div class="page-header-wrap mb-4 animate-fade-down">
-
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
                 <i class="fas fa-users me-2 text-primary"></i>
                 <span th:text="#{notes.family.title}">Нотатки сім'ї</span>
             </h2>
             <div class="position-absolute end-0 no-print d-flex gap-2">
-                <a th:href="@{/family}" class="btn btn-outline-secondary">
-                    <i class="fas fa-home me-1"></i>
-                    <span th:text="#{family.title}">Сім'я</span>
-                </a>
                 <a th:href="@{/notes}" class="btn btn-outline-primary">
-                    <i class="fas fa-sticky-note me-1"></i>
-                    <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
+                    <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
+                </a>
+                <!-- Кнопка Експорту з ID для JS-маніпуляцій -->
+                <a th:href="@{/notes/export(filter='shared')}" id="exportBtn" class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i> <span th:text="#{notes.export.button}">Експорт</span>
+                </a>
+                <a th:href="@{/notes(create='true')}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити</span>
                 </a>
             </div>
         </div>
-
         <div class="d-lg-none">
             <h2 class="mb-3 fw-bold text-center">
                 <i class="fas fa-users me-2 text-primary"></i>
                 <span th:text="#{notes.family.title}">Нотатки сім'ї</span>
             </h2>
-            <a th:href="@{/family}" class="btn btn-outline-secondary w-100 mb-2 no-print">
-                <i class="fas fa-home me-1"></i>
-                <span th:text="#{family.title}">Сім'я</span>
-            </a>
-            <a th:href="@{/notes}" class="btn btn-outline-primary w-100 no-print">
-                <i class="fas fa-sticky-note me-1"></i>
-                <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
-            </a>
+            <div class="d-grid gap-2 mb-2 no-print">
+                <a th:href="@{/notes}" class="btn btn-outline-primary">
+                    <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
+                </a>
+                <a th:href="@{/notes/export(filter='shared')}" id="exportBtnMobile" class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i> <span th:text="#{notes.export.button}">Експорт</span>
+                </a>
+                <a th:href="@{/notes(create='true')}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -307,10 +228,42 @@
             </div>
         </div>
 
-        <div class="p-3 search-bar" style="border-bottom: 1px solid var(--bs-border-color);">
+        <!-- TOOLBAR -->
+        <div class="notes-toolbar notes-sub-bar">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-sort me-1"></i>
+                    <span th:text="#{notes.sort.label}">Сортування</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item active" href="#" data-sort-choice="default" th:text="#{notes.sort.default}">За замовчуванням</a></li>
+                    <li><a class="dropdown-item" href="#" data-sort-choice="title" th:text="#{notes.sort.title}">За назвою (A–Z)</a></li>
+                    <!-- Новий пункт сортування -->
+                    <li><a class="dropdown-item" href="#" data-sort-choice="author">За автором (А–Я)</a></li>
+                    <li><a class="dropdown-item" href="#" data-sort-choice="created" th:text="#{notes.sort.created}">Спочатку нові</a></li>
+                    <li><a class="dropdown-item" href="#" data-sort-choice="updated" th:text="#{notes.sort.updated}">Спочатку змінені</a></li>
+                </ul>
+            </div>
+
+            <select id="memberFilter" class="form-select form-select-sm">
+                <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
+            </select>
+
+            <!-- Замість випадаючого списку - кнопка "Завантажити ще" -->
+            <button id="loadMoreBtn" class="btn btn-outline-primary load-more-btn ms-auto d-none">
+                <i class="fas fa-plus-circle me-1"></i>
+                <span th:text="#{common.loadMore}">Завантажити ще</span>
+            </button>
+            <span id="visibleInfo" class="text-muted small ms-2 d-none">—</span>
+        </div>
+
+        <div class="p-3 search-bar notes-sub-bar" style="border-bottom: 1px solid var(--bs-border-color);">
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
-                <input type="text" id="searchInput" class="form-control" th:placeholder="#{notes.search}">
+                <input type="text" id="searchInput" class="form-control" th:placeholder="#{notes.search}" autocomplete="off">
+                <button type="button" id="searchClear" class="btn btn-outline-secondary" th:title="#{notes.search.clear}">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         </div>
 
@@ -319,7 +272,12 @@
 
                 <th:block th:each="note : ${familyNotes}">
                     <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
-                         th:attr="data-mine=${note.owner.id == currentUser.id}">
+                         th:attr="data-mine=${note.owner.id == currentUser.id}"
+                         th:data-title="${note.title}"
+                         th:data-author="${note.owner.username}"
+                         th:data-created="${note.createdAt != null ? note.createdAt : ''}"
+                         th:data-updated="${note.updatedAt != null ? note.updatedAt : ''}">
+
                         <div class="note-card animate-fade-up"
                              th:classappend="${note.owner.id == currentUser.id} ? 'is-mine' : ''"
                              th:data-id="${note.id}"
@@ -327,18 +285,22 @@
                              th:data-textcolor="${note.textColor}"
                              th:data-share-with-family="true"
                              th:data-archived="false"
+                             th:data-pinned="${note.pinned}"
                              th:style="'background-color:' + ${note.color}">
 
                             <div class="card-body"
-                                 th:onclick="${note.owner.id == currentUser.id} ? 'editNote(' + ${note.id} + ')' : ''">
+                                 role="button" tabindex="0"
+                                 th:aria-label="${note.title}"
+                                 th:onclick="'openFamilyNote(' + ${note.id} + ', ' + ${note.owner.id == currentUser.id} + ')'">
 
                                 <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                     <span class="author-badge"
                                           th:classappend="${note.owner.id == currentUser.id} ? 'is-me' : ''">
                                         <span class="author-avatar"
                                               th:text="${#strings.substring(note.owner.username, 0, 1).toUpperCase()}">A</span>
-                                        <span class="text-truncate" th:text="${note.owner.username}">user</span>
+                                        <span class="text-truncate author-name" th:text="${note.owner.username}">user</span>
                                     </span>
+                                    <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning" style="font-size: 0.85rem;" title="Закріплена"></i>
                                 </div>
 
                                 <h5 class="card-title"
@@ -347,23 +309,28 @@
                                 <p class="card-text"
                                    th:text="${note.content}"
                                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
+
+                                <div class="mt-2 text-end" style="font-size: 0.7rem; opacity: 0.6;" th:style="'color:' + ${note.textColor}">
+                                    <i class="far fa-clock me-1"></i>
+                                    <span th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                                </div>
                             </div>
 
                             <div th:if="${note.owner.id == currentUser.id}" class="card-footer">
                                 <div class="d-flex gap-1">
-                                    <button class="btn-icon"
+                                    <button class="btn-icon" onclick="event.stopPropagation();"
                                             th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
                                             th:onclick="'togglePin(' + ${note.id} + ')'">
                                         <i class="fas fa-thumbtack"
                                            th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
                                     </button>
-                                    <button class="btn-icon"
+                                    <button class="btn-icon" onclick="event.stopPropagation();"
                                             th:title="#{notes.action.archive}"
                                             th:onclick="'toggleArchive(' + ${note.id} + ')'">
                                         <i class="fas fa-archive"></i>
                                     </button>
                                 </div>
-                                <button class="btn-icon text-danger"
+                                <button class="btn-icon text-danger" onclick="event.stopPropagation();"
                                         th:title="#{notes.action.delete}"
                                         th:onclick="'deleteNote(' + ${note.id} + ')'">
                                     <i class="fas fa-trash"></i>
@@ -376,7 +343,7 @@
                                     <span th:text="#{notes.family.viewOnly}">Тільки перегляд</span>
                                 </span>
                                 <form th:action="@{/notes/copy/{id}(id=${note.id})}"
-                                      method="post" class="d-inline">
+                                      method="post" class="d-inline" onclick="event.stopPropagation();">
                                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                     <button type="submit" class="btn-icon"
                                             th:title="#{notes.family.copy}">
@@ -387,22 +354,34 @@
                         </div>
                     </div>
                 </th:block>
+            </div>
 
-                <div th:if="${familyNotes.empty}" class="col-12">
-                    <div class="empty-notes">
-                        <i class="fas fa-users-slash"></i>
-                        <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
-                        <p class="mb-3" th:text="#{notes.family.empty.text}">
-                            Позначте свої нотатки як «Спільна», і вони з'являться тут.
-                        </p>
-                        <a th:href="@{/notes}" class="btn btn-primary">
-                            <i class="fas fa-sticky-note me-1"></i>
-                            <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
-                        </a>
-                    </div>
+            <!-- Empty State (No results) -->
+            <div id="emptyFilterMessage" class="empty-notes" style="display: none;">
+                <i class="fas fa-search"></i>
+                <h4 class="mt-3" th:text="#{notes.empty.search.title}">Нічого не знайдено</h4>
+                <p class="mb-0" th:text="#{notes.empty.search.hint}">Спробуйте змінити фільтр або створити нотатку.</p>
+            </div>
+
+            <!-- Initial Empty State -->
+            <div th:if="${familyNotes.empty}" class="empty-notes" id="initialEmptyState">
+                <i class="fas fa-users-slash"></i>
+                <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
+                <p class="mb-3" th:text="#{notes.family.empty.text}">Позначте свої нотатки як «Спільна», і вони з'являться тут.</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a th:href="@{/notes(create='true')}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити нотатку</span>
+                    </a>
+                    <a th:href="@{/notes}" class="btn btn-outline-secondary">
+                        <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
+                    </a>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="kbd-hint no-print text-center mb-5" th:utext="#{notes.kbd.hint}">
+        <kbd>N</kbd> — нова нотатка · <kbd>/</kbd> — пошук · <kbd>Esc</kbd> — закрити
     </div>
 
     <div class="print-footer d-print-block" style="display: none;">
@@ -410,14 +389,13 @@
     </div>
 </div>
 
-<!-- ==================== EDIT NOTE MODAL ==================== -->
+<!-- ==================== NOTE MODAL ==================== -->
 <div class="modal fade" id="editNoteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-primary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit me-2"></i>
-                    <span th:text="#{notes.modal.edit}">Редагувати нотатку</span>
+                    <i class="fas fa-edit me-2" id="editNoteModalIcon"></i> <span id="editNoteModalTitle" th:text="#{notes.modal.edit}">Редагувати нотатку</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -426,12 +404,16 @@
                 <div class="modal-body p-4">
                     <input type="hidden" name="id" id="editNoteId">
                     <div class="mb-3">
-                        <input type="text" class="form-control" name="title" id="editNoteTitle"
-                               th:placeholder="#{notes.field.title}" required maxlength="255">
+                        <input type="text" class="form-control" name="title" id="editNoteTitle" th:placeholder="#{notes.field.title}" required maxlength="255">
+                        <div class="text-end mt-1" style="font-size: 0.75rem; color: var(--bs-secondary-color);">
+                            <span id="editNoteTitleCount">0</span> / 255
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control" name="content" id="editNoteContent" rows="4"
-                                  th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
+                        <textarea class="form-control" name="content" id="editNoteContent" rows="4" th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
+                        <div class="text-end mt-1" style="font-size: 0.75rem; color: var(--bs-secondary-color);">
+                            <span id="editNoteContentCount">0</span> / 5000
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold" th:text="#{notes.field.bg}">Колір фону</label>
@@ -463,24 +445,26 @@
                         </div>
                         <input type="hidden" name="textColor" id="editSelectedTextColor" value="#212529">
                     </div>
-                    <div class="mb-0">
+                    <div class="mb-0" id="editShareWithFamilyContainer">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="editShareWithFamily"
-                                   name="shareWithFamily" value="true" checked>
+                            <input type="checkbox" class="form-check-input" id="editShareWithFamily" name="shareWithFamily" value="true" checked>
                             <label class="form-check-label" for="editShareWithFamily">
-                                <i class="fas fa-users me-1"></i>
-                                <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
+                                <i class="fas fa-users me-1"></i> <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
                             </label>
-                        </div>
-                        <div class="form-text text-muted" th:text="#{modal.shareWithFamily.hint}">
-                            Члени вашої сім'ї побачать цю нотатку
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-primary px-4" th:text="#{btn.save}">Зберегти</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.close}">Закрити</button>
+
+                    <button type="submit" class="btn btn-primary px-4" id="editNoteSaveBtn" th:text="#{btn.save}">Зберегти</button>
+
+                    <form id="copyFamilyNoteForm" method="post" style="display: none; margin: 0;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="fas fa-copy me-1"></i> <span th:text="#{notes.family.copy}">Копіювати до себе</span>
+                        </button>
+                    </form>
                 </div>
             </form>
         </div>
@@ -493,8 +477,7 @@
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-danger text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span th:text="#{notes.delete.confirm}">Підтвердження видалення</span>
+                    <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="#{notes.delete.confirm}">Підтвердження видалення</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -524,7 +507,45 @@
         'use strict';
 
         document.addEventListener('DOMContentLoaded', function () {
+            var noteGrid = document.getElementById('noteGrid');
+            var searchInput = document.getElementById('searchInput');
+            var searchClear = document.getElementById('searchClear');
+            var emptyFilterMessage = document.getElementById('emptyFilterMessage');
+            var initialEmptyState = document.getElementById('initialEmptyState');
+            var headerNoteCount = document.getElementById('headerNoteCount');
+            var memberFilter = document.getElementById('memberFilter');
+            var loadMoreBtn = document.getElementById('loadMoreBtn');
+            var visibleInfo = document.getElementById('visibleInfo');
+            var exportBtn = document.getElementById('exportBtn');
+            var exportBtnMobile = document.getElementById('exportBtnMobile');
 
+            var allCards = Array.from(noteGrid.querySelectorAll('.note-card-wrapper'));
+            var currentFilter = 'all';
+            var searchText = '';
+            var currentSort = 'default';
+            var currentPage = 1;
+            var pageSize = 20; // Фіксований розмір для "Завантажити ще"
+            var visibleCount = 0;
+
+            // === INITIALIZATION ===
+            if (initialEmptyState) {
+                initialEmptyState.style.display = allCards.length === 0 ? 'block' : 'none';
+            }
+
+            // Заповнюємо фільтр по учасниках
+            var membersSet = new Set();
+            allCards.forEach(function(w) {
+                var authorSpan = w.querySelector('.author-badge .author-name');
+                if (authorSpan) membersSet.add(authorSpan.textContent.trim());
+            });
+            membersSet.forEach(function(name) {
+                var opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                memberFilter.appendChild(opt);
+            });
+
+            // === COLOR PICKERS ===
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -535,7 +556,6 @@
                     });
                 });
             });
-
             document.querySelectorAll('.text-color-picker').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -547,7 +567,22 @@
                 });
             });
 
-            window.editNote = function (id) {
+            // === CHARACTER COUNTERS ===
+            var titleInp = document.getElementById('editNoteTitle');
+            var contentInp = document.getElementById('editNoteContent');
+            var titleCount = document.getElementById('editNoteTitleCount');
+            var contentCount = document.getElementById('editNoteContentCount');
+
+            function updateCharCounts() {
+                if(titleCount && titleInp) titleCount.textContent = titleInp.value.length;
+                if(contentCount && contentInp) contentCount.textContent = contentInp.value.length;
+            }
+
+            if(titleInp) titleInp.addEventListener('input', updateCharCounts);
+            if(contentInp) contentInp.addEventListener('input', updateCharCounts);
+
+            // === CORE FUNCTIONS ===
+            window.openFamilyNote = function (id, isMine) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
                 var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '';
@@ -555,89 +590,267 @@
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
 
-                document.getElementById('editNoteId').value = id;
-                document.getElementById('editNoteTitle').value = title;
-                document.getElementById('editNoteContent').value = content;
+                var elNoteId = document.getElementById('editNoteId');
+                var elNoteTitle = document.getElementById('editNoteTitle');
+                var elNoteContent = document.getElementById('editNoteContent');
+
+                if(elNoteId) elNoteId.value = id;
+                if(elNoteTitle) elNoteTitle.value = title;
+                if(elNoteContent) elNoteContent.value = content;
+
+                updateCharCounts(); // Оновлюємо лічильники
 
                 var bgPicker = document.getElementById('editColorPicker');
-                bgPicker.querySelectorAll('.color-option').forEach(function (el) {
-                    el.classList.toggle('selected', el.dataset.color === color);
-                });
-                document.getElementById('editSelectedColor').value = color;
+                if (bgPicker) {
+                    bgPicker.querySelectorAll('.color-option').forEach(function (el) { el.classList.toggle('selected', el.dataset.color === color); });
+                }
+                var elSelectedColor = document.getElementById('editSelectedColor');
+                if (elSelectedColor) elSelectedColor.value = color;
 
                 var textPicker = document.getElementById('editTextColorPicker');
-                textPicker.querySelectorAll('.color-option').forEach(function (el) {
-                    el.classList.toggle('selected', el.dataset.color === textColor);
-                });
-                document.getElementById('editSelectedTextColor').value = textColor;
+                if (textPicker) {
+                    textPicker.querySelectorAll('.color-option').forEach(function (el) { el.classList.toggle('selected', el.dataset.color === textColor); });
+                }
+                var elSelectedTextColor = document.getElementById('editSelectedTextColor');
+                if (elSelectedTextColor) elSelectedTextColor.value = textColor;
 
-                var shareInput = document.getElementById('editShareWithFamily');
-                if (shareInput) shareInput.checked = true;
+                var modalTitle = document.getElementById('editNoteModalTitle');
+                var modalIcon = document.getElementById('editNoteModalIcon');
+                var saveBtn = document.getElementById('editNoteSaveBtn');
+                var copyForm = document.getElementById('copyFamilyNoteForm');
+                var form = document.getElementById('editNoteForm');
+                var titleInput = document.getElementById('editNoteTitle');
+                var contentInput = document.getElementById('editNoteContent');
+                var shareContainer = document.getElementById('editShareWithFamilyContainer');
+                var colorPickers = document.querySelectorAll('#editNoteModal .color-picker');
 
-                document.getElementById('editNoteForm').action = '/notes/update/' + id;
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
+                if (isMine) {
+                    if(modalIcon) modalIcon.className = 'fas fa-edit me-2';
+                    if(modalTitle) modalTitle.textContent = 'Редагувати нотатку';
+                    if(titleInput) titleInput.readOnly = false;
+                    if(contentInput) contentInput.readOnly = false;
+                    if(saveBtn) saveBtn.style.display = 'inline-block';
+                    if(copyForm) copyForm.style.display = 'none';
+                    if(form) form.action = '/notes/update/' + id;
+                    colorPickers.forEach(function(el) { if(el) el.style.pointerEvents = 'auto'; });
+                    if(shareContainer) shareContainer.style.display = 'block';
+                } else {
+                    if(modalIcon) modalIcon.className = 'fas fa-eye me-2';
+                    if(modalTitle) modalTitle.textContent = 'Перегляд нотатки';
+                    if(titleInput) titleInput.readOnly = true;
+                    if(contentInput) contentInput.readOnly = true;
+                    if(saveBtn) saveBtn.style.display = 'none';
+                    if(copyForm) {
+                        copyForm.style.display = 'inline-block';
+                        copyForm.action = '/notes/copy/' + id;
+                    }
+                    if(form) form.action = '#';
+                    colorPickers.forEach(function(el) { if(el) el.style.pointerEvents = 'none'; });
+                    if(shareContainer) shareContainer.style.display = 'none';
+                }
+
+                var modalEl = document.getElementById('editNoteModal');
+                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
             };
 
             window.togglePin = function (id) {
                 var csrf = document.querySelector('input[name="_csrf"]');
-                fetch('/notes/toggle-pin/' + id, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-                }).then(function (r) { if (r.ok) location.reload(); });
+                fetch('/notes/toggle-pin/' + id, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' } }).then(function (r) { if (r.ok) location.reload(); });
             };
 
             window.toggleArchive = function (id) {
                 var csrf = document.querySelector('input[name="_csrf"]');
-                fetch('/notes/toggle-archive/' + id, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
-                }).then(function (r) { if (r.ok) location.reload(); });
+                fetch('/notes/toggle-archive/' + id, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' } }).then(function (r) { if (r.ok) location.reload(); });
             };
 
             window.deleteNote = function (id) {
-                document.getElementById('deleteNoteForm').action = '/notes/delete/' + id;
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteNoteConfirmModal')).show();
+                var form = document.getElementById('deleteNoteForm');
+                if (form) form.action = '/notes/delete/' + id;
+                var modalEl = document.getElementById('deleteNoteConfirmModal');
+                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
             };
 
-            var searchInput = document.getElementById('searchInput');
-            searchInput.addEventListener('input', function () {
-                var q = this.value.trim().toLowerCase();
-                document.querySelectorAll('.note-card-wrapper').forEach(function (w) {
-                    var card = w.querySelector('.note-card');
-                    if (!card) return;
+            // === SPINNERS ON SUBMIT ===
+            document.querySelectorAll('#editNoteModal form, #deleteNoteConfirmModal form').forEach(function(form) {
+                form.addEventListener('submit', function() {
+                    var btn = this.querySelector('button[type="submit"]');
+                    if (btn && !btn.disabled) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Зачекайте...';
+                    }
+                });
+            });
+
+            // === KEYBOARD SHORTCUTS ===
+            document.addEventListener('keydown', function(e) {
+                var tag = (e.target.tagName || '').toUpperCase();
+                var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+
+                if (!isEditable && (e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    window.location.href = '/notes?create=true';
+                }
+
+                if (!isEditable && e.key === '/' && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                    if (searchInput) searchInput.focus();
+                }
+
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.show').forEach(function (m) {
+                        var inst = bootstrap.Modal.getInstance(m);
+                        if (inst) inst.hide();
+                    });
+                }
+            });
+
+            // === EXPORT DINAMIC LINK ===
+            function updateExportLink(selectedMember) {
+                var baseUrl = '/notes/export?filter=shared';
+                if (selectedMember !== 'all') {
+                    // Якщо обрано учасника, ми не можемо відфільтрувати на бекенді через відсутність параметра,
+                    // тому експортуємо все, але це вже залежить від бекенду.
+                    // Поки залишимо базову логіку.
+                }
+                if (exportBtn) exportBtn.href = baseUrl;
+                if (exportBtnMobile) exportBtnMobile.href = baseUrl;
+            }
+
+            // === FILTER & SORT & PAGINATION LOGIC ===
+            function updateUI() {
+                var selectedMember = memberFilter.value;
+                updateExportLink(selectedMember);
+
+                var filtered = allCards.filter(function(wrapper) {
+                    var card = wrapper.querySelector('.note-card');
                     var title = (card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '').toLowerCase();
                     var content = (card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '').toLowerCase();
-                    var author = (card.querySelector('.author-badge') ? card.querySelector('.author-badge').textContent : '').toLowerCase();
-                    w.style.display = (!q || title.indexOf(q) !== -1 || content.indexOf(q) !== -1 || author.indexOf(q) !== -1) ? '' : 'none';
+                    var author = (card.querySelector('.author-badge .author-name') ? card.querySelector('.author-badge .author-name').textContent.trim() : '');
+                    var isMine = wrapper.dataset.mine === 'true';
+
+                    var matchesSearch = !searchText || (title.indexOf(searchText) !== -1 || content.indexOf(searchText) !== -1 || author.toLowerCase().indexOf(searchText) !== -1);
+                    var matchesFilter = currentFilter === 'all' || (currentFilter === 'mine' && isMine) || (currentFilter === 'others' && !isMine);
+                    var matchesMember = selectedMember === 'all' || author === selectedMember;
+
+                    return matchesSearch && matchesFilter && matchesMember;
                 });
-                updateNoteCount();
-            });
+
+                // Сортування
+                filtered.sort(function(a, b) {
+                    var aPinned = a.querySelector('.note-card').dataset.pinned === 'true';
+                    var bPinned = b.querySelector('.note-card').dataset.pinned === 'true';
+                    if (aPinned && !bPinned) return -1;
+                    if (!aPinned && bPinned) return 1;
+
+                    if (currentSort === 'title') {
+                        return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                    } else if (currentSort === 'author') {
+                        return (a.dataset.author || '').localeCompare(b.dataset.author || '');
+                    } else if (currentSort === 'created') {
+                        return (b.dataset.created || '').localeCompare(a.dataset.created || '');
+                    } else if (currentSort === 'updated') {
+                        return (b.dataset.updated || '').localeCompare(a.dataset.updated || '');
+                    }
+                    return 0;
+                });
+
+                // Візуальне переміщення карток (DOM reorder)
+                allCards.forEach(function(w) { w.style.display = 'none'; });
+
+                var total = filtered.length;
+                var end = Math.min(currentPage * pageSize, total);
+                var toShow = filtered.slice(0, end);
+
+                toShow.forEach(function(card) {
+                    card.style.display = '';
+                    noteGrid.appendChild(card);
+                });
+
+                visibleCount = total;
+                if (headerNoteCount) headerNoteCount.textContent = visibleCount;
+
+                if (emptyFilterMessage) {
+                    emptyFilterMessage.style.display = (visibleCount === 0 && allCards.length > 0) ? 'block' : 'none';
+                }
+
+                // Логіка для кнопки "Завантажити ще"
+                if (loadMoreBtn) {
+                    if (end < total) {
+                        loadMoreBtn.classList.remove('d-none');
+                        loadMoreBtn.disabled = false;
+                        if (visibleInfo) {
+                            visibleInfo.textContent = 'Показано: ' + end + ' з ' + total;
+                            visibleInfo.classList.remove('d-none');
+                        }
+                    } else {
+                        loadMoreBtn.classList.add('d-none');
+                        if (visibleInfo) {
+                            if (total > 0) {
+                                visibleInfo.textContent = 'Всі завантажено';
+                                visibleInfo.classList.remove('d-none');
+                            } else {
+                                visibleInfo.classList.add('d-none');
+                            }
+                        }
+                    }
+                }
+            }
+
+            // === LISTENERS ===
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    searchText = this.value.trim().toLowerCase();
+                    currentPage = 1;
+                    updateUI();
+                });
+            }
+            if (searchClear) {
+                searchClear.addEventListener('click', function () {
+                    searchInput.value = '';
+                    searchText = '';
+                    currentPage = 1;
+                    updateUI();
+                    searchInput.focus();
+                });
+            }
 
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    var filter = this.dataset.filter;
-
-                    document.querySelectorAll('.note-card-wrapper').forEach(function (w) {
-                        var isMine = w.dataset.mine === 'true';
-                        if (filter === 'all') w.style.display = '';
-                        else if (filter === 'mine') w.style.display = isMine ? '' : 'none';
-                        else if (filter === 'others') w.style.display = isMine ? 'none' : '';
-                    });
-                    updateNoteCount();
+                    currentFilter = this.dataset.filter;
+                    currentPage = 1;
+                    updateUI();
                 });
             });
 
-            function updateNoteCount() {
-                var visible = 0;
-                document.querySelectorAll('.note-card-wrapper').forEach(function (w) {
-                    if (w.style.display !== 'none') visible++;
+            document.querySelectorAll('[data-sort-choice]').forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll('[data-sort-choice]').forEach(function(l) { l.classList.remove('active'); });
+                    this.classList.add('active');
+                    currentSort = this.dataset.sortChoice;
+                    currentPage = 1;
+                    updateUI();
                 });
-                var el = document.getElementById('headerNoteCount');
-                if (el) el.textContent = visible;
+            });
+
+            if (memberFilter) {
+                memberFilter.addEventListener('change', function() {
+                    currentPage = 1;
+                    updateUI();
+                });
             }
-            updateNoteCount();
+
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function() {
+                    currentPage++;
+                    updateUI();
+                });
+            }
+
+            // Init
+            updateUI();
         });
     })();
 </script>

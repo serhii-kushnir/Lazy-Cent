@@ -27,12 +27,15 @@ public class NoteController extends BaseController {
     private final FamilyService familyService;
     private final NoteExportService noteExportService;
 
+
+
     // ==================== СТОРІНКА ====================
 
     @GetMapping
     public String viewNotes(@RequestParam(value = "q", required = false) String q,
                             @RequestParam(value = "sort", required = false, defaultValue = "default") String sort,
                             @RequestParam(value = "size", required = false, defaultValue = "20") int size,
+                            @RequestParam(value = "create", required = false, defaultValue = "false") boolean create,
                             Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
@@ -64,6 +67,8 @@ public class NoteController extends BaseController {
         model.addAttribute("q", query);
         model.addAttribute("sort", sort);
         model.addAttribute("size", size);
+        model.addAttribute("openCreateModal", create);
+
         return "notes";
     }
 

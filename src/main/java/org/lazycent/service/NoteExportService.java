@@ -19,18 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * Генерує .xlsx з нотатками користувача.
- *
- * <p><b>Структура файлу:</b>
- * <ul>
- *   <li>{@code filter=all} → 3 аркуші: «Активні», «Архів», «Спільні»</li>
- *   <li>{@code filter=active} → 1 аркуш «Активні»</li>
- *   <li>{@code filter=archived} → 1 аркуш «Архів»</li>
- *   <li>{@code filter=shared} → 1 аркуш «Спільні»</li>
- * </ul>
- * Аркуші без даних не створюються (щоб не було порожніх таблиць).
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -42,10 +30,8 @@ public class NoteExportService {
     @Value("${app.url:http://localhost:8080}")
     private String appUrl;
 
-    private static final DateTimeFormatter TS_FORMAT =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-    private static final DateTimeFormatter DATE_FORMAT =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private static final DateTimeFormatter TS_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     public static final String FILTER_ALL      = "all";
     public static final String FILTER_ACTIVE   = "active";
@@ -77,9 +63,8 @@ public class NoteExportService {
                     }
                 }
                 case FILTER_SHARED -> {
-                    List<Note> shared = noteService.getAllActiveNotes(user, sort).stream()
-                            .filter(n -> Boolean.TRUE.equals(n.getShareWithFamily()))
-                            .toList();
+                    // FIX: Беремо нотатки сім'ї, а не власні
+                    List<Note> shared = noteService.getFamilySharedNotes(user);
                     if (!shared.isEmpty()) {
                         buildSheet(wb, shared, "shared", locale);
                     }
@@ -95,9 +80,8 @@ public class NoteExportService {
                     if (!archived.isEmpty()) {
                         buildSheet(wb, archived, "archived", locale);
                     }
-                    List<Note> shared = active.stream()
-                            .filter(n -> Boolean.TRUE.equals(n.getShareWithFamily()))
-                            .toList();
+                    // FIX: Беремо спільні нотатки сім'ї
+                    List<Note> shared = noteService.getFamilySharedNotes(user);
                     if (!shared.isEmpty()) {
                         buildSheet(wb, shared, "shared", locale);
                     }
@@ -115,11 +99,6 @@ public class NoteExportService {
         }
     }
 
-    /**
-     * Будує один аркуш.
-     *
-     * @param sheetType active | archived | shared — впливає на назву аркуша і заголовок
-     */
     private void buildSheet(XSSFWorkbook wb, List<Note> notes,
                             String sheetType, Locale locale) {
 
@@ -234,7 +213,6 @@ public class NoteExportService {
         sheet.createFreezePane(0, 3);
     }
 
-    /** Порожній аркуш, якщо всі списки пусті — щоб файл не був без жодного аркуша. */
     private void buildEmptySheet(XSSFWorkbook wb, String filterKey, Locale locale) {
         String sheetName = msg("notes.export.sheet.empty", locale);
         Sheet sheet = wb.createSheet(sheetName);
