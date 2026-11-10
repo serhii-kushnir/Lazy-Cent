@@ -20,6 +20,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,13 @@ import java.util.Map;
 public class RestApiExceptionHandler {
 
     private final MessageSource messageSource;
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
+        log.debug("REST 404 (відсутній ресурс) на {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiErrorDto.of(404, "Not Found", "Resource not found", request.getRequestURI()));
+    }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiErrorDto> handleNotFound(EntityNotFoundException ex,
@@ -107,10 +115,6 @@ public class RestApiExceptionHandler {
         }
     }
 
-    /**
-     * Optimistic lock conflict (дві вкладки одночасно редагують одну
-     * категорію). Для REST-клієнтів — 409 JSON замість 500 HTML.
-     */
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ApiErrorDto> handleOptimisticLock(
             ObjectOptimisticLockingFailureException ex,

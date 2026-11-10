@@ -126,52 +126,6 @@
         </h2>
     </div>
 
-    <!-- ========== FAMILY WIDGET: not in family ========== -->
-    <div th:if="${family == null}" class="mb-4 animate-fade-up delay-4">
-        <div th:replace="~{fragments/family-hint :: homeWidget}"></div>
-    </div>
-
-    <div th:if="${family != null}" class="mb-4 animate-fade-up delay-4">
-        <div class="bg-card-bg family-widget">
-            <div class="d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem; border-bottom: 1px solid var(--bs-border-color);">
-                <div class="icon-circle">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="flex-grow-1 text-start" style="min-width: 0;">
-                    <h6 class="text-muted mb-0" th:text="#{nav.family}">Сім'я</h6>
-                    <h3 class="mb-0 text-truncate" th:text="${family.name}">Family</h3>
-                </div>
-                <span class="badge bg-secondary flex-shrink-0" style="padding: 11px;">
-                    <i class="fas fa-user-friends me-1"></i>
-                    <span th:text="${familyMembersCount}">0</span>
-                    <span th:text="#{home.family.members}">учасників</span>
-                </span>
-                <a th:href="@{/family}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-door-open me-1"></i>
-                    <span th:text="#{home.family.viewHub}">Перейти до сім'ї</span>
-                </a>
-            </div>
-            <div class="p-3 d-flex flex-wrap gap-2 align-items-center justify-content-between">
-                <div>
-                    <small class="text-muted" th:text="#{family.inviteCode}">Код-запрошення:</small>
-                    <code class="ms-1 fw-bold" th:text="${family.inviteCode}">ABCD1234</code>
-                </div>
-                <div class="d-flex gap-2 no-print">
-                    <a th:href="@{/family/shared}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-list-ul me-1"></i>
-                        <span th:text="#{family.hub.shared}">Спільні транзакції</span>
-                    </a>
-                    <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="window.openSettingsDrawer('family')">
-                        <i class="fas fa-cog me-1"></i>
-                        <span th:text="#{home.family.manage}">Налаштування</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
     <!-- ========== DEMO BANNER ========== -->
     <div th:if="${showDemoBanner}" class="alert alert-info alert-dismissible fade show animate-fade-up delay-2" role="alert">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2 text-center text-sm-start">
@@ -187,6 +141,82 @@
                     <span th:text="#{index.demo.addBtn}">Додати демо-дані</span>
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- ========== FAMILY WIDGET ========== -->
+    <div th:if="${family != null}" class="mb-4 animate-fade-up delay-4">
+        <div class="bg-card-bg family-widget">
+
+            <!-- Верхня частина: Іконка, Назва, Бейджі та Кнопка -->
+            <div class="p-3 d-flex flex-column flex-md-row align-items-md-center gap-3"
+                 style="border-bottom: 1px solid var(--bs-border-color);">
+
+                <!-- Ліва частина: Іконка та назва (займає весь вільний простір) -->
+                <div class="d-flex align-items-center gap-3 flex-grow-1" style="min-width: 0;">
+                    <div class="icon-circle flex-shrink-0">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="text-start" style="min-width: 0;">
+                        <h6 class="text-muted mb-0" th:text="#{nav.family}">Сім'я</h6>
+                        <h3 class="mb-0 text-truncate" th:text="${family.name}">Family</h3>
+                    </div>
+                </div>
+
+                <!-- Права частина: Бейджі та Кнопка -->
+                <!-- ms-md-auto притискає блок до правого краю на ПК -->
+                <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2 ms-md-auto">
+
+                    <!-- Обгортка бейджів -->
+                    <div class="d-flex gap-2">
+                        <!-- Кількість учасників -->
+                        <!-- flex-fill робить їх 50/50 на мобільному, flex-sm-grow-0 повертає нормальний розмір на ПК -->
+                        <span class="badge bg-secondary flex-fill flex-sm-grow-0 text-center" style="padding: 10px 12px; font-size: 0.85rem;">
+                            <i class="fas fa-user-friends me-1"></i>
+                            <span th:text="${familyMembersCount}">0</span>
+                            <span th:text="#{home.family.members}">учасників</span>
+                        </span>
+
+                        <!-- Кількість запитів на вступ -->
+                        <span th:if="${pendingRequests != null and !pendingRequests.empty}"
+                              class="badge bg-warning text-dark flex-fill flex-sm-grow-0 text-center" style="padding: 10px 12px; font-size: 0.85rem;"
+                              title="Є нові запити на вступ">
+                            <i class="fas fa-user-clock me-1"></i>
+                            <span th:text="${pendingRequests.size()}">1</span>
+                            <span th:text="${pendingRequests.size() == 1 ? 'запит' : 'запити'}">запит</span>
+                        </span>
+                    </div>
+
+                    <!-- Кнопка переходу -->
+                    <a th:href="@{/family}" class="btn btn-primary btn-sm text-nowrap">
+                        <i class="fas fa-door-open me-1"></i>
+                        <span th:text="#{home.family.viewHub}">Перейти до сім'ї</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Нижня частина: Код-запрошення та кнопки -->
+            <div class="p-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+                <!-- Код-запрошення -->
+                <div class="text-center text-sm-start">
+                    <small class="text-muted" th:text="#{family.inviteCode}">Код-запрошення:</small>
+                    <code class="ms-1 fw-bold" th:text="${family.inviteCode}">ABCD1234</code>
+                </div>
+
+                <!-- Кнопки дій -->
+                <!-- d-grid робить кнопки на всю ширину на мобільних, d-sm-flex - повертає нормальний розмір на ПК -->
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-end no-print">
+                    <a th:href="@{/family/shared}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-list-ul me-1"></i>
+                        <span th:text="#{family.hub.shared}">Спільні транзакції</span>
+                    </a>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="window.openSettingsDrawer('family')">
+                        <i class="fas fa-cog me-1"></i>
+                        <span th:text="#{home.family.manage}">Налаштування</span>
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 

@@ -1,14 +1,7 @@
 package org.lazycent.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.lazycent.model.BudgetPlan;
-import org.lazycent.model.Category;
-import org.lazycent.model.DayBudget;
-import org.lazycent.model.Expense;
-import org.lazycent.model.Family;
-import org.lazycent.model.Income;
-import org.lazycent.model.TotalBudget;
-import org.lazycent.model.User;
+import org.lazycent.model.*;
 import org.lazycent.model.dto.CategoryExpenseItem;
 import org.lazycent.model.dto.RecentTransactionDto;
 import org.lazycent.repository.DayBudgetRepository;
@@ -59,10 +52,17 @@ public class HomeController extends BaseController {
         model.addAttribute("monthSummary", monthSummary);
 
         // === Сім'я ===
+        // === Сім'я ===
         Family family = familyService.getFamily(user);
         if (family != null) {
             model.addAttribute("family", family);
             model.addAttribute("familyMembersCount", familyService.getFamilyMembers(user).size());
+
+            // Додаємо список заявок, якщо користувач є власником
+            if (familyService.isOwner(user)) {
+                List<FamilyJoinRequest> pendingRequests = familyService.getPendingRequests(user);
+                model.addAttribute("pendingRequests", pendingRequests);
+            }
         }
 
         // === Демо-банер ===

@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!--
-      Керує file-appenders.
-      За замовчуванням false: логи тільки в stdout.
-    -->
     <springProperty scope="context" name="LOG_TO_FILE"
                     source="app.logging.file.enabled"
                     defaultValue="false"/>
@@ -66,5 +62,7 @@
             </root>
         </then>
     </if>
+
+    <logger name="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver" level="ERROR"/>
 
 </configuration>

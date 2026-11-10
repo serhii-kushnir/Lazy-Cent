@@ -9,20 +9,18 @@ spring:
   application:
     name: lazycent
 
-  # ===================== h2 =====================
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
-
-  # ===================== DATASOURCE =====================
+  # ===================== DATASOURCE (PostgreSQL) =====================
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/lazycent;DB_CLOSE_ON_EXIT=FALSE}
-    driver-class-name: org.h2.Driver
-    username: ${DB_USER:sa}
-    password: ${DB_PASS:}
+    url: jdbc:postgresql://localhost:5432/lazycent_db
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   # ===================== FLYWAY =====================
   flyway:
@@ -91,9 +89,6 @@ server:
         persistent: false
 
 # ===================== LOGGING =====================
-# P1.17: правильні Spring Boot logging levels (root-level, без префіксу "app.").
-# Раніше було "app.logging.level.*" — Spring Boot це ігнорував.
-# logback-spring.xml більше не перебиває ці рівні (прибрано <logger> для org.lazycent / org.hibernate.SQL).
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
