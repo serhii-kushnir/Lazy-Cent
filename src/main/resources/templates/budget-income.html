@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="#{incomeBudget.title} + ' - ' + #{app.title}">Дохід - Lazy Cent</title>
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
     <script src="/js/transaction-common.js" defer></script>
     <style>
@@ -11,279 +13,79 @@
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
         .animate-fade-down { animation: fadeInDown 0.4s ease forwards; opacity: 0; }
-        .delay-1 { animation-delay: 0.05s; }
-        .delay-2 { animation-delay: 0.10s; }
-        .delay-3 { animation-delay: 0.15s; }
-        .delay-4 { animation-delay: 0.20s; }
-        .delay-5 { animation-delay: 0.25s; }
-
-        /* ===== FULLHD MAX ===== */
+        .delay-1 { animation-delay: 0.05s; } .delay-2 { animation-delay: 0.10s; } .delay-3 { animation-delay: 0.15s; } .delay-4 { animation-delay: 0.20s; } .delay-5 { animation-delay: 0.25s; }
         .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
-
-        /* ===== UNIFORM BUTTON RADIUS ===== */
-        .btn:not(.btn-close),
-        .btn.rounded-pill,
-        .btn.rounded-circle,
-        .btn-rounded,
-        .nav-btn {
-            border-radius: 0.5rem !important;
-        }
+        .btn:not(.btn-close), .nav-btn { border-radius: 0.5rem !important; }
         .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
-
-        /* ===== MONTH NAV ===== */
-        .month-nav { position: relative; z-index: 2000; }
-        .month-nav .dropdown-menu { z-index: 2005; min-width: 240px; border-radius: 1rem; padding: 1rem; }
-        .month-nav .dropdown-menu .form-select { width: auto; flex: 1; border-radius: 0.5rem; }
-        .month-nav {
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            overflow-y: visible;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            padding-bottom: 2px;
-        }
+        .month-nav { position: relative; z-index: 2000; flex-wrap: nowrap !important; overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px; }
         .month-nav::-webkit-scrollbar { display: none; }
         .month-nav > * { flex-shrink: 0; white-space: nowrap; }
-        .month-nav .dropdown-toggle,
-        .month-nav .btn { white-space: nowrap; }
-
-        /* ===== HEADER Z-INDEX ===== */
+        .month-nav .dropdown-menu { z-index: 2005; min-width: 240px; border-radius: 1rem; padding: 1rem; }
         .page-header-wrap { position: relative; z-index: 10; }
-
-        /* ===== ICON CIRCLE ===== */
-        .icon-circle {
-            width: 56px; height: 56px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; flex-shrink: 0;
-        }
-
-        /* ===== STAT CARD ===== */
-        .stat-card {
-            border-radius: 1rem; border: none;
-            background-color: var(--bs-card-bg);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            height: 100%;
-        }
-        [data-bs-theme="dark"] .stat-card {
-            background-color: #1d2027;
-            border: 1px solid #2a2e37;
-        }
-
-        /* ===== UNIFIED CARD ===== */
+        .icon-circle { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .stat-card { border-radius: 1rem; border: none; background-color: var(--bs-card-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 100%; }
+        [data-bs-theme="dark"] .stat-card { background-color: #1d2027; border: 1px solid #2a2e37; }
         .unified-card { border-radius: 1rem; border: none; background-color: transparent; }
-
-        /* ===== PROGRESS ===== */
         .progress-bar-custom { height: 10px; border-radius: 10px; }
-
-        /* ===== ROW HOVER ===== */
         .category-row:hover > td { background-color: rgba(124, 58, 237, 0.05) !important; }
         [data-bs-theme="dark"] .category-row:hover > td { background-color: rgba(167, 139, 250, 0.1) !important; }
-
-        /* ===== TABLE ===== */
-        .table thead th {
-            background-color: var(--bs-tertiary-bg);
-            color: var(--bs-secondary-color);
-            font-weight: 600; font-size: 0.82rem;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            border-bottom: 2px solid var(--bs-border-color);
-        }
-        [data-bs-theme="dark"] .table thead th {
-            background-color: #23262e; color: #9aa3b2; border-bottom-color: #3a3f4a;
-        }
-
-        /* ===== VIEW TOGGLE (base, non-header) ===== */
-        .view-toggle {
-            display: flex; gap: 0.3rem;
-            background: var(--bs-secondary-bg);
-            border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0;
-        }
-        .view-toggle .btn {
-            border: none; padding: 0.5rem 1.2rem; font-size: 1rem;
-            border-radius: 0.375rem !important; background: transparent;
-            color: var(--bs-secondary-color); font-weight: 600;
-            transition: all 0.2s ease;
-        }
-        .view-toggle .btn.active {
-            background: var(--bs-body-bg); color: var(--bs-primary);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-        }
-        [data-bs-theme="dark"] .view-toggle .btn.active {
-            background: #1d2027; color: #6ea8fe;
-        }
-        .view-toggle .btn i { margin-right: 0.3rem; }
-        @media (max-width: 767.98px) {
-            .view-toggle .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
-        }
-
-        /* ===== CONTAINERS ===== */
-        .table-view-container { display: block; }
-        .table-view-container.hidden { display: none; }
-        .cards-view-container { display: none; }
-        .cards-view-container.show { display: block; }
-
-        /* ===== SECTION BG = PAGE BG ===== */
+        .table thead th { background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid var(--bs-border-color); }
+        [data-bs-theme="dark"] .table thead th { background-color: #23262e; color: #9aa3b2; border-bottom-color: #3a3f4a; }
+        .sortable { cursor: pointer; user-select: none; }
+        .sortable .sort-icon { margin-left: 4px; font-size: 0.7rem; opacity: 0.5; transition: opacity 0.2s; }
+        .sortable:hover .sort-icon { opacity: 1; }
+        .sortable.active-asc .sort-icon, .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
+        .view-toggle { display: flex; gap: 0.3rem; background: var(--bs-secondary-bg); border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0; }
+        .view-toggle .btn { border: none; padding: 0.5rem 1.2rem; font-size: 1rem; border-radius: 0.375rem !important; background: transparent; color: var(--bs-secondary-color); font-weight: 600; transition: all 0.2s ease; }
+        .view-toggle .btn.active { background: var(--bs-body-bg); color: var(--bs-primary); box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+        [data-bs-theme="dark"] .view-toggle .btn.active { background: #1d2027; color: #6ea8fe; }
+        .table-view-container { display: block; } .table-view-container.hidden { display: none; }
+        .cards-view-container { display: none; } .cards-view-container.show { display: block; }
         .bg-card-bg { background-color: var(--bs-body-bg) !important; }
+        .cat-header-theme { background-color: #ffffff !important; color: #212529 !important; border-bottom: 1px solid #dee2e6 !important; }
+        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
+        [data-bs-theme="dark"] .cat-header-theme { background-color: #1d2027 !important; color: #e6e6e6 !important; border-bottom-color: #2a2e37 !important; }
+        [data-bs-theme="dark"] .cat-header-theme h6, [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230, 230, 230, 0.75) !important; }
+        [data-bs-theme="dark"] .cat-header-theme h3, [data-bs-theme="dark"] .cat-header-theme h3 * { color: #ffffff !important; }
+        .cat-header-theme .view-toggle { background: #e9ecef !important; }
+        .cat-header-theme .view-toggle .btn { color: #495057 !important; }
+        .cat-header-theme .view-toggle .btn.active { background: #ffffff !important; color: #0d6efd !important; box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255, 255, 255, 0.08) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #ffffff !important; box-shadow: none !important; }
 
-        /* ===================================================================
-           CATEGORY HEADER — theme-aware, hardcoded hex, bulletproof
-           =================================================================== */
-        .cat-header-theme {
-            background-color: #ffffff !important;
-            color: #212529 !important;
-            border-bottom: 1px solid #dee2e6 !important;
-        }
-        .cat-header-theme h6,
-        .cat-header-theme h6 * {
-            color: #6c757d !important;
-        }
-        .cat-header-theme h3,
-        .cat-header-theme h3 * {
-            color: #212529 !important;
-        }
+        .table-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; padding: 1rem; border-bottom: 1px solid var(--bs-border-color); }
+        .search-input { flex: 1 1 200px; min-width: 150px; }
+        .search-input .input-group-text { background: transparent; border-right: none; }
+        .search-input .form-control { border-left: none; border-right: none; }
+        .search-input .btn-clear { border: 1px solid var(--bs-border-color); border-left: none; border-radius: 0 0.375rem 0.375rem 0 !important; color: var(--bs-secondary-color); padding: 0.25rem 0.65rem; }
+        .search-input .btn-clear:hover { background: rgba(220,53,69,0.1); color: #dc3545; border-color: #dc3545; }
+        .page-size-select { max-width: 100px; flex: 0 0 auto; }
+        .info-text { font-size: 0.85rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
+        .empty-note { color: var(--bs-secondary-color); font-size: 1.1rem; padding: 40px 20px; text-align: center; }
+        .empty-note i { font-size: 4rem; opacity: 0.2; display: block; margin-bottom: 1rem; }
 
-        [data-bs-theme="dark"] .cat-header-theme {
-            background-color: #1d2027 !important;
-            color: #e6e6e6 !important;
-            border-bottom-color: #2a2e37 !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme h6,
-        [data-bs-theme="dark"] .cat-header-theme h6 * {
-            color: rgba(230, 230, 230, 0.75) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme h3,
-        [data-bs-theme="dark"] .cat-header-theme h3 * {
-            color: #ffffff !important;
-        }
-
-        /* --- btn-outline-light inside cat-header-theme --- */
-        .cat-header-theme .btn-outline-light {
-            color: #0d6efd !important;
-            border-color: #0d6efd !important;
-            background-color: transparent !important;
-        }
-        .cat-header-theme .btn-outline-light:hover {
-            color: #ffffff !important;
-            background-color: #0d6efd !important;
-            border-color: #0d6efd !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .btn-outline-light {
-            color: #f8f9fa !important;
-            border-color: #f8f9fa !important;
-            background-color: transparent !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .btn-outline-light:hover {
-            color: #212529 !important;
-            background-color: #f8f9fa !important;
-            border-color: #f8f9fa !important;
-        }
-
-        /* --- view-toggle inside cat-header-theme --- */
-        .cat-header-theme .view-toggle {
-            background: #e9ecef !important;
-        }
-        .cat-header-theme .view-toggle .btn {
-            color: #495057 !important;
-        }
-        .cat-header-theme .view-toggle .btn.active {
-            background: #ffffff !important;
-            color: #0d6efd !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle {
-            background: rgba(255, 255, 255, 0.08) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn {
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
-            background: #0d6efd !important;
-            color: #ffffff !important;
-            box-shadow: none !important;
-        }
-
-        /* ===== EQUAL-HEIGHT TOOLBAR ===== */
-        #tableAndToolbarBlock .d-flex.flex-wrap.no-print { align-items: center !important; }
-        #tableAndToolbarBlock .d-flex.flex-wrap.no-print > .btn {
-            height: 36px !important;
-            padding: 0 0.85rem !important;
-            font-size: 0.875rem !important;
-            line-height: 1 !important;
-            box-sizing: border-box;
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-        }
-        #tableAndToolbarBlock .d-flex.flex-wrap.no-print > .view-toggle {
-            height: 36px !important;
-            padding: 3px !important;
-            box-sizing: border-box;
-            display: inline-flex !important;
-            align-items: center;
-        }
-        #tableAndToolbarBlock .d-flex.flex-wrap.no-print > .view-toggle > .btn {
-            height: 30px !important;
-            padding: 0 0.85rem !important;
-            font-size: 0.875rem !important;
-            line-height: 1 !important;
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.375rem !important;
-        }
-
-        /* ===== CARD ACTIONS RIGHT ===== */
-        .card-actions-end { justify-content: flex-end; }
-
-        /* ===== MOBILE: full-width buttons in cat-header-theme toolbar ===== */
         @media (max-width: 575.98px) {
-            .cat-header-theme > div.no-print {
-                width: 100%;
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 0.5rem !important;
-            }
-            .cat-header-theme > div.no-print > .btn,
-            .cat-header-theme > div.no-print > .view-toggle {
-                width: 100% !important;
-                justify-content: center;
-            }
-            .cat-header-theme > div.no-print > .view-toggle {
-                display: flex !important;
-                height: 42px !important;
-            }
-            .cat-header-theme > div.no-print > .view-toggle > .btn {
-                flex: 1;
-                height: 36px !important;
-            }
-            .cat-header-theme > div.no-print > .btn {
-                height: 42px !important;
-            }
-
-            /* Sum full visibility on mobile */
+            .cat-header-theme > div.no-print { width: 100%; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
+            .cat-header-theme > div.no-print > .btn, .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; justify-content: center; }
+            .cat-header-theme > div.no-print > .view-toggle { display: flex !important; height: 42px !important; }
+            .cat-header-theme > div.no-print > .view-toggle > .btn { flex: 1; height: 36px !important; }
+            .cat-header-theme > div.no-print > .btn { height: 42px !important; }
             .stat-card .flex-grow-1 { min-width: 0; }
-            .stat-card h3 {
-                font-size: 1.15rem !important;
-                line-height: 1.3;
-                white-space: normal !important;
-                overflow: visible !important;
-                text-overflow: clip !important;
-                word-break: break-word;
-            }
-            .stat-card h3.text-truncate {
-                overflow: visible !important;
-                text-overflow: clip !important;
-                white-space: normal !important;
-            }
+            .stat-card h3 { font-size: 1.15rem !important; line-height: 1.3; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; }
+            .table-toolbar { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+            .search-input { width: 100%; }
+            .page-size-select { max-width: none; width: 100%; }
+            .info-text { text-align: center; margin-left: 0; margin-top: 0.5rem; }
+            #loadMoreBtn { width: 100%; }
         }
 
-        /* ===== PRINT ===== */
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
-            .d-print-none, .table-toolbar, .view-toggle, .month-nav, .alert { display: none !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .table-toolbar, .view-toggle, .month-nav, .alert { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
             .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
@@ -310,331 +112,159 @@
 <span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
 
 <div class="container-fluid px-3 px-md-4 mt-4 page-max">
-
     <div class="print-header d-print-flex" style="display: none;">
         <span class="logo">💰 LazyCent</span>
-        <h2 class="text-nowrap"
-            th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">
-            Дохід на 10.2026
-        </h2>
+        <h2 class="text-nowrap" th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Дохід на 10.2026</h2>
     </div>
+    <span id="behindData" style="display:none;" th:data-count="${dashboard.overLimitCount != null ? dashboard.overLimitCount : 0}" th:data-key="|income-budget-behind-${year}-${month}|"></span>
 
-    <span id="behindData" style="display:none;"
-          th:data-count="${dashboard.overLimitCount != null ? dashboard.overLimitCount : 0}"
-          th:data-key="|income-budget-behind-${year}-${month}|"></span>
-
-    <!-- ========== PAGE HEADER ========== -->
     <div class="page-header-wrap d-flex flex-column flex-lg-row align-items-lg-center justify-content-lg-between gap-3 mb-4 animate-fade-down">
-
         <div class="d-flex flex-column flex-sm-row align-items-center gap-3 w-100">
-            <h2 class="mb-0 fw-bold text-nowrap">
-                <i class="fas fa-hand-holding-dollar me-2 text-success"></i>
-                <span th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Дохід на 10.2026</span>
-            </h2>
-
-            <div class="d-flex flex-nowrap gap-2 month-nav no-print flex-grow-1"
-                 style="min-width: 0;">
-                <a th:href="@{/budget-income(month=${month - 1}, year=${month == 1 ? year - 1 : year})}"
-                   class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
+            <h2 class="mb-0 fw-bold text-nowrap"><i class="fas fa-hand-holding-dollar me-2 text-success"></i><span th:text="#{incomeBudget.heading(${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')})}">Дохід на 10.2026</span></h2>
+            <div class="d-flex flex-nowrap gap-2 month-nav no-print flex-grow-1" style="min-width: 0;">
+                <a th:href="@{/budget-income(month=${month - 1}, year=${month == 1 ? year - 1 : year})}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
                 <div class="dropdown">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false"
-                            data-bs-popper-config='{"strategy":"fixed"}'>
-                        <i class="far fa-calendar-alt me-1"></i>
-                        <span class="text-nowrap" th:text="${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')}"></span>
-                    </button>
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'><i class="far fa-calendar-alt me-1"></i><span class="text-nowrap" th:text="${#temporals.format(#temporals.create(year, month, 1), 'MM.yyyy')}"></span></button>
                     <div class="dropdown-menu dropdown-menu-start shadow">
                         <form th:action="@{/budget-income}" method="get" class="d-flex flex-column gap-2">
                             <div class="d-flex gap-2">
-                                <select name="month" class="form-select form-select-sm">
-                                    <option th:each="m : ${availableMonths}" th:value="${m}"
-                                            th:text="${#numbers.formatInteger(m, 2)}" th:selected="${m == month}"></option>
-                                </select>
-                                <select name="year" class="form-select form-select-sm">
-                                    <option th:each="y : ${availableYears}" th:value="${y}"
-                                            th:text="${y}" th:selected="${y == year}"></option>
-                                </select>
+                                <select name="month" class="form-select form-select-sm"><option th:each="m : ${availableMonths}" th:value="${m}" th:text="${#numbers.formatInteger(m, 2)}" th:selected="${m == month}"></option></select>
+                                <select name="year" class="form-select form-select-sm"><option th:each="y : ${availableYears}" th:value="${y}" th:text="${y}" th:selected="${y == year}"></option></select>
                             </div>
                             <button type="submit" class="btn btn-success btn-sm" th:text="#{btn.apply}">Перейти</button>
                         </form>
                     </div>
                 </div>
-                <a th:href="@{/budget-income(month=${month + 1}, year=${month == 12 ? year + 1 : year})}"
-                   class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-                <a th:href="@{/budget-income}" class="btn btn-outline-success btn-sm">
-                    <i class="fas fa-calendar-day"></i> <span class="d-none d-sm-inline" th:text="#{budget.today}">Сьогодні</span>
-                </a>
+                <a th:href="@{/budget-income(month=${month + 1}, year=${month == 12 ? year + 1 : year})}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                <a th:href="@{/budget-income}" class="btn btn-outline-success btn-sm"><i class="fas fa-calendar-day"></i> <span class="d-none d-sm-inline" th:text="#{budget.today}">Сьогодні</span></a>
             </div>
         </div>
         <div class="d-flex flex-column flex-sm-row gap-2 no-print w-100 w-lg-auto justify-content-center justify-content-lg-end">
-            <a th:href="@{/budget-income/export(month=${month}, year=${year})}"
-               class="btn btn-success">
-                <i class="fas fa-file-excel me-1"></i> <span th:text="#{incomeBudget.export}">Експорт</span>
-            </a>
-            <button class="btn btn-warning d-none d-md-inline-flex align-items-center justify-content-center"
-                    onclick="window.print()">
-                <i class="fas fa-print"></i> <span class="ms-1" th:text="#{btn.print}">Друк</span>
-            </button>
-            <button class="btn btn-primary"
-                    data-bs-toggle="modal" data-bs-target="#setTargetModal">
-                <i class="fas fa-bullseye me-1"></i> <span th:text="#{incomeBudget.modal.setTarget}">Встановити дохід</span>
-            </button>
+            <a th:href="@{/budget-income/export(month=${month}, year=${year})}" class="btn btn-success"><i class="fas fa-file-excel me-1"></i> <span th:text="#{incomeBudget.export}">Експорт</span></a>
+            <button class="btn btn-warning d-none d-md-inline-flex align-items-center justify-content-center" onclick="window.print()"><i class="fas fa-print"></i> <span class="ms-1" th:text="#{btn.print}">Друк</span></button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#setTargetModal"><i class="fas fa-bullseye me-1"></i> <span th:text="#{incomeBudget.modal.setTarget}">Встановити дохід</span></button>
         </div>
     </div>
 
-    <!-- ========== BEHIND BANNER ========== -->
-    <div th:if="${dashboard.overLimitCount != null and dashboard.overLimitCount > 0}"
-         id="behindBanner"
-         class="alert alert-warning alert-dismissible d-flex align-items-start animate-fade-up shadow-sm no-print mb-3"
-         role="alert">
+    <!-- BEHIND BANNER -->
+    <div th:if="${dashboard.overLimitCount != null and dashboard.overLimitCount > 0}" id="behindBanner" class="alert alert-warning alert-dismissible d-flex align-items-start animate-fade-up shadow-sm no-print mb-3" role="alert">
         <i class="fas fa-hourglass-half fa-2x me-3 mt-1 flex-shrink-0"></i>
-        <div class="flex-grow-1 pe-2">
-            <h5 class="alert-heading mb-1">
-                <span th:if="${dashboard.overLimitCount == 1}"
-                      th:text="#{incomeBudget.behind.title.one}">Відстає ціль в одній категорії</span>
-                <span th:if="${dashboard.overLimitCount > 1}"
-                      th:text="#{incomeBudget.behind.title.many(${dashboard.overLimitCount})}">Відстає ціль у категоріях</span>
-            </h5>
-            <p class="mb-0 small"
-               th:text="#{incomeBudget.behind.total(${#numbers.formatDecimal(dashboard.overLimitTotal, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol})}">
-                Сума дефіциту: 0 ₴
-            </p>
-        </div>
+        <div class="flex-grow-1 pe-2"><h5 class="alert-heading mb-1"><span th:if="${dashboard.overLimitCount == 1}" th:text="#{incomeBudget.behind.title.one}">Відстає ціль в одній категорії</span><span th:if="${dashboard.overLimitCount > 1}" th:text="#{incomeBudget.behind.title.many(${dashboard.overLimitCount})}">Відстає ціль у категоріях</span></h5><p class="mb-0 small" th:text="#{incomeBudget.behind.total(${#numbers.formatDecimal(dashboard.overLimitTotal, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol})}">Сума дефіциту: 0 ₴</p></div>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- ========== 4 STAT CARDS ========== -->
+    <!-- 4 STAT CARDS -->
     <div class="row g-3 mb-3">
         <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-1">
-            <div class="stat-card">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon-circle bg-success-subtle text-success">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <div class="flex-grow-1 text-start">
-                            <h6 class="text-muted mb-0" th:text="#{incomeBudget.totalTarget}">Дохід</h6>
-                            <h3 class="text-success mb-0"
-                                th:text="${#numbers.formatDecimal(dashboard.totalBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="stat-card"><div class="card-body p-4"><div class="d-flex align-items-center gap-3"><div class="icon-circle bg-success-subtle text-success"><i class="fas fa-bullseye"></i></div><div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{incomeBudget.totalTarget}">Дохід</h6><h3 class="text-success mb-0" th:text="${#numbers.formatDecimal(dashboard.totalBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3></div></div></div></div>
         </div>
-
         <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-2">
-            <div class="stat-card">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon-circle bg-success-subtle text-success">
-                            <i class="fas fa-arrow-up"></i>
-                        </div>
-                        <div class="flex-grow-1 text-start">
-                            <h6 class="text-muted mb-0" th:text="#{incomeBudget.received}">Отримано</h6>
-                            <h3 class="text-success mb-0"
-                                th:text="${#numbers.formatDecimal(dashboard.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
-                            <small class="d-block mt-1" th:if="${dashboard.incomesDeltaPercent != null}">
-                                <i class="fas fa-arrow-up text-success"   th:if="${dashboard.incomesDeltaPercent > 0}"></i>
-                                <i class="fas fa-arrow-down text-danger"  th:if="${dashboard.incomesDeltaPercent < 0}"></i>
-                                <i class="fas fa-minus text-muted"        th:if="${dashboard.incomesDeltaPercent == 0}"></i>
-                                <span th:classappend="${dashboard.incomesDeltaPercent > 0} ? 'text-success' : (${dashboard.incomesDeltaPercent < 0} ? 'text-danger' : 'text-muted')"
-                                      th:text="${#numbers.formatDecimal(dashboard.incomesDeltaPercent >= 0 ? dashboard.incomesDeltaPercent : -dashboard.incomesDeltaPercent, 1, 'COMMA', 1, 'POINT')} + '% ' + #{incomeBudget.vsPreviousMonth}">
-                                    0% проти минулого місяця
-                                </span>
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="stat-card"><div class="card-body p-4"><div class="d-flex align-items-center gap-3"><div class="icon-circle bg-success-subtle text-success"><i class="fas fa-arrow-up"></i></div><div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{incomeBudget.received}">Отримано</h6><h3 class="text-success mb-0" th:text="${#numbers.formatDecimal(dashboard.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                <small class="d-block mt-1" th:if="${dashboard.incomesDeltaPercent != null}"><i class="fas fa-arrow-up text-success" th:if="${dashboard.incomesDeltaPercent > 0}"></i><i class="fas fa-arrow-down text-danger" th:if="${dashboard.incomesDeltaPercent < 0}"></i><i class="fas fa-minus text-muted" th:if="${dashboard.incomesDeltaPercent == 0}"></i><span th:classappend="${dashboard.incomesDeltaPercent > 0} ? 'text-success' : (${dashboard.incomesDeltaPercent < 0} ? 'text-danger' : 'text-muted')" th:text="${#numbers.formatDecimal(dashboard.incomesDeltaPercent >= 0 ? dashboard.incomesDeltaPercent : -dashboard.incomesDeltaPercent, 1, 'COMMA', 1, 'POINT')} + '% ' + #{incomeBudget.vsPreviousMonth}">0% проти минулого місяця</span></small></div></div></div></div>
         </div>
-
         <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-3">
-            <div class="stat-card">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon-circle"
-                             th:classappend="${dashboard.remainingBudget <= 0} ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'">
-                            <i class="fas fa-flag-checkered"></i>
-                        </div>
-                        <div class="flex-grow-1 text-start">
-                            <h6 class="text-muted mb-0"
-                                th:text="${dashboard.remainingBudget <= 0} ? #{incomeBudget.overachieved} : #{incomeBudget.remaining}">
-                                Залишилось до цілі
-                            </h6>
-                            <h3 th:classappend="${dashboard.remainingBudget <= 0} ? 'text-success' : 'text-warning'"
-                                th:text="${#numbers.formatDecimal(dashboard.remainingBudget > 0 ? dashboard.remainingBudget : -dashboard.remainingBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
-                            <small class="text-muted d-block mt-1"
-                                   th:if="${dashboard.daysRemaining != null and dashboard.daysRemaining > 0 and dashboard.dailyRemainingBudget > 0}"
-                                   th:text="#{incomeBudget.dailyNeeded(${#numbers.formatDecimal(dashboard.dailyRemainingBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}, ${dashboard.daysRemaining})}">
-                                Потрібно отримувати ≈ 0 ₴/день
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="stat-card"><div class="card-body p-4"><div class="d-flex align-items-center gap-3"><div class="icon-circle" th:classappend="${dashboard.remainingBudget <= 0} ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'"><i class="fas fa-flag-checkered"></i></div><div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="${dashboard.remainingBudget <= 0} ? #{incomeBudget.overachieved} : #{incomeBudget.remaining}">Залишилось до цілі</h6><h3 th:classappend="${dashboard.remainingBudget <= 0} ? 'text-success' : 'text-warning'" th:text="${#numbers.formatDecimal(dashboard.remainingBudget > 0 ? dashboard.remainingBudget : -dashboard.remainingBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3><small class="text-muted d-block mt-1" th:if="${dashboard.daysRemaining != null and dashboard.daysRemaining > 0 and dashboard.dailyRemainingBudget > 0}" th:text="#{incomeBudget.dailyNeeded(${#numbers.formatDecimal(dashboard.dailyRemainingBudget, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}, ${dashboard.daysRemaining})}">Потрібно отримувати ≈ 0 ₴/день</small></div></div></div></div>
         </div>
-
         <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-4">
-            <div class="stat-card">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon-circle"
-                             th:classappend="${dashboard.projectedBalance >= 0} ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="flex-grow-1 text-start">
-                            <h6 class="text-muted mb-0" th:text="#{incomeBudget.projected}">Прогноз доходу</h6>
-                            <h3 th:classappend="${dashboard.projectedBalance >= 0} ? 'text-success' : 'text-warning'"
-                                th:text="${#numbers.formatDecimal(dashboard.projectedTotalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
-                            <small class="text-muted d-block mt-1"
-                                   th:text="#{incomeBudget.dailyAverage(${#numbers.formatDecimal(dashboard.dailyAverageExpense, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol})}">
-                                Середній дохід на день
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="stat-card"><div class="card-body p-4"><div class="d-flex align-items-center gap-3"><div class="icon-circle" th:classappend="${dashboard.projectedBalance >= 0} ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'"><i class="fas fa-chart-line"></i></div><div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{incomeBudget.projected}">Прогноз доходу</h6><h3 th:classappend="${dashboard.projectedBalance >= 0} ? 'text-success' : 'text-warning'" th:text="${#numbers.formatDecimal(dashboard.projectedTotalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3><small class="text-muted d-block mt-1" th:text="#{incomeBudget.dailyAverage(${#numbers.formatDecimal(dashboard.dailyAverageExpense, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol})}">Середній дохід на день</small></div></div></div></div>
         </div>
     </div>
 
-    <!-- ========== PROGRESS BAR ========== -->
+    <!-- PROGRESS BAR -->
     <div class="mb-4 animate-fade-up delay-5">
         <div class="d-flex justify-content-between mb-1">
             <span class="fw-semibold" th:text="#{incomeBudget.progress}">Досягнуто цілі</span>
-            <span class="fw-bold"
-                  th:text="${#numbers.formatDecimal((dashboard.totalBudget > 0 ? dashboard.totalIncomes / dashboard.totalBudget * 100 : 0), 1, 'COMMA', 2, 'POINT')} + '%'"></span>
+            <span class="fw-bold" th:text="${#numbers.formatDecimal((dashboard.totalBudget > 0 ? dashboard.totalIncomes / dashboard.totalBudget * 100 : 0), 1, 'COMMA', 2, 'POINT')} + '%'"></span>
         </div>
         <div class="progress progress-bar-custom">
-            <div class="progress-bar" role="progressbar"
-                 th:style="|width:${dashboard.totalBudget > 0 ? (dashboard.totalIncomes / dashboard.totalBudget * 100 > 100 ? 100 : dashboard.totalIncomes / dashboard.totalBudget * 100) : 0}%|"
-                 th:classappend="${dashboard.totalBudget > 0 and dashboard.totalIncomes / dashboard.totalBudget >= 1} ? 'bg-success' : (${dashboard.totalBudget > 0 and dashboard.totalIncomes / dashboard.totalBudget >= 0.8} ? 'bg-info' : 'bg-warning')"
-                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            </div>
+            <div class="progress-bar" role="progressbar" th:style="|width:${dashboard.totalBudget > 0 ? (dashboard.totalIncomes / dashboard.totalBudget * 100 > 100 ? 100 : dashboard.totalIncomes / dashboard.totalBudget * 100) : 0}%|" th:classappend="${dashboard.totalBudget > 0 and dashboard.totalIncomes / dashboard.totalBudget >= 1} ? 'bg-success' : (${dashboard.totalBudget > 0 and dashboard.totalIncomes / dashboard.totalBudget >= 0.8} ? 'bg-info' : 'bg-warning')" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     </div>
 
-    <!-- ========== CATEGORIES ========== -->
+    <!-- CATEGORIES -->
     <div class="row">
         <div class="col-12 animate-fade-up delay-5">
             <div class="unified-card">
                 <div class="card-body p-0">
-                    <div id="tableAndToolbarBlock" class="bg-card-bg mb-3"
-                         style="border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+                    <div id="tableAndToolbarBlock" class="bg-card-bg mb-3" style="border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
 
-                        <!-- SECTION HEADER: title LEFT, buttons RIGHT -->
                         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
-
-                            <div class="icon-circle bg-success text-white">
-                                <i class="fas fa-bullseye"></i>
-                            </div>
+                            <div class="icon-circle bg-success text-white"><i class="fas fa-bullseye"></i></div>
                             <div class="flex-grow-1 text-start" style="min-width: 0;">
                                 <h6 class="mb-0" th:text="#{incomeBudget.categoriesWithTargets}">Категорії доходів з цілями</h6>
-                                <h3 class="mb-0"><span th:text="${dashboard.categories.size()}">4</span></h3>
+                                <h3 class="mb-0"><span id="totalRowsCount" th:text="${dashboard.categories.size()}">0</span></h3>
                             </div>
                             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
-                                <!-- 1) viewToggle FIRST -->
                                 <div class="view-toggle" id="viewToggle">
-                                    <button class="btn active" data-view="table" th:title="#{day.table}">
-                                        <i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span>
-                                    </button>
-                                    <button class="btn" data-view="cards" th:title="#{day.cards}">
-                                        <i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span>
-                                    </button>
+                                    <button class="btn active" data-view="table" th:title="#{day.table}"><i class="fas fa-table"></i> <span class="d-none d-sm-inline" th:text="#{day.table}">Таблиця</span></button>
+                                    <button class="btn" data-view="cards" th:title="#{day.cards}"><i class="fas fa-th-large"></i> <span class="d-none d-sm-inline" th:text="#{day.cards}">Картки</span></button>
                                 </div>
-                                <!-- 2) COPY -->
-                                <button th:if="${hasPrevMonthTargets}" type="button"
-                                        class="btn btn-outline-light btn-sm"
-                                        data-bs-toggle="modal" data-bs-target="#copyTargetsModal">
-                                    <i class="fas fa-copy me-1"></i> <span th:text="#{incomeBudget.copyPrevious}">Скопіювати</span>
-                                </button>
-                                <!-- 3) ADD -->
-                                <button class="btn btn-success btn-sm"
-                                        data-bs-toggle="modal" data-bs-target="#addTargetModal">
-                                    <i class="fas fa-plus me-1"></i> <span th:text="#{incomeBudget.addTarget}">Додати ціль</span>
-                                </button>
+                                <button th:if="${hasPrevMonthTargets}" type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#copyTargetsModal"><i class="fas fa-copy me-1"></i> <span th:text="#{incomeBudget.copyPrevious}">Скопіювати</span></button>
+                                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addTargetModal"><i class="fas fa-plus me-1"></i> <span th:text="#{incomeBudget.addTarget}">Додати ціль</span></button>
                             </div>
+                        </div>
+
+                        <!-- TOOLBAR -->
+                        <div class="table-toolbar no-print">
+                            <div class="input-group search-input">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Пошук категорії..." autocomplete="off">
+                                <button type="button" id="searchClear" class="btn btn-clear" title="Очистити"><i class="fas fa-times"></i></button>
+                            </div>
+
+                            <select id="pageSizeSelect" class="form-select form-select-sm page-size-select">
+                                <option value="0" selected>Всі</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                            </select>
+
+                            <button id="loadMoreBtn" class="btn btn-primary btn-sm no-print d-none">
+                                <i class="fas fa-plus-circle me-1"></i> <span th:text="#{common.loadMore}">Завантажити ще</span>
+                            </button>
+                            <span class="info-text" id="visibleInfo">—</span>
                         </div>
 
                         <!-- TABLE -->
                         <div id="tableView" class="table-view-container">
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0 align-middle">
+                                <table class="table table-hover mb-0 align-middle" id="categoriesTable">
                                     <thead>
                                     <tr>
-                                        <th class="ps-4" th:text="#{incomeBudget.col.category}">Категорія</th>
-                                        <th class="text-center" th:text="#{incomeBudget.col.received}">Отримано</th>
-                                        <th class="text-center" th:text="#{incomeBudget.col.target}">Ціль</th>
-                                        <th class="text-center" style="min-width: 120px;" th:text="#{incomeBudget.col.progress}">Прогрес</th>
-                                        <th class="text-center" th:text="#{incomeBudget.col.status}">Статус</th>
-                                        <th class="text-center" th:text="#{incomeBudget.col.note}">Примітка</th>
-                                        <th class="text-end pe-4 no-print" th:text="#{budget.col.actions}">Дії</th>
+                                        <th class="ps-4 sortable active-asc" data-sort="name" data-type="string">Категорія <i class="fas fa-sort-up sort-icon"></i></th>
+                                        <th class="text-center sortable" data-sort="spent" data-type="number">Отримано <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="text-center sortable" data-sort="limit" data-type="number">Ціль <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="text-center sortable" data-sort="percent" data-type="number" style="min-width: 120px;">Прогрес <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="text-center">Статус</th>
+                                        <th class="text-center">Примітка</th>
+                                        <th class="text-end pe-4 no-print">Дії</th>
                                     </tr>
                                     </thead>
-                                    <tbody>
-                                    <tr th:each="catDto : ${dashboard.categories}" class="category-row">
-                                        <td class="ps-4 fw-semibold">
-                                            <i class="fas fa-folder text-muted me-2"></i><span th:text="${catDto.category.name}"></span>
-                                        </td>
-                                        <td class="text-center text-success fw-semibold"
-                                            th:text="${#numbers.formatDecimal(catDto.spent, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
-                                        <td class="text-center fw-semibold"
-                                            th:with="formattedTarget=${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '—'}"
-                                            th:text="${formattedTarget}"></td>
+                                    <tbody id="categoriesBody">
+                                    <tr th:each="catDto : ${dashboard.categories}" class="category-row"
+                                        th:data-name="${catDto.category.name}" th:data-spent="${catDto.spent}" th:data-limit="${catDto.limit}" th:data-percent="${catDto.percentUsed}">
+                                        <td class="ps-4 fw-semibold"><i class="fas fa-folder text-muted me-2"></i><span th:text="${catDto.category.name}"></span></td>
+                                        <td class="text-center text-success fw-semibold" th:text="${#numbers.formatDecimal(catDto.spent, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}"></td>
+                                        <td class="text-center fw-semibold" th:with="formattedTarget=${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '—'}" th:text="${formattedTarget}"></td>
                                         <td class="text-center">
                                             <div th:if="${catDto.limit > 0}">
                                                 <div class="progress progress-bar-custom" style="height: 6px;">
-                                                    <div class="progress-bar" role="progressbar"
-                                                         th:style="|width:${catDto.percentUsed > 100 ? 100 : catDto.percentUsed}%|"
-                                                         th:classappend="${catDto.percentUsed >= 100} ? 'bg-success' : (${catDto.percentUsed >= 80} ? 'bg-info' : 'bg-warning')">
-                                                    </div>
+                                                    <div class="progress-bar" role="progressbar" th:style="|width:${catDto.percentUsed > 100 ? 100 : catDto.percentUsed}%|" th:classappend="${catDto.percentUsed >= 100} ? 'bg-success' : (${catDto.percentUsed >= 80} ? 'bg-info' : 'bg-warning')"></div>
                                                 </div>
-                                                <small class="d-block text-center mt-1 fw-bold"
-                                                       th:classappend="${catDto.percentUsed >= 100} ? 'text-success' : (${catDto.percentUsed >= 80} ? 'text-info' : 'text-warning')"
-                                                       th:text="${#numbers.formatDecimal(catDto.percentUsed, 1, 'COMMA', 1, 'POINT')} + '%'">
-                                                </small>
+                                                <small class="d-block text-center mt-1 fw-bold" th:classappend="${catDto.percentUsed >= 100} ? 'text-success' : (${catDto.percentUsed >= 80} ? 'text-info' : 'text-warning')" th:text="${#numbers.formatDecimal(catDto.percentUsed, 1, 'COMMA', 1, 'POINT')} + '%'"></small>
                                             </div>
                                             <span th:if="${catDto.limit == 0}" class="text-muted">—</span>
                                         </td>
                                         <td class="text-center">
                                             <span th:if="${catDto.limit == 0}" class="badge bg-secondary" th:text="#{incomeBudget.status.noTarget}">Немає цілі</span>
-                                            <span th:if="${catDto.limit > 0 and catDto.percentUsed >= 100}" class="badge bg-success">
-                                                <i class="fas fa-trophy me-1"></i><span th:text="#{incomeBudget.status.achieved}">Досягнуто</span>
-                                            </span>
-                                            <span th:if="${catDto.limit > 0 and catDto.percentUsed >= 80 and catDto.percentUsed < 100}" class="badge bg-info">
-                                                <i class="fas fa-arrow-trend-up me-1"></i><span th:text="#{incomeBudget.status.onTrack}">На шляху</span>
-                                            </span>
-                                            <span th:if="${catDto.limit > 0 and catDto.percentUsed < 80}" class="badge bg-warning text-dark">
-                                                <i class="fas fa-exclamation-triangle me-1"></i><span th:text="#{incomeBudget.status.behind}">Відстає</span>
-                                            </span>
+                                            <span th:if="${catDto.limit > 0 and catDto.percentUsed >= 100}" class="badge bg-success"><i class="fas fa-trophy me-1"></i><span th:text="#{incomeBudget.status.achieved}">Досягнуто</span></span>
+                                            <span th:if="${catDto.limit > 0 and catDto.percentUsed >= 80 and catDto.percentUsed < 100}" class="badge bg-info"><i class="fas fa-arrow-trend-up me-1"></i><span th:text="#{incomeBudget.status.onTrack}">На шляху</span></span>
+                                            <span th:if="${catDto.limit > 0 and catDto.percentUsed < 80}" class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i><span th:text="#{incomeBudget.status.behind}">Відстає</span></span>
                                         </td>
                                         <td class="text-center text-muted small" th:text="${catDto.note != null ? catDto.note : '—'}"></td>
                                         <td class="text-end pe-4 no-print">
-                                            <button class="btn btn-sm btn-outline-success js-edit-target"
-                                                    th:data-id="${catDto.category.id}"
-                                                    th:data-limit="${catDto.limit}"
-                                                    th:data-name="${catDto.category.name}"
-                                                    th:data-note="${catDto.note != null ? catDto.note : ''}"
-                                                    th:title="#{btn.edit}">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button th:if="${catDto.limit > 0}"
-                                                    class="btn btn-sm btn-outline-danger ms-1 js-delete-target"
-                                                    th:data-id="${catDto.category.id}"
-                                                    th:data-name="${catDto.category.name}"
-                                                    th:data-limit="${catDto.limit}"
-                                                    th:title="#{btn.delete}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr th:if="${dashboard.categories.empty}">
-                                        <td colspan="7" class="text-center text-muted py-5">
-                                            <i class="fas fa-bullseye fa-3x mb-3" style="opacity: 0.2;"></i>
-                                            <p class="mb-0" th:text="#{incomeBudget.noTargets}">Немає категорій доходів з цілями.</p>
+                                            <button class="btn btn-sm btn-outline-success js-edit-target" th:data-id="${catDto.category.id}" th:data-limit="${catDto.limit}" th:data-name="${catDto.category.name}" th:data-note="${catDto.note != null ? catDto.note : ''}" th:title="#{btn.edit}"><i class="fas fa-edit"></i></button>
+                                            <button th:if="${catDto.limit > 0}" class="btn btn-sm btn-outline-danger ms-1 js-delete-target" th:data-id="${catDto.category.id}" th:data-name="${catDto.category.name}" th:data-limit="${catDto.limit}" th:title="#{btn.delete}"><i class="fas fa-trash"></i></button>
                                         </td>
                                     </tr>
                                     </tbody>
@@ -643,67 +273,37 @@
                         </div>
 
                         <!-- CARDS -->
-                        <div id="cardsView" class="cards-view-container show" style="margin-top: 1rem;">
-                            <div class="row g-3" id="cardsContainer">
-                                <div th:each="catDto : ${dashboard.categories}" class="col-12 col-md-6 col-lg-4">
+                        <div id="cardsView" class="cards-view-container px-3">
+                            <div class="row g-3 mt-1" id="cardsContainer">
+                                <div th:each="catDto : ${dashboard.categories}" class="col-12 col-md-6 col-lg-4 category-card-wrapper"
+                                     th:data-name="${catDto.category.name}" th:data-spent="${catDto.spent}" th:data-limit="${catDto.limit}" th:data-percent="${catDto.percentUsed}">
                                     <div class="stat-card">
                                         <div class="card-body p-4">
                                             <div class="d-flex align-items-center gap-3 mb-3">
-                                                <div class="icon-circle"
-                                                     th:classappend="${catDto.limit == 0} ? 'bg-secondary-subtle text-secondary' : (${catDto.percentUsed >= 100} ? 'bg-success-subtle text-success' : (${catDto.percentUsed >= 80} ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'))">
-                                                    <i class="fas fa-folder"></i>
-                                                </div>
+                                                <div class="icon-circle" th:classappend="${catDto.limit == 0} ? 'bg-secondary-subtle text-secondary' : (${catDto.percentUsed >= 100} ? 'bg-success-subtle text-success' : (${catDto.percentUsed >= 80} ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'))"><i class="fas fa-folder"></i></div>
                                                 <div class="flex-grow-1 text-start" style="min-width: 0;">
-                                                    <h6 class="text-muted mb-1 text-truncate"
-                                                        th:text="${catDto.category.name}">Категорія</h6>
-                                                    <h3 class="text-success mb-0 text-truncate"
-                                                        th:text="${#numbers.formatDecimal(catDto.spent, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                                                    <h6 class="text-muted mb-1 text-truncate" th:text="${catDto.category.name}">Категорія</h6>
+                                                    <h3 class="text-success mb-0 text-truncate" th:text="${#numbers.formatDecimal(catDto.spent, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
                                                 </div>
                                                 <span th:if="${catDto.limit == 0}" class="badge bg-secondary flex-shrink-0" th:text="#{incomeBudget.status.noTarget}">Немає цілі</span>
                                                 <span th:if="${catDto.limit > 0 and catDto.percentUsed >= 100}" class="badge bg-success flex-shrink-0" th:text="#{incomeBudget.status.achieved}">Досягнуто</span>
                                                 <span th:if="${catDto.limit > 0 and catDto.percentUsed >= 80 and catDto.percentUsed < 100}" class="badge bg-info flex-shrink-0" th:text="#{incomeBudget.status.onTrack}">На шляху</span>
                                                 <span th:if="${catDto.limit > 0 and catDto.percentUsed < 80}" class="badge bg-warning text-dark flex-shrink-0" th:text="#{incomeBudget.status.behind}">Відстає</span>
                                             </div>
-
                                             <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                                 <span class="text-muted small" th:text="#{incomeBudget.col.target}">Ціль</span>
-                                                <span class="fw-semibold"
-                                                      th:text="${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '—'}"></span>
+                                                <span class="fw-semibold" th:text="${catDto.limit > 0 ? #numbers.formatDecimal(catDto.limit, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '—'}"></span>
                                             </div>
-
                                             <div th:if="${catDto.limit > 0}" class="mt-3">
                                                 <div class="progress progress-bar-custom" style="height: 8px;">
-                                                    <div class="progress-bar" role="progressbar"
-                                                         th:style="|width:${catDto.percentUsed > 100 ? 100 : catDto.percentUsed}%|"
-                                                         th:classappend="${catDto.percentUsed >= 100} ? 'bg-success' : (${catDto.percentUsed >= 80} ? 'bg-info' : 'bg-warning')">
-                                                    </div>
+                                                    <div class="progress-bar" role="progressbar" th:style="|width:${catDto.percentUsed > 100 ? 100 : catDto.percentUsed}%|" th:classappend="${catDto.percentUsed >= 100} ? 'bg-success' : (${catDto.percentUsed >= 80} ? 'bg-info' : 'bg-warning')"></div>
                                                 </div>
-                                                <div class="text-end mt-1 small fw-bold"
-                                                     th:classappend="${catDto.percentUsed >= 100} ? 'text-success' : (${catDto.percentUsed >= 80} ? 'text-info' : 'text-warning')"
-                                                     th:text="${#numbers.formatDecimal(catDto.percentUsed, 1, 'COMMA', 1, 'POINT')} + '%'"></div>
+                                                <div class="text-end mt-1 small fw-bold" th:classappend="${catDto.percentUsed >= 100} ? 'text-success' : (${catDto.percentUsed >= 80} ? 'text-info' : 'text-warning')" th:text="${#numbers.formatDecimal(catDto.percentUsed, 1, 'COMMA', 1, 'POINT')} + '%'"></div>
                                             </div>
-
-                                            <div class="mt-2 text-muted small fst-italic text-truncate"
-                                                 th:if="${catDto.note != null and !catDto.note.isEmpty()}"
-                                                 th:text="#{incomeBudget.col.note} + ': ' + ${catDto.note}"></div>
-
-                                            <!-- ACTIONS: RIGHT-ALIGNED -->
+                                            <div class="mt-2 text-muted small fst-italic text-truncate" th:if="${catDto.note != null and !catDto.note.isEmpty()}" th:text="#{incomeBudget.col.note} + ': ' + ${catDto.note}"></div>
                                             <div class="d-flex gap-2 mt-3 no-print card-actions-end">
-                                                <button class="btn btn-sm btn-outline-success js-edit-target"
-                                                        th:data-id="${catDto.category.id}"
-                                                        th:data-limit="${catDto.limit}"
-                                                        th:data-name="${catDto.category.name}"
-                                                        th:data-note="${catDto.note != null ? catDto.note : ''}">
-                                                    <i class="fas fa-edit me-1"></i> <span th:text="#{btn.edit}">Редагувати</span>
-                                                </button>
-                                                <button th:if="${catDto.limit > 0}"
-                                                        class="btn btn-sm btn-outline-danger js-delete-target"
-                                                        th:data-id="${catDto.category.id}"
-                                                        th:data-name="${catDto.category.name}"
-                                                        th:data-limit="${catDto.limit}"
-                                                        th:title="#{btn.delete}">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                <button class="btn btn-sm btn-outline-success js-edit-target" th:data-id="${catDto.category.id}" th:data-limit="${catDto.limit}" th:data-name="${catDto.category.name}" th:data-note="${catDto.note != null ? catDto.note : ''}"><i class="fas fa-edit me-1"></i> <span th:text="#{btn.edit}">Редагувати</span></button>
+                                                <button th:if="${catDto.limit > 0}" class="btn btn-sm btn-outline-danger js-delete-target" th:data-id="${catDto.category.id}" th:data-name="${catDto.category.name}" th:data-limit="${catDto.limit}" th:title="#{btn.delete}"><i class="fas fa-trash"></i></button>
                                             </div>
                                         </div>
                                     </div>
@@ -711,6 +311,16 @@
                             </div>
                         </div>
 
+                        <div id="noResults" class="empty-note" style="display: none;">
+                            <i class="fas fa-search"></i>
+                            <h5 th:text="#{common.noData}">Нічого не знайдено</h5>
+                            <p class="mb-0" th:text="#{common.searchAll}">Спробуйте змінити параметри пошуку</p>
+                        </div>
+
+                        <div th:if="${dashboard.categories.empty}" class="empty-note">
+                            <i class="fas fa-bullseye"></i>
+                            <h5 th:text="#{incomeBudget.noTargets}">Немає категорій доходів з цілями.</h5>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -722,185 +332,43 @@
     </div>
 </div>
 
-<!-- ==================== MODALS ==================== -->
-
+<!-- MODALS -->
 <div class="modal fade" id="setTargetModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
-            <div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;">
-                <h5 class="modal-title"><i class="fas fa-bullseye me-2"></i><span th:text="#{incomeBudget.modal.setTarget}">Встановити Дохід</span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/budget-income/plan}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <input type="hidden" name="month" th:value="${month}" />
-                <input type="hidden" name="year" th:value="${year}" />
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            <span th:text="#{incomeBudget.modal.setTargetLabel}">Дохід на місяць</span>
-                            (<span th:text="${currencySymbol}">₴</span>)
-                        </label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                            <input type="number" lang="en" step="0.01" min="0" class="form-control" name="totalBudget"
-                                   th:value="${dashboard.totalBudget}" inputmode="decimal"
-                                   onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault()"
-                                   required autofocus>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-success px-4" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;"><div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;"><h5 class="modal-title"><i class="fas fa-bullseye me-2"></i><span th:text="#{incomeBudget.modal.setTarget}">Встановити Дохід</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <form th:action="@{/budget-income/plan}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /><input type="hidden" name="month" th:value="${month}" /><input type="hidden" name="year" th:value="${year}" />
+            <div class="modal-body p-4"><div class="mb-3"><label class="form-label fw-bold"><span th:text="#{incomeBudget.modal.setTargetLabel}">Дохід на місяць</span> (<span th:text="${currencySymbol}">₴</span>)</label><div class="input-group input-group-lg"><span class="input-group-text"><i class="fas fa-coins"></i></span><input type="number" lang="en" step="0.01" min="0" class="form-control" name="totalBudget" th:value="${dashboard.totalBudget}" inputmode="decimal" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault()" required autofocus></div></div></div>
+            <div class="modal-footer border-0 p-4 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button><button type="submit" class="btn btn-success px-4" th:text="#{btn.save}">Зберегти</button></div></form></div></div>
 </div>
 
 <div class="modal fade" id="addTargetModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
-            <div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;">
-                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i><span th:text="#{incomeBudget.modal.addTarget}">Додати ціль категорії</span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/budget-income/category-target}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <input type="hidden" name="month" th:value="${month}" />
-                <input type="hidden" name="year" th:value="${year}" />
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" th:text="#{incomeBudget.modal.category}">Категорія доходу</label>
-                        <select name="categoryId" class="form-select" required>
-                            <option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            <span th:text="#{incomeBudget.modal.targetLabel}">Ціль</span>
-                            (<span th:text="${currencySymbol}">₴</span>)
-                        </label>
-                        <input type="number" lang="en" step="0.01" min="0" class="form-control" name="limitAmount"
-                               inputmode="decimal" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault()" required>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label text-muted small" th:text="#{incomeBudget.modal.note}">Примітка (необов'язково)</label>
-                        <input type="text" class="form-control" name="note" maxlength="255">
-                    </div>
-                </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-success px-4" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;"><div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;"><h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i><span th:text="#{incomeBudget.modal.addTarget}">Додати ціль категорії</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <form th:action="@{/budget-income/category-target}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /><input type="hidden" name="month" th:value="${month}" /><input type="hidden" name="year" th:value="${year}" />
+            <div class="modal-body p-4"><div class="mb-3"><label class="form-label fw-bold" th:text="#{incomeBudget.modal.category}">Категорія доходу</label><select name="categoryId" class="form-select" required><option th:each="cat : ${incomeCategories}" th:value="${cat.id}" th:text="${cat.name}"></option></select></div>
+                <div class="mb-3"><label class="form-label fw-bold"><span th:text="#{incomeBudget.modal.targetLabel}">Ціль</span> (<span th:text="${currencySymbol}">₴</span>)</label><input type="number" lang="en" step="0.01" min="0" class="form-control" name="limitAmount" inputmode="decimal" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault()" required></div>
+                <div class="mb-0"><label class="form-label text-muted small" th:text="#{incomeBudget.modal.note}">Примітка (необов'язково)</label><input type="text" class="form-control" name="note" maxlength="255"></div></div>
+            <div class="modal-footer border-0 p-4 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button><button type="submit" class="btn btn-success px-4" th:text="#{btn.save}">Зберегти</button></div></form></div></div>
 </div>
 
 <div class="modal fade" id="editTargetModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
-            <div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i><span th:text="#{incomeBudget.modal.editTarget}">Редагувати ціль</span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/budget-income/category-target}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <input type="hidden" name="month" th:value="${month}" />
-                <input type="hidden" name="year" th:value="${year}" />
-                <div class="modal-body p-4">
-                    <input type="hidden" name="categoryId" id="editTargetCategoryId">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" th:text="#{incomeBudget.modal.category}">Категорія</label>
-                        <input type="text" class="form-control bg-body-secondary fw-semibold" id="editTargetCategoryName" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            <span th:text="#{incomeBudget.modal.targetLabel}">Ціль</span>
-                            (<span th:text="${currencySymbol}">₴</span>)
-                        </label>
-                        <input type="number" lang="en" step="0.01" min="0"
-                               class="form-control" name="limitAmount" id="editTargetAmount"
-                               inputmode="decimal" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault()" required>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label text-muted small" th:text="#{incomeBudget.modal.note}">Примітка (необов'язково)</label>
-                        <input type="text" class="form-control" name="note" id="editTargetNote" maxlength="100">
-                    </div>
-                </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-success px-4" th:text="#{btn.save}">Зберегти</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;"><div class="modal-header bg-success text-white border-0" style="border-radius: 1rem 1rem 0 0;"><h5 class="modal-title"><i class="fas fa-edit me-2"></i><span th:text="#{incomeBudget.modal.editTarget}">Редагувати ціль</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <form th:action="@{/budget-income/category-target}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /><input type="hidden" name="month" th:value="${month}" /><input type="hidden" name="year" th:value="${year}" />
+            <div class="modal-body p-4"><input type="hidden" name="categoryId" id="editTargetCategoryId"><div class="mb-3"><label class="form-label fw-bold" th:text="#{incomeBudget.modal.category}">Категорія</label><input type="text" class="form-control bg-body-secondary fw-semibold" id="editTargetCategoryName" readonly></div>
+                <div class="mb-3"><label class="form-label fw-bold"><span th:text="#{incomeBudget.modal.targetLabel}">Ціль</span> (<span th:text="${currencySymbol}">₴</span>)</label><input type="number" lang="en" step="0.01" min="0" class="form-control" name="limitAmount" id="editTargetAmount" inputmode="decimal" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault()" required></div>
+                <div class="mb-0"><label class="form-label text-muted small" th:text="#{incomeBudget.modal.note}">Примітка (необов'язково)</label><input type="text" class="form-control" name="note" id="editTargetNote" maxlength="100"></div></div>
+            <div class="modal-footer border-0 p-4 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button><button type="submit" class="btn btn-success px-4" th:text="#{btn.save}">Зберегти</button></div></form></div></div>
 </div>
 
 <div class="modal fade no-print" id="deleteTargetConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle text-danger me-2"></i>
-                    <span th:text="#{delete.confirm}">Підтвердження видалення</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-center" th:text="#{incomeBudget.deleteTarget.question}">Ви впевнені, що хочете видалити ціль для цієї категорії?</p>
-                <p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
-                <hr>
-                <div class="delete-details">
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold" th:text="#{incomeBudget.col.category}">Категорія:</div>
-                        <div class="col-8 value" id="deleteTargetCategoryName"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold" th:text="#{incomeBudget.col.target}">Ціль:</div>
-                        <div class="col-8 value text-success fw-bold" id="deleteTargetAmount"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                <form id="deleteTargetForm" method="post" th:action="@{/budget-income/category-target/delete}" style="display:inline;">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    <input type="hidden" name="month" th:value="${month}" />
-                    <input type="hidden" name="year" th:value="${year}" />
-                    <input type="hidden" name="categoryId" id="deleteTargetCategoryId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash me-1"></i> <span th:text="#{btn.delete}">Видалити</span>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+    <div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span th:text="#{delete.confirm}">Підтвердження видалення</span></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><p class="text-center" th:text="#{incomeBudget.deleteTarget.question}">Ви впевнені, що хочете видалити ціль для цієї категорії?</p><p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p><hr><div class="delete-details"><div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{incomeBudget.col.category}">Категорія:</div><div class="col-8 value" id="deleteTargetCategoryName"></div></div><div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{incomeBudget.col.target}">Ціль:</div><div class="col-8 value text-success fw-bold" id="deleteTargetAmount"></div></div></div></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button><form id="deleteTargetForm" method="post" th:action="@{/budget-income/category-target/delete}" style="display:inline;"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /><input type="hidden" name="month" th:value="${month}" /><input type="hidden" name="year" th:value="${year}" /><input type="hidden" name="categoryId" id="deleteTargetCategoryId" /><button type="submit" class="btn btn-danger"><i class="fas fa-trash me-1"></i> <span th:text="#{btn.delete}">Видалити</span></button></form></div></div></div>
 </div>
 
 <div class="modal fade" id="copyTargetsModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
-            <div class="modal-header bg-info text-white border-0" style="border-radius: 1rem 1rem 0 0;">
-                <h5 class="modal-title"><i class="fas fa-copy me-2"></i><span th:text="#{incomeBudget.copyPrevious}">Скопіювати з минулого місяця</span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form th:action="@{/budget-income/copy-previous}" method="post">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <input type="hidden" name="month" th:value="${month}" />
-                <input type="hidden" name="year" th:value="${year}" />
-                <div class="modal-body p-4">
-                    <p th:text="#{incomeBudget.copyPrevious.confirm}">Скопіювати цілі з минулого місяця? Існуючі цілі не будуть перезаписані.</p>
-                </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
-                    <button type="submit" class="btn btn-info text-white px-4" th:text="#{btn.confirm}">Підтвердити</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;"><div class="modal-header bg-info text-white border-0" style="border-radius: 1rem 1rem 0 0;"><h5 class="modal-title"><i class="fas fa-copy me-2"></i><span th:text="#{incomeBudget.copyPrevious}">Скопіювати з минулого місяця</span></h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+        <form th:action="@{/budget-income/copy-previous}" method="post"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /><input type="hidden" name="month" th:value="${month}" /><input type="hidden" name="year" th:value="${year}" />
+            <div class="modal-body p-4"><p th:text="#{incomeBudget.copyPrevious.confirm}">Скопіювати цілі з минулого місяця? Існуючі цілі не будуть перезаписані.</p></div>
+            <div class="modal-footer border-0 p-4 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button><button type="submit" class="btn btn-info text-white px-4" th:text="#{btn.confirm}">Підтвердити</button></div></form></div></div>
 </div>
 
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -910,27 +378,100 @@
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         'use strict';
-        var currencySymbol = /*[[${currencySymbol}]]*/ '₴';
+        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
+
+        var i18n = {
+            showing:  /*[[#{common.showing}]]*/ 'Показано: {0} з {1}',
+            allLoaded: /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
+            loadMore:  /*[[#{common.loadMore}]]*/ 'Завантажити ще'
+        };
+        function fmt(template) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return template.replace(/\{(\d+)\}/g, function (m, i) { return args[i] !== undefined ? args[i] : m; });
+        }
 
         var viewToggle = document.getElementById('viewToggle');
         var tableView = document.getElementById('tableView');
         var cardsView = document.getElementById('cardsView');
+        var searchInput = document.getElementById('searchInput');
+        var searchClear = document.getElementById('searchClear');
+        var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var loadMoreBtn = document.getElementById('loadMoreBtn');
+        var visibleInfo = document.getElementById('visibleInfo');
+        var totalRowsSpan = document.getElementById('totalRowsCount');
+        var noResults = document.getElementById('noResults');
 
+        // === PAGINATION & FILTERING LOGIC (Moved up for correct initialization) ===
+        var currentPage = 1;
+        var pageSize = parseInt(pageSizeSelect ? pageSizeSelect.value : 0) || 0;
+        var allRows = Array.from(document.querySelectorAll('.category-row'));
+        var allCards = Array.from(document.querySelectorAll('.category-card-wrapper'));
+        var filteredRows = [];
+
+        function getFilteredItems() {
+            var term = searchInput.value.toLowerCase().trim();
+            return allRows.filter(function(row) {
+                var name = (row.dataset.name || '').toLowerCase();
+                return name.indexOf(term) !== -1;
+            });
+        }
+
+        function updateUI() {
+            var total = filteredRows.length;
+            if (totalRowsSpan) totalRowsSpan.textContent = total;
+
+            allRows.forEach(function(r) { r.style.display = 'none'; });
+            allCards.forEach(function(c) { c.style.display = 'none'; });
+
+            var toShow;
+            if (pageSize === 0) {
+                toShow = filteredRows;
+                loadMoreBtn.classList.add('d-none');
+                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, total, total);
+            } else {
+                var end = Math.min(currentPage * pageSize, total);
+                toShow = filteredRows.slice(0, end);
+                var allShown = (end >= total);
+
+                loadMoreBtn.classList.toggle('d-none', allShown || total === 0);
+                loadMoreBtn.disabled = allShown;
+                loadMoreBtn.innerHTML = allShown ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
+                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, end, total);
+            }
+
+            var visibleNames = new Set();
+            toShow.forEach(function(row) {
+                row.style.display = '';
+                visibleNames.add(row.dataset.name);
+            });
+
+            allCards.forEach(function(card) {
+                if (visibleNames.has(card.dataset.name)) card.style.display = '';
+            });
+
+            if (noResults) noResults.style.display = total === 0 ? 'block' : 'none';
+        }
+
+        function applyFiltersAndPaginate() {
+            filteredRows = getFilteredItems();
+            currentPage = 1;
+            updateUI();
+        }
+
+        // === VIEW MODE ===
         function setViewMode(mode) {
             if (mode === 'cards') {
-                tableView.classList.add('hidden');
-                cardsView.classList.add('show');
+                tableView.classList.add('hidden'); cardsView.classList.add('show');
                 viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="cards"]').classList.add('active');
             } else {
-                tableView.classList.remove('hidden');
-                cardsView.classList.remove('show');
+                tableView.classList.remove('hidden'); cardsView.classList.remove('show');
                 viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
                 viewToggle.querySelector('[data-view="table"]').classList.add('active');
             }
             localStorage.setItem('budget-income-view-mode', mode);
+            applyFiltersAndPaginate();
         }
-
         if (viewToggle) {
             viewToggle.addEventListener('click', function (e) {
                 var btn = e.target.closest('button');
@@ -940,6 +481,80 @@
             setViewMode(localStorage.getItem('budget-income-view-mode') || 'table');
         }
 
+        // === LISTENERS ===
+        var searchTimer;
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(applyFiltersAndPaginate, 300);
+            });
+        }
+        if (searchClear) {
+            searchClear.addEventListener('click', function() {
+                searchInput.value = '';
+                applyFiltersAndPaginate();
+                searchInput.focus();
+            });
+        }
+
+        if (pageSizeSelect) {
+            pageSizeSelect.addEventListener('change', function() {
+                pageSize = parseInt(this.value) || 0;
+                currentPage = 1;
+                updateUI();
+            });
+        }
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function() {
+                if (pageSize === 0) return;
+                if (Math.min(currentPage * pageSize, filteredRows.length) >= filteredRows.length) return;
+                currentPage++;
+                updateUI();
+            });
+        }
+
+        // === SORTING ===
+        function sortRowsBy(column, direction) {
+            var th = document.querySelector('.sortable[data-sort="' + column + '"]');
+            var dataType = th ? th.dataset.type : 'string';
+
+            allRows.sort(function(a, b) {
+                var aVal = a.dataset[column] || '', bVal = b.dataset[column] || '';
+                if (dataType === 'number') {
+                    return direction === 'asc' ? (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0) : (parseFloat(bVal) || 0) - (parseFloat(aVal) || 0);
+                }
+                aVal = aVal.toString().toLowerCase(); bVal = bVal.toString().toLowerCase();
+                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            });
+
+            var tbody = document.getElementById('categoriesBody');
+            allRows.forEach(function(row) { tbody.appendChild(row); });
+
+            document.querySelectorAll('.sortable').forEach(function(t) {
+                t.classList.remove('active-asc', 'active-desc');
+                var icon = t.querySelector('.sort-icon');
+                if (icon) icon.className = 'fas fa-sort sort-icon';
+            });
+            if (th) {
+                th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
+                var icon = th.querySelector('.sort-icon');
+                if (icon) icon.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+            }
+            applyFiltersAndPaginate();
+        }
+
+        document.querySelectorAll('.sortable').forEach(function(th) {
+            th.addEventListener('click', function() {
+                var column = this.dataset.sort;
+                var currentDir = this.classList.contains('active-asc') ? 'asc' : (this.classList.contains('active-desc') ? 'desc' : null);
+                var direction = 'asc';
+                if (currentDir === 'asc') direction = 'desc';
+                else if (currentDir === 'desc') direction = 'asc';
+                sortRowsBy(column, direction);
+            });
+        });
+
+        // === EDIT/DELETE ===
         document.querySelectorAll('.js-edit-target').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -962,6 +577,7 @@
             });
         });
 
+        // === BEHIND BANNER ===
         (function initBehindBanner() {
             var data = document.getElementById('behindData');
             if (!data) return;
