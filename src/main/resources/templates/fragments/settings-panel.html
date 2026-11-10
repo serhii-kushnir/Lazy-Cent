@@ -94,11 +94,11 @@
                         <h6 class="mt-2" th:text="#{settings.profile.changePassword}">Зміна пароля</h6>
                         <div class="mb-3">
                             <label class="form-label" th:text="#{settings.profile.currentPassword}">Поточний пароль</label>
-                            <input type="password" class="form-control" name="currentPassword" id="profileCurrentPassword" placeholder="••••••••">
+                            <input type="password" class="form-control" name="currentPassword" id="profileCurrentPassword" placeholder="••••••••" autocomplete="current-password">
                         </div>
                         <div class="mb-3">
                             <label class="form-label" th:text="#{settings.profile.newPassword}">Новий пароль</label>
-                            <input type="password" class="form-control" name="newPassword" id="profileNewPassword" placeholder="••••••••">
+                            <input type="password" class="form-control" name="newPassword" id="profileNewPassword" placeholder="••••••••" autocomplete="new-password">
                             <ul class="requirement-list" id="profilePasswordRequirements">
                                 <li id="profileReqLength"><i class="fas fa-circle text-danger"></i> <span th:text="#{pwd.req.length}">Мінімум 6 символів</span></li>
                                 <li id="profileReqLowercase"><i class="fas fa-circle text-danger"></i> <span th:text="#{pwd.req.lowercase}">Мала літера (a-z)</span></li>
