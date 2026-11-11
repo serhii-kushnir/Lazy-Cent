@@ -172,6 +172,7 @@ public class NoteApiController extends BaseController {
     public String search(@RequestParam(required = false) String q,
                          @RequestParam(defaultValue = "20") int size,
                          @RequestParam(defaultValue = "default") String sort,
+                         @RequestParam(defaultValue = "all") String filter,
                          Authentication authentication,
                          HttpServletRequest request,
                          HttpServletResponse response) {
@@ -184,24 +185,48 @@ public class NoteApiController extends BaseController {
             Sort activeSort = NoteService.resolveSort(sort, false);
             Sort archivedSort = NoteService.resolveSort(sort, true);
 
-            Page<Note> activePage = (query == null)
-                    ? noteService.getActiveNotes(currentUser, 0, size, activeSort)
-                    : noteService.searchActiveNotes(currentUser, query, 0, size, activeSort);
+            boolean showActive = "all".equals(filter) || "active".equals(filter) || "shared".equals(filter);
+            boolean showArchived = "all".equals(filter) || "archived".equals(filter) || "shared".equals(filter);
 
-            Page<Note> archivedPage = (query == null)
-                    ? noteService.getArchivedNotes(currentUser, 0, size, archivedSort)
-                    : noteService.searchArchivedNotes(currentUser, query, 0, size, archivedSort);
+            Page<Note> activePage = Page.empty();
+            Page<Note> archivedPage = Page.empty();
 
-            // ✅ FIX: створюємо IWebExchange, а потім WebContext
+            if (showActive) {
+                if ("shared".equals(filter)) {
+                    activePage = (query == null)
+                            ? noteService.getSharedNotesPaged(currentUser, false, 0, size, activeSort)
+                            : noteService.searchSharedNotesPaged(currentUser, false, query, 0, size, activeSort);
+                } else {
+                    activePage = (query == null)
+                            ? noteService.getActiveNotes(currentUser, 0, size, activeSort)
+                            : noteService.searchActiveNotes(currentUser, query, 0, size, activeSort);
+                }
+            }
+            if (showArchived) {
+                if ("shared".equals(filter)) {
+                    archivedPage = (query == null)
+                            ? noteService.getSharedNotesPaged(currentUser, true, 0, size, archivedSort)
+                            : noteService.searchSharedNotesPaged(currentUser, true, query, 0, size, archivedSort);
+                } else {
+                    archivedPage = (query == null)
+                            ? noteService.getArchivedNotes(currentUser, 0, size, archivedSort)
+                            : noteService.searchArchivedNotes(currentUser, query, 0, size, archivedSort);
+                }
+            }
+
             var application = JakartaServletWebApplication.buildApplication(request.getServletContext());
             var exchange = application.buildExchange(request, response);
-            WebContext webCtx = new WebContext(exchange, org.springframework.context.i18n.LocaleContextHolder.getLocale());
+            WebContext webCtx = new WebContext(exchange,
+                    org.springframework.context.i18n.LocaleContextHolder.getLocale());
 
             webCtx.setVariable("notes", activePage.getContent());
             webCtx.setVariable("archivedNotes", archivedPage.getContent());
             webCtx.setVariable("activeHasMore", activePage.hasNext());
             webCtx.setVariable("archivedHasMore", archivedPage.hasNext());
+            webCtx.setVariable("activeFilteredTotal", activePage.getTotalElements());
+            webCtx.setVariable("archivedFilteredTotal", archivedPage.getTotalElements());
             webCtx.setVariable("q", query);
+            webCtx.setVariable("filter", filter);
 
             return templateEngine.process(NOTE_GRID_TEMPLATE, FULL_GRID_SELECTOR, webCtx);
 

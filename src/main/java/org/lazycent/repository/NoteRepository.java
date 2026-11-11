@@ -17,6 +17,36 @@ import java.util.Optional;
 @Repository
 public interface NoteRepository extends JpaRepository<Note, Long> {
 
+    // ==================== SHARED PAGED (для /notes?filter=shared) ====================
+
+    @Query("SELECT n FROM Note n WHERE n.owner = :owner AND n.archived = :archived " +
+            "AND n.shareWithFamily = true")
+    Page<Note> findSharedByOwnerPaged(@Param("owner") User owner,
+                                      @Param("archived") boolean archived,
+                                      Pageable pageable);
+
+    @Query("SELECT n FROM Note n WHERE n.owner = :owner AND n.archived = :archived " +
+            "AND n.shareWithFamily = true " +
+            "AND (LOWER(n.title) LIKE LOWER(CONCAT('%', :q, '%')) " +
+            "OR LOWER(n.content) LIKE LOWER(CONCAT('%', :q, '%')))")
+    Page<Note> searchSharedByOwnerPaged(@Param("owner") User owner,
+                                        @Param("archived") boolean archived,
+                                        @Param("q") String q,
+                                        Pageable pageable);
+
+// ==================== SHARED FILTERED — без пагінації (для Excel export) ====================
+
+    @Query("SELECT n FROM Note n WHERE n.owner.family.id = :familyId " +
+            "AND n.shareWithFamily = true AND n.archived = false " +
+            "AND (:q = '' " +
+            "     OR LOWER(n.title) LIKE LOWER(CONCAT('%', :q, '%')) " +
+            "     OR LOWER(n.content) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+            "AND (:author = '' OR n.owner.username = :author) " +
+            "ORDER BY n.pinned DESC, n.updatedAt DESC")
+    List<Note> findSharedWithFamilyFiltered(@Param("familyId") Long familyId,
+                                            @Param("q") String q,
+                                            @Param("author") String author);
+
     // ==================== LEGACY (без пагінації) ====================
 
     List<Note> findByOwnerOrderByPinnedDescUpdatedAtDesc(User owner);
@@ -25,11 +55,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     // ==================== PAGINATED (sort через Pageable) ====================
 
-    /**
-     * Активні нотатки. Сортування НЕ в імені методу — передається через
-     * {@link Pageable#getSort()}. Це дозволяє {@code NoteService} динамічно
-     * вибирати сортування (за назвою, датою, кольором).
-     */
     @EntityGraph(attributePaths = {"owner"})
     Page<Note> findByOwnerAndArchivedFalse(User owner, Pageable pageable);
 

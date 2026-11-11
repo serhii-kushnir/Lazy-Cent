@@ -14,6 +14,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Map;
@@ -78,6 +80,7 @@ public class NoteController extends BaseController {
                             @RequestParam(value = "sort", required = false, defaultValue = "default") String sort,
                             @RequestParam(value = "size", required = false, defaultValue = "20") int size,
                             @RequestParam(value = "create", required = false, defaultValue = "false") boolean create,
+                            @RequestParam(value = "filter", required = false, defaultValue = "all") String filter,
                             Authentication authentication, Model model) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
@@ -87,13 +90,34 @@ public class NoteController extends BaseController {
         Sort activeSort = NoteService.resolveSort(sort, false);
         Sort archivedSort = NoteService.resolveSort(sort, true);
 
-        Page<Note> activePage = (query == null)
-                ? noteService.getActiveNotes(currentUser, 0, size, activeSort)
-                : noteService.searchActiveNotes(currentUser, query, 0, size, activeSort);
+        boolean showActive = "all".equals(filter) || "active".equals(filter) || "shared".equals(filter);
+        boolean showArchived = "all".equals(filter) || "archived".equals(filter) || "shared".equals(filter);
 
-        Page<Note> archivedPage = (query == null)
-                ? noteService.getArchivedNotes(currentUser, 0, size, archivedSort)
-                : noteService.searchArchivedNotes(currentUser, query, 0, size, archivedSort);
+        Page<Note> activePage = Page.empty();
+        Page<Note> archivedPage = Page.empty();
+
+        if (showActive) {
+            if ("shared".equals(filter)) {
+                activePage = (query == null)
+                        ? noteService.getSharedNotesPaged(currentUser, false, 0, size, activeSort)
+                        : noteService.searchSharedNotesPaged(currentUser, false, query, 0, size, activeSort);
+            } else {
+                activePage = (query == null)
+                        ? noteService.getActiveNotes(currentUser, 0, size, activeSort)
+                        : noteService.searchActiveNotes(currentUser, query, 0, size, activeSort);
+            }
+        }
+        if (showArchived) {
+            if ("shared".equals(filter)) {
+                archivedPage = (query == null)
+                        ? noteService.getSharedNotesPaged(currentUser, true, 0, size, archivedSort)
+                        : noteService.searchSharedNotesPaged(currentUser, true, query, 0, size, archivedSort);
+            } else {
+                archivedPage = (query == null)
+                        ? noteService.getArchivedNotes(currentUser, 0, size, archivedSort)
+                        : noteService.searchArchivedNotes(currentUser, query, 0, size, archivedSort);
+            }
+        }
 
         long activeTotal = noteService.countActiveNotes(currentUser);
         long archivedTotal = noteService.countArchivedNotes(currentUser);
@@ -106,9 +130,12 @@ public class NoteController extends BaseController {
         model.addAttribute("sharedTotal", sharedTotal);
         model.addAttribute("activeHasMore", activePage.hasNext());
         model.addAttribute("archivedHasMore", archivedPage.hasNext());
+        model.addAttribute("activeFilteredTotal", activePage.getTotalElements());
+        model.addAttribute("archivedFilteredTotal", archivedPage.getTotalElements());
         model.addAttribute("q", query);
         model.addAttribute("sort", sort);
         model.addAttribute("size", size);
+        model.addAttribute("filter", filter);
         model.addAttribute("openCreateModal", create);
 
         return "notes";
@@ -311,16 +338,12 @@ public class NoteController extends BaseController {
         return "redirect:/notes";
     }
 
-    /**
-     * Експорт нотаток в Excel.
-     *
-     * @param sort   default | title | created | updated | color
-     * @param filter all | active | archived | shared
-     */
     @GetMapping("/export")
     public void exportNotes(
             @RequestParam(value = "sort", required = false, defaultValue = "default") String sort,
             @RequestParam(value = "filter", required = false, defaultValue = "all") String filter,
+            @RequestParam(value = "q", required = false) String q,
+            @RequestParam(value = "member", required = false) String member,
             Authentication authentication,
             jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
 
@@ -331,7 +354,7 @@ public class NoteController extends BaseController {
         }
 
         byte[] xlsx = noteExportService.export(
-                currentUser, sort, filter,
+                currentUser, sort, filter, q, member,
                 org.springframework.context.i18n.LocaleContextHolder.getLocale());
 
         String filename = "notes-" + filter + "-"
@@ -342,5 +365,22 @@ public class NoteController extends BaseController {
                 "attachment; filename=\"" + filename + "\"");
         response.setContentLength(xlsx.length);
         response.getOutputStream().write(xlsx);
+    }
+
+    @PostMapping("/bulk/copy")
+    @ResponseBody
+    public Map<String, Object> bulkCopy(@RequestParam("ids") List<Long> ids,
+                                        Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        if (user == null) {
+            return Map.of("success", false, "error", "Unauthorized");
+        }
+        try {
+            int count = noteService.bulkCopyShared(ids, user);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            return Map.of("success", false,
+                    "error", e.getMessage() != null ? e.getMessage() : "error");
+        }
     }
 }

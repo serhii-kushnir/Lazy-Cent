@@ -6,21 +6,28 @@
      FULL GRID — використовується в notes.html і /notes/api/search
      ============================================================ -->
 <th:block th:fragment="fullGrid">
+    <span class="d-none" id="noteGridTotal"
+          th:attr="data-active=${activeFilteredTotal},data-archived=${archivedFilteredTotal}"></span>
 
-    <th:block th:each="note : ${notes}">
-        <th:block th:replace="~{fragments/note-card :: activeCard(${note})}"></th:block>
+    <!-- ==================== ACTIVE BLOCK ==================== -->
+    <th:block th:if="${filter == null or filter == 'all' or filter == 'active' or filter == 'shared'}">
+        <th:block th:each="note : ${notes}">
+            <th:block th:replace="~{fragments/note-card :: activeCard(${note})}"></th:block>
+        </th:block>
+
+        <div class="col-12 text-center" id="activeLoadMore"
+             th:if="${activeHasMore}" th:data-page="1" th:data-type="active"
+             th:attr="data-q=${q}">
+            <button type="button" class="btn btn-outline-primary btn-sm px-4" onclick="loadMore('active')">
+                <i class="fas fa-plus-circle me-1"></i>
+                <span th:text="#{common.loadMore}">Завантажити ще</span>
+            </button>
+        </div>
     </th:block>
 
-    <div class="col-12 text-center" id="activeLoadMore"
-         th:if="${activeHasMore}" th:data-page="1" th:data-type="active"
-         th:attr="data-q=${q}">
-        <button type="button" class="btn btn-outline-primary btn-sm px-4" onclick="loadMore('active')">
-            <i class="fas fa-plus-circle me-1"></i>
-            <span th:text="#{common.loadMore}">Завантажити ще</span>
-        </button>
-    </div>
-
-    <div th:if="${archivedNotes != null and !archivedNotes.empty}"
+    <!-- ==================== DIVIDER ==================== -->
+    <div th:if="${(filter == null or filter == 'all')
+                  and (archivedNotes != null and !archivedNotes.empty)}"
          class="col-12 archived-divider js-archived-divider">
         <div class="d-flex align-items-center">
             <hr class="flex-grow-1">
@@ -32,20 +39,23 @@
         </div>
     </div>
 
-    <th:block th:each="note : ${archivedNotes}">
-        <th:block th:replace="~{fragments/note-card :: archivedCard(${note})}"></th:block>
+    <!-- ==================== ARCHIVED BLOCK ==================== -->
+    <th:block th:if="${filter == null or filter == 'all' or filter == 'archived' or filter == 'shared'}">
+        <th:block th:each="note : ${archivedNotes}">
+            <th:block th:replace="~{fragments/note-card :: archivedCard(${note})}"></th:block>
+        </th:block>
+
+        <div class="col-12 text-center" id="archivedLoadMore"
+             th:if="${archivedHasMore}" th:data-page="1" th:data-type="archived"
+             th:attr="data-q=${q}">
+            <button type="button" class="btn btn-outline-secondary btn-sm px-4" onclick="loadMore('archived')">
+                <i class="fas fa-plus-circle me-1"></i>
+                <span th:text="#{common.loadMore}">Завантажити ще</span>
+            </button>
+        </div>
     </th:block>
 
-    <div class="col-12 text-center" id="archivedLoadMore"
-         th:if="${archivedHasMore}" th:data-page="1" th:data-type="archived"
-         th:attr="data-q=${q}">
-        <button type="button" class="btn btn-outline-secondary btn-sm px-4" onclick="loadMore('archived')">
-            <i class="fas fa-plus-circle me-1"></i>
-            <span th:text="#{common.loadMore}">Завантажити ще</span>
-        </button>
-    </div>
-
-    <!-- Порожній стан з текстом -->
+    <!-- ==================== EMPTY STATE ==================== -->
     <div th:if="${(notes == null or notes.empty) and (archivedNotes == null or archivedNotes.empty)}" class="col-12">
         <div class="empty-notes">
             <i class="fas" th:classappend="${q != null} ? 'fa-search' : 'fa-sticky-note'"></i>
@@ -57,7 +67,7 @@
                th:text="${q != null} ? 'Спробуйте змінити запит або очистити пошук.' : #{notes.empty.text}">
                 Створіть першу нотатку.
             </p>
-            <a th:if="${q != null}" th:href="@{/notes}"
+            <a th:if="${q != null}" th:href="@{/notes(filter=${filter})}"
                class="btn btn-outline-secondary mt-3 js-clear-search">
                 <i class="fas fa-times me-1"></i>
                 <span th:text="#{btn.clear}">Очистити пошук</span>

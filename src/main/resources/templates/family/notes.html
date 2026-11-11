@@ -1354,15 +1354,6 @@
                     || document.getElementById('editSelectedTextColor').value !== editInitialState.textColor;
             }
 
-            window.addEventListener('beforeunload', function (e) {
-                if (window.__editFormSubmitting) return;
-                if (isEditDirty()) {
-                    e.preventDefault();
-                    e.returnValue = '';
-                    return '';
-                }
-            });
-
             // ==================== CREATE ====================
 
             window.createFamilyNote = function () {
@@ -1657,34 +1648,18 @@
                     var ids = Array.from(selectedIds);
 
                     if (action === 'copy') {
-                        var promises = ids.map(function (id) {
-                            return fetch('/notes/copy/' + id, {
-                                method: 'POST',
-                                headers: csrfHeaders()
-                            }).then(function (r) { return r.ok || r.redirected; })
-                                .catch(function () { return false; });
-                        });
-                        Promise.all(promises).then(function (results) {
-                            var success = results.filter(Boolean).length;
-                            if (success > 0) {
-                                showToast(fmt(i18n.bulkCopied, success, ids.length), 'success');
-                                clearSelection();
-                                applyFilters();
-                            } else {
-                                showToast(i18n.loadError, 'error');
-                            }
-                        });
-                    } else if (action === 'archive' || action === 'delete') {
                         var params = new URLSearchParams();
                         ids.forEach(function (id) { params.append('ids', id); });
-                        fetch('/notes/bulk/' + action, {
+
+                        fetch('/notes/bulk/copy', {
                             method: 'POST',
                             headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
                             body: params.toString()
-                        }).then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
+                        })
+                            .then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
                             .then(function (data) {
                                 if (data && data.success) {
-                                    showToast(action === 'delete' ? i18n.toastDeleted : i18n.toastArchived, 'success');
+                                    showToast(fmt(i18n.bulkCopied, data.count, ids.length), 'success');
                                     clearSelection();
                                     applyFilters();
                                 } else {

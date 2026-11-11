@@ -27,8 +27,70 @@ public class NoteService {
     /** Максимальні довжини — мають збігатися з колонками БД (V1). */
     private static final int MAX_TITLE_LENGTH = 255;
     private static final int MAX_CONTENT_LENGTH = 5000;
-
     private final NoteRepository noteRepository;
+
+    // ==================== SHARED PAGED ====================
+
+    @Transactional(readOnly = true)
+    public Page<Note> getSharedNotesPaged(User user, boolean archived, int page, int size, Sort sort) {
+        if (user == null) return Page.empty();
+        Pageable pageable = buildPageable(page, size, sort);
+        return noteRepository.findSharedByOwnerPaged(user, archived, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> searchSharedNotesPaged(User user, boolean archived, String query,
+                                             int page, int size, Sort sort) {
+        if (user == null || query == null || query.trim().isEmpty()) {
+            return getSharedNotesPaged(user, archived, page, size, sort);
+        }
+        Pageable pageable = buildPageable(page, size, sort);
+        return noteRepository.searchSharedByOwnerPaged(user, archived, query.trim(), pageable);
+    }
+
+// ==================== ALL NOTES (без пагінації — для експорту) ====================
+
+    @Transactional(readOnly = true)
+    public List<Note> searchAllActiveNotes(User user, String q, Sort sort) {
+        if (user == null) return List.of();
+        if (q == null || q.trim().isEmpty()) return getAllActiveNotes(user, sort);
+        Pageable pageable = buildPageable(0, 0, sort);
+        return noteRepository.searchActive(user, q.trim(), pageable).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Note> searchAllArchivedNotes(User user, String q, Sort sort) {
+        if (user == null) return List.of();
+        if (q == null || q.trim().isEmpty()) return getAllArchivedNotes(user, sort);
+        Pageable pageable = buildPageable(0, 0, sort);
+        return noteRepository.searchArchived(user, q.trim(), pageable).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Note> getFamilySharedNotesFiltered(User user, String q, String author) {
+        if (user == null || user.getFamilyId() == null) return List.of();
+        String qNorm = (q == null) ? "" : q.trim();
+        String authorNorm = (author == null || "all".equalsIgnoreCase(author)) ? "" : author.trim();
+        return noteRepository.findSharedWithFamilyFiltered(user.getFamilyId(), qNorm, authorNorm);
+    }
+
+// ==================== BULK COPY ====================
+    
+    @Transactional
+    public int bulkCopyShared(List<Long> ids, User user) {
+        if (ids == null || ids.isEmpty() || user == null) return 0;
+        List<Long> limited = ids.stream().limit(100).toList();
+        int count = 0;
+        for (Long id : limited) {
+            try {
+                copyNote(id, user);
+                count++;
+            } catch (Exception ignored) {
+                // skip — not shared / not in family / not found
+            }
+        }
+        return count;
+    }
 
     // ==================== SORT HELPERS ====================
 

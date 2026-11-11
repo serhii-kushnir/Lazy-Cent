@@ -38,8 +38,12 @@ public class NoteExportService {
     public static final String FILTER_ARCHIVED = "archived";
     public static final String FILTER_SHARED   = "shared";
 
-    public byte[] export(User user, String sortKey, String filterKey, Locale locale)
-            throws IOException {
+    public byte[] export(User user, String sortKey, String filterKey, Locale locale) throws IOException {
+        return export(user, sortKey, filterKey, null, null, locale);
+    }
+
+    public byte[] export(User user, String sortKey, String filterKey,
+                         String q, String member, Locale locale) throws IOException {
 
         Sort sort = NoteService.resolveSort(sortKey, false);
 
@@ -47,49 +51,42 @@ public class NoteExportService {
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
 
             String key = normalizeFilter(filterKey);
+            String query = (q != null && !q.trim().isEmpty()) ? q.trim() : null;
 
             switch (key) {
                 case FILTER_ACTIVE -> {
-                    List<Note> active = noteService.getAllActiveNotes(user, sort);
-                    if (!active.isEmpty()) {
-                        buildSheet(wb, active, "active", locale);
-                    }
+                    List<Note> active = query == null
+                            ? noteService.getAllActiveNotes(user, sort)
+                            : noteService.searchAllActiveNotes(user, query, sort);
+                    if (!active.isEmpty()) buildSheet(wb, active, "active", locale);
                 }
                 case FILTER_ARCHIVED -> {
-                    List<Note> archived = noteService.getAllArchivedNotes(
-                            user, NoteService.resolveSort("default", true));
-                    if (!archived.isEmpty()) {
-                        buildSheet(wb, archived, "archived", locale);
-                    }
+                    List<Note> archived = query == null
+                            ? noteService.getAllArchivedNotes(user, NoteService.resolveSort("default", true))
+                            : noteService.searchAllArchivedNotes(user, query, NoteService.resolveSort("default", true));
+                    if (!archived.isEmpty()) buildSheet(wb, archived, "archived", locale);
                 }
                 case FILTER_SHARED -> {
-                    // FIX: Беремо нотатки сім'ї, а не власні
-                    List<Note> shared = noteService.getFamilySharedNotes(user);
-                    if (!shared.isEmpty()) {
-                        buildSheet(wb, shared, "shared", locale);
-                    }
+                    List<Note> shared = noteService.getFamilySharedNotesFiltered(user, query, member);
+                    if (!shared.isEmpty()) buildSheet(wb, shared, "shared", locale);
                 }
                 case FILTER_ALL -> {
-                    // Три окремі аркуші
-                    List<Note> active = noteService.getAllActiveNotes(user, sort);
-                    if (!active.isEmpty()) {
-                        buildSheet(wb, active, "active", locale);
-                    }
-                    List<Note> archived = noteService.getAllArchivedNotes(
-                            user, NoteService.resolveSort("default", true));
-                    if (!archived.isEmpty()) {
-                        buildSheet(wb, archived, "archived", locale);
-                    }
-                    // FIX: Беремо спільні нотатки сім'ї
-                    List<Note> shared = noteService.getFamilySharedNotes(user);
-                    if (!shared.isEmpty()) {
-                        buildSheet(wb, shared, "shared", locale);
-                    }
+                    List<Note> active = query == null
+                            ? noteService.getAllActiveNotes(user, sort)
+                            : noteService.searchAllActiveNotes(user, query, sort);
+                    if (!active.isEmpty()) buildSheet(wb, active, "active", locale);
+
+                    List<Note> archived = query == null
+                            ? noteService.getAllArchivedNotes(user, NoteService.resolveSort("default", true))
+                            : noteService.searchAllArchivedNotes(user, query, NoteService.resolveSort("default", true));
+                    if (!archived.isEmpty()) buildSheet(wb, archived, "archived", locale);
+
+                    List<Note> shared = noteService.getFamilySharedNotesFiltered(user, query, member);
+                    if (!shared.isEmpty()) buildSheet(wb, shared, "shared", locale);
                 }
                 default -> { /* нічого */ }
             }
 
-            // Якщо жодного аркуша не створено (усі списки порожні) — додаємо порожній
             if (wb.getNumberOfSheets() == 0) {
                 buildEmptySheet(wb, key, locale);
             }

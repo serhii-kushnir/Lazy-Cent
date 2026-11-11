@@ -791,29 +791,30 @@
                 <h6 class="mb-0" th:text="#{notes.title}">Нотатки</h6>
                 <h3 class="mb-0">
                     <span id="headerNoteCount">0</span>
-                    <small class="text-muted ms-1" id="headerTotalHint"
-                           th:if="${activeTotal != null and activeTotal > 20}"
-                           th:text="'/ ' + ${activeTotal}">/500</small>
                 </h3>
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="filterToggle">
-                    <button class="btn active" data-filter="all">
+                    <button class="btn" data-filter="all"
+                            th:classappend="${filter == null or filter == 'all'} ? 'active'">
                         <span th:text="#{notes.filter.all}">Усі</span>
                         <span class="badge" id="badgeAll"
                               th:text="${(activeTotal != null ? activeTotal : 0) + (archivedTotal != null ? archivedTotal : 0)}">0</span>
                     </button>
-                    <button class="btn" data-filter="active">
+                    <button class="btn" data-filter="active"
+                            th:classappend="${filter == 'active'} ? 'active'">
                         <span th:text="#{notes.filter.active}">Активні</span>
                         <span class="badge" id="badgeActive"
                               th:text="${activeTotal != null ? activeTotal : 0}">0</span>
                     </button>
-                    <button class="btn" data-filter="archived">
+                    <button class="btn" data-filter="archived"
+                            th:classappend="${filter == 'archived'} ? 'active'">
                         <span th:text="#{notes.filter.archived}">Архів</span>
                         <span class="badge" id="badgeArchived"
                               th:text="${archivedTotal != null ? archivedTotal : 0}">0</span>
                     </button>
-                    <button class="btn" data-filter="shared" th:if="${hasFamily}">
+                    <button class="btn" data-filter="shared" th:if="${hasFamily}"
+                            th:classappend="${filter == 'shared'} ? 'active'">
                         <span th:text="#{badge.shared}">Спільні</span>
                         <span class="badge" id="badgeShared"
                               th:text="${sharedTotal != null ? sharedTotal : 0}">0</span>
@@ -1373,7 +1374,9 @@
         function readParam(name, defaultValue) {
             return new URLSearchParams(window.location.search).get(name) || defaultValue;
         }
+
         function setParam(name, value) {
+            try { sessionStorage.setItem('notes_scroll', String(window.scrollY)); } catch (e) {}
             var url = new URL(window.location.href);
             url.searchParams.set(name, value);
             window.location.href = url.toString();
@@ -1632,64 +1635,30 @@
             // ============================================================
             // FILTER
             // ============================================================
-            var currentFilter = 'all';
+            var currentFilter = readParam('filter', 'all');
 
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
-                    document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    currentFilter = this.dataset.filter;
-                    applyFilterAndDivider(currentFilter);
+                    var newFilter = this.dataset.filter;
+                    if (currentFilter === newFilter) return;
+                    setParam('filter', newFilter);
                 });
             });
 
             function applyFilterAndDivider(filter) {
-                var visibleCount = 0;
-                document.querySelectorAll('.note-card-wrapper').forEach(function (wrapper) {
-                    var kind = wrapper.dataset.kind;
-                    var isShared = wrapper.dataset.shared === 'true';
-                    var show = false;
-
-                    if (filter === 'all') show = true;
-                    else if (filter === 'active') show = (kind === 'active');
-                    else if (filter === 'archived') show = (kind === 'archived');
-                    else if (filter === 'shared') show = isShared;
-
-                    wrapper.style.display = show ? '' : 'none';
-                    if (show) visibleCount++;
-                });
+                // Сервер уже повернув правильний набір карток.
+                // Тут — тільки показати/приховати divider і empty state.
+                var hasActive = document.querySelectorAll('.note-card-wrapper[data-kind="active"]').length > 0;
+                var hasArchived = document.querySelectorAll('.note-card-wrapper[data-kind="archived"]').length > 0;
 
                 document.querySelectorAll('.js-archived-divider').forEach(function (divider) {
-                    divider.style.display = (filter === 'all') ? '' : 'none';
+                    divider.style.display = (filter === 'all' && hasActive && hasArchived) ? '' : 'none';
                 });
 
                 var emptyMsg = document.getElementById('emptyFilterMessage');
                 if (emptyMsg) {
-                    if (visibleCount === 0) {
-                        var titleEl = document.getElementById('emptyFilterTitle');
-                        var hintEl = document.getElementById('emptyFilterHint');
-                        var iconEl = document.getElementById('emptyFilterIcon');
-                        if (filter === 'archived') {
-                            titleEl.textContent = i18n.emptyArchivedTitle;
-                            hintEl.textContent = i18n.emptyArchivedHint;
-                            iconEl.className = 'fas fa-archive';
-                        } else if (filter === 'shared') {
-                            titleEl.textContent = i18n.emptySharedTitle;
-                            hintEl.textContent = i18n.emptySharedHint;
-                            iconEl.className = 'fas fa-users-slash';
-                        } else if (filter === 'active') {
-                            titleEl.textContent = i18n.emptyActiveTitle;
-                            hintEl.textContent = i18n.emptyActiveHint;
-                            iconEl.className = 'fas fa-sticky-note';
-                        } else {
-                            titleEl.textContent = i18n.emptyAllTitle;
-                            hintEl.textContent = i18n.emptyAllHint;
-                            iconEl.className = 'fas fa-sticky-note';
-                        }
-                        emptyMsg.style.display = '';
-                    } else {
-                        emptyMsg.style.display = 'none';
-                    }
+                    var total = document.querySelectorAll('.note-card-wrapper').length;
+                    emptyMsg.style.display = (total === 0 && !document.querySelector('.empty-notes')) ? 'block' : 'none';
                 }
 
                 updateNoteCount();
@@ -1884,21 +1853,19 @@
 
                 var size = readParam('size', '20');
                 var sort = readParam('sort', 'default');
+                var filter = readParam('filter', 'all');
 
                 fetch('/notes/api/search?q=' + encodeURIComponent(q)
                     + '&size=' + encodeURIComponent(size)
-                    + '&sort=' + encodeURIComponent(sort))
+                    + '&sort=' + encodeURIComponent(sort)
+                    + '&filter=' + encodeURIComponent(filter))
                     .then(function (r) { return r.ok ? r.text() : ''; })
                     .then(function (html) {
                         if (thisQuery !== lastQuery) return;
                         document.getElementById('noteGrid').innerHTML = html;
                         if (searchLoading) searchLoading.style.display = 'none';
                         clearSelection();
-                        currentFilter = 'all';
-                        document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
-                            b.classList.toggle('active', b.dataset.filter === 'all');
-                        });
-                        applyFilterAndDivider('all');
+                        applyFilterAndDivider(currentFilter);
                     })
                     .catch(function () {
                         if (thisQuery !== lastQuery) return;
@@ -1950,12 +1917,31 @@
             };
 
             function updateNoteCount() {
-                var visible = 0;
-                document.querySelectorAll('.note-card-wrapper').forEach(function (w) {
-                    if (w.style.display !== 'none') visible++;
-                });
-                var el = document.getElementById('headerNoteCount');
-                if (el) el.textContent = visible;
+                var countEl = document.getElementById('headerNoteCount');
+                if (!countEl) return;
+
+                var totalEl = document.getElementById('noteGridTotal');
+                if (!totalEl) {
+                    // Fallback: рахуємо картки в DOM (якщо фрагмент чомусь не має #noteGridTotal)
+                    countEl.textContent = document.querySelectorAll('.note-card-wrapper').length;
+                    return;
+                }
+
+                var filter = readParam('filter', 'all');
+                var active = parseInt(totalEl.dataset.active || 0, 10);
+                var archived = parseInt(totalEl.dataset.archived || 0, 10);
+
+                var total = 0;
+                if (filter === 'archived') {
+                    total = archived;
+                } else if (filter === 'active') {
+                    total = active;
+                } else {
+                    // all / shared — сума
+                    total = active + archived;
+                }
+
+                countEl.textContent = total;
             }
 
             // ============================================================
@@ -2014,7 +2000,17 @@
                 }
             });
 
-            applyFilterAndDivider('all');
+            try {
+                var savedScroll = sessionStorage.getItem('notes_scroll');
+                if (savedScroll) {
+                    sessionStorage.removeItem('notes_scroll');
+                    setTimeout(function () {
+                        window.scrollTo(0, parseInt(savedScroll, 10) || 0);
+                    }, 50);
+                }
+            } catch (e) {}
+
+            applyFilterAndDivider(currentFilter);
         });
 
         // Наприкінці DOMContentLoaded у notes.html
