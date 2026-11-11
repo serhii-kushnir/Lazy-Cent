@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -53,6 +53,7 @@
         .load-more-btn { font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 0.5rem; transition: all 0.2s; }
         .load-more-btn:hover { background-color: var(--bs-primary); color: white; }
         .notes-toolbar #memberFilter { width: auto; max-width: 200px; border-radius: 0.5rem; font-size: 0.85rem; }
+        .notes-toolbar #pageSizeSelect { width: auto; max-width: 100px; border-radius: 0.5rem; font-size: 0.85rem; }
 
         .search-bar { position: relative; }
         .search-bar .input-group-text { background: transparent; border-right: none; }
@@ -91,7 +92,8 @@
         .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
         /* AUTHOR BADGE */
-        .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; }
+        .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; cursor: pointer; }
+        .author-badge:hover { filter: brightness(0.95); }
         [data-bs-theme="dark"] .author-badge { background: rgba(13, 202, 240, 0.18); color: #7ee0f0; }
         .author-badge .author-avatar { width: 20px; height: 20px; border-radius: 50%; background: #0dcaf0; color: #000; display: inline-flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; flex-shrink: 0; }
         .author-badge.is-me { background: rgba(25, 135, 84, 0.12); color: #0f5132; }
@@ -117,7 +119,8 @@
             .notes-toolbar .dropdown { flex: 1 1 calc(50% - 0.25rem); width: auto; }
             .notes-toolbar .dropdown .btn { width: 100%; text-align: left; font-size: 0.8rem; padding: 0.35rem 0.5rem; }
             .notes-toolbar .dropdown-menu { min-width: 100%; width: 100%; }
-            .notes-toolbar #memberFilter { flex: 1 1 calc(50% - 0.25rem); width: auto; max-width: none; font-size: 0.8rem; padding: 0.35rem 1.5rem 0.35rem 0.5rem; }
+            .notes-toolbar #memberFilter,
+            .notes-toolbar #pageSizeSelect { flex: 1 1 calc(50% - 0.25rem); width: auto; max-width: none; font-size: 0.8rem; padding: 0.35rem 1.5rem 0.35rem 0.5rem; }
             .notes-toolbar .load-more-btn { flex: 1 1 100%; width: 100%; margin-top: 0.25rem; }
 
             .cat-header-theme > div.no-print { width: 100% !important; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
@@ -168,9 +171,9 @@
                 <a th:href="@{/notes/export(filter='shared')}" id="exportBtn" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{notes.export.button}">Експорт</span>
                 </a>
-                <a th:href="@{/notes(create='true')}" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" onclick="createFamilyNote()">
                     <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити</span>
-                </a>
+                </button>
             </div>
         </div>
         <div class="d-lg-none">
@@ -185,9 +188,9 @@
                 <a th:href="@{/notes/export(filter='shared')}" id="exportBtnMobile" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{notes.export.button}">Експорт</span>
                 </a>
-                <a th:href="@{/notes(create='true')}" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" onclick="createFamilyNote()">
                     <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити</span>
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -230,6 +233,13 @@
 
             <select id="memberFilter" class="form-select form-select-sm">
                 <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
+            </select>
+
+            <select id="pageSizeSelect" class="form-select form-select-sm" th:title="#{notes.size.label}">
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="0" th:text="#{common.all}">Всі</option>
             </select>
 
             <button id="loadMoreBtn" class="btn btn-outline-primary load-more-btn ms-auto d-none">
@@ -277,7 +287,10 @@
 
                                 <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
                                     <span class="author-badge"
-                                          th:classappend="${note.owner.id == currentUser.id} ? 'is-me' : ''">
+                                          th:classappend="${note.owner.id == currentUser.id} ? 'is-me' : ''"
+                                          th:title="${note.owner.username}"
+                                          th:data-author="${note.owner.username}"
+                                          onclick="event.stopPropagation(); if (this.dataset.author) filterByAuthor(this.dataset.author);">
                                         <span class="author-avatar"
                                               th:text="${#strings.substring(note.owner.username, 0, 1).toUpperCase()}">A</span>
                                         <span class="text-truncate author-name" th:text="${note.owner.username}">user</span>
@@ -292,18 +305,29 @@
 
                                 <h5 class="card-title"
                                     th:text="${note.title}"
+                                    th:title="${note.title}"
                                     th:style="'color:' + ${note.textColor}">Заголовок</h5>
                                 <p class="card-text"
                                    th:text="${note.content}"
+                                   th:title="${note.content != null and note.content.length() > 150 ? note.content : ''}"
                                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
 
-                                <div class="mt-2 text-end"
+                                <div class="mt-2 text-end d-flex justify-content-end gap-1 align-items-center"
                                      th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
-                                    <i class="far fa-clock me-1"></i>
-                                    <span class="rel-time"
-                                          th:data-ts="${note.updatedAt != null ? #temporals.formatISO(note.updatedAt) : #temporals.formatISO(note.createdAt)}"
-                                          th:title="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
-                                          th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                                    <th:block th:if="${note.updatedAt != null}">
+                                        <i class="fas fa-pen" th:title="#{notes.col.updated}"></i>
+                                        <span class="rel-time"
+                                              th:data-ts="${#temporals.formatISO(note.updatedAt)}"
+                                              th:title="${#temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm')}"
+                                              th:text="${#temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                    </th:block>
+                                    <th:block th:if="${note.updatedAt == null and note.createdAt != null}">
+                                        <i class="far fa-clock" th:title="#{notes.col.created}"></i>
+                                        <span class="rel-time"
+                                              th:data-ts="${#temporals.formatISO(note.createdAt)}"
+                                              th:title="${#temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                                              th:text="${#temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                                    </th:block>
                                 </div>
                             </div>
 
@@ -365,9 +389,9 @@
                 <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
                 <p class="mb-3" th:text="#{notes.family.empty.text}">Позначте свої нотатки як «Спільна», і вони з'являться тут.</p>
                 <div class="d-flex justify-content-center gap-2">
-                    <a th:href="@{/notes(create='true')}" class="btn btn-primary">
+                    <button type="button" class="btn btn-primary" onclick="createFamilyNote()">
                         <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити нотатку</span>
-                    </a>
+                    </button>
                     <a th:href="@{/notes}" class="btn btn-outline-secondary">
                         <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
                     </a>
@@ -376,8 +400,8 @@
         </div>
     </div>
 
-    <div class="kbd-hint no-print text-center mb-5" th:utext="#{notes.kbd.hint}">
-        <kbd>N</kbd> — нова нотатка · <kbd>/</kbd> — пошук · <kbd>Esc</kbd> — закрити
+    <div class="kbd-hint no-print text-center mb-5">
+        <kbd>N</kbd> — нова · <kbd>Ctrl+K</kbd> — пошук · <kbd>Esc</kbd> — закрити
     </div>
 
     <div class="print-footer d-print-block" style="display: none;">
@@ -533,6 +557,7 @@
         pinUnpinned:         /*[[#{notes.pin.unpinned}]]*/          'Нотатку відкріплено',
         viewMode:            /*[[#{notes.family.viewOnly}]]*/       'Тільки перегляд',
         editMode:            /*[[#{notes.modal.edit}]]*/            'Редагувати нотатку',
+        createMode:          /*[[#{notes.modal.create}]]*/          'Нова нотатка',
         copyMode:            /*[[#{notes.modal.duplicate}]]*/       'Копіювати нотатку',
         copySuffix:          ' (копія)',
         toastSuccess:        /*[[#{toast.success}]]*/               'Успішно!',
@@ -541,7 +566,8 @@
         toastUpdated:        /*[[#{toast.note.updated}]]*/          'Нотатку оновлено!',
         toastDeleted:        /*[[#{toast.note.deleted}]]*/          'Нотатку видалено!',
         toastArchived:       /*[[#{toast.note.archived}]]*/         'Нотатку заархівовано!',
-        errorPrefix:         /*[[#{notes.error.prefix}]]*/          'Помилка: {0}'
+        errorPrefix:         /*[[#{notes.error.prefix}]]*/          'Помилка: {0}',
+        unsavedChanges:      /*[[#{notes.unsaved.changes}]]*/       'Незбережені зміни. Закрити?'
     };
 </script>
 
@@ -627,27 +653,39 @@
         }
 
         /**
-         * AJAX-сабміт POST-форми.
-         * Після успіху — flashToast + location.reload(), щоб залишитись на поточній
-         * сторінці (/family/notes), а не переходити на /notes (куди редіректить
-         * контролер після звичайного form submit).
+         * AJAX-сабміт POST-форми + парсинг ApiErrorDto.message при помилці.
          */
         function submitFormAjax(form, successToastMsg) {
             var fd = new FormData(form);
             var btn = form.querySelector('[type="submit"]');
             var origHtml = btn ? btn.innerHTML : null;
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>'; }
+            window.__editFormSubmitting = true;
 
             fetch(form.action, { method: 'POST', body: fd })
                 .then(function (r) {
-                    if (r.ok || r.redirected) {
+                    return r.text().then(function (body) {
+                        if (r.ok || r.redirected) return { ok: true };
+                        var msg = 'HTTP ' + r.status;
+                        try {
+                            var j = JSON.parse(body);
+                            if (j && j.message) msg = j.message;
+                        } catch (e) { /* not JSON — ignore */ }
+                        return { ok: false, msg: msg };
+                    });
+                })
+                .then(function (res) {
+                    if (res.ok) {
                         flashToast(successToastMsg, 'success');
                         setTimeout(function () { location.reload(); }, 50);
                     } else {
-                        throw new Error('HTTP ' + r.status);
+                        window.__editFormSubmitting = false;
+                        if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                        showToast(res.msg, 'error');
                     }
                 })
                 .catch(function (err) {
+                    window.__editFormSubmitting = false;
                     if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
                     showToast(fmt(i18n.errorPrefix, err.message || 'network'), 'error');
                 });
@@ -679,6 +717,7 @@
             var loadMoreBtn = document.getElementById('loadMoreBtn');
             var visibleInfo = document.getElementById('visibleInfo');
             var clearFiltersBtn = document.getElementById('clearFiltersBtn');
+            var pageSizeSelect = document.getElementById('pageSizeSelect');
 
             var allCards = Array.from(noteGrid.querySelectorAll('.note-card-wrapper'));
             var currentFilter = 'all';
@@ -714,22 +753,67 @@
                 memberFilter.appendChild(opt);
             });
 
-            // === SAVE / RESTORE FILTERS ===
+            // === URL <-> state sync ===
+            function syncUrlFromState() {
+                try {
+                    var url = new URL(window.location.href);
+                    if (currentFilter !== 'all') url.searchParams.set('filter', currentFilter);
+                    else url.searchParams.delete('filter');
+
+                    if (currentSort !== 'default') url.searchParams.set('sort', currentSort);
+                    else url.searchParams.delete('sort');
+
+                    if (memberFilter.value !== 'all') url.searchParams.set('member', memberFilter.value);
+                    else url.searchParams.delete('member');
+
+                    if (searchInput.value) url.searchParams.set('q', searchInput.value);
+                    else url.searchParams.delete('q');
+
+                    window.history.replaceState({}, '', url.toString());
+                } catch (e) { /* ignore */ }
+            }
+
             function saveFilters() {
                 try {
                     sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({
                         filter: currentFilter,
                         sort: currentSort,
                         member: memberFilter.value,
-                        search: searchInput.value
+                        search: searchInput.value,
+                        pageSize: pageSizeSelect ? pageSizeSelect.value : '20'
                     }));
                 } catch (e) {}
             }
 
-            function restoreFilters() {
+            function restoreFromUrl() {
+                var params = new URLSearchParams(window.location.search);
+                if (params.get('filter')) {
+                    currentFilter = params.get('filter');
+                    document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                        b.classList.toggle('active', b.dataset.filter === currentFilter);
+                    });
+                }
+                if (params.get('sort')) {
+                    currentSort = params.get('sort');
+                    document.querySelectorAll('[data-sort-choice]').forEach(function (l) {
+                        l.classList.toggle('active', l.dataset.sortChoice === currentSort);
+                    });
+                }
+                if (params.get('member')) {
+                    var val = params.get('member');
+                    var exists = Array.from(memberFilter.options).some(function (o) { return o.value === val; });
+                    if (exists) memberFilter.value = val;
+                }
+                if (params.get('q')) {
+                    searchInput.value = params.get('q');
+                    searchText = params.get('q').trim().toLowerCase();
+                }
+            }
+
+            function restoreFromSession() {
                 try {
                     var raw = sessionStorage.getItem(FILTERS_STORAGE_KEY);
-                    if (!raw) return;
+                    if (!raw) return false;
                     var f = JSON.parse(raw);
                     if (f.filter) {
                         currentFilter = f.filter;
@@ -751,7 +835,13 @@
                         searchInput.value = f.search;
                         searchText = f.search.trim().toLowerCase();
                     }
-                } catch (e) {}
+                    if (f.pageSize && pageSizeSelect) {
+                        pageSizeSelect.value = f.pageSize;
+                        var pv = parseInt(f.pageSize, 10);
+                        pageSize = pv === 0 ? 0 : (pv || 20);
+                    }
+                    return true;
+                } catch (e) { return false; }
             }
 
             // === COLOR PICKERS ===
@@ -788,6 +878,26 @@
             if (titleInp) titleInp.addEventListener('input', updateCharCounts);
             if (contentInp) contentInp.addEventListener('input', updateCharCounts);
 
+            // === DIRTY STATE ===
+            var editInitialState = { title: '', content: '', color: '', textColor: '' };
+
+            function snapshotEditState() {
+                editInitialState = {
+                    title:    titleInp ? titleInp.value : '',
+                    content:  contentInp ? contentInp.value : '',
+                    color:    document.getElementById('editSelectedColor').value,
+                    textColor: document.getElementById('editSelectedTextColor').value
+                };
+            }
+
+            function isEditDirty() {
+                if (window.__editFormSubmitting) return false;
+                return (titleInp ? titleInp.value : '') !== editInitialState.title
+                    || (contentInp ? contentInp.value : '') !== editInitialState.content
+                    || document.getElementById('editSelectedColor').value !== editInitialState.color
+                    || document.getElementById('editSelectedTextColor').value !== editInitialState.textColor;
+            }
+
             // === OPEN NOTE: edit / view / copy ===
             function openFamilyNoteInternal(id, isMine, mode) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
@@ -798,8 +908,6 @@
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
 
-                var titleInput = document.getElementById('editNoteTitle');
-                var contentInput = document.getElementById('editNoteContent');
                 var selColor = document.getElementById('editSelectedColor');
                 var selTextColor = document.getElementById('editSelectedTextColor');
                 var bgPicker = document.getElementById('editColorPicker');
@@ -812,10 +920,9 @@
                 var shareInput = document.getElementById('editShareWithFamily');
                 var colorPickers = document.querySelectorAll('#editNoteModal .color-picker');
 
-                // default values
                 document.getElementById('editNoteId').value = id;
-                if (titleInput) titleInput.value = title;
-                if (contentInput) contentInput.value = content;
+                if (titleInp) titleInp.value = title;
+                if (contentInp) contentInp.value = content;
                 updateCharCounts();
 
                 if (bgPicker) bgPicker.querySelectorAll('.color-option').forEach(function (el) {
@@ -829,11 +936,9 @@
                 if (selTextColor) selTextColor.value = textColor;
 
                 if (mode === 'copy') {
-                    // Копіювання: відкриваємо як create, префікс " (копія)"
                     document.getElementById('editNoteId').value = '';
-                    if (titleInput) titleInput.value = title + i18n.copySuffix;
-                    if (titleInput) titleInput.readOnly = false;
-                    if (contentInput) contentInput.readOnly = false;
+                    if (titleInp) { titleInp.value = title + i18n.copySuffix; titleInp.readOnly = false; }
+                    if (contentInp) contentInp.readOnly = false;
                     if (modalIcon) modalIcon.className = 'fas fa-copy me-2';
                     if (modalTitle) modalTitle.textContent = i18n.copyMode;
                     if (saveBtn) saveBtn.style.display = 'inline-block';
@@ -842,9 +947,8 @@
                     if (shareContainer) shareContainer.style.display = 'block';
                     if (shareInput) shareInput.checked = false;
                 } else if (isMine) {
-                    // Редагування
-                    if (titleInput) titleInput.readOnly = false;
-                    if (contentInput) contentInput.readOnly = false;
+                    if (titleInp) titleInp.readOnly = false;
+                    if (contentInp) contentInp.readOnly = false;
                     if (modalIcon) modalIcon.className = 'fas fa-edit me-2';
                     if (modalTitle) modalTitle.textContent = i18n.editMode;
                     if (saveBtn) saveBtn.style.display = 'inline-block';
@@ -853,9 +957,8 @@
                     if (shareContainer) shareContainer.style.display = 'block';
                     if (shareInput) shareInput.checked = card.dataset.shareWithFamily === 'true';
                 } else {
-                    // Перегляд
-                    if (titleInput) titleInput.readOnly = true;
-                    if (contentInput) contentInput.readOnly = true;
+                    if (titleInp) titleInp.readOnly = true;
+                    if (contentInp) contentInp.readOnly = true;
                     if (modalIcon) modalIcon.className = 'fas fa-eye me-2';
                     if (modalTitle) modalTitle.textContent = i18n.viewMode;
                     if (saveBtn) saveBtn.style.display = 'none';
@@ -863,6 +966,8 @@
                     colorPickers.forEach(function (el) { if (el) el.style.pointerEvents = 'none'; });
                     if (shareContainer) shareContainer.style.display = 'none';
                 }
+
+                snapshotEditState();
 
                 var modalEl = document.getElementById('editNoteModal');
                 if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
@@ -877,6 +982,45 @@
                 openFamilyNoteInternal(id, false, 'copy');
             };
 
+            // === CREATE (inline) ===
+            window.createFamilyNote = function () {
+                var form = document.getElementById('editNoteForm');
+                var modalTitle = document.getElementById('editNoteModalTitle');
+                var modalIcon = document.getElementById('editNoteModalIcon');
+                var saveBtn = document.getElementById('editNoteSaveBtn');
+                var shareInput = document.getElementById('editShareWithFamily');
+                var shareContainer = document.getElementById('editShareWithFamilyContainer');
+
+                document.getElementById('editNoteId').value = '';
+                if (titleInp) { titleInp.value = ''; titleInp.readOnly = false; }
+                if (contentInp) { contentInp.value = ''; contentInp.readOnly = false; }
+                document.getElementById('editSelectedColor').value = '#ffffff';
+                document.getElementById('editSelectedTextColor').value = '#212529';
+
+                var bgPicker = document.getElementById('editColorPicker');
+                if (bgPicker) bgPicker.querySelectorAll('.color-option').forEach(function (el) {
+                    el.classList.toggle('selected', el.dataset.color === '#ffffff');
+                });
+                var textPicker = document.getElementById('editTextColorPicker');
+                if (textPicker) textPicker.querySelectorAll('.color-option').forEach(function (el) {
+                    el.classList.toggle('selected', el.dataset.color === '#212529');
+                });
+
+                if (modalIcon) modalIcon.className = 'fas fa-plus-circle me-2';
+                if (modalTitle) modalTitle.textContent = i18n.createMode;
+                if (saveBtn) saveBtn.style.display = 'inline-block';
+                if (form) form.action = '/notes/create';
+                if (shareContainer) shareContainer.style.display = 'block';
+                if (shareInput) shareInput.checked = true;
+
+                updateCharCounts();
+                snapshotEditState();
+
+                var modalEl = document.getElementById('editNoteModal');
+                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                setTimeout(function () { if (titleInp) titleInp.focus(); }, 350);
+            };
+
             // === EDIT / CREATE / COPY form submit (AJAX) ===
             var editForm = document.getElementById('editNoteForm');
             if (editForm) {
@@ -884,6 +1028,26 @@
                     e.preventDefault();
                     var isCreate = editForm.action.indexOf('/notes/create') !== -1;
                     submitFormAjax(editForm, isCreate ? i18n.toastCreated : i18n.toastUpdated);
+                });
+            }
+
+            // === UNSAVED CHANGES WARNING ===
+            var editModalEl = document.getElementById('editNoteModal');
+            if (editModalEl) {
+                editModalEl.addEventListener('hide.bs.modal', function (e) {
+                    if (window.__editFormSubmitting) return;
+                    if (isEditDirty()) {
+                        if (!window.confirm(i18n.unsavedChanges)) {
+                            e.preventDefault();
+                        }
+                    }
+                });
+                editModalEl.addEventListener('hidden.bs.modal', function () {
+                    if (editForm) editForm.reset();
+                    document.querySelectorAll('#editNoteModal .is-invalid').forEach(function (el) {
+                        el.classList.remove('is-invalid');
+                    });
+                    window.__editFormSubmitting = false;
                 });
             }
 
@@ -967,6 +1131,19 @@
                 });
             }
 
+            // === FILTER BY AUTHOR ===
+            window.filterByAuthor = function (username) {
+                var opt = Array.from(memberFilter.options).find(function (o) { return o.value === username; });
+                if (opt) {
+                    memberFilter.value = username;
+                    currentFilter = 'all';
+                    document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                        b.classList.toggle('active', b.dataset.filter === 'all');
+                    });
+                    applyFilters();
+                }
+            };
+
             // === KEYBOARD ===
             document.addEventListener('keydown', function (e) {
                 var tag = (e.target.tagName || '').toUpperCase();
@@ -974,11 +1151,21 @@
 
                 if (!isEditable && (e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
-                    window.location.href = '/notes?create=true';
+                    window.createFamilyNote();
+                    return;
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    if (searchInput) {
+                        searchInput.focus();
+                        searchInput.select();
+                    }
+                    return;
                 }
                 if (!isEditable && e.key === '/' && !e.ctrlKey && !e.metaKey) {
                     e.preventDefault();
                     if (searchInput) searchInput.focus();
+                    return;
                 }
                 if (e.key === 'Escape') {
                     document.querySelectorAll('.modal.show').forEach(function (m) {
@@ -1032,7 +1219,8 @@
                 allCards.forEach(function (w) { w.style.display = 'none'; });
 
                 var total = filtered.length;
-                var end = Math.min(currentPage * pageSize, total);
+                var effPageSize = pageSize === 0 ? total : pageSize;
+                var end = Math.min(currentPage * effPageSize, total);
                 var toShow = filtered.slice(0, end);
 
                 toShow.forEach(function (card) {
@@ -1047,7 +1235,7 @@
                 }
 
                 if (loadMoreBtn) {
-                    if (end < total) {
+                    if (pageSize !== 0 && end < total) {
                         loadMoreBtn.classList.remove('d-none');
                         loadMoreBtn.disabled = false;
                     } else {
@@ -1063,6 +1251,7 @@
                     }
                 }
 
+                syncUrlFromState();
                 saveFilters();
                 updateRelativeTimes();
             }
@@ -1116,6 +1305,15 @@
                 memberFilter.addEventListener('change', applyFilters);
             }
 
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener('change', function () {
+                    var v = parseInt(this.value, 10);
+                    pageSize = v === 0 ? 0 : (v || 20);
+                    currentPage = 1;
+                    updateUI();
+                });
+            }
+
             if (loadMoreBtn) {
                 loadMoreBtn.addEventListener('click', function () {
                     currentPage++;
@@ -1130,6 +1328,8 @@
                     memberFilter.value = 'all';
                     currentFilter = 'all';
                     currentSort = 'default';
+                    if (pageSizeSelect) pageSizeSelect.value = '20';
+                    pageSize = 20;
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
                         b.classList.toggle('active', b.dataset.filter === 'all');
                     });
@@ -1140,20 +1340,10 @@
                 });
             }
 
-            // === RESET EDIT MODAL ON HIDE ===
-            var editModalEl = document.getElementById('editNoteModal');
-            if (editModalEl) {
-                editModalEl.addEventListener('hidden.bs.modal', function () {
-                    var form = document.getElementById('editNoteForm');
-                    if (form) form.reset();
-                    document.querySelectorAll('#editNoteModal .is-invalid').forEach(function (el) {
-                        el.classList.remove('is-invalid');
-                    });
-                });
-            }
-
             // === INIT ===
-            restoreFilters();
+            restoreFromUrl();
+            var hasUrlParams = window.location.search.length > 1;
+            if (!hasUrlParams) restoreFromSession();
             updateUI();
         });
     })();
