@@ -13,6 +13,7 @@
              th:classappend="${note.pinned} ? 'pinned' : ''"
              th:data-id="${note.id}"
              th:data-archived="false"
+             th:data-pinned="${note.pinned}"
              th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
              th:data-color="${note.color}"
              th:data-textcolor="${note.textColor}"
@@ -31,6 +32,7 @@
 
                     <h5 class="card-title mb-0 flex-grow-1"
                         th:text="${note.title}"
+                        th:title="${note.title}"
                         th:style="'color:' + ${note.textColor}">Заголовок</h5>
 
                     <span th:if="${note.shareWithFamily}"
@@ -42,7 +44,17 @@
 
                 <p class="card-text"
                    th:text="${note.content}"
+                   th:title="${note.content != null and note.content.length() > 150 ? note.content : ''}"
                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
+
+                <div class="mt-2 d-flex justify-content-end gap-1 align-items-center"
+                     th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
+                    <i class="far fa-clock me-1"></i>
+                    <span class="rel-time"
+                          th:data-ts="${note.updatedAt != null ? #temporals.formatISO(note.updatedAt) : #temporals.formatISO(note.createdAt)}"
+                          th:title="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                          th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                </div>
             </div>
 
             <div class="card-footer">
@@ -88,6 +100,7 @@
         <div class="note-card archived animate-fade-up"
              th:data-id="${note.id}"
              th:data-archived="true"
+             th:data-pinned="${note.pinned}"
              th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
              th:data-color="${note.color}"
              th:data-textcolor="${note.textColor}"
@@ -106,16 +119,28 @@
 
                     <h5 class="card-title mb-0 flex-grow-1"
                         th:text="${note.title}"
+                        th:title="${note.title}"
                         th:style="'color:' + ${note.textColor}">Заголовок</h5>
 
-                    <span th:if="${note.shareWithFamily}" class="shared-badge">
+                    <span th:if="${note.shareWithFamily}" class="shared-badge"
+                          th:title="#{badge.shared.tooltip}">
                         <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
                     </span>
                 </div>
 
                 <p class="card-text"
                    th:text="${note.content}"
+                   th:title="${note.content != null and note.content.length() > 150 ? note.content : ''}"
                    th:style="'color:' + ${note.textColor}">Текст...</p>
+
+                <div class="mt-2 d-flex justify-content-end gap-1 align-items-center"
+                     th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
+                    <i class="far fa-clock me-1"></i>
+                    <span class="rel-time"
+                          th:data-ts="${note.updatedAt != null ? #temporals.formatISO(note.updatedAt) : #temporals.formatISO(note.createdAt)}"
+                          th:title="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                          th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                </div>
             </div>
 
             <div class="card-footer">

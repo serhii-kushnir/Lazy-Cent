@@ -3,33 +3,235 @@
 <body>
 
 <!-- ============================================================
-     FULL GRID — використовується в notes.html і /notes/api/search
+     ACTIVE NOTE CARD
+     ============================================================ -->
+<th:block th:fragment="activeCard(note)">
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
+         data-kind="active"
+         th:attr="data-shared=${note.shareWithFamily}">
+        <div class="note-card animate-fade-up"
+             th:classappend="${note.pinned} ? 'pinned' : ''"
+             th:data-id="${note.id}"
+             th:data-archived="false"
+             th:data-pinned="${note.pinned}"
+             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
+             th:data-color="${note.color}"
+             th:data-textcolor="${note.textColor}"
+             th:style="'background-color:' + ${note.color}">
+
+            <div class="card-body"
+                 role="button" tabindex="0"
+                 th:aria-label="${note.title}"
+                 th:onclick="'editNote(' + ${note.id} + ')'">
+
+                <div class="d-flex align-items-start gap-2 mb-1">
+                    <input type="checkbox" class="note-checkbox form-check-input"
+                           th:data-id="${note.id}"
+                           th:aria-label="#{notes.select.aria(${note.title})}"
+                           onclick="event.stopPropagation()"/>
+
+                    <h5 class="card-title mb-0 flex-grow-1"
+                        th:text="${note.title}"
+                        th:title="${note.title}"
+                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
+
+                    <span th:if="${note.shareWithFamily}"
+                          class="shared-badge"
+                          th:title="#{badge.shared.tooltip}">
+                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                    </span>
+                </div>
+
+                <p class="card-text"
+                   th:text="${note.content}"
+                   th:title="${note.content != null and note.content.length() > 150 ? note.content : ''}"
+                   th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
+
+                <div class="mt-2 d-flex justify-content-end gap-1 align-items-center"
+                     th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
+                    <i class="far fa-clock me-1"></i>
+                    <span class="rel-time"
+                          th:data-ts="${note.updatedAt != null ? #temporals.formatISO(note.updatedAt) : #temporals.formatISO(note.createdAt)}"
+                          th:title="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                          th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="d-flex gap-1 align-items-center">
+                    <button type="button" class="btn-icon"
+                            th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                            th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                            th:onclick="'togglePin(' + ${note.id} + ', event)'">
+                        <i class="fas fa-thumbtack"
+                           th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
+                    </button>
+                    <button type="button" class="btn-icon"
+                            th:title="#{notes.action.archive}"
+                            th:aria-label="#{notes.action.archive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                    <button type="button" class="btn-icon"
+                            th:title="#{notes.action.duplicate}"
+                            th:aria-label="#{notes.action.duplicate}"
+                            th:onclick="'duplicateNote(' + ${note.id} + ', event)'">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <button type="button" class="btn-icon text-danger"
+                        th:title="#{notes.action.delete}"
+                        th:aria-label="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ', event)'">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- ============================================================
+     ARCHIVED NOTE CARD
+     ============================================================ -->
+<th:block th:fragment="archivedCard(note)">
+    <div class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper"
+         data-kind="archived"
+         th:attr="data-shared=${note.shareWithFamily}">
+        <div class="note-card archived animate-fade-up"
+             th:data-id="${note.id}"
+             th:data-archived="true"
+             th:data-pinned="${note.pinned}"
+             th:data-share-with-family="${note.shareWithFamily != null and note.shareWithFamily}"
+             th:data-color="${note.color}"
+             th:data-textcolor="${note.textColor}"
+             th:style="'background-color:' + ${note.color}">
+
+            <div class="card-body"
+                 role="button" tabindex="0"
+                 th:aria-label="${note.title}"
+                 th:onclick="'editNote(' + ${note.id} + ')'">
+
+                <div class="d-flex align-items-start gap-2 mb-1">
+                    <input type="checkbox" class="note-checkbox form-check-input"
+                           th:data-id="${note.id}"
+                           th:aria-label="#{notes.select.aria(${note.title})}"
+                           onclick="event.stopPropagation()"/>
+
+                    <h5 class="card-title mb-0 flex-grow-1"
+                        th:text="${note.title}"
+                        th:title="${note.title}"
+                        th:style="'color:' + ${note.textColor}">Заголовок</h5>
+
+                    <span th:if="${note.shareWithFamily}" class="shared-badge"
+                          th:title="#{badge.shared.tooltip}">
+                        <i class="fas fa-users me-1"></i><span th:text="#{badge.shared}">Спільна</span>
+                    </span>
+                </div>
+
+                <p class="card-text"
+                   th:text="${note.content}"
+                   th:title="${note.content != null and note.content.length() > 150 ? note.content : ''}"
+                   th:style="'color:' + ${note.textColor}">Текст...</p>
+
+                <div class="mt-2 d-flex justify-content-end gap-1 align-items-center"
+                     th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
+                    <i class="far fa-clock me-1"></i>
+                    <span class="rel-time"
+                          th:data-ts="${note.updatedAt != null ? #temporals.formatISO(note.updatedAt) : #temporals.formatISO(note.createdAt)}"
+                          th:title="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                          th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="d-flex gap-1 align-items-center">
+                    <button type="button" class="btn-icon"
+                            th:title="#{notes.action.unarchive}"
+                            th:aria-label="#{notes.action.unarchive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button type="button" class="btn-icon"
+                            th:title="#{notes.action.duplicate}"
+                            th:aria-label="#{notes.action.duplicate}"
+                            th:onclick="'duplicateNote(' + ${note.id} + ', event)'">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <button type="button" class="btn-icon text-danger"
+                        th:title="#{notes.action.delete}"
+                        th:aria-label="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ', event)'">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+<!-- ============================================================
+     FULL GRID — використовується на /notes та в AJAX-пошуку
      ============================================================ -->
 <th:block th:fragment="fullGrid">
-    <span class="d-none" id="noteGridTotal"
-          th:attr="data-active=${activeFilteredTotal},data-archived=${archivedFilteredTotal}"></span>
 
-    <!-- ==================== ACTIVE BLOCK ==================== -->
-    <th:block th:if="${filter == null or filter == 'all' or filter == 'active' or filter == 'shared'}">
-        <th:block th:each="note : ${notes}">
-            <th:block th:replace="~{fragments/note-card :: activeCard(${note})}"></th:block>
-        </th:block>
+    <!-- Метадані для JS (лічильники) -->
+    <span id="noteGridTotal" style="display:none;"
+          th:attr="data-active=${activeTotal != null ? activeTotal : (notes != null ? notes.size() : 0)},
+                   data-archived=${archivedTotal != null ? archivedTotal : (archivedNotes != null ? archivedNotes.size() : 0)}"></span>
 
-        <div class="col-12 text-center" id="activeLoadMore"
-             th:if="${activeHasMore}" th:data-page="1" th:data-type="active"
-             th:attr="data-q=${q}">
-            <button type="button" class="btn btn-outline-primary btn-sm px-4" onclick="loadMore('active')">
-                <i class="fas fa-plus-circle me-1"></i>
-                <span th:text="#{common.loadMore}">Завантажити ще</span>
-            </button>
+    <!-- Порожній стан (сервер повернув 0 нотаток) -->
+    <div th:if="${(notes == null or notes.empty) and (archivedNotes == null or archivedNotes.empty)}"
+         class="col-12 empty-notes-placeholder"
+         id="initialEmptyState">
+
+        <!-- Результат пошуку порожній -->
+        <div th:if="${q != null and !q.isEmpty()}" class="empty-notes">
+            <i class="fas fa-search"></i>
+            <h4 class="mt-3" th:text="#{notes.empty.search.title}">Нічого не знайдено</h4>
+            <p class="mb-0" th:text="#{notes.empty.search.hint}">Спробуйте змінити фільтр або створити нотатку.</p>
         </div>
+
+        <!-- Фільтр «Архів», але архів порожній -->
+        <div th:if="${(q == null or q.isEmpty()) and filter == 'archived'}" class="empty-notes">
+            <i class="fas fa-archive"></i>
+            <h4 class="mt-3" th:text="#{notes.empty.archived.title}">Архів порожній</h4>
+            <p class="mb-0" th:text="#{notes.empty.archived.hint}">Тут з'являться нотатки, які ви заархівуєте.</p>
+        </div>
+
+        <!-- Фільтр «Спільні», але спільних немає -->
+        <div th:if="${(q == null or q.isEmpty()) and filter == 'shared'}" class="empty-notes">
+            <i class="fas fa-users"></i>
+            <h4 class="mt-3" th:text="#{notes.empty.shared.title}">Немає спільних нотаток</h4>
+            <p class="mb-0" th:text="#{notes.empty.shared.hint}">Позначте нотатку як «Спільна», щоб поділитися з сім'єю.</p>
+        </div>
+
+        <!-- Фільтр «Активні», але активних немає -->
+        <div th:if="${(q == null or q.isEmpty()) and filter == 'active'}" class="empty-notes">
+            <i class="fas fa-sticky-note"></i>
+            <h4 class="mt-3" th:text="#{notes.empty.active.title}">Немає активних нотаток</h4>
+            <p class="mb-0" th:text="#{notes.empty.active.hint}">Створіть першу нотатку.</p>
+        </div>
+
+        <!-- За замовчуванням (всі / без фільтра) -->
+        <div th:if="${(q == null or q.isEmpty()) and filter != 'archived' and filter != 'active' and filter != 'shared'}"
+             class="empty-notes">
+            <i class="fas fa-sticky-note"></i>
+            <h4 class="mt-3" th:text="#{notes.empty.all.title}">Немає нотаток</h4>
+            <p class="mb-0" th:text="#{notes.empty.all.hint}">Створіть першу нотатку.</p>
+        </div>
+    </div>
+
+    <!-- Активні нотатки -->
+    <th:block th:if="${notes != null}">
+        <th:block th:each="note : ${notes}">
+            <th:block th:replace="~{fragments/note-grid :: activeCard(${note})}"></th:block>
+        </th:block>
     </th:block>
 
-    <!-- ==================== DIVIDER ==================== -->
-    <div th:if="${(filter == null or filter == 'all')
-                  and (archivedNotes != null and !archivedNotes.empty)}"
-         class="col-12 archived-divider js-archived-divider">
-        <div class="d-flex align-items-center">
+    <!-- Роздільник "Архів" (тільки якщо є і активні, і архівні) -->
+    <div th:if="${notes != null and !notes.empty and archivedNotes != null and !archivedNotes.empty}"
+         class="col-12 js-archived-divider archived-divider">
+        <div class="d-flex align-items-center gap-3">
             <hr class="flex-grow-1">
             <span class="divider-label">
                 <i class="fas fa-archive"></i>
@@ -39,42 +241,35 @@
         </div>
     </div>
 
-    <!-- ==================== ARCHIVED BLOCK ==================== -->
-    <th:block th:if="${filter == null or filter == 'all' or filter == 'archived' or filter == 'shared'}">
+    <!-- Архівні нотатки -->
+    <th:block th:if="${archivedNotes != null}">
         <th:block th:each="note : ${archivedNotes}">
-            <th:block th:replace="~{fragments/note-card :: archivedCard(${note})}"></th:block>
+            <th:block th:replace="~{fragments/note-grid :: archivedCard(${note})}"></th:block>
         </th:block>
-
-        <div class="col-12 text-center" id="archivedLoadMore"
-             th:if="${archivedHasMore}" th:data-page="1" th:data-type="archived"
-             th:attr="data-q=${q}">
-            <button type="button" class="btn btn-outline-secondary btn-sm px-4" onclick="loadMore('archived')">
-                <i class="fas fa-plus-circle me-1"></i>
-                <span th:text="#{common.loadMore}">Завантажити ще</span>
-            </button>
-        </div>
     </th:block>
 
-    <!-- ==================== EMPTY STATE ==================== -->
-    <div th:if="${(notes == null or notes.empty) and (archivedNotes == null or archivedNotes.empty)}" class="col-12">
-        <div class="empty-notes">
-            <i class="fas" th:classappend="${q != null} ? 'fa-search' : 'fa-sticky-note'"></i>
-            <h4 class="mt-3"
-                th:text="${q != null} ? 'Нічого не знайдено' : #{notes.empty.title}">
-                Немає нотаток
-            </h4>
-            <p class="mb-0"
-               th:text="${q != null} ? 'Спробуйте змінити запит або очистити пошук.' : #{notes.empty.text}">
-                Створіть першу нотатку.
-            </p>
-            <a th:if="${q != null}" th:href="@{/notes(filter=${filter})}"
-               class="btn btn-outline-secondary mt-3 js-clear-search">
-                <i class="fas fa-times me-1"></i>
-                <span th:text="#{btn.clear}">Очистити пошук</span>
-            </a>
-        </div>
+    <!-- Load more: активні -->
+    <div th:if="${activeHasMore}" id="activeLoadMore"
+         th:data-q="${q != null ? q : ''}"
+         class="col-12 text-center my-3">
+        <button type="button" class="btn btn-outline-primary"
+                onclick="loadMore('active')">
+            <i class="fas fa-plus-circle me-1"></i>
+            <span th:text="#{common.loadMore}">Завантажити ще</span>
+        </button>
     </div>
-</th:block>
 
+    <!-- Load more: архів -->
+    <div th:if="${archivedHasMore}" id="archivedLoadMore"
+         th:data-q="${q != null ? q : ''}"
+         class="col-12 text-center my-3">
+        <button type="button" class="btn btn-outline-secondary"
+                onclick="loadMore('archived')">
+            <i class="fas fa-plus-circle me-1"></i>
+            <span th:text="#{common.loadMore}">Завантажити ще</span>
+        </button>
+    </div>
+
+</th:block>
 </body>
 </html>

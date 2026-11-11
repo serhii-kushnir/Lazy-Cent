@@ -1,434 +1,124 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="#{notes.title} + ' - Lazy Cent'">Нотатки - Lazy Cent</title>
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
     <style>
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up   { animation: fadeInUp   0.5s ease backwards; }
         .animate-fade-down { animation: fadeInDown 0.4s ease backwards; }
         .delay-1 { animation-delay: 0.05s; }
 
-        .page-max {
-            max-width: 1920px;
-            margin-left: auto;
-            margin-right: auto;
-        }
+        .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
+        .btn:not(.btn-close), .btn-rounded, .nav-btn { border-radius: 0.5rem !important; }
+        .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.875rem; }
 
-        .btn:not(.btn-close),
-        .btn-rounded,
-        .nav-btn {
-            border-radius: 0.5rem !important;
-        }
-        .btn:not(.btn-close):not(.navbar-toggler) {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .btn:not(.btn-close):not(.navbar-toggler):hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .btn-sm {
-            padding: 0.3rem 0.75rem;
-            font-size: 0.875rem;
-        }
+        .page-header-wrap { position: relative; z-index: 10; }
+        .icon-circle { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
 
-        .page-header-wrap {
-            position: relative;
-            z-index: 10;
-        }
+        .notes-section { background-color: var(--bs-card-bg); border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        [data-bs-theme="dark"] .notes-section { background-color: #212529 !important; border: 1px solid #2a2e37; }
 
-        .icon-circle {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
+        .cat-header-theme { background-color: #ffffff !important; color: #212529 !important; border-bottom: 1px solid #dee2e6 !important; }
+        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
+        [data-bs-theme="dark"] .cat-header-theme { background-color: #1d2027 !important; color: #e6e6e6 !important; border-bottom-color: #2a2e37 !important; }
+        [data-bs-theme="dark"] .cat-header-theme h6, [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230, 230, 230, 0.75) !important; }
+        [data-bs-theme="dark"] .cat-header-theme h3, [data-bs-theme="dark"] .cat-header-theme h3 * { color: #ffffff !important; }
 
-        .notes-section {
-            background-color: var(--bs-card-bg);
-            border-radius: 1rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-        [data-bs-theme="dark"] .notes-section {
-            background-color: #212529 !important;
-            border: 1px solid #2a2e37;
-        }
+        .notes-sub-bar { background-color: #ffffff !important; }
+        [data-bs-theme="dark"] .notes-sub-bar { background-color: #1d2027 !important; }
 
-        .cat-header-theme {
-            background-color: #ffffff !important;
-            color: #212529 !important;
-            border-bottom: 1px solid #dee2e6 !important;
-        }
-        .cat-header-theme h6,
-        .cat-header-theme h6 * { color: #6c757d !important; }
-        .cat-header-theme h3,
-        .cat-header-theme h3 * { color: #212529 !important; }
-
-        [data-bs-theme="dark"] .cat-header-theme {
-            background-color: #1d2027 !important;
-            color: #e6e6e6 !important;
-            border-bottom-color: #2a2e37 !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme h6,
-        [data-bs-theme="dark"] .cat-header-theme h6 * {
-            color: rgba(230, 230, 230, 0.75) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme h3,
-        [data-bs-theme="dark"] .cat-header-theme h3 * {
-            color: #ffffff !important;
-        }
-
-        .notes-sub-bar {
-            background-color: #ffffff !important;
-        }
-        [data-bs-theme="dark"] .notes-sub-bar {
-            background-color: #1d2027 !important;
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 0.3rem;
-            background: var(--bs-secondary-bg);
-            border-radius: 0.5rem;
-            padding: 0.2rem;
-            flex-shrink: 0;
-        }
-        .view-toggle .btn {
-            border: none;
-            padding: 0.5rem 1rem;
-            font-size: 0.95rem;
-            border-radius: 0.375rem !important;
-            background: transparent;
-            color: var(--bs-secondary-color);
-            font-weight: 600;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            white-space: nowrap;
-        }
-        .view-toggle .btn .badge {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.45rem;
-            background: rgba(0,0,0,0.08);
-            color: inherit;
-            border-radius: 0.75rem;
-            font-weight: 700;
-            min-width: 1.5rem;
-            text-align: center;
-        }
-        .view-toggle .btn.active .badge {
-            background: var(--bs-primary);
-            color: #fff;
-        }
-
+        .view-toggle { display: flex; gap: 0.3rem; background: var(--bs-secondary-bg); border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0; }
+        .view-toggle .btn { border: none; padding: 0.5rem 1rem; font-size: 0.95rem; border-radius: 0.375rem !important; background: transparent; color: var(--bs-secondary-color); font-weight: 600; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+        .view-toggle .btn .badge { font-size: 0.7rem; padding: 0.15rem 0.45rem; background: rgba(0,0,0,0.08); color: inherit; border-radius: 0.75rem; font-weight: 700; min-width: 1.5rem; text-align: center; }
+        .view-toggle .btn.active .badge { background: var(--bs-primary); color: #fff; }
         .cat-header-theme .view-toggle { background: #e9ecef !important; }
         .cat-header-theme .view-toggle .btn { color: #495057 !important; }
-        .cat-header-theme .view-toggle .btn .badge {
-            background: rgba(0,0,0,0.1);
-            color: #495057;
-        }
-        .cat-header-theme .view-toggle .btn.active {
-            background: #ffffff !important;
-            color: #0d6efd !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important;
-        }
-        .cat-header-theme .view-toggle .btn.active .badge {
-            background: #0d6efd;
-            color: #fff;
-        }
-
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle {
-            background: rgba(255, 255, 255, 0.08) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn {
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn .badge {
-            background: rgba(255,255,255,0.15);
-            color: #e6e6e6;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active {
-            background: #0d6efd !important;
-            color: #ffffff !important;
-            box-shadow: none !important;
-        }
-        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active .badge {
-            background: rgba(255,255,255,0.25);
-            color: #fff;
-        }
+        .cat-header-theme .view-toggle .btn .badge { background: rgba(0,0,0,0.1); color: #495057; }
+        .cat-header-theme .view-toggle .btn.active { background: #ffffff !important; color: #0d6efd !important; box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important; }
+        .cat-header-theme .view-toggle .btn.active .badge { background: #0d6efd; color: #fff; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255, 255, 255, 0.08) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn .badge { background: rgba(255,255,255,0.15); color: #e6e6e6; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #ffffff !important; box-shadow: none !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active .badge { background: rgba(255,255,255,0.25); color: #fff; }
 
         @media (max-width: 575.98px) {
-            .view-toggle .btn {
-                padding: 0.4rem 0.7rem;
-                font-size: 0.8rem;
-            }
-            .cat-header-theme > div.no-print {
-                width: 100% !important;
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 0.5rem !important;
-            }
-            .cat-header-theme > div.no-print > .view-toggle {
-                width: 100% !important;
-                height: auto !important;
-                flex-wrap: wrap;
-                padding: 0.25rem !important;
-                gap: 0.25rem !important;
-            }
-            .cat-header-theme > div.no-print > .view-toggle > .btn {
-                flex: 1 1 calc(50% - 0.25rem);
-                min-width: 0;
-                height: 40px !important;
-                font-size: 0.8rem;
-                padding: 0.3rem 0.5rem;
-                justify-content: center;
-            }
-            .cat-header-theme > div.no-print > .view-toggle > .btn .badge {
-                font-size: 0.65rem;
-                padding: 0.1rem 0.35rem;
-                min-width: 1.2rem;
-            }
+            .view-toggle .btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+            .cat-header-theme > div.no-print { width: 100% !important; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
+            .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; height: auto !important; flex-wrap: wrap; padding: 0.25rem !important; gap: 0.25rem !important; }
+            .cat-header-theme > div.no-print > .view-toggle > .btn { flex: 1 1 calc(50% - 0.25rem); min-width: 0; height: 40px !important; font-size: 0.8rem; padding: 0.3rem 0.5rem; justify-content: center; }
+            .cat-header-theme > div.no-print > .view-toggle > .btn .badge { font-size: 0.65rem; padding: 0.1rem 0.35rem; min-width: 1.2rem; }
         }
 
-        .notes-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--bs-border-color);
-        }
-        .notes-toolbar .dropdown .btn {
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            padding: 0.4rem 0.75rem;
-        }
+        .notes-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
+        .notes-toolbar .dropdown .btn { border-radius: 0.5rem; font-size: 0.85rem; padding: 0.4rem 0.75rem; }
         .notes-toolbar .dropdown-menu { min-width: 220px; }
-        .notes-toolbar .dropdown-item.active,
-        .notes-toolbar .dropdown-item:active {
-            background-color: var(--bs-primary);
-            color: #fff;
-        }
-        .notes-toolbar .page-size-wrap {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.85rem;
-            color: var(--bs-secondary-color);
-        }
-        .notes-toolbar .page-size-wrap select {
-            width: auto;
-            min-width: 80px;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-        }
+        .notes-toolbar .dropdown-item.active, .notes-toolbar .dropdown-item:active { background-color: var(--bs-primary); color: #fff; }
+        .notes-toolbar .page-size-wrap { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--bs-secondary-color); }
+        .notes-toolbar .page-size-wrap select { width: auto; min-width: 80px; border-radius: 0.5rem; font-size: 0.85rem; }
+
+        .pinned-only-toggle { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--bs-secondary-color); white-space: nowrap; padding: 0; margin: 0; user-select: none; }
+        .pinned-only-toggle .form-check-input { margin: 0; flex-shrink: 0; }
+        .pinned-only-toggle label { margin: 0; cursor: pointer; }
+
         @media (max-width: 575.98px) {
-            .notes-toolbar {
-                padding: 0.5rem 0.75rem;
-                gap: 0.4rem;
-            }
-            .notes-toolbar .dropdown .btn {
-                font-size: 0.8rem;
-                padding: 0.35rem 0.6rem;
-            }
+            .notes-toolbar { padding: 0.5rem 0.75rem; gap: 0.4rem; }
+            .notes-toolbar .dropdown .btn { font-size: 0.8rem; padding: 0.35rem 0.6rem; }
             .notes-toolbar .dropdown-menu { min-width: 180px; }
-            .notes-toolbar .page-size-wrap {
-                font-size: 0.8rem;
-                gap: 0.3rem;
-            }
-            .notes-toolbar .page-size-wrap select {
-                min-width: 60px;
-                font-size: 0.8rem;
-                padding: 0.25rem 1.5rem 0.25rem 0.5rem;
-            }
+            .notes-toolbar .page-size-wrap { font-size: 0.8rem; gap: 0.3rem; }
+            .notes-toolbar .page-size-wrap select { min-width: 60px; font-size: 0.8rem; padding: 0.25rem 1.5rem 0.25rem 0.5rem; }
         }
 
         .search-bar { position: relative; }
-        .search-bar .input-group-text {
-            background: transparent;
-            border-right: none;
-        }
+        .search-bar .input-group-text { background: transparent; border-right: none; }
         .search-bar .input-group > .btn { border-left: none; }
+        #searchClear { flex-shrink: 0; min-width: 44px; display: inline-flex !important; align-items: center; justify-content: center; }
+        #searchClear:hover { background-color: rgba(220, 53, 69, 0.12); border-color: #dc3545; color: #dc3545; }
+        [data-bs-theme="dark"] #searchClear { color: #adb5bd; border-color: #495057; }
+        [data-bs-theme="dark"] #searchClear:hover { background-color: rgba(248, 113, 113, 0.15); border-color: #f87171; color: #f87171; }
 
-        #searchClear {
-            flex-shrink: 0;
-            min-width: 44px;
-            display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-        }
-        #searchClear:hover {
-            background-color: rgba(220, 53, 69, 0.12);
-            border-color: #dc3545;
-            color: #dc3545;
-        }
-        [data-bs-theme="dark"] #searchClear {
-            color: #adb5bd;
-            border-color: #495057;
-        }
-        [data-bs-theme="dark"] #searchClear:hover {
-            background-color: rgba(248, 113, 113, 0.15);
-            border-color: #f87171;
-            color: #f87171;
-        }
+        .search-loading { position: absolute; right: 4.5rem; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); font-size: 0.85rem; pointer-events: none; z-index: 5; }
 
-        .search-loading {
-            position: absolute;
-            right: 4.5rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--bs-secondary-color);
-            font-size: 0.85rem;
-            pointer-events: none;
-        }
-
-        .note-card {
-            border: 1px solid var(--bs-border-color);
-            border-radius: 1rem;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+        .note-card { border: 1px solid var(--bs-border-color); border-radius: 1rem; height: 100%; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .note-card .card-body { cursor: pointer; }
-        .note-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        [data-bs-theme="dark"] .note-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
-        .note-card.pinned {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15);
-        }
-        [data-bs-theme="dark"] .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5);
-        }
-        .note-card .card-body:focus-visible {
-            outline: 3px solid var(--bs-primary);
-            outline-offset: -3px;
-            border-radius: 0 0 0.5rem 0.5rem;
-        }
+        .note-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+        [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
+        .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1); }
+        .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15); }
+        [data-bs-theme="dark"] .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5); }
+        .note-card .card-body:focus-visible { outline: 3px solid var(--bs-primary); outline-offset: -3px; border-radius: 0 0 0.5rem 0.5rem; }
 
-        .note-card .card-body {
-            flex: 1;
-            padding: 0.75rem 1rem 0.75rem;
-        }
-        .note-card .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.4;
-        }
-        .note-card .card-text {
-            font-size: 0.9rem;
-            max-height: 120px;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 6;
-            -webkit-box-orient: vertical;
-            word-wrap: break-word;
-            margin-bottom: 0;
-        }
-        .note-card .card-footer {
-            background: transparent;
-            border-top: none;
-            padding: 0.25rem 0.75rem 0.6rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .note-card .btn-icon {
-            color: #5f6368;
-            padding: 0.3rem 0.5rem;
-            font-size: 0.9rem;
-            border-radius: 0.375rem;
-            transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 32px;
-            min-height: 32px;
-        }
+        .note-card .card-body { flex: 1; padding: 0.75rem 1rem 0.75rem; }
+        .note-card .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; }
+        .note-card .card-text { font-size: 0.9rem; max-height: 120px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; word-wrap: break-word; margin-bottom: 0; }
+        .note-card .card-footer { background: transparent; border-top: none; padding: 0.25rem 0.75rem 0.6rem; display: flex; justify-content: space-between; align-items: center; }
+        .note-card .btn-icon { color: #5f6368; padding: 0.3rem 0.5rem; font-size: 0.9rem; border-radius: 0.375rem; transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease; background: transparent; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; }
         [data-bs-theme="dark"] .note-card .btn-icon { color: #bdc1c6; }
-        .note-card .btn-icon:hover {
-            background: rgba(26, 115, 232, 0.12);
-            color: #1a73e8;
-            transform: translateY(-1px);
-        }
-        .note-card .btn-icon.text-danger:hover {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-        }
-        [data-bs-theme="dark"] .note-card .btn-icon:hover {
-            background: rgba(110, 168, 254, 0.2);
-            color: #6ea8fe;
-        }
-        [data-bs-theme="dark"] .note-card .btn-icon.text-danger:hover {
-            background: rgba(248, 113, 113, 0.2);
-            color: #f87171;
-        }
+        .note-card .btn-icon:hover { background: rgba(26, 115, 232, 0.12); color: #1a73e8; transform: translateY(-1px); }
+        .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+        [data-bs-theme="dark"] .note-card .btn-icon:hover { background: rgba(110, 168, 254, 0.2); color: #6ea8fe; }
+        [data-bs-theme="dark"] .note-card .btn-icon.text-danger:hover { background: rgba(248, 113, 113, 0.2); color: #f87171; }
         .note-card .btn-icon .pin-icon { color: #fbbc04; }
+
+        .search-hl { background: #fff3cd; color: #664d03; padding: 0 2px; border-radius: 2px; }
+        [data-bs-theme="dark"] .search-hl { background: #664d03; color: #fff3cd; }
 
         .note-card.archived { opacity: 0.7; }
         .note-card.selected.archived,
         .note-card.archived:has(.note-checkbox:checked) { opacity: 1; }
 
-        .note-checkbox.form-check-input {
-            flex-shrink: 0;
-            width: 1.15rem;
-            height: 1.15rem;
-            margin: 0.2rem 0 0 0;
-            cursor: pointer;
-            opacity: 0;
-            border: 2px solid #adb5bd;
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-            transition: opacity 0.15s ease,
-            background-color 0.15s ease,
-            border-color 0.15s ease,
-            box-shadow 0.15s ease;
-        }
+        .note-checkbox.form-check-input { flex-shrink: 0; width: 1.15rem; height: 1.15rem; margin: 0.2rem 0 0 0; cursor: pointer; opacity: 0; border: 2px solid #adb5bd; background-color: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
         .note-checkbox.form-check-input:hover { border-color: var(--bs-primary); }
-        .note-checkbox.form-check-input:checked {
-            background-color: var(--bs-primary);
-            border-color: var(--bs-primary);
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
-        }
-        [data-bs-theme="dark"] .note-checkbox.form-check-input {
-            background-color: rgba(255, 255, 255, 0.12);
-            border-color: #6c757d;
-        }
-        [data-bs-theme="dark"] .note-checkbox.form-check-input:checked {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
+        .note-checkbox.form-check-input:checked { background-color: var(--bs-primary); border-color: var(--bs-primary); box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2); }
+        [data-bs-theme="dark"] .note-checkbox.form-check-input { background-color: rgba(255, 255, 255, 0.12); border-color: #6c757d; }
+        [data-bs-theme="dark"] .note-checkbox.form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
 
         .note-card:hover .note-checkbox,
         .note-card.selected .note-checkbox,
@@ -447,83 +137,25 @@
         }
         .note-card.pinned:has(.note-checkbox:checked),
         .note-card.pinned.selected {
-            box-shadow: 0 0 0 2px #fbbc04,
-            0 0 0 5px var(--bs-primary),
-            0 4px 8px rgba(13, 110, 253, 0.35) !important;
+            box-shadow: 0 0 0 2px #fbbc04, 0 0 0 5px var(--bs-primary), 0 4px 8px rgba(13, 110, 253, 0.35) !important;
         }
         [data-bs-theme="dark"] .note-card:has(.note-checkbox:checked),
         [data-bs-theme="dark"] .note-card.selected {
             box-shadow: 0 0 0 3px #6ea8fe, 0 4px 8px rgba(110, 168, 254, 0.4) !important;
         }
-        [data-bs-theme="dark"] .note-card.pinned:has(.note-checkbox:checked),
-        [data-bs-theme="dark"] .note-card.pinned.selected {
-            box-shadow: 0 0 0 2px #fbbc04,
-            0 0 0 5px #6ea8fe,
-            0 4px 8px rgba(110, 168, 254, 0.4) !important;
-        }
 
-        .bulk-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1d2027;
-            border-top: 1px solid #2a2e37;
-            color: #fff;
-            padding: 0.75rem 1rem;
-            z-index: 1045;
-            transform: translateY(100%);
-            transition: transform 0.25s ease;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
-        }
+        .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1d2027; border-top: 1px solid #2a2e37; color: #fff; padding: 0.75rem 1rem; z-index: 1045; transform: translateY(100%); transition: transform 0.25s ease; box-shadow: 0 -4px 20px rgba(0,0,0,0.3); }
         .bulk-bar.active { transform: translateY(0); }
-        .bulk-bar .bulk-count {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-weight: 600;
-        }
-        .bulk-bar .bulk-count .badge {
-            font-size: 0.85rem;
-            padding: 0.3rem 0.7rem;
-            background: var(--bs-primary);
-            color: #fff;
-        }
+        .bulk-bar .bulk-count { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+        .bulk-bar .bulk-count .badge { font-size: 0.85rem; padding: 0.3rem 0.7rem; background: var(--bs-primary); color: #fff; }
         .bulk-bar .btn { font-size: 0.85rem; }
-        [data-bs-theme="light"] .bulk-bar .btn-outline-light {
-            color: #dee2e6;
-            border-color: #6c757d;
-        }
-        [data-bs-theme="light"] .bulk-bar .btn-outline-light:hover {
-            background: #6c757d;
-            border-color: #6c757d;
-            color: #fff;
-        }
 
         @media (max-width: 575.98px) {
             .bulk-bar { padding: 0.5rem 0.75rem; }
-            .bulk-bar .bulk-buttons {
-                width: 100%;
-                flex-wrap: wrap;
-                gap: 0.4rem !important;
-            }
-            .bulk-bar .bulk-count {
-                width: 100%;
-                justify-content: center;
-                margin-bottom: 0.25rem;
-                font-size: 0.85rem;
-            }
-            .bulk-bar .bulk-count .badge {
-                font-size: 0.8rem;
-                padding: 0.25rem 0.55rem;
-            }
-            .bulk-bar .btn {
-                flex: 1 1 0;
-                min-width: 0;
-                font-size: 0.78rem;
-                padding: 0.4rem 0.5rem;
-                white-space: nowrap;
-            }
+            .bulk-bar .bulk-buttons { width: 100%; flex-wrap: wrap; gap: 0.4rem !important; }
+            .bulk-bar .bulk-count { width: 100%; justify-content: center; margin-bottom: 0.25rem; font-size: 0.85rem; }
+            .bulk-bar .bulk-count .badge { font-size: 0.8rem; padding: 0.25rem 0.55rem; }
+            .bulk-bar .btn { flex: 1 1 0; min-width: 0; font-size: 0.78rem; padding: 0.4rem 0.5rem; white-space: nowrap; }
             .bulk-bar .btn i { margin-right: 0.2rem !important; }
         }
 
@@ -534,133 +166,39 @@
             .bulk-bar { transition: none; }
         }
 
-        .shared-badge {
-            font-size: 0.65rem;
-            padding: 0.2rem 0.5rem;
-            background-color: rgba(13, 202, 240, 0.9);
-            color: #000;
-            font-weight: 600;
-            border-radius: 0.4rem;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
+        .shared-badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; background-color: rgba(13, 202, 240, 0.9); color: #000; font-weight: 600; border-radius: 0.4rem; white-space: nowrap; flex-shrink: 0; }
 
         .archived-divider { margin: 1.5rem 0 0.5rem; }
-        .archived-divider .divider-label {
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--bs-secondary-color);
-            white-space: nowrap;
-            padding: 0 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .archived-divider hr {
-            border-color: var(--bs-border-color);
-            opacity: 0.6;
-            margin: 0;
-        }
+        .archived-divider .divider-label { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--bs-secondary-color); white-space: nowrap; padding: 0 1rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .archived-divider hr { border-color: var(--bs-border-color); opacity: 0.6; margin: 0; }
 
-        .empty-notes {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--bs-secondary-color);
-        }
+        .empty-notes { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-notes i { font-size: 4rem; opacity: 0.25; }
 
         .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
-        .color-picker .color-option {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: border 0.2s, transform 0.2s;
-        }
-        .color-picker .color-option:hover {
-            border-color: #5f6368;
-            transform: scale(1.1);
-        }
-        .color-picker .color-option.selected {
-            border-color: #1a73e8;
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25);
-        }
-        .text-color-picker .color-option[data-color="#ffffff"] {
-            border: 2px solid #ccc;
-        }
+        .color-picker .color-option { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: border 0.2s, transform 0.2s; }
+        .color-picker .color-option:hover { border-color: #5f6368; transform: scale(1.1); }
+        .color-picker .color-option.selected { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25); }
+        .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
 
-        .char-counter {
-            font-size: 0.75rem;
-            color: var(--bs-secondary-color);
-            text-align: right;
-            margin-top: 0.25rem;
-        }
+        .char-counter { font-size: 0.75rem; color: var(--bs-secondary-color); text-align: right; margin-top: 0.25rem; }
 
-        .kbd-hint {
-            font-size: 0.75rem;
-            color: var(--bs-secondary-color);
-            margin-left: auto;
-            white-space: nowrap;
-        }
-        .kbd-hint kbd {
-            background: var(--bs-secondary-bg);
-            color: var(--bs-body-color);
-            border-radius: 4px;
-            padding: 0.1rem 0.4rem;
-            font-size: 0.7rem;
-            font-weight: 600;
-            font-family: var(--bs-font-monospace);
-            border: 1px solid var(--bs-border-color);
-        }
+        .kbd-hint { font-size: 0.75rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
+        .kbd-hint kbd { background: var(--bs-secondary-bg); color: var(--bs-body-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 600; font-family: var(--bs-font-monospace); border: 1px solid var(--bs-border-color); }
 
-        @media (max-width: 575.98px) {
-            .kbd-hint { display: none; }
-        }
+        @media (max-width: 575.98px) { .kbd-hint { display: none; } }
 
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
-            .d-print-none, .view-toggle, .search-bar, .alert,
-            .notes-toolbar, .bulk-bar, .note-checkbox {
-                display: none !important;
-            }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .view-toggle, .search-bar, .alert, .notes-toolbar, .bulk-bar, .note-checkbox { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
-            .container-fluid, .page-max {
-                max-width: 100% !important;
-                padding: 10px !important;
-                margin: 0 !important;
-            }
-            .print-header {
-                display: flex !important;
-                justify-content: space-between;
-                padding: 10px 0;
-                border-bottom: 2px solid #333;
-                margin-bottom: 20px;
-            }
-            .print-footer {
-                text-align: center;
-                font-size: 0.7rem;
-                color: #666;
-                border-top: 1px solid #ddd;
-                padding-top: 10px;
-                margin-top: 20px;
-            }
-            .note-card, .notes-section {
-                border: 1px solid #ddd !important;
-                box-shadow: none !important;
-                page-break-inside: avoid;
-            }
-            .cat-header-theme {
-                background-color: #fff !important;
-                color: #000 !important;
-                border-bottom: 2px solid #333 !important;
-            }
-            .cat-header-theme h6,
-            .cat-header-theme h3 { color: #000 !important; }
+            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
+            .print-header { display: flex !important; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #333; margin-bottom: 20px; }
+            .print-footer { text-align: center; font-size: 0.7rem; color: #666; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
+            .note-card, .notes-section { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+            .cat-header-theme { background-color: #fff !important; color: #000 !important; border-bottom: 2px solid #333 !important; }
+            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
         }
     </style>
 </head>
@@ -679,7 +217,6 @@
     </div>
 
     <div class="page-header-wrap mb-4 animate-fade-down">
-
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
                 <i class="fas fa-sticky-note me-2 text-primary"></i>
@@ -691,36 +228,23 @@
                     <span th:text="#{notes.family.familyNotes}">Сімейні нотатки</span>
                 </a>
                 <div class="dropdown">
-                    <button class="btn btn-success dropdown-toggle" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-file-excel me-1"></i>
                         <span th:text="#{notes.export.button}">Експорт</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='all')}">
-                                <i class="fas fa-list me-2 text-muted"></i>
-                                <span th:text="#{notes.export.menuAll}">Всі нотатки</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='active')}">
-                                <i class="fas fa-sticky-note me-2 text-primary"></i>
-                                <span th:text="#{notes.export.menuActive}">Тільки активні</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='archived')}">
-                                <i class="fas fa-archive me-2 text-secondary"></i>
-                                <span th:text="#{notes.export.menuArchived}">Тільки архів</span>
-                            </a>
-                        </li>
-                        <li th:if="${hasFamily}">
-                            <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='shared')}">
-                                <i class="fas fa-users me-2 text-info"></i>
-                                <span th:text="#{notes.export.menuShared}">Тільки спільні</span>
-                            </a>
-                        </li>
+                        <li><a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='all')}">
+                            <i class="fas fa-list me-2 text-muted"></i><span th:text="#{notes.export.menuAll}">Всі нотатки</span>
+                        </a></li>
+                        <li><a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='active')}">
+                            <i class="fas fa-sticky-note me-2 text-primary"></i><span th:text="#{notes.export.menuActive}">Тільки активні</span>
+                        </a></li>
+                        <li><a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='archived')}">
+                            <i class="fas fa-archive me-2 text-secondary"></i><span th:text="#{notes.export.menuArchived}">Тільки архів</span>
+                        </a></li>
+                        <li th:if="${hasFamily}"><a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='shared')}">
+                            <i class="fas fa-users me-2 text-info"></i><span th:text="#{notes.export.menuShared}">Тільки спільні</span>
+                        </a></li>
                     </ul>
                 </div>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createNoteModal">
@@ -735,48 +259,11 @@
                 <i class="fas fa-sticky-note me-2 text-primary"></i>
                 <span th:text="#{notes.title}">Нотатки</span>
             </h2>
-            <a th:if="${hasFamily}" th:href="@{/notes/family}"
-               class="btn btn-outline-primary w-100 mb-2 no-print">
-                <i class="fas fa-users me-1"></i>
-                <span th:text="#{notes.family.familyNotes}">Сімейні нотатки</span>
+            <a th:if="${hasFamily}" th:href="@{/notes/family}" class="btn btn-outline-primary w-100 mb-2 no-print">
+                <i class="fas fa-users me-1"></i><span th:text="#{notes.family.familyNotes}">Сімейні нотатки</span>
             </a>
-            <div class="dropdown w-100 mb-2 no-print">
-                <button class="btn btn-success w-100 dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-file-excel me-1"></i>
-                    <span th:text="#{notes.export.button}">Експорт</span>
-                </button>
-                <ul class="dropdown-menu w-100">
-                    <li>
-                        <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='all')}">
-                            <i class="fas fa-list me-2 text-muted"></i>
-                            <span th:text="#{notes.export.menuAll}">Всі нотатки</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='active')}">
-                            <i class="fas fa-sticky-note me-2 text-primary"></i>
-                            <span th:text="#{notes.export.menuActive}">Тільки активні</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='archived')}">
-                            <i class="fas fa-archive me-2 text-secondary"></i>
-                            <span th:text="#{notes.export.menuArchived}">Тільки архів</span>
-                        </a>
-                    </li>
-                    <li th:if="${hasFamily}">
-                        <a class="dropdown-item" th:href="@{/notes/export(sort=${sort}, filter='shared')}">
-                            <i class="fas fa-users me-2 text-info"></i>
-                            <span th:text="#{notes.export.menuShared}">Тільки спільні</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <button class="btn btn-primary w-100 no-print"
-                    data-bs-toggle="modal" data-bs-target="#createNoteModal">
-                <i class="fas fa-plus me-1"></i>
-                <span th:text="#{notes.create.button}">Створити нотатку</span>
+            <button class="btn btn-primary w-100 no-print" data-bs-toggle="modal" data-bs-target="#createNoteModal">
+                <i class="fas fa-plus me-1"></i><span th:text="#{notes.create.button}">Створити нотатку</span>
             </button>
         </div>
     </div>
@@ -791,6 +278,7 @@
                 <h6 class="mb-0" th:text="#{notes.title}">Нотатки</h6>
                 <h3 class="mb-0">
                     <span id="headerNoteCount">0</span>
+                    <small class="text-muted" id="headerNotePlural" style="font-size: 0.55em; font-weight: 400;"></small>
                 </h3>
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
@@ -825,8 +313,7 @@
 
         <div class="notes-toolbar notes-sub-bar">
             <div class="dropdown">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-sort me-1"></i>
                     <span th:text="#{notes.sort.label}">Сортування</span>
                 </button>
@@ -848,6 +335,15 @@
                            th:text="#{notes.sort.color}">За кольором</a></li>
                 </ul>
             </div>
+
+            <div class="pinned-only-toggle">
+                <input class="form-check-input" type="checkbox" id="pinnedOnlyToggle">
+                <label for="pinnedOnlyToggle" class="mb-0">
+                    <i class="fas fa-thumbtack text-warning me-1"></i>
+                    <span th:text="#{notes.filter.pinned}">Закріплені</span>
+                </label>
+            </div>
+
             <div class="page-size-wrap ms-auto">
                 <i class="fas fa-list-ol"></i>
                 <label for="pageSize" class="visually-hidden" th:text="#{notes.size.label}">Показати</label>
@@ -865,10 +361,8 @@
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
                 <input type="text" id="searchInput" class="form-control"
                        th:value="${q}" th:placeholder="#{notes.search}" autocomplete="off">
-                <button type="button" id="searchClear"
-                        class="btn btn-outline-secondary"
-                        th:title="#{notes.search.clear}"
-                        th:aria-label="#{notes.search.clear}">
+                <button type="button" id="searchClear" class="btn btn-outline-secondary"
+                        th:title="#{notes.search.clear}" th:aria-label="#{notes.search.clear}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -885,8 +379,7 @@
                 <span th:text="#{notes.clearArchive.button}">Очистити архів</span>
                 (<span th:text="${archivedTotal}">0</span>)
             </button>
-            <form id="clearArchiveForm" method="post"
-                  th:action="@{/notes/archive/clear}" style="display:none;">
+            <form id="clearArchiveForm" method="post" th:action="@{/notes/archive/clear}" style="display:none;">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             </form>
         </div>
@@ -922,31 +415,26 @@
             <span class="d-none d-sm-inline" th:text="#{notes.bulk.selected}">вибрано</span>
         </span>
         <button type="button" class="btn btn-sm btn-outline-light d-none" data-action="archive">
-            <i class="fas fa-archive me-1"></i>
-            <span th:text="#{notes.bulk.archive}">Архівувати</span>
+            <i class="fas fa-archive me-1"></i><span th:text="#{notes.bulk.archive}">Архівувати</span>
         </button>
         <button type="button" class="btn btn-sm btn-outline-light d-none" data-action="unarchive">
-            <i class="fas fa-undo me-1"></i>
-            <span th:text="#{notes.bulk.unarchive}">Відновити</span>
+            <i class="fas fa-undo me-1"></i><span th:text="#{notes.bulk.unarchive}">Відновити</span>
         </button>
         <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">
-            <i class="fas fa-trash me-1"></i>
-            <span th:text="#{notes.bulk.delete}">Видалити</span>
+            <i class="fas fa-trash me-1"></i><span th:text="#{notes.bulk.delete}">Видалити</span>
         </button>
         <button type="button" class="btn btn-sm btn-outline-light" data-action="cancel"
                 th:aria-label="#{notes.bulk.cancel}">
-            <i class="fas fa-times"></i>
-            <span class="d-none d-sm-inline ms-1" th:text="#{notes.bulk.cancel}">Скасувати</span>
+            <i class="fas fa-times"></i><span class="d-none d-sm-inline ms-1" th:text="#{notes.bulk.cancel}">Скасувати</span>
         </button>
     </div>
 </div>
 
-<!-- ==================== CONFIRM ACTION MODAL ==================== -->
+<!-- ===== CONFIRM MODAL ===== -->
 <div class="modal fade no-print" id="confirmActionModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
-            <div class="modal-header border-0 text-white bg-primary" id="confirmActionHeader"
-                 style="border-radius: 1rem 1rem 0 0;">
+            <div class="modal-header border-0 text-white bg-primary" id="confirmActionHeader" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
                     <i class="fas fa-question-circle me-2"></i>
                     <span id="confirmActionTitle" th:text="#{confirm.title}">Підтвердження</span>
@@ -957,16 +445,14 @@
                 <p class="mb-0" id="confirmActionMessage"></p>
             </div>
             <div class="modal-footer border-0 p-4 pt-0">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal"
-                        th:text="#{btn.cancel}">Скасувати</button>
-                <button type="button" class="btn btn-primary" id="confirmActionBtn"
-                        th:text="#{confirm.ok}">Підтвердити</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn" th:text="#{confirm.ok}">Підтвердити</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ==================== CREATE NOTE MODAL ==================== -->
+<!-- ===== CREATE MODAL ===== -->
 <div class="modal fade" id="createNoteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -1022,9 +508,7 @@
                     </div>
                     <div class="mb-0" th:if="${hasFamily}">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="createShareWithFamily"
-                                   name="shareWithFamily" value="true">
+                            <input type="checkbox" class="form-check-input" id="createShareWithFamily" name="shareWithFamily" value="true">
                             <label class="form-check-label" for="createShareWithFamily">
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
@@ -1044,7 +528,7 @@
     </div>
 </div>
 
-<!-- ==================== EDIT NOTE MODAL ==================== -->
+<!-- ===== EDIT MODAL ===== -->
 <div class="modal fade" id="editNoteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -1101,9 +585,7 @@
                     </div>
                     <div class="mb-0" th:if="${hasFamily}">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input"
-                                   id="editShareWithFamily"
-                                   name="shareWithFamily" value="true">
+                            <input type="checkbox" class="form-check-input" id="editShareWithFamily" name="shareWithFamily" value="true">
                             <label class="form-check-label" for="editShareWithFamily">
                                 <i class="fas fa-users me-1"></i>
                                 <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
@@ -1123,7 +605,7 @@
     </div>
 </div>
 
-<!-- ==================== DELETE NOTE MODAL ==================== -->
+<!-- ===== DELETE MODAL ===== -->
 <div class="modal fade no-print" id="deleteNoteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -1139,22 +621,10 @@
                 <p class="text-muted small text-center" th:text="#{notes.delete.note}">Цю дію не можна скасувати.</p>
                 <hr>
                 <div class="delete-details">
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold" th:text="#{notes.delete.title}">Заголовок:</div>
-                        <div class="col-8 value" id="deleteNoteTitle"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold" th:text="#{notes.delete.content}">Текст:</div>
-                        <div class="col-8 value" id="deleteNoteContent"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold" th:text="#{notes.delete.pinned}">Закріплена:</div>
-                        <div class="col-8 value" id="deleteNotePinned"></div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-4 label fw-bold" th:text="#{notes.delete.archived}">В архіві:</div>
-                        <div class="col-8 value" id="deleteNoteArchived"></div>
-                    </div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{notes.delete.title}">Заголовок:</div><div class="col-8 value" id="deleteNoteTitle"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{notes.delete.content}">Текст:</div><div class="col-8 value" id="deleteNoteContent"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{notes.delete.pinned}">Закріплена:</div><div class="col-8 value" id="deleteNotePinned"></div></div>
+                    <div class="row mb-2"><div class="col-4 label fw-bold" th:text="#{notes.delete.archived}">В архіві:</div><div class="col-8 value" id="deleteNoteArchived"></div></div>
                 </div>
             </div>
             <div class="modal-footer border-0 p-4 pt-0">
@@ -1170,6 +640,66 @@
     </div>
 </div>
 
+<!-- ==================== INLINE i18n + CSRF ==================== -->
+<script th:inline="javascript">
+    window.csrfToken  = /*[[${_csrf.token}]]*/ '';
+    window.csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+
+    window.lcI18n = {
+        toastSuccess:      /*[[#{toast.success}]]*/              'Успішно!',
+        toastError:        /*[[#{toast.error}]]*/                'Помилка!',
+        networkError:      /*[[#{notes.network.error}]]*/        'Помилка мережі',
+        archiveError:      /*[[#{notes.archive.error}]]*/        'Не вдалося змінити стан',
+        duplicateError:    /*[[#{notes.duplicate.error}]]*/      'Не вдалося скопіювати нотатку',
+        errorPrefix:       /*[[#{notes.error.prefix}]]*/         'Помилка: {0}',
+        pinPinned:         /*[[#{notes.pin.pinned}]]*/           'Нотатку закріплено',
+        pinUnpinned:       /*[[#{notes.pin.unpinned}]]*/         'Нотатку відкріплено',
+        pinLabel:          /*[[#{notes.action.pin}]]*/           'Закріпити',
+        unpinLabel:        /*[[#{notes.action.unpin}]]*/         'Відкріпити',
+        toastArchived:     /*[[#{toast.note.archived}]]*/        'Нотатку заархівовано!',
+        toastUnarchived:   /*[[#{toast.note.unarchived}]]*/      'Нотатку відновлено!',
+        toastBulkArchived: /*[[#{toast.notes.bulk.archived}]]*/  'Архівовано: {0} нотаток',
+        toastBulkUnarchived: /*[[#{toast.notes.bulk.unarchived}]]*/ 'Відновлено: {0} нотаток',
+        toastBulkDeleted:  /*[[#{toast.notes.bulk.deleted}]]*/   'Видалено: {0} нотаток',
+        confirmTitle:      /*[[#{confirm.title}]]*/              'Підтвердження',
+        confirmOk:         /*[[#{confirm.ok}]]*/                 'Підтвердити',
+        archiveTitle:      /*[[#{notes.archive.confirm.title}]]*/     'Архівувати нотатку?',
+        archiveMessage:    /*[[#{notes.archive.confirm.message}]]*/   '«{0}» буде переміщено в архів.',
+        archiveLabel:      /*[[#{notes.archive.confirm.label}]]*/     'Архівувати',
+        unarchiveTitle:    /*[[#{notes.unarchive.confirm.title}]]*/   'Розархівувати нотатку?',
+        unarchiveMessage:  /*[[#{notes.unarchive.confirm.message}]]*/ '«{0}» буде повернуто до активних нотаток.',
+        unarchiveLabel:    /*[[#{notes.unarchive.confirm.label}]]*/   'Розархівувати',
+        bulkArchiveTitle:     /*[[#{notes.bulk.archive.confirm.title}]]*/     'Архівувати нотатки?',
+        bulkArchiveMessage:   /*[[#{notes.bulk.archive.confirm.message}]]*/   'Архівувати {0} нотаток?',
+        bulkUnarchiveTitle:   /*[[#{notes.bulk.unarchive.confirm.title}]]*/   'Відновити нотатки?',
+        bulkUnarchiveMessage: /*[[#{notes.bulk.unarchive.confirm.message}]]*/ 'Повернути {0} нотаток з архіву?',
+        bulkDeleteTitle:      /*[[#{notes.bulk.delete.confirm.title}]]*/      'Видалити нотатки?',
+        bulkDeleteMessage:    /*[[#{notes.bulk.delete.confirm.message}]]*/    'Видалити {0} нотаток? Цю дію не можна скасувати.',
+        bulkDeleteLabel:      /*[[#{notes.bulk.delete}]]*/                    'Видалити',
+        clearArchiveTitle:   /*[[#{notes.clearArchive.confirm.title}]]*/   'Очистити архів?',
+        clearArchiveMessage: /*[[#{notes.clearArchive.confirm.message}]]*/ 'Видалити всі нотатки з архіву? Цю дію не можна скасувати.',
+        clearArchiveLabel:   /*[[#{notes.clearArchive.confirm.label}]]*/   'Очистити',
+        duplicateModalTitle: /*[[#{notes.modal.duplicate}]]*/    'Дублювати нотатку',
+        emptyArchivedTitle:  /*[[#{notes.empty.archived.title}]]*/ 'Архів порожній',
+        emptyArchivedHint:   /*[[#{notes.empty.archived.hint}]]*/  'Тут з\'являться нотатки, які ви заархівуєте.',
+        emptySharedTitle:    /*[[#{notes.empty.shared.title}]]*/   'Немає спільних нотаток',
+        emptySharedHint:     /*[[#{notes.empty.shared.hint}]]*/    'Позначте нотатку як «Спільна», щоб поділитися з сім\'єю.',
+        emptyActiveTitle:    /*[[#{notes.empty.active.title}]]*/   'Немає активних нотаток',
+        emptyActiveHint:     /*[[#{notes.empty.active.hint}]]*/    'Створіть першу нотатку.',
+        emptyAllTitle:       /*[[#{notes.empty.all.title}]]*/      'Немає нотаток',
+        emptyAllHint:        /*[[#{notes.empty.all.hint}]]*/       'Створіть першу нотатку.',
+        pinnedEmptyTitle:    /*[[#{notes.empty.pinned.title}]]*/   'Немає закріплених нотаток',
+        pinnedEmptyHint:     /*[[#{notes.empty.pinned.hint}]]*/    'Увімкніть «Усі», щоб побачити всі нотатки.',
+        loading:             /*[[#{notes.loading}]]*/             'Завантаження...',
+        draftRestore:        /*[[#{notes.draft.restore}]]*/       'Відновити чернетку?',
+        unsavedChanges:      /*[[#{notes.unsaved.changes}]]*/     'Незбережені зміни. Закрити?',
+        unavailable:         /*[[#{notes.unavailable}]]*/         'Нотатка більше не доступна',
+        countOne:            /*[[#{notes.count.one}]]*/           'нотатка',
+        countFew:            /*[[#{notes.count.few}]]*/           'нотатки',
+        countMany:           /*[[#{notes.count.many}]]*/          'нотаток'
+    };
+</script>
+
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
@@ -1178,66 +708,11 @@
     (function () {
         'use strict';
 
-        // ============================================================
-        // i18n — усі рядки з серверних messages_*.properties
-        // ============================================================
-        var i18n = {
-            yes: /*[[#{notes.delete.yes}]]*/ 'Так',
-            no:  /*[[#{notes.delete.no}]]*/  'Ні',
+        var i18n = window.lcI18n;
+        var DRAFT_KEY = 'notes_draft_new';
+        var SCROLL_KEY = 'notes_scroll';
 
-            toastSuccess: /*[[#{toast.success}]]*/ 'Успішно!',
-            toastError:   /*[[#{toast.error}]]*/   'Помилка!',
-
-            networkError:   /*[[#{notes.network.error}]]*/   'Помилка мережі',
-            archiveError:   /*[[#{notes.archive.error}]]*/   'Не вдалося змінити стан',
-            duplicateError: /*[[#{notes.duplicate.error}]]*/ 'Не вдалося скопіювати нотатку',
-            errorPrefix:    /*[[#{notes.error.prefix}]]*/    'Помилка: {0}',
-
-            pinned:   /*[[#{notes.pin.pinned}]]*/   'Нотатку закріплено',
-            unpinned: /*[[#{notes.pin.unpinned}]]*/ 'Нотатку відкріплено',
-
-            toastArchived:       /*[[#{toast.note.archived}]]*/         'Нотатку заархівовано!',
-            toastUnarchived:     /*[[#{toast.note.unarchived}]]*/       'Нотатку відновлено!',
-            toastBulkArchived:   /*[[#{toast.notes.bulk.archived}]]*/   'Архівовано: {0} нотаток',
-            toastBulkUnarchived: /*[[#{toast.notes.bulk.unarchived}]]*/ 'Відновлено: {0} нотаток',
-            toastBulkDeleted:    /*[[#{toast.notes.bulk.deleted}]]*/    'Видалено: {0} нотаток',
-
-            confirmTitle: /*[[#{confirm.title}]]*/ 'Підтвердження',
-            confirmOk:    /*[[#{confirm.ok}]]*/    'Підтвердити',
-
-            archiveTitle:     /*[[#{notes.archive.confirm.title}]]*/     'Архівувати нотатку?',
-            archiveMessage:   /*[[#{notes.archive.confirm.message}]]*/   '«{0}» буде переміщено в архів.',
-            archiveLabel:     /*[[#{notes.archive.confirm.label}]]*/     'Архівувати',
-
-            unarchiveTitle:   /*[[#{notes.unarchive.confirm.title}]]*/   'Розархівувати нотатку?',
-            unarchiveMessage: /*[[#{notes.unarchive.confirm.message}]]*/ '«{0}» буде повернуто до активних нотаток.',
-            unarchiveLabel:   /*[[#{notes.unarchive.confirm.label}]]*/   'Розархівувати',
-
-            bulkArchiveTitle:     /*[[#{notes.bulk.archive.confirm.title}]]*/     'Архівувати нотатки?',
-            bulkArchiveMessage:   /*[[#{notes.bulk.archive.confirm.message}]]*/   'Архівувати {0} нотаток?',
-            bulkUnarchiveTitle:   /*[[#{notes.bulk.unarchive.confirm.title}]]*/   'Відновити нотатки?',
-            bulkUnarchiveMessage: /*[[#{notes.bulk.unarchive.confirm.message}]]*/ 'Повернути {0} нотаток з архіву?',
-            bulkDeleteTitle:      /*[[#{notes.bulk.delete.confirm.title}]]*/      'Видалити нотатки?',
-            bulkDeleteMessage:    /*[[#{notes.bulk.delete.confirm.message}]]*/    'Видалити {0} нотаток? Цю дію не можна скасувати.',
-            bulkDeleteLabel:      /*[[#{notes.bulk.delete}]]*/                    'Видалити',
-
-            clearArchiveTitle:   /*[[#{notes.clearArchive.confirm.title}]]*/   'Очистити архів?',
-            clearArchiveMessage: /*[[#{notes.clearArchive.confirm.message}]]*/ 'Видалити всі нотатки з архіву? Цю дію не можна скасувати.',
-            clearArchiveLabel:   /*[[#{notes.clearArchive.confirm.label}]]*/   'Очистити',
-
-            duplicateModalTitle: /*[[#{notes.modal.duplicate}]]*/ 'Дублювати нотатку',
-
-            emptyArchivedTitle: /*[[#{notes.empty.archived.title}]]*/ 'Архів порожній',
-            emptyArchivedHint:  /*[[#{notes.empty.archived.hint}]]*/  'Тут з\'являться нотатки, які ви заархівуєте.',
-            emptySharedTitle:   /*[[#{notes.empty.shared.title}]]*/   'Немає спільних нотаток',
-            emptySharedHint:    /*[[#{notes.empty.shared.hint}]]*/    'Позначте нотатку як «Спільна», щоб поділитися з сім\'єю.',
-            emptyActiveTitle:   /*[[#{notes.empty.active.title}]]*/   'Немає активних нотаток',
-            emptyActiveHint:    /*[[#{notes.empty.active.hint}]]*/    'Створіть першу нотатку.',
-            emptyAllTitle:      /*[[#{notes.empty.all.title}]]*/      'Немає нотаток',
-            emptyAllHint:       /*[[#{notes.empty.all.hint}]]*/       'Створіть першу нотатку.',
-
-            loading: /*[[#{notes.loading}]]*/ 'Завантаження...'
-        };
+        // ==================== UTILITY ====================
 
         function fmt(template) {
             var args = Array.prototype.slice.call(arguments, 1);
@@ -1246,9 +721,62 @@
             });
         }
 
-        // ============================================================
-        // TOAST
-        // ============================================================
+        function pluralWord(n, one, few, many) {
+            var n10 = n % 10;
+            var n100 = n % 100;
+            if (n10 === 1 && n100 !== 11) return one;
+            if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+            return many;
+        }
+
+        function notesWord(n) {
+            var lang = document.documentElement.getAttribute('lang') || 'uk';
+            if (lang === 'en') {
+                // Англійська: 1 → однина, все інше → множина
+                return n === 1 ? i18n.countOne : i18n.countMany;
+            }
+            return pluralWord(n, i18n.countOne, i18n.countFew, i18n.countMany);
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function highlightText(text, query) {
+            if (!text || !query) return escapeHtml(text || '');
+            var lower = text.toLowerCase();
+            var qLower = query.toLowerCase();
+            var idx = 0, result = '', pos;
+            while ((pos = lower.indexOf(qLower, idx)) !== -1) {
+                result += escapeHtml(text.substring(idx, pos));
+                result += '<mark class="search-hl">' + escapeHtml(text.substring(pos, pos + query.length)) + '</mark>';
+                idx = pos + query.length;
+            }
+            result += escapeHtml(text.substring(idx));
+            return result;
+        }
+
+        function relTime(tsIso) {
+            if (!tsIso) return '';
+            try {
+                var d = new Date(tsIso);
+                if (isNaN(d.getTime())) return '';
+                var lang = document.documentElement.getAttribute('lang') || 'uk';
+                var rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+                var diffSec = Math.round((Date.now() - d.getTime()) / 1000);
+                if (Math.abs(diffSec) < 60) return rtf.format(-diffSec, 'second');
+                var diffMin = Math.round(diffSec / 60);
+                if (Math.abs(diffMin) < 60) return rtf.format(-diffMin, 'minute');
+                var diffHour = Math.round(diffMin / 60);
+                if (Math.abs(diffHour) < 24) return rtf.format(-diffHour, 'hour');
+                var diffDay = Math.round(diffHour / 24);
+                if (Math.abs(diffDay) < 7) return rtf.format(-diffDay, 'day');
+                return d.toLocaleDateString(lang);
+            } catch (e) { return ''; }
+        }
+
         function showToast(msg, type) {
             var el = document.getElementById('liveToast');
             if (!el || typeof bootstrap === 'undefined') return;
@@ -1256,56 +784,71 @@
             var text = document.getElementById('toastMessage');
             var icon = document.getElementById('toastIcon');
             el.classList.remove('success', 'error');
-            el.classList.add(type === 'error' ? 'error' : 'success');
-            title.textContent = type === 'error' ? i18n.toastError : i18n.toastSuccess;
-            icon.className = type === 'error'
-                ? 'fas fa-exclamation-circle me-2'
-                : 'fas fa-check-circle me-2';
+            if (type === 'error') {
+                el.classList.add('error');
+                title.textContent = i18n.toastError;
+                icon.className = 'fas fa-exclamation-circle me-2';
+            } else {
+                el.classList.add('success');
+                title.textContent = i18n.toastSuccess;
+                icon.className = 'fas fa-check-circle me-2';
+            }
             text.textContent = msg;
             bootstrap.Toast.getOrCreateInstance(el).show();
         }
 
-        // ============================================================
-        // PENDING TOAST (survives page reload)
-        // ============================================================
-        var PENDING_TOAST_KEY = 'lazycent_notes_pending_toast';
+        var PENDING_TOAST_KEY = 'notes_pending_toast';
 
-        /**
-         * Кладемо повідомлення в sessionStorage, щоб показати його
-         * ПІСЛЯ location.reload(). Використовується, коли дія fetch'ем
-         * завершується успішно, але потребує перезавантаження сторінки
-         * (server-flash не переживе fetch → reload).
-         */
         function flashToast(msg, type) {
-            try {
-                sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({
-                    msg: msg,
-                    type: type || 'success'
-                }));
-            } catch (e) { /* ignore */ }
+            try { sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ msg: msg, type: type || 'success' })); } catch (e) {}
         }
 
-        /** Читає pending-тост після reload, показує і видаляє. */
         function drainPendingToast() {
             try {
                 var raw = sessionStorage.getItem(PENDING_TOAST_KEY);
                 if (!raw) return;
                 sessionStorage.removeItem(PENDING_TOAST_KEY);
                 var obj = JSON.parse(raw);
-                if (obj && obj.msg) {
-                    setTimeout(function () {
-                        showToast(obj.msg, obj.type || 'success');
-                    }, 150);
-                }
-            } catch (e) { /* ignore */ }
+                if (obj && obj.msg) setTimeout(function () { showToast(obj.msg, obj.type || 'success'); }, 150);
+            } catch (e) {}
         }
 
-        // ============================================================
-        // CONFIRM MODAL
-        // ============================================================
+        function readParam(name, defaultValue) {
+            return new URLSearchParams(window.location.search).get(name) || defaultValue;
+        }
+
+        function setParam(name, value) {
+            try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch (e) {}
+            var url = new URL(window.location.href);
+            url.searchParams.set(name, value);
+            window.location.href = url.toString();
+        }
+
+        function restoreScroll() {
+            try {
+                var saved = sessionStorage.getItem(SCROLL_KEY);
+                if (!saved) return;
+                sessionStorage.removeItem(SCROLL_KEY);
+                var y = parseInt(saved, 10);
+                if (!isNaN(y) && y > 0) {
+                    requestAnimationFrame(function () { window.scrollTo(0, y); });
+                }
+            } catch (e) {}
+        }
+
+        function csrfHeaders(extra) {
+            var h = {};
+            h[window.csrfHeader || 'X-CSRF-TOKEN'] = window.csrfToken || '';
+            if (extra) for (var k in extra) h[k] = extra[k];
+            return h;
+        }
+
+        // ==================== CONFIRM MODAL ====================
+
         var confirmCallback = null;
         var confirmModalEl = null;
         var confirmBtnEl = null;
+        var lastFocusedBeforeModal = null;
 
         function initConfirmModal() {
             confirmModalEl = document.getElementById('confirmActionModal');
@@ -1321,15 +864,20 @@
                     cb();
                 }
             });
-
             confirmModalEl.addEventListener('hidden.bs.modal', function () {
                 confirmCallback = null;
+                if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function') {
+                    try { lastFocusedBeforeModal.focus(); } catch (e) {}
+                    lastFocusedBeforeModal = null;
+                }
             });
         }
 
         function showConfirm(opts, onConfirm) {
             if (!confirmModalEl) initConfirmModal();
             if (!confirmModalEl) return;
+
+            lastFocusedBeforeModal = document.activeElement;
 
             var header = document.getElementById('confirmActionHeader');
             var titleEl = document.getElementById('confirmActionTitle');
@@ -1339,25 +887,17 @@
             msgEl.textContent = opts.message || '';
             confirmCallback = onConfirm;
 
-            var colorClass = opts.danger ? 'bg-danger'
-                : opts.warning ? 'bg-warning'
-                    : 'bg-primary';
-            var btnClass = opts.danger ? 'btn-danger'
-                : opts.warning ? 'btn-warning'
-                    : 'btn-primary';
-
+            var colorClass = opts.danger ? 'bg-danger' : opts.warning ? 'bg-warning' : 'bg-primary';
+            var btnClass = opts.danger ? 'btn-danger' : opts.warning ? 'btn-warning' : 'btn-primary';
             header.className = 'modal-header border-0 text-white ' + colorClass;
             header.style.borderRadius = '1rem 1rem 0 0';
-
             confirmBtnEl.className = 'btn ' + btnClass;
             confirmBtnEl.textContent = opts.confirmLabel || i18n.confirmOk;
-
             bootstrap.Modal.getOrCreateInstance(confirmModalEl).show();
         }
 
-        // ============================================================
-        // CHAR COUNTERS
-        // ============================================================
+        // ==================== CHAR COUNTERS ====================
+
         function bindCounter(inputId, counterId, max) {
             var input = document.getElementById(inputId);
             var counter = document.getElementById(counterId);
@@ -1371,62 +911,227 @@
             update();
         }
 
-        function readParam(name, defaultValue) {
-            return new URLSearchParams(window.location.search).get(name) || defaultValue;
-        }
-
-        function setParam(name, value) {
-            try { sessionStorage.setItem('notes_scroll', String(window.scrollY)); } catch (e) {}
-            var url = new URL(window.location.href);
-            url.searchParams.set(name, value);
-            window.location.href = url.toString();
-        }
+        // ==================== MAIN ====================
 
         document.addEventListener('DOMContentLoaded', function () {
-
-            // ✅ ПЕРШИМ — показати тост, що пережив reload
             drainPendingToast();
-
             initConfirmModal();
 
-            bindCounter('createNoteTitle', 'createTitleCount', 255);
-            bindCounter('createNoteContent', 'createContentCount', 5000);
-            bindCounter('editNoteTitle', 'editTitleCount', 255);
-            bindCounter('editNoteContent', 'editContentCount', 5000);
+            var noteGrid = document.getElementById('noteGrid');
+            var searchInput = document.getElementById('searchInput');
+            var searchClear = document.getElementById('searchClear');
+            var searchLoading = document.getElementById('searchLoading');
+            var emptyFilterMessage = document.getElementById('emptyFilterMessage');
+            var headerNoteCount = document.getElementById('headerNoteCount');
+            var headerNotePlural = document.getElementById('headerNotePlural');
+            var pinnedOnlyToggle = document.getElementById('pinnedOnlyToggle');
+            var bulkBar = document.getElementById('bulkBar');
 
-            // ============================================================
-            // COLOR PICKERS
-            // ============================================================
-            document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
-                picker.querySelectorAll('.color-option').forEach(function (el) {
-                    el.addEventListener('click', function () {
-                        picker.querySelectorAll('.color-option').forEach(function (c) { c.classList.remove('selected'); });
-                        this.classList.add('selected');
-                        var hiddenInput = picker.closest('.modal-body').querySelector('input[name="color"]');
-                        if (hiddenInput) hiddenInput.value = this.dataset.color;
-                    });
+            var currentFilter = readParam('filter', 'all');
+            var currentSort = readParam('sort', 'default');
+            var pinnedOnly = readParam('pinned', 'false') === 'true';
+            var selectedIds = new Set();
+
+            if (pinnedOnlyToggle) {
+                pinnedOnlyToggle.checked = pinnedOnly;
+                pinnedOnlyToggle.addEventListener('change', function () {
+                    pinnedOnly = this.checked;
+                    var url = new URL(window.location.href);
+                    if (pinnedOnly) url.searchParams.set('pinned', 'true');
+                    else url.searchParams.delete('pinned');
+                    window.history.replaceState({}, '', url.toString());
+                    applyFilterAndDivider(currentFilter);
                 });
-            });
+            }
 
-            document.querySelectorAll('.text-color-picker').forEach(function (picker) {
-                picker.querySelectorAll('.color-option').forEach(function (el) {
-                    el.addEventListener('click', function () {
-                        picker.querySelectorAll('.color-option').forEach(function (c) { c.classList.remove('selected'); });
-                        this.classList.add('selected');
-                        var hiddenInput = picker.closest('.modal-body').querySelector('input[name="textColor"]');
-                        if (hiddenInput) hiddenInput.value = this.dataset.color;
-                    });
+            // ==================== SNAPSHOT / HIGHLIGHT / RELTIME ====================
+
+            function snapshotOriginalTexts() {
+                noteGrid.querySelectorAll('.card-title, .card-text').forEach(function (el) {
+                    if (el.dataset.originalText == null) {
+                        el.dataset.originalText = el.textContent;
+                    }
                 });
-            });
+            }
 
-            // ============================================================
-            // EDIT NOTE
-            // ============================================================
+            function applySearchHighlight() {
+                var q = searchInput.value.trim();
+                noteGrid.querySelectorAll('.card-title, .card-text').forEach(function (el) {
+                    var orig = el.dataset.originalText;
+                    if (orig == null) return;
+                    if (!q) {
+                        if (el.querySelector('mark.search-hl')) el.textContent = orig;
+                    } else {
+                        el.innerHTML = highlightText(orig, q);
+                    }
+                });
+            }
+
+            function updateRelativeTimes() {
+                noteGrid.querySelectorAll('.rel-time[data-ts]').forEach(function (el) {
+                    var txt = relTime(el.dataset.ts);
+                    if (txt) el.textContent = txt;
+                });
+            }
+
+            snapshotOriginalTexts();
+            updateRelativeTimes();
+
+            // ==================== DRAFT (create modal) ====================
+
+            var draftTimer = null;
+            function scheduleDraftSave() {
+                clearTimeout(draftTimer);
+                draftTimer = setTimeout(saveDraft, 500);
+            }
+
+            function saveDraft() {
+                var t = document.getElementById('createNoteTitle');
+                var c = document.getElementById('createNoteContent');
+                if (!t || !c) return;
+                if (!t.value && !c.value) {
+                    try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) {}
+                    return;
+                }
+                try {
+                    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+                        title: t.value,
+                        content: c.value,
+                        color: document.getElementById('selectedColor').value,
+                        textColor: document.getElementById('selectedTextColor').value,
+                        ts: Date.now()
+                    }));
+                } catch (e) {}
+            }
+
+            function loadDraft() {
+                try {
+                    var raw = sessionStorage.getItem(DRAFT_KEY);
+                    if (!raw) return null;
+                    var d = JSON.parse(raw);
+                    if (!d.ts || (Date.now() - d.ts) > 24 * 60 * 60 * 1000) {
+                        sessionStorage.removeItem(DRAFT_KEY);
+                        return null;
+                    }
+                    if (!d.title && !d.content) return null;
+                    return d;
+                } catch (e) { return null; }
+            }
+
+            function clearDraft() {
+                try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) {}
+            }
+
+            var createModalEl = document.getElementById('createNoteModal');
+            if (createModalEl) {
+                createModalEl.addEventListener('show.bs.modal', function () {
+                    lastFocusedBeforeModal = document.activeElement;
+
+                    var draft = loadDraft();
+                    if (draft) {
+                        if (window.confirm(i18n.draftRestore)) {
+                            document.getElementById('createNoteTitle').value = draft.title || '';
+                            document.getElementById('createNoteContent').value = draft.content || '';
+                            if (draft.color) {
+                                document.getElementById('selectedColor').value = draft.color;
+                                document.querySelectorAll('#createNoteModal .color-picker:not(.text-color-picker) .color-option').forEach(function (el) {
+                                    el.classList.toggle('selected', el.dataset.color === draft.color);
+                                });
+                            }
+                            if (draft.textColor) {
+                                document.getElementById('selectedTextColor').value = draft.textColor;
+                                document.querySelectorAll('#createNoteModal .text-color-picker .color-option').forEach(function (el) {
+                                    el.classList.toggle('selected', el.dataset.color === draft.textColor);
+                                });
+                            }
+                            document.getElementById('createNoteTitle').dispatchEvent(new Event('input'));
+                            document.getElementById('createNoteContent').dispatchEvent(new Event('input'));
+                        } else {
+                            clearDraft();
+                        }
+                    }
+                });
+                createModalEl.addEventListener('hidden.bs.modal', function () {
+                    var form = createModalEl.querySelector('form');
+                    if (form) form.reset();
+                    snapshotEditState();
+                    if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function') {
+                        try { lastFocusedBeforeModal.focus(); } catch (e) {}
+                        lastFocusedBeforeModal = null;
+                    }
+                });
+                var ct = document.getElementById('createNoteTitle');
+                var cc = document.getElementById('createNoteContent');
+                if (ct) ct.addEventListener('input', scheduleDraftSave);
+                if (cc) cc.addEventListener('input', scheduleDraftSave);
+                var cf = createModalEl.querySelector('form');
+                if (cf) cf.addEventListener('submit', clearDraft);
+            }
+
+            // ==================== EDIT MODAL DIRTY STATE ====================
+
+            var editInitialState = { title: '', content: '', color: '', textColor: '' };
+
+            function snapshotEditState() {
+                var t = document.getElementById('editNoteTitle');
+                var c = document.getElementById('editNoteContent');
+                var col = document.getElementById('editSelectedColor');
+                var tcol = document.getElementById('editSelectedTextColor');
+                editInitialState = {
+                    title: t ? t.value : '',
+                    content: c ? c.value : '',
+                    color: col ? col.value : '',
+                    textColor: tcol ? tcol.value : ''
+                };
+            }
+
+            function isEditDirty() {
+                if (window.__editFormSubmitting) return false;
+                var t = document.getElementById('editNoteTitle');
+                var c = document.getElementById('editNoteContent');
+                var col = document.getElementById('editSelectedColor');
+                var tcol = document.getElementById('editSelectedTextColor');
+                return (t ? t.value : '') !== editInitialState.title
+                    || (c ? c.value : '') !== editInitialState.content
+                    || (col ? col.value : '') !== editInitialState.color
+                    || (tcol ? tcol.value : '') !== editInitialState.textColor;
+            }
+
+            function showModalEl(modalEl) {
+                if (!modalEl) return;
+                lastFocusedBeforeModal = document.activeElement;
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
+
+            var editModalEl = document.getElementById('editNoteModal');
+            if (editModalEl) {
+                editModalEl.addEventListener('hide.bs.modal', function (e) {
+                    if (window.__editFormSubmitting) return;
+                    if (isEditDirty()) {
+                        if (!window.confirm(i18n.unsavedChanges)) {
+                            e.preventDefault();
+                        }
+                    }
+                });
+                editModalEl.addEventListener('hidden.bs.modal', function () {
+                    var form = document.getElementById('editNoteForm');
+                    if (form) form.reset();
+                    snapshotEditState();
+                    window.__editFormSubmitting = false;
+                    if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function') {
+                        try { lastFocusedBeforeModal.focus(); } catch (e) {}
+                        lastFocusedBeforeModal = null;
+                    }
+                });
+            }
+
+            // ==================== EDIT / DUPLICATE ====================
+
             window.editNote = function (id) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
-                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '';
-                var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '';
+                var title = card.querySelector('.card-title') ? (card.querySelector('.card-title').dataset.originalText || card.querySelector('.card-title').textContent) : '';
+                var content = card.querySelector('.card-text') ? (card.querySelector('.card-text').dataset.originalText || card.querySelector('.card-text').textContent) : '';
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
                 var isShared = card.dataset.shareWithFamily === 'true';
@@ -1454,26 +1159,16 @@
                 });
 
                 document.getElementById('editNoteForm').action = '/notes/update/' + id;
-
-                var modalTitle = document.querySelector('#editNoteModal .modal-title');
-                if (modalTitle && modalTitle.dataset.originalTitle) {
-                    modalTitle.innerHTML = modalTitle.dataset.originalTitle;
-                }
-
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
+                snapshotEditState();
+                showModalEl(editModalEl);
             };
 
-            // ============================================================
-            // DUPLICATE → prefill edit modal
-            // ============================================================
             window.duplicateNote = function (id, e) {
                 if (e) { e.preventDefault(); e.stopPropagation(); }
-
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
-
-                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.trim() : '';
-                var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '';
+                var title = card.querySelector('.card-title') ? (card.querySelector('.card-title').dataset.originalText || card.querySelector('.card-title').textContent).trim() : '';
+                var content = card.querySelector('.card-text') ? (card.querySelector('.card-text').dataset.originalText || card.querySelector('.card-text').textContent) : '';
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
                 var isShared = card.dataset.shareWithFamily === 'true';
@@ -1501,56 +1196,49 @@
                 });
 
                 document.getElementById('editNoteForm').action = '/notes/create';
-
-                var modalTitle = document.querySelector('#editNoteModal .modal-title');
-                if (modalTitle) {
-                    if (!modalTitle.dataset.originalTitle) {
-                        modalTitle.dataset.originalTitle = modalTitle.innerHTML;
-                    }
-                    modalTitle.innerHTML = '<i class="fas fa-copy me-2"></i>' + i18n.duplicateModalTitle;
-                }
-
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('editNoteModal')).show();
+                snapshotEditState();
+                showModalEl(editModalEl);
             };
 
-            // ============================================================
-            // PIN
-            // ============================================================
+            // ==================== PIN (optimistic) ====================
+
             window.togglePin = function (id, e) {
                 if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
-                var wrapper = card.closest('.note-card-wrapper');
+                var btn = e ? e.currentTarget : null;
+                var pinIcon = btn ? btn.querySelector('i') : null;
                 var wasPinned = card.classList.contains('pinned');
 
                 card.classList.toggle('pinned', !wasPinned);
+                card.dataset.pinned = String(!wasPinned);
+                if (pinIcon) pinIcon.classList.toggle('pin-icon', !wasPinned);
+                if (btn) btn.title = !wasPinned ? i18n.unpinLabel : i18n.pinLabel;
 
-                if (!wasPinned && wrapper) {
-                    var grid = document.getElementById('noteGrid');
-                    var firstActive = grid.querySelector('.note-card-wrapper[data-kind="active"]');
-                    if (firstActive && firstActive !== wrapper) {
-                        grid.insertBefore(wrapper, firstActive);
-                    }
-                }
-
-                var csrf = document.querySelector('input[name="_csrf"]');
                 fetch('/notes/toggle-pin/' + id, {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
+                    headers: csrfHeaders()
                 }).then(function (r) {
                     if (!r.ok) throw new Error('HTTP ' + r.status);
-                    showToast(wasPinned ? i18n.unpinned : i18n.pinned, 'success');
-                }).catch(function () { location.reload(); });
+                    showToast(wasPinned ? i18n.pinUnpinned : i18n.pinPinned, 'success');
+                    applyFilterAndDivider(currentFilter);
+                }).catch(function () {
+                    card.classList.toggle('pinned', wasPinned);
+                    card.dataset.pinned = String(wasPinned);
+                    if (pinIcon) pinIcon.classList.toggle('pin-icon', wasPinned);
+                    if (btn) btn.title = wasPinned ? i18n.unpinLabel : i18n.pinLabel;
+                    showToast(i18n.networkError, 'error');
+                });
             };
 
-            // ============================================================
-            // ARCHIVE (single)
-            // ============================================================
+            // ==================== ARCHIVE ====================
+
             window.toggleArchive = function (id, e) {
                 if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
-                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.trim() : '';
+                var titleEl = card.querySelector('.card-title');
+                var title = titleEl ? (titleEl.dataset.originalText || titleEl.textContent).trim() : '';
                 var isArchived = card.classList.contains('archived') || card.dataset.archived === 'true';
 
                 showConfirm({
@@ -1558,52 +1246,44 @@
                     message: fmt(isArchived ? i18n.unarchiveMessage : i18n.archiveMessage, title),
                     confirmLabel: isArchived ? i18n.unarchiveLabel : i18n.archiveLabel
                 }, function () {
-                    var csrf = document.querySelector('input[name="_csrf"]');
                     fetch('/notes/toggle-archive/' + id, {
                         method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' }
+                        headers: csrfHeaders()
                     }).then(function (r) {
                         if (r.ok) {
-                            // ✅ flashToast ПЕРЕД reload — інакше toast не покажеться
-                            flashToast(
-                                isArchived ? i18n.toastUnarchived : i18n.toastArchived,
-                                'success'
-                            );
+                            try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch (ex) {}
+                            flashToast(isArchived ? i18n.toastUnarchived : i18n.toastArchived, 'success');
                             location.reload();
                         } else {
                             showToast(i18n.archiveError, 'error');
                         }
-                    }).catch(function () {
-                        showToast(i18n.networkError, 'error');
-                    });
+                    }).catch(function () { showToast(i18n.networkError, 'error'); });
                 });
             };
 
-            // ============================================================
-            // DELETE (single) — окрема модалка з preview
-            // ============================================================
+            // ==================== DELETE ====================
+
             window.deleteNote = function (id, e) {
                 if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
-                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent.trim() : '—';
-                var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent.trim() : '—';
+                var titleEl = card.querySelector('.card-title');
+                var contentEl = card.querySelector('.card-text');
+                var title = titleEl ? (titleEl.dataset.originalText || titleEl.textContent).trim() : '—';
+                var content = contentEl ? (contentEl.dataset.originalText || contentEl.textContent).trim() : '—';
                 var isPinned = card.classList.contains('pinned');
                 var isArchived = card.classList.contains('archived') || card.dataset.archived === 'true';
-
                 document.getElementById('deleteNoteTitle').textContent = title;
                 document.getElementById('deleteNoteContent').textContent = content;
-                document.getElementById('deleteNotePinned').textContent = isPinned ? i18n.yes : i18n.no;
-                document.getElementById('deleteNoteArchived').textContent = isArchived ? i18n.yes : i18n.no;
-
+                document.getElementById('deleteNotePinned').textContent = isPinned ? 'Так' : 'Ні';
+                document.getElementById('deleteNoteArchived').textContent = isArchived ? 'Так' : 'Ні';
                 document.getElementById('deleteNoteForm').action = '/notes/delete/' + id;
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteNoteConfirmModal')).show();
+                showModalEl(document.getElementById('deleteNoteConfirmModal'));
             };
 
-            // ============================================================
-            // A11Y: Enter/Space на card-body
-            // ============================================================
-            document.getElementById('noteGrid').addEventListener('keydown', function (e) {
+            // ==================== A11Y ====================
+
+            noteGrid.addEventListener('keydown', function (e) {
                 var body = e.target.closest('.card-body[role="button"]');
                 if (!body) return;
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -1615,9 +1295,8 @@
                 }
             });
 
-            // ============================================================
-            // SORT / PAGE SIZE
-            // ============================================================
+            // ==================== SORT / PAGESIZE ====================
+
             document.querySelectorAll('[data-sort-choice]').forEach(function (link) {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -1632,10 +1311,7 @@
                 });
             }
 
-            // ============================================================
-            // FILTER
-            // ============================================================
-            var currentFilter = readParam('filter', 'all');
+            // ==================== FILTER TABS ====================
 
             document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
                 btn.addEventListener('click', function () {
@@ -1645,177 +1321,98 @@
                 });
             });
 
-            function applyFilterAndDivider(filter) {
-                // Сервер уже повернув правильний набір карток.
-                // Тут — тільки показати/приховати divider і empty state.
-                var hasActive = document.querySelectorAll('.note-card-wrapper[data-kind="active"]').length > 0;
-                var hasArchived = document.querySelectorAll('.note-card-wrapper[data-kind="archived"]').length > 0;
+            // ==================== APPLY FILTER ====================
 
-                document.querySelectorAll('.js-archived-divider').forEach(function (divider) {
-                    divider.style.display = (filter === 'all' && hasActive && hasArchived) ? '' : 'none';
+            function updateNoteCount() {
+                if (!headerNoteCount) return;
+
+                if (pinnedOnly) {
+                    var visiblePinned = 0;
+                    noteGrid.querySelectorAll('.note-card-wrapper').forEach(function (w) {
+                        if (w.style.display === 'none') return;
+                        var card = w.querySelector('.note-card');
+                        if (card && card.classList.contains('pinned')) visiblePinned++;
+                    });
+                    headerNoteCount.textContent = visiblePinned;
+                    if (headerNotePlural) headerNotePlural.textContent = notesWord(visiblePinned);
+                    return;
+                }
+
+                var totalEl = document.getElementById('noteGridTotal');
+                var count = 0;
+                if (!totalEl) {
+                    count = noteGrid.querySelectorAll('.note-card-wrapper').length;
+                } else {
+                    var active = parseInt(totalEl.dataset.active || 0, 10);
+                    var archived = parseInt(totalEl.dataset.archived || 0, 10);
+                    if (currentFilter === 'archived') count = archived;
+                    else if (currentFilter === 'active') count = active;
+                    else count = active + archived;
+                }
+                headerNoteCount.textContent = count;
+                if (headerNotePlural) headerNotePlural.textContent = notesWord(count);
+            }
+
+            function applyFilterAndDivider(filter) {
+                var visibleCount = 0;
+
+                noteGrid.querySelectorAll('.note-card-wrapper').forEach(function (wrapper) {
+                    var kind = wrapper.dataset.kind;
+                    var isShared = wrapper.dataset.shared === 'true';
+                    var show = false;
+
+                    if (filter === 'all') show = true;
+                    else if (filter === 'active') show = (kind === 'active');
+                    else if (filter === 'archived') show = (kind === 'archived');
+                    else if (filter === 'shared') show = isShared;
+
+                    if (show && pinnedOnly) {
+                        var card = wrapper.querySelector('.note-card');
+                        if (!card || !card.classList.contains('pinned')) show = false;
+                    }
+
+                    wrapper.style.display = show ? '' : 'none';
+                    if (show) visibleCount++;
                 });
 
-                var emptyMsg = document.getElementById('emptyFilterMessage');
-                if (emptyMsg) {
-                    var total = document.querySelectorAll('.note-card-wrapper').length;
-                    emptyMsg.style.display = (total === 0 && !document.querySelector('.empty-notes')) ? 'block' : 'none';
+                var hasActive = noteGrid.querySelectorAll('.note-card-wrapper[data-kind="active"]').length > 0;
+                var hasArchived = noteGrid.querySelectorAll('.note-card-wrapper[data-kind="archived"]').length > 0;
+                noteGrid.querySelectorAll('.js-archived-divider').forEach(function (divider) {
+                    divider.style.display = (filter === 'all' && hasActive && hasArchived && !pinnedOnly) ? '' : 'none';
+                });
+
+                if (emptyFilterMessage) {
+                    var totalCards = noteGrid.querySelectorAll('.note-card-wrapper').length;
+                    if (visibleCount === 0 && totalCards > 0) {
+                        var parts = [];
+                        var q = searchInput.value.trim();
+                        if (q) parts.push('«' + q + '»');
+                        if (pinnedOnly) parts.push(i18n.pinLabel);
+
+                        var titleEl = document.getElementById('emptyFilterTitle');
+                        var hintEl = document.getElementById('emptyFilterHint');
+                        var iconEl = document.getElementById('emptyFilterIcon');
+
+                        if (pinnedOnly && parts.length === 1) {
+                            if (titleEl) titleEl.textContent = i18n.pinnedEmptyTitle;
+                            if (hintEl) hintEl.textContent = i18n.pinnedEmptyHint;
+                            if (iconEl) iconEl.className = 'fas fa-thumbtack';
+                        } else {
+                            if (titleEl) titleEl.textContent = parts.length ? 'Немає нотаток: ' + parts.join(' · ') : i18n.emptyAllTitle;
+                            if (hintEl) hintEl.textContent = 'Спробуйте змінити фільтри або створити нотатку.';
+                            if (iconEl) iconEl.className = 'fas fa-search';
+                        }
+                        emptyFilterMessage.style.display = 'block';
+                    } else {
+                        emptyFilterMessage.style.display = 'none';
+                    }
                 }
 
                 updateNoteCount();
             }
 
-            // ============================================================
-            // BULK SELECTION
-            // ============================================================
-            var selectedIds = new Set();
-            var bulkBar = document.getElementById('bulkBar');
+            // ==================== SEARCH ====================
 
-            function updateBulkBar() {
-                if (selectedIds.size === 0) {
-                    bulkBar.classList.remove('active');
-                    return;
-                }
-
-                bulkBar.classList.add('active');
-                document.getElementById('bulkCount').textContent = selectedIds.size;
-
-                var hasActive = false;
-                var hasArchived = false;
-                selectedIds.forEach(function (id) {
-                    var card = document.querySelector('.note-card[data-id="' + id + '"]');
-                    if (!card) return;
-                    if (card.dataset.archived === 'true') hasArchived = true;
-                    else hasActive = true;
-                });
-
-                var archiveBtn = bulkBar.querySelector('[data-action="archive"]');
-                var unarchiveBtn = bulkBar.querySelector('[data-action="unarchive"]');
-
-                if (archiveBtn) archiveBtn.classList.toggle('d-none', !hasActive);
-                if (unarchiveBtn) unarchiveBtn.classList.toggle('d-none', !hasArchived);
-            }
-
-            function clearSelection() {
-                selectedIds.clear();
-                noteGrid.querySelectorAll('.note-checkbox').forEach(function (cb) { cb.checked = false; });
-                noteGrid.querySelectorAll('.note-card.selected').forEach(function (c) { c.classList.remove('selected'); });
-                updateBulkBar();
-            }
-
-            noteGrid.addEventListener('change', function (e) {
-                var cb = e.target.closest('.note-checkbox');
-                if (!cb) return;
-                var id = parseInt(cb.dataset.id, 10);
-                if (isNaN(id)) return;
-
-                var card = cb.closest('.note-card');
-                if (card) card.classList.toggle('selected', cb.checked);
-
-                if (cb.checked) selectedIds.add(id);
-                else selectedIds.delete(id);
-                updateBulkBar();
-            });
-
-            document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
-                btn.addEventListener('click', clearSelection);
-            });
-
-            // ============================================================
-            // BULK ACTIONS
-            // ============================================================
-            bulkBar.addEventListener('click', function (e) {
-                var btn = e.target.closest('[data-action]');
-                if (!btn) return;
-                var action = btn.dataset.action;
-
-                if (action === 'cancel') { clearSelection(); return; }
-                if (selectedIds.size === 0) return;
-
-                var count = selectedIds.size;
-                var isDelete = action === 'delete';
-                var isUnarchive = action === 'unarchive';
-
-                var title, message, confirmLabel, danger;
-                if (isDelete) {
-                    title = i18n.bulkDeleteTitle;
-                    message = fmt(i18n.bulkDeleteMessage, count);
-                    confirmLabel = i18n.bulkDeleteLabel;
-                    danger = true;
-                } else if (isUnarchive) {
-                    title = i18n.bulkUnarchiveTitle;
-                    message = fmt(i18n.bulkUnarchiveMessage, count);
-                    confirmLabel = i18n.unarchiveLabel;
-                    danger = false;
-                } else {
-                    title = i18n.bulkArchiveTitle;
-                    message = fmt(i18n.bulkArchiveMessage, count);
-                    confirmLabel = i18n.archiveLabel;
-                    danger = false;
-                }
-
-                showConfirm({
-                    title: title,
-                    message: message,
-                    danger: danger,
-                    confirmLabel: confirmLabel
-                }, function () {
-                    var csrf = document.querySelector('input[name="_csrf"]');
-                    var params = new URLSearchParams();
-                    selectedIds.forEach(function (id) { params.append('ids', id); });
-
-                    fetch('/notes/bulk/' + action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': csrf ? csrf.value : '',
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: params.toString()
-                    }).then(function (r) {
-                        if (!r.ok) throw new Error('HTTP ' + r.status);
-                        return r.json();
-                    }).then(function (data) {
-                        if (data.success) {
-                            // ✅ flashToast ПЕРЕД reload
-                            var resultCount = data.count || count;
-                            var msg;
-                            if (isDelete)         msg = fmt(i18n.toastBulkDeleted, resultCount);
-                            else if (isUnarchive) msg = fmt(i18n.toastBulkUnarchived, resultCount);
-                            else                  msg = fmt(i18n.toastBulkArchived, resultCount);
-                            flashToast(msg, 'success');
-                            location.reload();
-                        } else {
-                            showToast(fmt(i18n.errorPrefix, data.error || '?'), 'error');
-                        }
-                    }).catch(function (err) {
-                        showToast(fmt(i18n.errorPrefix, err.message), 'error');
-                    });
-                });
-            });
-
-            // ============================================================
-            // CLEAR ARCHIVE
-            // ============================================================
-            var clearArchiveBtn = document.getElementById('clearArchiveBtn');
-            if (clearArchiveBtn) {
-                clearArchiveBtn.addEventListener('click', function () {
-                    showConfirm({
-                        title: i18n.clearArchiveTitle,
-                        message: i18n.clearArchiveMessage,
-                        danger: true,
-                        confirmLabel: i18n.clearArchiveLabel
-                    }, function () {
-                        // form.submit() — server-flash покажеться напряму
-                        document.getElementById('clearArchiveForm').submit();
-                    });
-                });
-            }
-
-            // ============================================================
-            // SEARCH
-            // ============================================================
-            var searchInput = document.getElementById('searchInput');
-            var searchClear = document.getElementById('searchClear');
-            var searchLoading = document.getElementById('searchLoading');
             var searchTimer = null;
             var lastQuery = searchInput.value || '';
 
@@ -1836,7 +1433,7 @@
                 searchTimer = setTimeout(function () { doSearch(q); }, 400);
             });
 
-            document.getElementById('noteGrid').addEventListener('click', function (e) {
+            noteGrid.addEventListener('click', function (e) {
                 var btn = e.target.closest('.js-clear-search');
                 if (!btn) return;
                 e.preventDefault();
@@ -1862,9 +1459,12 @@
                     .then(function (r) { return r.ok ? r.text() : ''; })
                     .then(function (html) {
                         if (thisQuery !== lastQuery) return;
-                        document.getElementById('noteGrid').innerHTML = html;
+                        noteGrid.innerHTML = html;
                         if (searchLoading) searchLoading.style.display = 'none';
                         clearSelection();
+                        snapshotOriginalTexts();
+                        applySearchHighlight();
+                        updateRelativeTimes();
                         applyFilterAndDivider(currentFilter);
                     })
                     .catch(function () {
@@ -1873,9 +1473,8 @@
                     });
             }
 
-            // ============================================================
-            // LOAD MORE
-            // ============================================================
+            // ==================== LOAD MORE ====================
+
             window.loadMore = function (type) {
                 var wrapper = document.getElementById(type + 'LoadMore');
                 if (!wrapper) return;
@@ -1908,6 +1507,8 @@
                         wrapper.dataset.page = String(page + 1);
                         if (newCount < 20) wrapper.remove();
                         else { btn.disabled = false; btn.innerHTML = originalHtml; }
+                        snapshotOriginalTexts();
+                        updateRelativeTimes();
                         applyFilterAndDivider(currentFilter);
                     })
                     .catch(function () {
@@ -1916,42 +1517,145 @@
                     });
             };
 
-            function updateNoteCount() {
-                var countEl = document.getElementById('headerNoteCount');
-                if (!countEl) return;
+            // ==================== BULK ====================
 
-                var totalEl = document.getElementById('noteGridTotal');
-                if (!totalEl) {
-                    // Fallback: рахуємо картки в DOM (якщо фрагмент чомусь не має #noteGridTotal)
-                    countEl.textContent = document.querySelectorAll('.note-card-wrapper').length;
+            function updateBulkBar() {
+                if (!bulkBar) return;
+                if (selectedIds.size === 0) {
+                    bulkBar.classList.remove('active');
+                    noteGrid.classList.remove('bulk-mode');
                     return;
                 }
+                bulkBar.classList.add('active');
+                noteGrid.classList.add('bulk-mode');
+                document.getElementById('bulkCount').textContent = selectedIds.size;
 
-                var filter = readParam('filter', 'all');
-                var active = parseInt(totalEl.dataset.active || 0, 10);
-                var archived = parseInt(totalEl.dataset.archived || 0, 10);
-
-                var total = 0;
-                if (filter === 'archived') {
-                    total = archived;
-                } else if (filter === 'active') {
-                    total = active;
-                } else {
-                    // all / shared — сума
-                    total = active + archived;
-                }
-
-                countEl.textContent = total;
+                var hasActive = false;
+                var hasArchived = false;
+                selectedIds.forEach(function (id) {
+                    var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                    if (!card) return;
+                    if (card.dataset.archived === 'true') hasArchived = true;
+                    else hasActive = true;
+                });
+                var archiveBtn = bulkBar.querySelector('[data-action="archive"]');
+                var unarchiveBtn = bulkBar.querySelector('[data-action="unarchive"]');
+                if (archiveBtn) archiveBtn.classList.toggle('d-none', !hasActive);
+                if (unarchiveBtn) unarchiveBtn.classList.toggle('d-none', !hasArchived);
             }
 
-            // ============================================================
-            // KEYBOARD SHORTCUTS
-            // ============================================================
+            function clearSelection() {
+                selectedIds.clear();
+                noteGrid.querySelectorAll('.note-checkbox').forEach(function (cb) { cb.checked = false; });
+                noteGrid.querySelectorAll('.note-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+                updateBulkBar();
+            }
+
+            noteGrid.addEventListener('change', function (e) {
+                var cb = e.target.closest('.note-checkbox');
+                if (!cb) return;
+                var id = parseInt(cb.dataset.id, 10);
+                if (isNaN(id)) return;
+                var card = cb.closest('.note-card');
+                if (card) card.classList.toggle('selected', cb.checked);
+                if (cb.checked) selectedIds.add(id);
+                else selectedIds.delete(id);
+                updateBulkBar();
+            });
+
+            document.querySelectorAll('#filterToggle .btn').forEach(function (btn) {
+                btn.addEventListener('click', clearSelection);
+            });
+
+            if (bulkBar) {
+                bulkBar.addEventListener('click', function (e) {
+                    var btn = e.target.closest('[data-action]');
+                    if (!btn) return;
+                    var action = btn.dataset.action;
+
+                    if (action === 'cancel') { clearSelection(); return; }
+                    if (selectedIds.size === 0) return;
+
+                    var count = selectedIds.size;
+                    var isDelete = action === 'delete';
+                    var isUnarchive = action === 'unarchive';
+
+                    var title, message, confirmLabel, danger;
+                    if (isDelete) {
+                        title = i18n.bulkDeleteTitle;
+                        message = fmt(i18n.bulkDeleteMessage, count);
+                        confirmLabel = i18n.bulkDeleteLabel;
+                        danger = true;
+                    } else if (isUnarchive) {
+                        title = i18n.bulkUnarchiveTitle;
+                        message = fmt(i18n.bulkUnarchiveMessage, count);
+                        confirmLabel = i18n.unarchiveLabel;
+                        danger = false;
+                    } else {
+                        title = i18n.bulkArchiveTitle;
+                        message = fmt(i18n.bulkArchiveMessage, count);
+                        confirmLabel = i18n.archiveLabel;
+                        danger = false;
+                    }
+
+                    showConfirm({
+                        title: title,
+                        message: message,
+                        danger: danger,
+                        confirmLabel: confirmLabel
+                    }, function () {
+                        var params = new URLSearchParams();
+                        selectedIds.forEach(function (id) { params.append('ids', id); });
+
+                        fetch('/notes/bulk/' + action, {
+                            method: 'POST',
+                            headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                            body: params.toString()
+                        }).then(function (r) {
+                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                            return r.json();
+                        }).then(function (data) {
+                            if (data.success) {
+                                var resultCount = data.count || count;
+                                var msg;
+                                if (isDelete) msg = fmt(i18n.toastBulkDeleted, resultCount);
+                                else if (isUnarchive) msg = fmt(i18n.toastBulkUnarchived, resultCount);
+                                else msg = fmt(i18n.toastBulkArchived, resultCount);
+                                try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch (ex) {}
+                                flashToast(msg, 'success');
+                                location.reload();
+                            } else {
+                                showToast(fmt(i18n.errorPrefix, data.error || '?'), 'error');
+                            }
+                        }).catch(function (err) {
+                            showToast(fmt(i18n.errorPrefix, err.message), 'error');
+                        });
+                    });
+                });
+            }
+
+            // ==================== CLEAR ARCHIVE ====================
+
+            var clearArchiveBtn = document.getElementById('clearArchiveBtn');
+            if (clearArchiveBtn) {
+                clearArchiveBtn.addEventListener('click', function () {
+                    showConfirm({
+                        title: i18n.clearArchiveTitle,
+                        message: i18n.clearArchiveMessage,
+                        danger: true,
+                        confirmLabel: i18n.clearArchiveLabel
+                    }, function () {
+                        document.getElementById('clearArchiveForm').submit();
+                    });
+                });
+            }
+
+            // ==================== KEYBOARD ====================
+
             document.addEventListener('keydown', function (e) {
                 var tag = (e.target.tagName || '').toUpperCase();
                 var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
 
-                // Ctrl/Cmd+A — вибрати всі видимі
                 if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !isEditable) {
                     var visibleCheckboxes = Array.from(noteGrid.querySelectorAll('.note-checkbox'))
                         .filter(function (cb) {
@@ -1971,10 +1675,9 @@
                     }
                 }
 
-                if (!isEditable && (e.key === 'n' || e.key === 'N')
-                    && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                if (!isEditable && (e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById('createNoteModal')).show();
+                    showModalEl(document.getElementById('createNoteModal'));
                     return;
                 }
 
@@ -1989,10 +1692,7 @@
                         var inst = bootstrap.Modal.getInstance(m);
                         if (inst) inst.hide();
                     });
-                    if (selectedIds.size > 0) {
-                        clearSelection();
-                        return;
-                    }
+                    if (selectedIds.size > 0) { clearSelection(); return; }
                     if (document.activeElement === searchInput && searchInput.value) {
                         searchInput.value = '';
                         searchInput.dispatchEvent(new Event('input'));
@@ -2000,24 +1700,135 @@
                 }
             });
 
-            try {
-                var savedScroll = sessionStorage.getItem('notes_scroll');
-                if (savedScroll) {
-                    sessionStorage.removeItem('notes_scroll');
-                    setTimeout(function () {
-                        window.scrollTo(0, parseInt(savedScroll, 10) || 0);
-                    }, 50);
-                }
-            } catch (e) {}
+            // ==================== COLOR PICKERS ====================
+
+            document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
+                picker.querySelectorAll('.color-option').forEach(function (el) {
+                    el.addEventListener('click', function () {
+                        picker.querySelectorAll('.color-option').forEach(function (c) { c.classList.remove('selected'); });
+                        this.classList.add('selected');
+                        var hidden = picker.closest('.modal-body').querySelector('input[name="color"]');
+                        if (hidden) hidden.value = this.dataset.color;
+                        scheduleDraftSave();
+                    });
+                });
+            });
+            document.querySelectorAll('.text-color-picker').forEach(function (picker) {
+                picker.querySelectorAll('.color-option').forEach(function (el) {
+                    el.addEventListener('click', function () {
+                        picker.querySelectorAll('.color-option').forEach(function (c) { c.classList.remove('selected'); });
+                        this.classList.add('selected');
+                        var hidden = picker.closest('.modal-body').querySelector('input[name="textColor"]');
+                        if (hidden) hidden.value = this.dataset.color;
+                        scheduleDraftSave();
+                    });
+                });
+            });
+
+            // ==================== CHAR COUNTERS ====================
+
+            bindCounter('createNoteTitle', 'createTitleCount', 255);
+            bindCounter('createNoteContent', 'createContentCount', 5000);
+            bindCounter('editNoteTitle', 'editTitleCount', 255);
+            bindCounter('editNoteContent', 'editContentCount', 5000);
+
+            // ==================== EDIT FORM SUBMIT ====================
+
+            var editForm = document.getElementById('editNoteForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    window.__editFormSubmitting = true;
+                    var fd = new FormData(editForm);
+                    var btn = editForm.querySelector('[type="submit"]');
+                    var origHtml = btn ? btn.innerHTML : null;
+                    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>'; }
+
+                    fetch(editForm.action, { method: 'POST', body: fd })
+                        .then(function (r) {
+                            return r.text().then(function (body) {
+                                if (r.ok || r.redirected) return { ok: true };
+                                var msg = 'HTTP ' + r.status;
+                                try { var j = JSON.parse(body); if (j && j.message) msg = j.message; } catch (ex) {}
+                                return { ok: false, msg: msg };
+                            });
+                        })
+                        .then(function (res) {
+                            if (res.ok) {
+                                try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch (ex) {}
+                                location.reload();
+                            } else {
+                                window.__editFormSubmitting = false;
+                                if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                                showToast(res.msg, 'error');
+                            }
+                        })
+                        .catch(function (err) {
+                            window.__editFormSubmitting = false;
+                            if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                            showToast(fmt(i18n.errorPrefix, err.message || 'network'), 'error');
+                        });
+                });
+            }
+
+            // ==================== DELETE FORM SUBMIT ====================
+
+            var deleteForm = document.getElementById('deleteNoteForm');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    window.__editFormSubmitting = true;
+                    var fd = new FormData(deleteForm);
+                    fetch(deleteForm.action, { method: 'POST', body: fd })
+                        .then(function (r) {
+                            if (r.ok || r.redirected) {
+                                try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch (ex) {}
+                                location.reload();
+                            } else {
+                                window.__editFormSubmitting = false;
+                                showToast(i18n.networkError, 'error');
+                            }
+                        })
+                        .catch(function () {
+                            window.__editFormSubmitting = false;
+                            showToast(i18n.networkError, 'error');
+                        });
+                });
+            }
+
+            // ==================== INIT ====================
 
             applyFilterAndDivider(currentFilter);
+            applySearchHighlight();
+            setTimeout(restoreScroll, 50);
+
+            var openId = readParam('open', '');
+            if (openId) {
+                var oid = parseInt(openId, 10);
+                if (!isNaN(oid)) {
+                    setTimeout(function () {
+                        var card = document.querySelector('.note-card[data-id="' + oid + '"]');
+                        if (card) {
+                            try {
+                                var url = new URL(window.location.href);
+                                url.searchParams.delete('open');
+                                window.history.replaceState({}, '', url.toString());
+                            } catch (ex) {}
+                            window.editNote(oid);
+                        } else {
+                            showToast('Нотатка не в першій сторінці. Скористайтесь пошуком.', 'error');
+                        }
+                    }, 300);
+                }
+            }
         });
 
-        // Наприкінці DOMContentLoaded у notes.html
         if (/*[[${openCreateModal}]]*/ false) {
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('createNoteModal')).show();
+            setTimeout(function () {
+                var el = document.getElementById('createNoteModal');
+                if (el) bootstrap.Modal.getOrCreateInstance(el).show();
+            }, 100);
         }
-
     })();
 </script>
 

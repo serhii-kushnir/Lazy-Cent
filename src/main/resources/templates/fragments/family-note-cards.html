@@ -4,8 +4,6 @@
 
 <!-- ============================================================
      FAMILY NOTE CARDS — рендеринг одного пакета нотаток.
-     Використовується в family/notes.html (initial render)
-     та в /notes/api/family (AJAX load-more/filter).
      ============================================================ -->
 <th:block th:fragment="cards">
     <div th:each="note : ${familyNotes}"
@@ -49,12 +47,6 @@
                     <div class="d-flex align-items-center gap-1 flex-shrink-0">
                         <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning"
                            style="font-size: 0.85rem;" th:title="#{notes.action.pin}"></i>
-                        <button type="button" class="btn-icon copy-link-btn"
-                                th:title="#{notes.copyLink}"
-                                th:aria-label="#{notes.copyLink}"
-                                th:onclick="'copyNoteLink(' + ${note.id} + ', event)'">
-                            <i class="fas fa-link" style="font-size: 0.8rem;"></i>
-                        </button>
                         <input type="checkbox" class="note-checkbox form-check-input"
                                th:data-id="${note.id}"
                                th:data-mine="${note.owner.id == currentUser.id}"
