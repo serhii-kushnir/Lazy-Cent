@@ -18,6 +18,11 @@ import java.util.Optional;
 @Repository
 public interface DayBudgetRepository extends JpaRepository<DayBudget, Long> {
 
+    @Query("SELECT COALESCE(SUM(db.startingBalance), 0.0) FROM DayBudget db " +
+            "WHERE db.owner.family.id = :familyId AND db.date = :date")
+    Double sumStartingBalanceByFamilyAndDate(@Param("familyId") Long familyId,
+                                             @Param("date") LocalDate date);
+
     @Query("SELECT DISTINCT YEAR(b.date) FROM DayBudget b WHERE b.owner = :owner ORDER BY YEAR(b.date) DESC")
     List<Integer> findDistinctYearsByOwner(@Param("owner") User owner);
 

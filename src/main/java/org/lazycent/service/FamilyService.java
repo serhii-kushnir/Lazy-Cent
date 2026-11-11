@@ -6,6 +6,7 @@ import org.lazycent.exception.ValidationException;
 import org.lazycent.model.Family;
 import org.lazycent.model.FamilyJoinRequest;
 import org.lazycent.model.User;
+import org.lazycent.model.dto.SharedDayDto;
 import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.*;
 import org.springframework.context.MessageSource;
@@ -439,5 +440,55 @@ public class FamilyService {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    // ==================== SHARED DAYS ====================
+
+    private static final java.util.Map<java.time.DayOfWeek, String> DAY_NAMES = java.util.Map.of(
+            java.time.DayOfWeek.MONDAY,    "Понеділок",
+            java.time.DayOfWeek.TUESDAY,   "Вівторок",
+            java.time.DayOfWeek.WEDNESDAY, "Середа",
+            java.time.DayOfWeek.THURSDAY,  "Четвер",
+            java.time.DayOfWeek.FRIDAY,    "П'ятниця",
+            java.time.DayOfWeek.SATURDAY,  "Субота",
+            java.time.DayOfWeek.SUNDAY,    "Неділя"
+    );
+
+    public String getDayName(LocalDate date) {
+        if (date == null) return "";
+        return DAY_NAMES.getOrDefault(date.getDayOfWeek(), "");
+    }
+
+    @Transactional(readOnly = true)
+    public List<SharedDayDto> getSharedDays(User currentUser, LocalDate start, LocalDate end) {
+        List<SharedTransactionDto> all = getSharedTransactions(currentUser, start, end);
+        if (all.isEmpty()) return List.of();
+
+        java.util.Map<LocalDate, List<SharedTransactionDto>> grouped = all.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        SharedTransactionDto::date,
+                        java.util.LinkedHashMap::new,
+                        java.util.stream.Collectors.toList()));
+
+        List<SharedDayDto> result = new java.util.ArrayList<>(grouped.size());
+        for (var entry : grouped.entrySet()) {
+            LocalDate date = entry.getKey();
+            List<SharedTransactionDto> txs = entry.getValue();
+            double exp = 0, inc = 0;
+            for (SharedTransactionDto t : txs) {
+                double amt = t.amount() != null ? t.amount() : 0.0;
+                if (t.expense()) exp += amt;
+                else if (t.income()) inc += amt;
+            }
+            result.add(new SharedDayDto(date, getDayName(date), exp, inc, inc - exp, txs));
+        }
+
+        result.sort(java.util.Comparator.comparing(SharedDayDto::date).reversed());
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<SharedTransactionDto> getSharedTransactionsByDate(User currentUser, LocalDate date) {
+        return getSharedTransactions(currentUser, date, date);
     }
 }

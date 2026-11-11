@@ -34,24 +34,26 @@ public class TransactionController extends BaseController {
 
     @PostMapping("/expense/duplicate/{id}")
     public String duplicateExpense(@PathVariable Long id,
+                                   @RequestParam(value = "returnTo", required = false) String returnTo,
                                    Authentication authentication,
                                    RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.duplicateExpense(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.expense.duplicated"));
-        return "redirect:/day/" + date;
+        return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
     }
 
     @PostMapping("/income/duplicate/{id}")
     public String duplicateIncome(@PathVariable Long id,
+                                  @RequestParam(value = "returnTo", required = false) String returnTo,
                                   Authentication authentication,
                                   RedirectAttributes redirectAttributes) {
         User currentUser = getCurrentUser(authentication);
         if (currentUser == null) return "redirect:/login";
         LocalDate date = budgetService.duplicateIncome(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.duplicated"));
-        return "redirect:/day/" + date;
+        return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
     }
 
     // ==================== ВИДАЛЕННЯ ====================

@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${dayNames[dayName]} + ' ' + ${#temporals.format(date, 'dd.MM.yyyy')} + ' — Lazy Cent'">Day — Lazy Cent</title>
+    <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
+    <style>
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .anim-fade-up   { animation: fadeInUp .5s ease forwards; opacity: 0; }
+        .anim-fade-down { animation: fadeInDown .4s ease forwards; opacity: 0; }
+        .delay-1 { animation-delay: .05s; } .delay-2 { animation-delay: .10s; }
+        .delay-3 { animation-delay: .15s; } .delay-4 { animation-delay: .20s; }
+        .page-max { max-width: 1920px; margin: 0 auto; }
+        .btn:not(.btn-close), .nav-btn { border-radius: .5rem !important; }
+        .btn:not(.btn-close):not(.navbar-toggler) { transition: transform .2s ease, box-shadow .2s ease; }
+        .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,.15); }
+        .icon-circle { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+
+        .page-header-wrap { position: relative; z-index: 10; }
+
+        .stat-card { border-radius: 1rem; border: none; background-color: var(--bs-card-bg); box-shadow: 0 4px 12px rgba(0,0,0,.05); height: 100%; }
+        [data-bs-theme="dark"] .stat-card { background-color: #1d2027; border: 1px solid #2a2e37; }
+
+        .days-section { background: var(--bs-card-bg); border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,.05); overflow: hidden; }
+        [data-bs-theme="dark"] .days-section { background: #212529 !important; border: 1px solid #2a2e37; }
+
+        .cat-header-theme { background-color: #fff !important; color: #212529 !important; border-bottom: 1px solid #dee2e6 !important; }
+        .cat-header-theme h6, .cat-header-theme h6 * { color: #6c757d !important; }
+        .cat-header-theme h3, .cat-header-theme h3 * { color: #212529 !important; }
+        [data-bs-theme="dark"] .cat-header-theme { background-color: #1d2027 !important; color: #e6e6e6 !important; border-bottom-color: #2a2e37 !important; }
+        [data-bs-theme="dark"] .cat-header-theme h6, [data-bs-theme="dark"] .cat-header-theme h6 * { color: rgba(230,230,230,.75) !important; }
+        [data-bs-theme="dark"] .cat-header-theme h3, [data-bs-theme="dark"] .cat-header-theme h3 * { color: #fff !important; }
+        .sub-bar { background-color: #fff !important; }
+        [data-bs-theme="dark"] .sub-bar { background-color: #1d2027 !important; }
+
+        .view-toggle { display: flex; gap: .3rem; background: var(--bs-secondary-bg); border-radius: .5rem; padding: .2rem; flex-shrink: 0; }
+        .view-toggle .btn { border: none; padding: .5rem 1rem; font-size: .95rem; border-radius: .375rem !important; background: transparent; color: var(--bs-secondary-color); font-weight: 600; transition: all .2s ease; display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
+        .cat-header-theme .view-toggle { background: #e9ecef !important; }
+        .cat-header-theme .view-toggle .btn { color: #495057 !important; }
+        .cat-header-theme .view-toggle .btn.active { background: #fff !important; color: #0d6efd !important; box-shadow: 0 2px 6px rgba(0,0,0,.12) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255,255,255,.08) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255,255,255,.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #fff !important; box-shadow: none !important; }
+
+        .days-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
+        .days-toolbar .search-wrap { flex: 1 1 220px; min-width: 180px; }
+        .days-toolbar .search-wrap .input-group { flex-wrap: nowrap; }
+        .days-toolbar .search-wrap .input-group-text { background: transparent; border-right: none; }
+        .days-toolbar .search-wrap .form-control { border-left: none; border-right: none; }
+        .days-toolbar .search-wrap .btn-clear { border: 1px solid var(--bs-border-color); border-left: none; border-radius: 0 .375rem .375rem 0 !important; color: var(--bs-secondary-color); padding: .25rem .65rem; }
+        .days-toolbar .search-wrap .btn-clear:hover { background: rgba(220,53,69,.1); color: #dc3545; border-color: #dc3545; }
+        .days-toolbar .filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+        .days-toolbar .filter-group .form-select-sm { width: auto; min-width: 110px; border-radius: .5rem; font-size: .85rem; }
+        .days-toolbar .page-size-wrap { display: flex; align-items: center; gap: .4rem; font-size: .85rem; color: var(--bs-secondary-color); }
+        .days-toolbar .page-size-wrap select { width: auto; min-width: 80px; border-radius: .5rem; font-size: .85rem; }
+        .days-toolbar .info-text { font-size: .85rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
+
+        /* ✅ MOBILE: компактний пошук 34px */
+        @media (max-width: 767.98px) {
+            .days-toolbar { padding: .5rem .75rem; flex-direction: column; align-items: stretch; gap: .4rem; }
+            .days-toolbar .search-wrap { flex: 0 0 auto; width: 100%; min-width: 0; }
+            .days-toolbar .search-wrap .input-group {
+                height: 34px !important;
+                min-height: 34px !important;
+                max-height: 34px !important;
+                flex-wrap: nowrap;
+                align-items: stretch;
+            }
+            .days-toolbar .search-wrap .input-group > .input-group-text,
+            .days-toolbar .search-wrap .input-group > .form-control,
+            .days-toolbar .search-wrap .input-group > .btn {
+                height: 34px !important;
+                min-height: 34px !important;
+                max-height: 34px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                line-height: 32px !important;
+                font-size: .85rem !important;
+                display: flex;
+                align-items: center;
+            }
+            .days-toolbar .search-wrap .input-group > .form-control {
+                display: block;
+                padding-left: .5rem !important;
+                padding-right: .5rem !important;
+            }
+            .days-toolbar .search-wrap .input-group > .input-group-text {
+                padding-left: .5rem !important;
+                padding-right: .4rem !important;
+            }
+            .days-toolbar .search-wrap .input-group > .btn-clear {
+                padding-left: .65rem !important;
+                padding-right: .65rem !important;
+            }
+
+            .days-toolbar .filter-group { flex-direction: column; align-items: stretch; width: 100%; gap: .4rem; }
+            .days-toolbar .filter-group > * { width: 100% !important; min-width: 0 !important; }
+            .days-toolbar .page-size-wrap { width: 100%; justify-content: space-between; }
+            .days-toolbar .info-text { text-align: center; margin-left: 0; order: 99; }
+        }
+
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table-transactions { table-layout: fixed; width: 100%; font-size: .8rem; border-collapse: collapse; min-width: 1300px; }
+        .table-transactions th, .table-transactions td { border-bottom: 1px solid var(--bs-border-color); vertical-align: middle; padding: .4rem .3rem; overflow: hidden; text-overflow: ellipsis; }
+        .table-transactions th { background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--bs-border-color); white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+        [data-bs-theme="dark"] .table-transactions th { background-color: #23262e; color: #9aa3b2; border-bottom-color: #3a3f4a; }
+        .table-transactions tbody tr:hover { background-color: rgba(13,110,253,.08); }
+        [data-bs-theme="dark"] .table-transactions tbody tr:hover { background-color: rgba(90,138,197,.18); }
+
+        .table-transactions th { position: sticky; top: 0; z-index: 10; }
+        .table-transactions th .resize-handle { position: absolute; right: -3px; top: 0; width: 6px; height: 100%; cursor: col-resize; user-select: none; background: #adb5bd; opacity: .3; z-index: 2; transition: opacity .15s, background .15s; border-radius: 3px; }
+        .table-transactions th .resize-handle:hover, .table-transactions th .resize-handle.active { opacity: 1; background: #0d6efd; width: 4px; right: -2px; }
+        [data-bs-theme="dark"] .table-transactions th .resize-handle { background: #6c757d; }
+        [data-bs-theme="dark"] .table-transactions th .resize-handle:hover, [data-bs-theme="dark"] .table-transactions th .resize-handle.active { background: #5a8ac5; }
+
+        .table-transactions .col-num      { width: 48px;  min-width: 48px;  text-align: center; }
+        .table-transactions .col-time     { width: 80px;  min-width: 80px;  text-align: center; }
+        .table-transactions .col-type     { width: 90px;  min-width: 90px;  text-align: center; }
+        .table-transactions .col-member   { width: 130px; min-width: 130px; text-align: left; }
+        .table-transactions .col-name     { width: auto;  min-width: 160px; text-align: left; }
+        .table-transactions .col-quantity { width: 70px;  min-width: 70px;  text-align: center; }
+        .table-transactions .col-amount   { width: 110px; min-width: 110px; text-align: center; }
+        .table-transactions .col-buyer    { width: 110px; min-width: 110px; text-align: left; }
+        .table-transactions .col-seller   { width: 110px; min-width: 110px; text-align: left; }
+        .table-transactions .col-category { width: 120px; min-width: 120px; text-align: center; }
+        .table-transactions .col-details  { width: 140px; min-width: 120px; text-align: center; }
+        .table-transactions .col-running  { width: 110px; min-width: 110px; text-align: right; }
+        .table-transactions .col-actions  { width: 150px; min-width: 150px; text-align: center; white-space: nowrap; }
+
+        .table-transactions .col-actions .btn {
+            width: 40px; height: 40px;
+            padding: 0; margin: 0 2px;
+            display: inline-flex; align-items: center; justify-content: center;
+            vertical-align: middle;
+        }
+        .table-transactions .col-actions .btn i { font-size: 1.05rem; }
+        .table-transactions .col-actions form { display: inline-block; }
+
+        .sortable { cursor: pointer; user-select: none; }
+        .sortable .sort-icon { margin-left: 4px; font-size: .7rem; opacity: .5; }
+        .sortable:hover .sort-icon { opacity: 1; }
+        .sortable.active-asc .sort-icon, .sortable.active-desc .sort-icon { opacity: 1; color: #0d6efd; }
+
+        .type-text { font-weight: 600; }
+        .type-text.expense { color: #dc3545; } .type-text.income { color: #198754; }
+        [data-bs-theme="dark"] .type-text.expense { color: #f87171; }
+        [data-bs-theme="dark"] .type-text.income { color: #6ee7b7; }
+
+        .transaction-card-wrapper { display: flex; }
+        .transaction-card { background: #fff; border-radius: .75rem; border: 1px solid #dee2e6; overflow: hidden; width: 100%; height: 100%; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+        .transaction-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+        [data-bs-theme="dark"] .transaction-card { background: #1d2027; border-color: #2a2e37; }
+        .transaction-card .card-header { padding: .5rem .75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; flex-wrap: wrap; gap: .25rem; background: #f8f9fa; }
+        [data-bs-theme="dark"] .transaction-card .card-header { border-bottom-color: #2a2e37; background: #23262e; }
+        .transaction-card .card-header .type-badge { font-size: .7rem; padding: .15rem .5rem; border-radius: 20px; font-weight: 600; }
+        .type-badge.expense { color: #dc3545; }
+        .type-badge.income  { color: #198754; }
+        [data-bs-theme="dark"] .type-badge.expense { color: #f87171; }
+        [data-bs-theme="dark"] .type-badge.income  { color: #6ee7b7; }
+        .transaction-card .card-header .card-meta { font-size: .75rem; color: #6c757d; font-weight: 600; }
+        [data-bs-theme="dark"] .transaction-card .card-header .card-meta { color: #9aa3b2; }
+        .transaction-card .card-body { padding: .75rem; flex-grow: 1; }
+        .transaction-card .card-body .row { display: flex; justify-content: space-between; padding: .3rem 0; border-bottom: 1px dashed #e9ecef; font-size: .85rem; }
+        .transaction-card .card-body .row:last-child { border-bottom: none; }
+        [data-bs-theme="dark"] .transaction-card .card-body .row { border-bottom-color: #2a2e37; }
+        .transaction-card .card-body .row .label { color: #6c757d; font-weight: 500; flex: 0 0 40%; font-size: .8rem; }
+        [data-bs-theme="dark"] .transaction-card .card-body .row .label { color: #9aa3b2; }
+        .transaction-card .card-body .row .value { font-weight: 600; flex: 0 0 58%; word-break: break-word; font-size: .85rem; text-align: right; }
+        .transaction-card .card-body .row .value.text-danger { color: #dc3545; }
+        .transaction-card .card-body .row .value.text-success { color: #198754; }
+        [data-bs-theme="dark"] .transaction-card .card-body .row .value.text-danger { color: #f87171; }
+        [data-bs-theme="dark"] .transaction-card .card-body .row .value.text-success { color: #6ee7b7; }
+        .transaction-card .card-footer { padding: .5rem .75rem; border-top: 1px solid #dee2e6; display: flex; gap: .5rem; justify-content: flex-end; background: #f8f9fa; }
+        [data-bs-theme="dark"] .transaction-card .card-footer { border-top-color: #2a2e37; background: #23262e; }
+        .transaction-card .card-footer .btn { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+        .transaction-card .card-footer form { display: inline-block; }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
+        .empty-state i { font-size: 4rem; opacity: .25; }
+
+        /* Breakdown */
+        .breakdown-list { display: flex; flex-direction: column; gap: .35rem; }
+        .breakdown-item { display: flex; align-items: center; gap: .6rem; font-size: .85rem; }
+        .breakdown-item .bd-name { flex: 0 0 35%; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .breakdown-item .bd-bar { flex: 1; height: 8px; border-radius: 4px; background: var(--bs-tertiary-bg); overflow: hidden; }
+        .breakdown-item .bd-bar > div { height: 100%; border-radius: 4px; }
+        .breakdown-item .bd-value { flex: 0 0 auto; font-weight: 700; white-space: nowrap; min-width: 90px; text-align: right; }
+        .breakdown-empty { font-size: .85rem; color: var(--bs-secondary-color); padding: .5rem 0; }
+
+        /* ✅ Заголовки секцій у розбивці */
+        .breakdown-section-title {
+            font-size: .75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: .4rem 0 .25rem;
+            margin-bottom: .15rem;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        .breakdown-section-title:not(:first-child) { margin-top: .75rem; }
+
+        #onlyMineBtn { border-radius: .5rem; }
+        #onlyMineBtn.active { background-color: var(--bs-primary) !important; color: #fff !important; border-color: var(--bs-primary) !important; }
+
+        .columns-menu .form-check { padding-left: 2rem; }
+        .columns-menu .form-check-label { cursor: pointer; user-select: none; }
+
+        .column-hidden { display: none !important; }
+
+        #toggleBreakdownBtn.active { background-color: var(--bs-primary) !important; color: #fff !important; border-color: var(--bs-primary) !important; }
+
+        #loadMoreWrap { padding: 1rem 0 1.5rem; }
+
+        @media print {
+            @page { margin: 10mm; }
+            body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
+            .view-toggle, .days-toolbar, .cat-header-theme > div.no-print,
+            .col-actions, .col-num, .resize-handle, .toast-container,
+            .cookie-banner, .settings-drawer, .settings-overlay,
+            .page-header-wrap .btn, .alert, #breakdownRow, #loadMoreWrap { display: none !important; }
+            .d-print-block { display: block !important; }
+            .d-print-flex  { display: flex !important; }
+            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
+            .print-header { display: flex !important; justify-content: space-between; align-items: center; padding: 0 0 6px 0 !important; border-bottom: 2px solid #000; margin-bottom: 12px !important; }
+            .print-header .logo { font-size: 14pt; font-weight: bold; }
+            .print-header h2 { font-size: 12pt; margin: 0; }
+            .print-footer { display: block !important; text-align: center; font-size: 8pt; color: #666; border-top: 1px solid #ccc; padding-top: 6px; margin-top: 12px; }
+            .stat-card, .days-section { border: 1px solid #999 !important; box-shadow: none !important; background: #fff !important; }
+            .table-transactions { font-size: 8pt !important; min-width: 0 !important; }
+            .table-transactions th, .table-transactions td { border: 1px solid #555 !important; padding: 3px !important; white-space: normal !important; word-break: break-word !important; color: #000 !important; }
+            .table-transactions th { background-color: #eee !important; -webkit-print-color-adjust: exact; }
+            .cat-header-theme { background-color: #fff !important; border-bottom: 2px solid #333 !important; }
+            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
+            .type-text.expense { color: #dc3545 !important; }
+            .type-text.income { color: #198754 !important; }
+            .text-danger { color: #dc3545 !important; }
+            .text-success { color: #198754 !important; }
+            tr { page-break-inside: avoid !important; }
+            #cardsView { display: none !important; }
+            #tableView { display: block !important; }
+            .column-hidden { display: table-cell !important; }
+            th.column-hidden { display: table-cell !important; }
+        }
+    </style>
+</head>
+<body>
+
+<nav th:replace="~{fragments/navbar :: navbar('family')}"></nav>
+<div th:replace="~{fragments/settings-panel :: settingsPanel}"></div>
+<div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
+<div th:replace="~{fragments/toast :: toastContainer}"></div>
+
+<span id="currencySymbolDisplay" style="display:none;" th:text="${currencySymbol}">₴</span>
+
+<div class="container-fluid px-3 px-md-4 mt-4 page-max">
+
+    <div class="print-header d-print-flex" style="display: none;">
+        <span class="logo">💰 LazyCent</span>
+        <h2>
+            <span th:text="#{family.shared.title}">Спільні</span> ·
+            <span th:text="${dayNames[dayName]} ?: ${dayName}"></span>
+            <span th:text="${#temporals.format(date, 'dd.MM.yyyy')}"></span>
+        </h2>
+    </div>
+
+    <div class="page-header-wrap mb-4 anim-fade-down">
+        <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap justify-content-center justify-content-md-start">
+                <a th:href="@{/family/shared/day/{d}(d=${#temporals.format(date.minusDays(1), 'yyyy-MM-dd')})}"
+                   class="btn btn-outline-secondary btn-sm no-print" th:title="#{family.shared.day.prev}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                <input type="date"
+                       class="form-control fw-bold text-primary border border-2 border-primary-subtle shadow-sm no-print"
+                       style="width: auto; font-size: 1.1rem; cursor: pointer; border-radius: .5rem;"
+                       th:value="${date}"
+                       onchange="window.location.href='/family/shared/day/' + this.value">
+                <a th:href="@{/family/shared/day/{d}(d=${#temporals.format(date.plusDays(1), 'yyyy-MM-dd')})}"
+                   class="btn btn-outline-secondary btn-sm no-print" th:title="#{family.shared.day.next}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+
+                <h2 class="mb-0 fw-bold ms-md-2 d-flex align-items-center flex-wrap gap-2 w-100 w-md-auto justify-content-center justify-content-md-start">
+                    <span class="badge bg-info text-dark" style="font-size: .65em;">
+                        <i class="fas fa-users me-1"></i>
+                        <span th:text="#{family.shared.badge}">Спільні</span>
+                    </span>
+                    <span>
+                        <i class="fas fa-calendar-day me-2 text-primary"></i>
+                        <span th:text="${dayNames[dayName]} ?: ${dayName}"></span>
+                        <small class="text-muted ms-2 fw-normal" th:text="${#temporals.format(date, 'dd.MM.yyyy')}"></small>
+                    </span>
+                </h2>
+            </div>
+
+            <div class="d-flex gap-2 no-print flex-wrap justify-content-center justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" id="toggleBreakdownBtn" th:title="#{family.shared.breakdown.categories}">
+                    <i class="fas fa-chart-pie"></i>
+                </button>
+
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                            data-bs-toggle="dropdown" data-bs-strategy="fixed"
+                            data-bs-popper-config='{"strategy":"fixed"}'
+                            aria-expanded="false">
+                        <i class="fas fa-columns"></i>
+                        <span class="d-none d-lg-inline ms-1" th:text="#{family.shared.columns}">Стовпці</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end columns-menu">
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-vis-buyer" data-col="buyer" checked>
+                                <label class="form-check-label" for="col-vis-buyer" th:text="#{family.shared.columns.buyer}">Покупець</label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-vis-seller" data-col="seller" checked>
+                                <label class="form-check-label" for="col-vis-seller" th:text="#{family.shared.columns.seller}">Продавець</label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-vis-details" data-col="details" checked>
+                                <label class="form-check-label" for="col-vis-details" th:text="#{family.shared.columns.details}">Деталі</label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-vis-category" data-col="category" checked>
+                                <label class="form-check-label" for="col-vis-category" th:text="#{family.shared.columns.category}">Категорія</label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="col-vis-runningBalance" data-col="runningBalance" checked>
+                                <label class="form-check-label" for="col-vis-runningBalance" th:text="#{family.shared.columns.runningBalance}">Баланс</label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <a th:href="@{/family/shared/day/{d}/export(d=${#temporals.format(date, 'yyyy-MM-dd')})}"
+                   class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i>
+                    <span th:text="#{btn.export}">Експорт</span>
+                </a>
+
+                <!-- ✅ Друк тільки для ПК -->
+                <button type="button" class="btn btn-warning d-none d-md-inline-flex" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>
+                    <span th:text="#{btn.print}">Друк</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 STAT CARDS -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3 anim-fade-up delay-1">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-secondary-subtle text-secondary"><i class="fas fa-flag-checkered"></i></div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{day.startingBalance}">Поч. баланс</h6>
+                            <h3 class="mb-0 fw-bold" th:text="${#numbers.formatDecimal(startingBalance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3 anim-fade-up delay-2">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-success-subtle text-success"><i class="fas fa-arrow-up"></i></div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{family.shared.col.incomes}">Доходи</h6>
+                            <h3 class="text-success mb-0" th:text="${#numbers.formatDecimal(totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3 anim-fade-up delay-3">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-danger-subtle text-danger"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{family.shared.col.expenses}">Витрати</h6>
+                            <h3 class="text-danger mb-0" th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                            <small id="expensesCompare" class="d-block mt-1" style="display: none !important;"></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3 anim-fade-up delay-4">
+            <div class="stat-card">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle" th:classappend="${balance >= 0} ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="flex-grow-1 text-start">
+                            <h6 class="text-muted mb-0" th:text="#{family.shared.col.balance}">Баланс</h6>
+                            <h3 class="mb-0" th:classappend="${balance >= 0} ? 'text-success' : 'text-danger'"
+                                th:text="${#numbers.formatDecimal(balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BREAKDOWN -->
+    <div class="row g-3 mb-4" id="breakdownRow">
+        <div class="col-12 col-lg-6 anim-fade-up delay-3">
+            <div class="stat-card p-3">
+                <h6 class="text-muted mb-3">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    <span th:text="#{family.shared.breakdown.categories}">Розбивка по категоріях</span>
+                </h6>
+                <div class="breakdown-list" id="categoryBreakdown"></div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6 anim-fade-up delay-4">
+            <div class="stat-card p-3">
+                <h6 class="text-muted mb-3">
+                    <i class="fas fa-users me-1"></i>
+                    <span th:text="#{family.shared.breakdown.members}">Розбивка по учасниках</span>
+                </h6>
+                <div class="breakdown-list" id="memberBreakdown"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SECTION -->
+    <div class="days-section mb-3 anim-fade-up delay-2">
+
+        <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
+            <div class="icon-circle bg-primary text-white"><i class="fas fa-list-ul"></i></div>
+            <div class="flex-grow-1 text-start" style="min-width: 0;">
+                <h6 class="mb-0" th:text="${dayNames[dayName]} ?: ${dayName}">—</h6>
+                <h3 class="mb-0">
+                    <span id="headerTxCount" th:text="${transactions.size()}">0</span>
+                    <small class="text-muted" id="headerTxPlural" style="font-size: .55em; font-weight: 400;"></small>
+                </h3>
+            </div>
+            <div class="d-flex flex-wrap gap-2 align-items-center no-print">
+                <div class="view-toggle" id="viewToggle">
+                    <button class="btn active" data-view="table" th:title="#{family.shared.table}">
+                        <i class="fas fa-table"></i><span class="d-none d-sm-inline" th:text="#{family.shared.table}">Таблиця</span>
+                    </button>
+                    <button class="btn" data-view="cards" th:title="#{family.shared.cards}">
+                        <i class="fas fa-th-large"></i><span class="d-none d-sm-inline" th:text="#{family.shared.cards}">Картки</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="days-toolbar sub-bar no-print">
+            <div class="search-wrap">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control" th:placeholder="#{common.searchAll}" autocomplete="off">
+                    <button type="button" id="searchClear" class="btn btn-clear" th:title="#{btn.clear}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <select id="typeFilter" class="form-select form-select-sm">
+                    <option value="all" th:text="#{common.all}">Всі</option>
+                    <option value="expense" th:text="#{type.expenseFilter}">Витрати</option>
+                    <option value="income" th:text="#{type.incomeFilter}">Доходи</option>
+                </select>
+                <select id="categoryFilter" class="form-select form-select-sm">
+                    <option value="" th:text="#{totals.allCategories}">Всі категорії</option>
+                </select>
+                <select id="memberFilter" class="form-select form-select-sm">
+                    <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
+                    <option th:each="m : ${familyMembers}" th:value="${m.username}" th:text="${m.username}"></option>
+                </select>
+
+                <button type="button" id="onlyMineBtn" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-user me-1"></i>
+                    <span th:text="#{family.shared.onlyMine}">Тільки мої</span>
+                </button>
+            </div>
+
+            <div class="page-size-wrap">
+                <i class="fas fa-list-ol"></i>
+                <label for="pageSizeSelect" class="visually-hidden" th:text="#{allDays.show.rows}">Показати</label>
+                <select id="pageSizeSelect" class="form-select form-select-sm">
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="0" th:text="#{common.all}">Всі</option>
+                </select>
+            </div>
+
+            <span class="info-text" id="visibleInfo">—</span>
+        </div>
+
+        <div id="tableView">
+            <div class="table-responsive">
+                <table class="table-transactions" id="sharedDayTable">
+                    <thead>
+                    <tr>
+                        <th class="col-num">№</th>
+                        <th class="col-time sortable" data-sort="time" data-type="string">
+                            <span th:text="#{common.time}">Час</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-type sortable" data-sort="type" data-type="string">
+                            <span th:text="#{family.shared.col.type}">Тип</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-member sortable" data-sort="member" data-type="string">
+                            <span th:text="#{family.shared.col.member}">Учасник</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-name sortable" data-sort="description" data-type="string">
+                            <span th:text="#{common.description}">Найменування</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-quantity sortable" data-sort="quantity" data-type="number">
+                            <span th:text="#{common.quantity}">Кількість</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-amount sortable" data-sort="amount" data-type="number">
+                            <span th:text="#{family.shared.col.amount}">Сума</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-buyer sortable" data-sort="buyer" data-type="string" data-column="buyer">
+                            <span th:text="#{common.buyer}">Покупець</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-seller sortable" data-sort="seller" data-type="string" data-column="seller">
+                            <span th:text="#{common.seller}">Продавець</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-category sortable" data-sort="category" data-type="string" data-column="category">
+                            <span th:text="#{family.shared.col.category}">Категорія</span> <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="col-details" data-column="details"><span th:text="#{common.details}">Деталі</span></th>
+                        <th class="col-running" data-column="runningBalance">
+                            <span th:text="#{family.shared.col.runningBalance}">Баланс</span>
+                        </th>
+                        <th class="col-actions no-print" th:text="#{common.actions}">Дії</th>
+                    </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                    <tr th:each="t, stat : ${transactions}" class="transaction-row"
+                        th:data-id="${t.id()}"
+                        th:data-type="${t.expense()} ? 'expense' : 'income'"
+                        th:data-time="${t.time() != null ? #temporals.format(t.time(), 'HH:mm') : ''}"
+                        th:data-member="${t.memberUsername()}"
+                        th:data-category="${t.categoryName()}"
+                        th:data-description="${t.description()}"
+                        th:data-amount="${t.amount()}"
+                        th:data-quantity="${t.quantity() != null ? t.quantity() : 1}"
+                        th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
+                        th:data-seller="${t.seller() != null ? t.seller() : ''}"
+                        th:data-details="${t.details() != null ? t.details() : ''}">
+                        <td class="col-num" th:text="${stat.index + 1}"></td>
+                        <td class="col-time">
+                            <span th:if="${t.time() != null}" th:text="${#temporals.format(t.time(), 'HH:mm')}"></span>
+                            <span th:unless="${t.time() != null}" class="text-muted">—</span>
+                        </td>
+                        <td class="col-type">
+                            <span class="type-text" th:classappend="${t.expense()} ? 'expense' : 'income'"
+                                  th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
+                        </td>
+                        <td class="col-member">
+                            <span th:text="${t.memberUsername()}">olena</span>
+                            <span th:if="${t.memberUsername() == currentUser?.username}"
+                                  class="badge bg-secondary ms-1" th:text="#{family.member.you}">(ви)</span>
+                        </td>
+                        <td class="col-name" th:title="${t.description()}"><span class="fw-semibold" th:text="${t.description()}">Продукти</span></td>
+                        <td class="col-quantity" th:text="${t.quantity() != null ? t.quantity() : 1}">1</td>
+                        <td class="col-amount fw-bold" th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
+                            th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150 ₴</td>
+                        <td class="col-buyer" data-column="buyer" th:text="${t.buyer()} ?: '—'" th:title="${t.buyer()}">—</td>
+                        <td class="col-seller" data-column="seller" th:text="${t.seller()} ?: '—'" th:title="${t.seller()}">—</td>
+                        <td class="col-category" data-column="category" th:text="${t.categoryName()}">Їжа</td>
+                        <td class="col-details" data-column="details">
+                            <span th:if="${t.details() != null and !t.details().isEmpty()}" th:text="${t.details()}" th:title="${t.details()}"></span>
+                            <span th:if="${t.details() == null or t.details().isEmpty()}" class="text-muted">—</span>
+                        </td>
+                        <td class="col-running fw-bold" data-column="runningBalance">—</td>
+                        <td class="col-actions no-print">
+                            <th:block th:if="${t.memberUsername() == currentUser?.username}">
+                                <a th:href="@{/day/{d}(d=${t.date()}, edit=${(t.expense() ? 'expense' : 'income') + '-' + t.id()}, returnTo=${'/family/shared/day/' + #temporals.format(t.date(), 'yyyy-MM-dd')})}"
+                                   class="btn btn-outline-primary" th:title="#{btn.edit}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form th:if="${t.expense()}" method="post"
+                                      th:action="@{/expense/duplicate/{id}(id=${t.id()})}" style="display:inline-block;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="returnTo"
+                                           th:value="|/family/shared/day/${#temporals.format(date, 'yyyy-MM-dd')}|" />
+                                    <button type="submit" class="btn btn-outline-success" th:title="#{btn.duplicate}">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </form>
+                                <form th:unless="${t.expense()}" method="post"
+                                      th:action="@{/income/duplicate/{id}(id=${t.id()})}" style="display:inline-block;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="returnTo"
+                                           th:value="|/family/shared/day/${#temporals.format(date, 'yyyy-MM-dd')}|" />
+                                    <button type="submit" class="btn btn-outline-success" th:title="#{btn.duplicate}">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-outline-danger js-delete-shared"
+                                        th:data-id="${t.id()}"
+                                        th:data-type="${t.expense()} ? 'expense' : 'income'"
+                                        th:data-date="${t.date()}"
+                                        th:data-description="${t.description()}"
+                                        th:data-amount="${t.amount()}"
+                                        th:data-category="${t.categoryName()}"
+                                        th:title="#{btn.delete}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </th:block>
+                            <span th:unless="${t.memberUsername() == currentUser?.username}" class="text-muted small">—</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${transactions.isEmpty()}" class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h5 class="mt-3" th:text="#{family.shared.day.noTransactions}">Немає спільних транзакцій за цей день</h5>
+            </div>
+        </div>
+
+        <div id="cardsView" style="display: none;">
+            <div class="p-3">
+                <div class="row g-3" id="cardsContainer">
+                    <div th:each="t : ${transactions}" class="col-12 col-md-6 col-lg-4 transaction-card-wrapper"
+                         th:data-id="${t.id()}"
+                         th:data-type="${t.expense()} ? 'expense' : 'income'"
+                         th:data-time="${t.time() != null ? #temporals.format(t.time(), 'HH:mm') : ''}"
+                         th:data-member="${t.memberUsername()}"
+                         th:data-category="${t.categoryName()}"
+                         th:data-description="${t.description()}"
+                         th:data-amount="${t.amount()}"
+                         th:data-quantity="${t.quantity() != null ? t.quantity() : 1}"
+                         th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
+                         th:data-seller="${t.seller() != null ? t.seller() : ''}"
+                         th:data-details="${t.details() != null ? t.details() : ''}">
+                        <div class="transaction-card">
+                            <div class="card-header">
+                                <span class="type-badge" th:classappend="${t.expense()} ? 'expense' : 'income'"
+                                      th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
+                                <span class="card-meta"><i class="far fa-user me-1"></i><span th:text="${t.memberUsername()}">olena</span></span>
+                                <span class="card-meta">
+                                    <i class="far fa-clock me-1"></i>
+                                    <span th:if="${t.time() != null}" th:text="${#temporals.format(t.time(), 'HH:mm')}"></span>
+                                    <span th:unless="${t.time() != null}">—</span>
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="row"><span class="label"><i class="fas fa-tag me-1"></i><span th:text="#{common.description}">Найменування</span></span><span class="value" th:text="${t.description()}">Продукти</span></div>
+                                <div class="row"><span class="label"><i class="fas fa-hashtag me-1"></i><span th:text="#{common.quantity}">Кількість</span></span><span class="value" th:text="${t.quantity() != null ? t.quantity() : 1}">1</span></div>
+                                <div class="row"><span class="label"><i class="fas fa-coins me-1"></i><span th:text="#{family.shared.col.amount}">Сума</span></span><span class="value" th:classappend="${t.expense()} ? 'text-danger' : 'text-success'" th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150 ₴</span></div>
+                                <div class="row" th:if="${t.buyer() != null and !t.buyer().isEmpty()}">
+                                    <span class="label"><i class="fas fa-user me-1"></i><span th:text="#{common.buyer}">Покупець</span></span>
+                                    <span class="value" th:text="${t.buyer()}">—</span>
+                                </div>
+                                <div class="row" th:if="${t.seller() != null and !t.seller().isEmpty()}">
+                                    <span class="label"><i class="fas fa-store me-1"></i><span th:text="#{common.seller}">Продавець</span></span>
+                                    <span class="value" th:text="${t.seller()}">—</span>
+                                </div>
+                                <div class="row"><span class="label"><i class="fas fa-folder me-1"></i><span th:text="#{family.shared.col.category}">Категорія</span></span><span class="value" th:text="${t.categoryName()}">Їжа</span></div>
+                                <div class="row"><span class="label"><i class="fas fa-file-alt me-1"></i><span th:text="#{common.details}">Деталі</span></span><span class="value" th:text="${t.details()} ?: '—'">—</span></div>
+                                <div class="row row-running-balance"><span class="label"><i class="fas fa-balance-scale me-1"></i><span th:text="#{family.shared.col.runningBalance}">Баланс</span></span><span class="value">—</span></div>
+                            </div>
+                            <div class="card-footer no-print" th:if="${t.memberUsername() == currentUser?.username}">
+                                <a th:href="@{/day/{d}(d=${t.date()}, edit=${(t.expense() ? 'expense' : 'income') + '-' + t.id()}, returnTo=${'/family/shared/day/' + #temporals.format(t.date(), 'yyyy-MM-dd')})}"
+                                   class="btn btn-outline-primary" th:title="#{btn.edit}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form th:if="${t.expense()}" method="post"
+                                      th:action="@{/expense/duplicate/{id}(id=${t.id()})}" style="display:inline-block;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="returnTo"
+                                           th:value="|/family/shared/day/${#temporals.format(date, 'yyyy-MM-dd')}|" />
+                                    <button type="submit" class="btn btn-outline-success" th:title="#{btn.duplicate}">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </form>
+                                <form th:unless="${t.expense()}" method="post"
+                                      th:action="@{/income/duplicate/{id}(id=${t.id()})}" style="display:inline-block;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="returnTo"
+                                           th:value="|/family/shared/day/${#temporals.format(date, 'yyyy-MM-dd')}|" />
+                                    <button type="submit" class="btn btn-outline-success" th:title="#{btn.duplicate}">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-outline-danger js-delete-shared"
+                                        th:data-id="${t.id()}" th:data-type="${t.expense()} ? 'expense' : 'income'"
+                                        th:data-date="${t.date()}" th:data-description="${t.description()}"
+                                        th:data-amount="${t.amount()}" th:data-category="${t.categoryName()}"
+                                        th:title="#{btn.delete}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${transactions.isEmpty()}" class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h5 class="mt-3" th:text="#{family.shared.day.noTransactions}">Немає спільних транзакцій за цей день</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center no-print" id="loadMoreWrap" style="display: none;">
+            <button id="loadMoreBtn" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i>
+                <span th:text="#{common.loadMore}">Завантажити ще</span>
+            </button>
+        </div>
+
+        <div id="noResults" class="empty-state no-print" style="display: none;">
+            <i class="fas fa-search"></i>
+            <h5 class="mt-3" th:text="#{common.noData}">Нічого не знайдено</h5>
+            <p class="mb-0" th:text="#{common.searchAll}">Спробуйте змінити параметри пошуку</p>
+        </div>
+    </div>
+
+    <div class="print-footer d-print-block" style="display: none;">
+        <span th:text="#{footer.copyright}">© 2026 Lazy Cent</span>
+    </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade no-print" id="deleteSharedModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-danger me-2"></i><span th:text="#{delete.confirm}">Підтвердження видалення</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center" th:text="#{delete.question}">Ви впевнені, що хочете видалити цю транзакцію?</p>
+                <p class="text-muted small text-center" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
+                <hr>
+                <div class="delete-details" style="background: var(--bs-tertiary-bg); border-radius: .5rem; padding: 1rem;">
+                    <div class="row mb-2"><div class="col-4 fw-bold" th:text="#{delete.type}">Тип:</div><div class="col-8" id="delType"></div></div>
+                    <div class="row mb-2"><div class="col-4 fw-bold" th:text="#{delete.name}">Найменування:</div><div class="col-8" id="delDescription"></div></div>
+                    <div class="row mb-2"><div class="col-4 fw-bold" th:text="#{delete.amount}">Сума:</div><div class="col-8" id="delAmount"></div></div>
+                    <div class="row mb-2"><div class="col-4 fw-bold" th:text="#{delete.category}">Категорія:</div><div class="col-8" id="delCategory"></div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <form id="deleteSharedForm" method="post" style="display:inline;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                    <input type="hidden" name="returnTo" th:value="|/family/shared/day/${#temporals.format(date, 'yyyy-MM-dd')}|" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i><span th:text="#{delete.deleteBtn}">Видалити</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+<div th:replace="~{fragments/toast :: toastScript}"></div>
+<div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        'use strict';
+
+        var currencySymbolEl = document.getElementById('currencySymbolDisplay');
+        var currencySymbol = (currencySymbolEl && currencySymbolEl.textContent) || '₴';
+        var currentUsername = /*[[${currentUser?.username}]]*/ '';
+        var startingBalance = /*[[${startingBalance}]]*/ 0.0;
+        var yesterdayExpenses = /*[[${yesterdayExpenses}]]*/ 0.0;
+        var dateIso = /*[[${#temporals.format(date, 'yyyy-MM-dd')}]]*/ '2026-01-01';
+        var dayName = /*[[${dayNames[dayName]} ?: ${dayName}]]*/ '';
+
+        var i18n = {
+            showing:   /*[[#{common.showing}]]*/   'Показано: {0} з {1}',
+            allLoaded: /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
+            loadMore:  /*[[#{common.loadMore}]]*/  'Завантажити ще',
+            txOne:     /*[[#{common.tx.one}]]*/    'транзакція',
+            txFew:     /*[[#{common.tx.few}]]*/    'транзакції',
+            txMany:    /*[[#{common.tx.many}]]*/   'транзакцій',
+            expense:   /*[[#{type.EXPENSE}]]*/     'Витрата',
+            income:    /*[[#{type.INCOME}]]*/      'Дохід',
+            vsYesterday: /*[[#{family.shared.compare.vsYesterday}]]*/ 'проти вчора',
+            breakdownEmpty: /*[[#{family.shared.breakdown.empty}]]*/ 'Немає даних',
+            expensesLabel: /*[[#{family.shared.col.expenses}]]*/ 'Витрати',
+            incomesLabel:  /*[[#{family.shared.col.incomes}]]*/  'Доходи'
+        };
+        function safeI18n(v, fb) {
+            return (typeof v === 'string' && v.indexOf('??') === 0) ? fb : v;
+        }
+        ['txOne', 'txFew', 'txMany', 'vsYesterday', 'breakdownEmpty'].forEach(function(k){
+            i18n[k] = safeI18n(i18n[k], k === 'txOne' ? 'транзакція' : (k === 'txFew' ? 'транзакції' : (k === 'txMany' ? 'транзакцій' : (k === 'vsYesterday' ? 'vs вчора' : 'Немає даних'))));
+        });
+
+        function fmt(t) {
+            var a = Array.prototype.slice.call(arguments, 1);
+            return String(t).replace(/\{(\d+)\}/g, function (m, i) { return a[i] !== undefined ? a[i] : m; });
+        }
+        function pluralWord(n, one, few, many) {
+            var n10 = n % 10, n100 = n % 100;
+            if (n10 === 1 && n100 !== 11) return one;
+            if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+            return many;
+        }
+        function txWord(n) {
+            var lang = document.documentElement.getAttribute('lang') || 'uk';
+            if (lang === 'en') return n === 1 ? i18n.txOne : i18n.txMany;
+            return pluralWord(n, i18n.txOne, i18n.txFew, i18n.txMany);
+        }
+        function fmtMoney(v) {
+            var n = (parseFloat(v) || 0).toFixed(2).replace('.', ',');
+            var p = n.split(',');
+            p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            return p.join(',') + ' ' + currencySymbol;
+        }
+
+        var viewToggle     = document.getElementById('viewToggle');
+        var tableView      = document.getElementById('tableView');
+        var cardsView      = document.getElementById('cardsView');
+        var searchInput    = document.getElementById('searchInput');
+        var searchClear    = document.getElementById('searchClear');
+        var typeFilter     = document.getElementById('typeFilter');
+        var categoryFilter = document.getElementById('categoryFilter');
+        var memberFilter   = document.getElementById('memberFilter');
+        var onlyMineBtn    = document.getElementById('onlyMineBtn');
+        var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var loadMoreBtn    = document.getElementById('loadMoreBtn');
+        var loadMoreWrap   = document.getElementById('loadMoreWrap');
+        var visibleInfo    = document.getElementById('visibleInfo');
+        var headerTxCount  = document.getElementById('headerTxCount');
+        var headerTxPlural = document.getElementById('headerTxPlural');
+        var noResults      = document.getElementById('noResults');
+        var tableEl        = document.getElementById('sharedDayTable');
+        var breakdownRow   = document.getElementById('breakdownRow');
+        var toggleBreakdownBtn = document.getElementById('toggleBreakdownBtn');
+        var allRows        = Array.prototype.slice.call(document.querySelectorAll('.transaction-row'));
+        var allCards       = Array.prototype.slice.call(document.querySelectorAll('.transaction-card-wrapper'));
+
+        var currentPage = 1;
+        var pageSize = 20;
+
+        var VIEW_KEY       = 'family_shared_day_view_mode';
+        var FILTERS_KEY    = 'family_shared_day_filters_v1';
+        var COL_VIS_KEY    = 'family_shared_day_col_visibility_v1';
+        var COL_WIDTH_KEY  = 'family_shared_day_col_widths';
+        var BREAKDOWN_KEY  = 'family_shared_day_breakdown_visible';
+
+        // ===== BREAKDOWN TOGGLE =====
+        function setBreakdownVisible(visible) {
+            if (!breakdownRow) return;
+            breakdownRow.style.display = visible ? '' : 'none';
+            if (toggleBreakdownBtn) toggleBreakdownBtn.classList.toggle('active', !visible);
+            try { localStorage.setItem(BREAKDOWN_KEY, visible ? '1' : '0'); } catch (e) {}
+        }
+        function initBreakdownToggle() {
+            var saved = '1';
+            try { saved = localStorage.getItem(BREAKDOWN_KEY) || '1'; } catch (e) {}
+            setBreakdownVisible(saved === '1');
+            if (toggleBreakdownBtn) {
+                toggleBreakdownBtn.addEventListener('click', function () {
+                    var current = breakdownRow && breakdownRow.style.display !== 'none';
+                    setBreakdownVisible(!current);
+                });
+            }
+        }
+
+        // ===== VIEW =====
+        function setViewMode(mode) {
+            if (mode === 'cards') {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+                var cb = viewToggle.querySelector('[data-view="cards"]'); if (cb) cb.classList.add('active');
+            } else {
+                tableView.style.display = '';
+                cardsView.style.display = 'none';
+                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+                var tb = viewToggle.querySelector('[data-view="table"]'); if (tb) tb.classList.add('active');
+            }
+            try { localStorage.setItem(VIEW_KEY, mode); } catch (e) {}
+        }
+        if (viewToggle) {
+            viewToggle.addEventListener('click', function (e) {
+                var btn = e.target.closest('button');
+                if (!btn) return;
+                setViewMode(btn.dataset.view);
+                applyFiltersAndPaginate();
+            });
+        }
+
+        // ===== CATEGORIES =====
+        if (categoryFilter) {
+            var catCounts = {};
+            allRows.forEach(function (r) {
+                var c = r.dataset.category;
+                if (c) catCounts[c] = (catCounts[c] || 0) + 1;
+            });
+            Object.keys(catCounts).sort().forEach(function (cat) {
+                var opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat + ' (' + catCounts[cat] + ')';
+                categoryFilter.appendChild(opt);
+            });
+        }
+
+        // ===== COLUMN VISIBILITY =====
+        function getHiddenColumns() {
+            try { return JSON.parse(localStorage.getItem(COL_VIS_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+        function saveHiddenColumns(arr) {
+            try { localStorage.setItem(COL_VIS_KEY, JSON.stringify(arr)); } catch (e) {}
+        }
+        function applyColumnVisibility() {
+            var hidden = getHiddenColumns();
+            document.querySelectorAll('[data-column]').forEach(function (el) {
+                var col = el.dataset.column;
+                if (hidden.indexOf(col) !== -1) el.classList.add('column-hidden');
+                else el.classList.remove('column-hidden');
+            });
+            document.querySelectorAll('.columns-menu [data-col]').forEach(function (cb) {
+                cb.checked = hidden.indexOf(cb.dataset.col) === -1;
+            });
+        }
+        document.querySelectorAll('.columns-menu [data-col]').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                var col = this.dataset.col;
+                var hidden = getHiddenColumns();
+                if (this.checked) hidden = hidden.filter(function (c) { return c !== col; });
+                else if (hidden.indexOf(col) === -1) hidden.push(col);
+                saveHiddenColumns(hidden);
+                applyColumnVisibility();
+            });
+        });
+
+        // ===== STATE =====
+        function saveFilters() {
+            try {
+                localStorage.setItem(FILTERS_KEY, JSON.stringify({
+                    type: typeFilter ? typeFilter.value : 'all',
+                    category: categoryFilter ? categoryFilter.value : '',
+                    member: memberFilter ? memberFilter.value : 'all',
+                    search: searchInput ? searchInput.value : '',
+                    pageSize: pageSizeSelect ? pageSizeSelect.value : '20'
+                }));
+            } catch (e) {}
+        }
+        function restoreFilters() {
+            try {
+                var f = JSON.parse(localStorage.getItem(FILTERS_KEY) || 'null');
+                if (!f) return false;
+                if (f.type && typeFilter) typeFilter.value = f.type;
+                if (f.category && categoryFilter) categoryFilter.value = f.category;
+                if (f.member && memberFilter) memberFilter.value = f.member;
+                if (f.search && searchInput) searchInput.value = f.search;
+                if (f.pageSize && pageSizeSelect) pageSizeSelect.value = f.pageSize;
+                return true;
+            } catch (e) { return false; }
+        }
+
+        // ===== URL =====
+        function syncUrl() {
+            try {
+                var url = new URL(location.href);
+                if (typeFilter && typeFilter.value !== 'all') url.searchParams.set('type', typeFilter.value);
+                else url.searchParams.delete('type');
+                if (categoryFilter && categoryFilter.value) url.searchParams.set('cat', categoryFilter.value);
+                else url.searchParams.delete('cat');
+                if (memberFilter && memberFilter.value !== 'all') url.searchParams.set('member', memberFilter.value);
+                else url.searchParams.delete('member');
+                if (searchInput && searchInput.value) url.searchParams.set('q', searchInput.value);
+                else url.searchParams.delete('q');
+                history.replaceState({}, '', url.toString());
+            } catch (e) {}
+        }
+        function restoreFromUrl() {
+            try {
+                var params = new URLSearchParams(location.search);
+                var found = false;
+                if (params.get('type') && typeFilter) { typeFilter.value = params.get('type'); found = true; }
+                if (params.get('cat') && categoryFilter) { categoryFilter.value = params.get('cat'); found = true; }
+                if (params.get('member') && memberFilter) { memberFilter.value = params.get('member'); found = true; }
+                if (params.get('q') && searchInput) { searchInput.value = params.get('q'); found = true; }
+                return found;
+            } catch (e) { return false; }
+        }
+
+        // ===== ONLY MINE =====
+        function updateOnlyMineButton() {
+            if (!onlyMineBtn || !memberFilter) return;
+            var isMine = memberFilter.value === currentUsername && currentUsername;
+            onlyMineBtn.classList.toggle('active', isMine);
+        }
+        if (onlyMineBtn) {
+            onlyMineBtn.addEventListener('click', function () {
+                if (!memberFilter) return;
+                if (memberFilter.value === currentUsername) memberFilter.value = 'all';
+                else memberFilter.value = currentUsername;
+                applyFiltersAndPaginate();
+            });
+        }
+
+        // ===== FILTER =====
+        function rowKey(el) {
+            return el.dataset.id || [
+                el.dataset.time, el.dataset.member, el.dataset.description,
+                el.dataset.amount, el.dataset.type
+            ].join('|');
+        }
+        function getFilteredRows() {
+            var searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            var typeValue = typeFilter ? typeFilter.value : 'all';
+            var catValue = categoryFilter ? categoryFilter.value : '';
+            var memberValue = memberFilter ? memberFilter.value : 'all';
+            if (catValue) catValue = catValue.replace(/\s*\(\d+\)$/, '');
+            return allRows.filter(function (row) {
+                if (typeValue !== 'all' && row.dataset.type !== typeValue) return false;
+                if (catValue !== '' && row.dataset.category !== catValue) return false;
+                if (memberValue !== 'all' && row.dataset.member !== memberValue) return false;
+                if (searchTerm) {
+                    var hay = [row.dataset.description, row.dataset.category, row.dataset.member,
+                        row.dataset.amount, row.dataset.buyer, row.dataset.seller, row.dataset.details].join(' ').toLowerCase();
+                    if (hay.indexOf(searchTerm) === -1) return false;
+                }
+                return true;
+            });
+        }
+
+        function applyFiltersAndPaginate() {
+            var filtered = getFilteredRows();
+            currentPage = 1;
+            renderUI(filtered);
+            updateOnlyMineButton();
+            saveFilters();
+            syncUrl();
+            renderBreakdowns(filtered);
+        }
+
+        function renderUI(filtered) {
+            var total = filtered.length;
+            var all = allRows.length;
+
+            if (headerTxCount) headerTxCount.textContent = total;
+            if (headerTxPlural) headerTxPlural.textContent = txWord(total);
+
+            var visibleRows;
+            if (pageSize === 0) {
+                visibleRows = filtered;
+                if (loadMoreWrap) loadMoreWrap.style.display = 'none';
+                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, total, total);
+            } else {
+                var end = Math.min(currentPage * pageSize, total);
+                visibleRows = filtered.slice(0, end);
+                var allShown = end >= total;
+                var hasMore = !allShown && total > 0;
+                if (loadMoreWrap) loadMoreWrap.style.display = hasMore ? '' : 'none';
+                if (loadMoreBtn) {
+                    loadMoreBtn.disabled = !hasMore;
+                    loadMoreBtn.innerHTML = '<i class="fas fa-plus-circle me-1"></i> <span>' + i18n.loadMore + '</span>';
+                }
+                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, end, total);
+            }
+
+            var visibleIds = {};
+            visibleRows.forEach(function (r) { visibleIds[rowKey(r)] = true; });
+
+            allRows.forEach(function (r) { r.style.display = visibleIds[rowKey(r)] ? '' : 'none'; });
+            allCards.forEach(function (c) { c.style.display = visibleIds[rowKey(c)] ? '' : 'none'; });
+
+            visibleRows.forEach(function (r, idx) {
+                var numCell = r.querySelector('.col-num');
+                if (numCell) numCell.textContent = idx + 1;
+            });
+
+            if (noResults) noResults.style.display = (total === 0 && all > 0) ? 'block' : 'none';
+        }
+
+        // ===== RUNNING BALANCE =====
+        function computeRunningBalances() {
+            var sorted = allRows.slice().sort(function (a, b) {
+                var ta = a.dataset.time || '00:00';
+                var tb = b.dataset.time || '00:00';
+                if (ta !== tb) return ta.localeCompare(tb);
+                return (parseInt(a.dataset.id) || 0) - (parseInt(b.dataset.id) || 0);
+            });
+            var running = parseFloat(startingBalance) || 0;
+            sorted.forEach(function (row) {
+                var amount = parseFloat(row.dataset.amount) || 0;
+                if (row.dataset.type === 'expense') running -= amount;
+                else running += amount;
+                row.dataset.runningBalance = running.toFixed(2);
+            });
+            allRows.forEach(function (row) {
+                var val = parseFloat(row.dataset.runningBalance) || 0;
+                var cell = row.querySelector('.col-running');
+                if (cell) {
+                    cell.textContent = fmtMoney(val);
+                    cell.classList.remove('text-success', 'text-danger');
+                    cell.classList.add(val >= 0 ? 'text-success' : 'text-danger');
+                }
+            });
+            allCards.forEach(function (card) {
+                var id = card.dataset.id;
+                var match = sorted.find(function (r) { return r.dataset.id === id; });
+                if (match) {
+                    var val = parseFloat(match.dataset.runningBalance) || 0;
+                    var cell = card.querySelector('.row-running-balance .value');
+                    if (cell) {
+                        cell.textContent = fmtMoney(val);
+                        cell.classList.remove('text-success', 'text-danger');
+                        cell.classList.add(val >= 0 ? 'text-success' : 'text-danger');
+                    }
+                }
+            });
+        }
+
+        // ===== COMPARE =====
+        function renderCompare() {
+            var el = document.getElementById('expensesCompare');
+            if (!el) return;
+            var totalExp = 0;
+            allRows.forEach(function (r) {
+                if (r.dataset.type === 'expense') totalExp += parseFloat(r.dataset.amount) || 0;
+            });
+            if (!yesterdayExpenses || yesterdayExpenses <= 0) { el.style.display = 'none'; return; }
+            var delta = (totalExp - yesterdayExpenses) / yesterdayExpenses * 100;
+            var arrow = delta > 0.5 ? 'fa-arrow-up' : (delta < -0.5 ? 'fa-arrow-down' : 'fa-minus');
+            var cls = delta > 0.5 ? 'text-danger' : (delta < -0.5 ? 'text-success' : 'text-muted');
+            el.className = 'd-block mt-1 small ' + cls;
+            el.innerHTML = '<i class="fas ' + arrow + ' me-1"></i>'
+                + Math.abs(delta).toFixed(1).replace('.', ',') + '% ' + i18n.vsYesterday;
+            el.style.display = '';
+        }
+
+        // ===== BREAKDOWNS =====
+        function renderBreakdowns(filtered) {
+            renderCategoryBreakdown(filtered);
+            renderMemberBreakdown(filtered);
+        }
+
+        // ✅ Розбивка по категоріях — з окремими секціями для витрат і доходів
+        function renderCategoryBreakdown(filtered) {
+            var el = document.getElementById('categoryBreakdown');
+            if (!el) return;
+
+            var expenseGroups = {};
+            var incomeGroups = {};
+            var totalExpense = 0;
+            var totalIncome = 0;
+
+            filtered.forEach(function (r) {
+                var cat = r.dataset.category || '—';
+                var amount = parseFloat(r.dataset.amount) || 0;
+                if (r.dataset.type === 'expense') {
+                    expenseGroups[cat] = (expenseGroups[cat] || 0) + amount;
+                    totalExpense += amount;
+                } else {
+                    incomeGroups[cat] = (incomeGroups[cat] || 0) + amount;
+                    totalIncome += amount;
+                }
+            });
+
+            var html = '';
+
+            if (Object.keys(expenseGroups).length > 0) {
+                html += '<div class="breakdown-section-title text-danger">'
+                    + '<i class="fas fa-arrow-down me-1"></i>' + i18n.expensesLabel + ' · ' + fmtMoney(totalExpense)
+                    + '</div>';
+                html += renderBreakdownList(expenseGroups, totalExpense, 'bg-danger');
+            }
+
+            if (Object.keys(incomeGroups).length > 0) {
+                html += '<div class="breakdown-section-title text-success">'
+                    + '<i class="fas fa-arrow-up me-1"></i>' + i18n.incomesLabel + ' · ' + fmtMoney(totalIncome)
+                    + '</div>';
+                html += renderBreakdownList(incomeGroups, totalIncome, 'bg-success');
+            }
+
+            if (!html) {
+                html = '<div class="breakdown-empty">' + i18n.breakdownEmpty + '</div>';
+            }
+            el.innerHTML = html;
+        }
+
+        function renderBreakdownList(groups, total, colorClass) {
+            var keys = Object.keys(groups);
+            keys.sort(function (a, b) { return groups[b] - groups[a]; });
+            return keys.slice(0, 6).map(function (cat) {
+                var amount = groups[cat];
+                var percent = total > 0 ? (amount / total * 100) : 0;
+                return '<div class="breakdown-item">'
+                    + '<div class="bd-name" title="' + escapeHtml(cat) + '">' + escapeHtml(cat) + '</div>'
+                    + '<div class="bd-bar"><div class="' + colorClass + '" style="width:' + percent.toFixed(1) + '%"></div></div>'
+                    + '<div class="bd-value">' + fmtMoney(amount) + '</div>'
+                    + '</div>';
+            }).join('');
+        }
+
+        function renderMemberBreakdown(filtered) {
+            var el = document.getElementById('memberBreakdown');
+            if (!el) return;
+            var groups = {};
+            filtered.forEach(function (r) {
+                var m = r.dataset.member || '—';
+                var amount = parseFloat(r.dataset.amount) || 0;
+                var isExpense = r.dataset.type === 'expense';
+                if (!groups[m]) groups[m] = { expenses: 0, incomes: 0 };
+                if (isExpense) groups[m].expenses += amount;
+                else groups[m].incomes += amount;
+            });
+            var keys = Object.keys(groups);
+            if (keys.length === 0) {
+                el.innerHTML = '<div class="breakdown-empty">' + i18n.breakdownEmpty + '</div>';
+                return;
+            }
+            keys.sort(function (a, b) {
+                return (groups[b].expenses + groups[b].incomes) - (groups[a].expenses + groups[a].incomes);
+            });
+            var maxTotal = Math.max.apply(null, keys.map(function (m) { return groups[m].expenses + groups[m].incomes; }));
+            var html = keys.map(function (m) {
+                var g = groups[m];
+                var sum = g.expenses + g.incomes;
+                var percent = maxTotal > 0 ? (sum / maxTotal * 100) : 0;
+                var parts = [];
+                if (g.expenses > 0) parts.push('<span class="text-danger">−' + fmtMoney(g.expenses) + '</span>');
+                if (g.incomes > 0) parts.push('<span class="text-success">+' + fmtMoney(g.incomes) + '</span>');
+                return '<div class="breakdown-item">'
+                    + '<div class="bd-name" title="' + escapeHtml(m) + '">' + escapeHtml(m) + '</div>'
+                    + '<div class="bd-bar"><div class="bg-primary" style="width:' + percent.toFixed(1) + '%"></div></div>'
+                    + '<div class="bd-value small">' + parts.join(' · ') + '</div>'
+                    + '</div>';
+            }).join('');
+            el.innerHTML = html;
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        // ===== EVENTS =====
+        if (searchInput) searchInput.addEventListener('input', applyFiltersAndPaginate);
+        if (searchClear) {
+            searchClear.addEventListener('click', function () {
+                if (searchInput) searchInput.value = '';
+                applyFiltersAndPaginate();
+                if (searchInput) searchInput.focus();
+            });
+        }
+        if (typeFilter)     typeFilter.addEventListener('change', applyFiltersAndPaginate);
+        if (categoryFilter) categoryFilter.addEventListener('change', applyFiltersAndPaginate);
+        if (memberFilter)   memberFilter.addEventListener('change', applyFiltersAndPaginate);
+        if (pageSizeSelect) {
+            pageSizeSelect.addEventListener('change', function () {
+                pageSize = parseInt(this.value, 10) || 0;
+                currentPage = 1;
+                applyFiltersAndPaginate();
+            });
+        }
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function () {
+                if (pageSize === 0) return;
+                var filtered = getFilteredRows();
+                if (Math.min(currentPage * pageSize, filtered.length) >= filtered.length) return;
+                currentPage++;
+                renderUI(filtered);
+            });
+        }
+
+        // ===== SORT =====
+        function sortRowsBy(column, direction, silent) {
+            var th = document.querySelector('.sortable[data-sort="' + column + '"]');
+            var dataType = th ? th.dataset.type : 'string';
+            var sorted = allRows.slice();
+            sorted.sort(function (a, b) {
+                var aVal = a.dataset[column] || '';
+                var bVal = b.dataset[column] || '';
+                if (dataType === 'number') {
+                    return direction === 'asc'
+                        ? (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0)
+                        : (parseFloat(bVal) || 0) - (parseFloat(aVal) || 0);
+                }
+                aVal = aVal.toString().toLowerCase();
+                bVal = bVal.toString().toLowerCase();
+                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            });
+            var tbody = document.getElementById('transactionsBody');
+            sorted.forEach(function (row) { tbody.appendChild(row); });
+            allRows = sorted;
+
+            document.querySelectorAll('.sortable').forEach(function (t) {
+                t.classList.remove('active-asc', 'active-desc');
+                var i = t.querySelector('.sort-icon');
+                if (i) i.className = 'fas fa-sort sort-icon';
+            });
+            if (th) {
+                th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
+                var i = th.querySelector('.sort-icon');
+                if (i) i.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+            }
+            if (!silent) applyFiltersAndPaginate();
+        }
+        document.querySelectorAll('.sortable').forEach(function (th) {
+            th.addEventListener('click', function (e) {
+                if (e.target.closest('.resize-handle')) return;
+                var col = this.dataset.sort;
+                var cur = this.classList.contains('active-asc') ? 'asc'
+                    : (this.classList.contains('active-desc') ? 'desc' : null);
+                sortRowsBy(col, cur === 'asc' ? 'desc' : 'asc');
+            });
+        });
+
+        // ===== RESIZE =====
+        function initColumnResize() {
+            if (!tableEl) return;
+            var headers = tableEl.querySelectorAll('thead th');
+            var colWidths = {};
+            try { var s = localStorage.getItem(COL_WIDTH_KEY); if (s) colWidths = JSON.parse(s); } catch (e) {}
+
+            headers.forEach(function (th, index) {
+                if (th.classList.contains('col-actions')) return;
+                if (th.querySelector('.resize-handle')) return;
+                th.style.position = 'relative';
+                var handle = document.createElement('div');
+                handle.className = 'resize-handle';
+                handle.dataset.index = index;
+                th.appendChild(handle);
+
+                if (colWidths['col-' + index]) {
+                    var w = Math.max(30, colWidths['col-' + index]);
+                    th.style.width = w + 'px';
+                    th.style.minWidth = w + 'px';
+                    th.style.maxWidth = w + 'px';
+                }
+
+                var startX, startWidth;
+                function onMove(e) {
+                    var newW = Math.max(30, startWidth + (e.clientX - startX));
+                    th.style.width = newW + 'px';
+                    th.style.minWidth = newW + 'px';
+                    th.style.maxWidth = newW + 'px';
+                    colWidths['col-' + index] = newW;
+                }
+                function onUp() {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    handle.classList.remove('active');
+                    try { localStorage.setItem(COL_WIDTH_KEY, JSON.stringify(colWidths)); } catch (e) {}
+                }
+                handle.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    startX = e.clientX;
+                    startWidth = th.getBoundingClientRect().width;
+                    handle.classList.add('active');
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+            });
+        }
+
+        // ===== DELETE =====
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.js-delete-shared');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            var delType = document.getElementById('delType');
+            var delDesc = document.getElementById('delDescription');
+            var delAmt  = document.getElementById('delAmount');
+            var delCat  = document.getElementById('delCategory');
+            if (delType) delType.textContent = btn.dataset.type === 'expense' ? i18n.expense : i18n.income;
+            if (delDesc) delDesc.textContent = btn.dataset.description || '—';
+            if (delAmt)  delAmt.textContent = (parseFloat(btn.dataset.amount) || 0).toFixed(2) + ' ' + currencySymbol;
+            if (delCat)  delCat.textContent = btn.dataset.category || '—';
+
+            var form = document.getElementById('deleteSharedForm');
+            if (form) {
+                form.action = (btn.dataset.type === 'expense')
+                    ? '/expense/delete/' + btn.dataset.id
+                    : '/income/delete/' + btn.dataset.id;
+            }
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteSharedModal')).show();
+            }
+        });
+
+        // ===== KEYBOARD =====
+        document.addEventListener('keydown', function (e) {
+            var target = e.target;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
+            if (document.querySelector('.modal.show')) return;
+
+            if (e.key === '/') {
+                e.preventDefault();
+                if (searchInput) searchInput.focus();
+            } else if (e.key === 'Escape') {
+                if (searchInput && searchInput.value) {
+                    searchInput.value = '';
+                    applyFiltersAndPaginate();
+                }
+            } else if ((e.ctrlKey || e.metaKey) && (e.key === 'e' || e.key === 'E')) {
+                e.preventDefault();
+                window.location.href = '/family/shared/day/' + dateIso + '/export';
+            } else if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                window.print();
+            }
+        });
+
+        // ===== TITLE =====
+        function updateTitle() {
+            var visible = getFilteredRows().length;
+            var baseTitle = dayName + ' ' + /*[[${#temporals.format(date, 'dd.MM.yyyy')}]]*/ '—';
+            document.title = '(' + visible + ') ' + baseTitle + ' — Lazy Cent';
+        }
+
+        // ===== INIT =====
+        initBreakdownToggle();
+        initColumnResize();
+        applyColumnVisibility();
+        setViewMode(localStorage.getItem(VIEW_KEY) || 'table');
+
+        var urlRestored = restoreFromUrl();
+        if (!urlRestored) restoreFilters();
+
+        if (pageSizeSelect) pageSize = parseInt(pageSizeSelect.value, 10) || 20;
+
+        computeRunningBalances();
+        renderCompare();
+
+        applyFiltersAndPaginate();
+        updateTitle();
+    });
+</script>
+</body>
+</html>
