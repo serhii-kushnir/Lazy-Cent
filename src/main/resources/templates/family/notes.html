@@ -79,6 +79,21 @@
         .notes-toolbar #memberFilter { width: auto; max-width: 200px; border-radius: 0.5rem; font-size: 0.85rem; }
         .notes-toolbar #pageSizeSelect { width: auto; max-width: 100px; border-radius: 0.5rem; font-size: 0.85rem; }
 
+        /* Pinned-only toggle */
+        .pinned-only-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            color: var(--bs-secondary-color);
+            white-space: nowrap;
+            padding: 0;
+            margin: 0;
+            user-select: none;
+        }
+        .pinned-only-toggle .form-check-input { margin: 0; flex-shrink: 0; }
+        .pinned-only-toggle label { margin: 0; cursor: pointer; }
+
         .search-bar { position: relative; }
         .search-bar .input-group-text { background: transparent; border-right: none; }
         .search-bar .input-group > .btn { border-left: none; }
@@ -122,7 +137,22 @@
         .note-card .btn-icon:hover { background: rgba(26, 115, 232, 0.12); color: #1a73e8; transform: translateY(-1px); }
         .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
-        /* CHECKBOX (як у /notes) */
+        /* Pin icon color (active state) */
+        .note-card .btn-icon .pin-icon { color: #fbbc04; }
+
+        /* Search highlight */
+        .search-hl {
+            background: #fff3cd;
+            color: #664d03;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        [data-bs-theme="dark"] .search-hl {
+            background: #664d03;
+            color: #fff3cd;
+        }
+
+        /* CHECKBOX */
         .note-checkbox.form-check-input {
             flex-shrink: 0;
             width: 1.15rem;
@@ -196,7 +226,7 @@
         .bulk-bar .bulk-count .badge { font-size: 0.85rem; padding: 0.3rem 0.7rem; background: var(--bs-primary); color: #fff; }
         .bulk-bar .btn { font-size: 0.85rem; }
 
-        /* ===== MOBILE ADAPTATION ===== */
+        /* ===== MOBILE ===== */
         @media (max-width: 575.98px) {
             .notes-toolbar { padding: 0.5rem 0.75rem; gap: 0.5rem; flex-direction: row; flex-wrap: wrap; align-items: stretch; }
             .notes-toolbar .dropdown { flex: 1 1 calc(50% - 0.25rem); width: auto; }
@@ -248,7 +278,6 @@
         <h2 th:text="#{notes.family.title}">Нотатки сім'ї</h2>
     </div>
 
-    <!-- ========== PAGE HEADER ========== -->
     <div class="page-header-wrap mb-4 animate-fade-down">
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
@@ -286,7 +315,6 @@
         </div>
     </div>
 
-    <!-- ========== MAIN SECTION ========== -->
     <div class="notes-section mb-3 animate-fade-up delay-1">
 
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
@@ -341,6 +369,14 @@
                 <option value="100">100</option>
                 <option value="0" th:text="#{common.all}">Всі</option>
             </select>
+
+            <div class="pinned-only-toggle">
+                <input class="form-check-input" type="checkbox" id="pinnedOnlyToggle">
+                <label for="pinnedOnlyToggle" class="mb-0">
+                    <i class="fas fa-thumbtack text-warning me-1"></i>
+                    <span th:text="#{notes.filter.pinned}">Закріплені</span>
+                </label>
+            </div>
 
             <button type="button" id="resetFiltersBtn"
                     class="btn btn-outline-secondary btn-sm d-none"
@@ -451,6 +487,8 @@
                                     <button type="button" class="btn-icon"
                                             th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
                                             th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                                            th:data-pin-label="#{notes.action.pin}"
+                                            th:data-unpin-label="#{notes.action.unpin}"
                                             th:onclick="'togglePin(' + ${note.id} + ', event)'">
                                         <i class="fas fa-thumbtack"
                                            th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
@@ -503,13 +541,26 @@
                 <i class="fas fa-users-slash"></i>
                 <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
                 <p class="mb-3" th:text="#{notes.family.empty.text}">Позначте свої нотатки як «Спільна», і вони з'являться тут.</p>
-                <div class="d-flex justify-content-center gap-2">
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
                     <button type="button" class="btn btn-primary" onclick="createFamilyNote()">
                         <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити нотатку</span>
                     </button>
                     <a th:href="@{/notes}" class="btn btn-outline-secondary">
                         <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
                     </a>
+                </div>
+
+                <!-- CTA: запросити рідних -->
+                <div class="mt-4 pt-3" style="max-width: 420px; margin: 0 auto; border-top: 1px solid var(--bs-border-color);">
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span th:text="#{family.hint.title}">Сімейний бюджет</span>
+                    </p>
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                            onclick="window.openSettingsDrawer('family')">
+                        <i class="fas fa-user-plus me-1"></i>
+                        <span th:text="#{family.shareLink}">Поділитися посиланням</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -631,7 +682,7 @@
     </div>
 </div>
 
-<!-- ==================== ARCHIVE CONFIRM MODAL (top-positioned) ==================== -->
+<!-- ==================== ARCHIVE CONFIRM MODAL ==================== -->
 <div class="modal fade no-print" id="archiveNoteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -656,7 +707,7 @@
     </div>
 </div>
 
-<!-- ==================== DELETE CONFIRM MODAL (top-positioned) ==================== -->
+<!-- ==================== DELETE CONFIRM MODAL ==================== -->
 <div class="modal fade no-print" id="deleteNoteConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
@@ -698,6 +749,8 @@
         archiveError:        /*[[#{notes.archive.error}]]*/         'Не вдалося змінити стан',
         pinPinned:           /*[[#{notes.pin.pinned}]]*/            'Нотатку закріплено',
         pinUnpinned:         /*[[#{notes.pin.unpinned}]]*/          'Нотатку відкріплено',
+        pinLabel:            /*[[#{notes.action.pin}]]*/            'Закріпити',
+        unpinLabel:          /*[[#{notes.action.unpin}]]*/          'Відкріпити',
         viewMode:            /*[[#{notes.family.viewOnly}]]*/       'Тільки перегляд',
         editMode:            /*[[#{notes.modal.edit}]]*/            'Редагувати нотатку',
         createMode:          /*[[#{notes.modal.create}]]*/          'Нова нотатка',
@@ -713,7 +766,9 @@
         unsavedChanges:      /*[[#{notes.unsaved.changes}]]*/       'Незбережені зміни. Закрити?',
         bulkCopied:          /*[[#{notes.bulk.copied}]]*/           'Скопійовано: {0} з {1}',
         bulkNothing:         /*[[#{notes.bulk.nothingSelected}]]*/  'Оберіть хоча б одну нотатку',
-        noMatchPrefix:       'Немає нотаток:'
+        noMatchPrefix:       'Немає нотаток:',
+        permissionDenied:    /*[[#{notes.error.prefix}]]*/          'Нотатка більше не доступна',
+        unavailable:         'Нотатка більше не доступна'
     };
 </script>
 
@@ -727,6 +782,8 @@
 
         var i18n = window.lcI18n;
         var RENDER_CHUNK = 100;
+        var SCROLL_KEY = 'family_notes_scroll';
+        var FILTERS_STORAGE_KEY = 'family_notes_filters_v1';
 
         function fmt(template) {
             var args = Array.prototype.slice.call(arguments, 1);
@@ -740,6 +797,26 @@
             h[window.csrfHeader || 'X-CSRF-TOKEN'] = window.csrfToken || '';
             if (extra) for (var k in extra) h[k] = extra[k];
             return h;
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function highlightText(text, query) {
+            if (!text || !query) return escapeHtml(text || '');
+            var lower = text.toLowerCase();
+            var qLower = query.toLowerCase();
+            var idx = 0, result = '', pos;
+            while ((pos = lower.indexOf(qLower, idx)) !== -1) {
+                result += escapeHtml(text.substring(idx, pos));
+                result += '<mark class="search-hl">' + escapeHtml(text.substring(pos, pos + query.length)) + '</mark>';
+                idx = pos + query.length;
+            }
+            result += escapeHtml(text.substring(idx));
+            return result;
         }
 
         function showToast(message, type) {
@@ -765,9 +842,7 @@
         var PENDING_TOAST_KEY = 'family_notes_pending_toast';
 
         function flashToast(msg, type) {
-            try {
-                sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ msg: msg, type: type || 'success' }));
-            } catch (e) {}
+            try { sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ msg: msg, type: type || 'success' })); } catch (e) {}
         }
 
         function drainPendingToast() {
@@ -808,6 +883,25 @@
                 || low.indexOf('access denied') !== -1;
         }
 
+        function saveScrollAndReload() {
+            try { sessionStorage.setItem(SCROLL_KEY, String(window.scrollY)); } catch (e) {}
+            location.reload();
+        }
+
+        function restoreScroll() {
+            try {
+                var saved = sessionStorage.getItem(SCROLL_KEY);
+                if (!saved) return;
+                sessionStorage.removeItem(SCROLL_KEY);
+                var y = parseInt(saved, 10);
+                if (!isNaN(y) && y > 0) {
+                    requestAnimationFrame(function () {
+                        window.scrollTo(0, y);
+                    });
+                }
+            } catch (e) {}
+        }
+
         function submitFormAjax(form, successToastMsg) {
             var fd = new FormData(form);
             var btn = form.querySelector('[type="submit"]');
@@ -823,20 +917,20 @@
                         try {
                             var j = JSON.parse(body);
                             if (j && j.message) msg = j.message;
-                        } catch (e) { /* not JSON */ }
+                        } catch (e) {}
                         return { ok: false, msg: msg };
                     });
                 })
                 .then(function (res) {
                     if (res.ok) {
                         flashToast(successToastMsg, 'success');
-                        setTimeout(function () { location.reload(); }, 50);
+                        setTimeout(saveScrollAndReload, 50);
                     } else {
                         window.__editFormSubmitting = false;
                         if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
                         if (isPermissionError(res.msg)) {
-                            showToast('Нотатка більше не доступна', 'error');
-                            setTimeout(function () { location.reload(); }, 900);
+                            showToast(i18n.unavailable, 'error');
+                            setTimeout(saveScrollAndReload, 900);
                         } else {
                             showToast(res.msg, 'error');
                         }
@@ -860,8 +954,6 @@
             });
         }
 
-        var FILTERS_STORAGE_KEY = 'family_notes_filters_v1';
-
         document.addEventListener('DOMContentLoaded', function () {
             drainPendingToast();
 
@@ -877,6 +969,7 @@
             var clearFiltersBtn = document.getElementById('clearFiltersBtn');
             var pageSizeSelect = document.getElementById('pageSizeSelect');
             var resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            var pinnedOnlyToggle = document.getElementById('pinnedOnlyToggle');
             var bulkBar = document.getElementById('bulkBar');
 
             var allCards = Array.from(noteGrid.querySelectorAll('.note-card-wrapper'));
@@ -885,6 +978,12 @@
             var currentSort = 'default';
             var currentPage = 1;
             var pageSize = 20;
+            var pinnedOnly = false;
+
+            // === SNAPSHOT ORIGINAL TEXT для highlight ===
+            document.querySelectorAll('.note-card .card-title, .note-card .card-text').forEach(function (el) {
+                el.dataset.originalText = el.textContent;
+            });
 
             // === RELATIVE TIME ===
             function updateRelativeTimes() {
@@ -936,7 +1035,8 @@
                         sort: currentSort,
                         member: memberFilter.value,
                         search: searchInput.value,
-                        pageSize: pageSizeSelect ? pageSizeSelect.value : '20'
+                        pageSize: pageSizeSelect ? pageSizeSelect.value : '20',
+                        pinnedOnly: pinnedOnly
                     }));
                 } catch (e) {}
             }
@@ -996,6 +1096,10 @@
                         var pv = parseInt(f.pageSize, 10);
                         pageSize = pv === 0 ? 0 : (pv || 20);
                     }
+                    if (f.pinnedOnly && pinnedOnlyToggle) {
+                        pinnedOnlyToggle.checked = true;
+                        pinnedOnly = true;
+                    }
                     return true;
                 } catch (e) { return false; }
             }
@@ -1054,13 +1158,25 @@
                     || document.getElementById('editSelectedTextColor').value !== editInitialState.textColor;
             }
 
+            // === beforeunload (warning) ===
+            window.addEventListener('beforeunload', function (e) {
+                if (window.__editFormSubmitting) return;
+                if (isEditDirty()) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                }
+            });
+
             // === OPEN NOTE ===
             function openFamilyNoteInternal(id, isMine, mode) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
 
-                var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '';
-                var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '';
+                var titleEl = card.querySelector('.card-title');
+                var contentEl = card.querySelector('.card-text');
+                var title = titleEl ? (titleEl.dataset.originalText || titleEl.textContent) : '';
+                var content = contentEl ? (contentEl.dataset.originalText || contentEl.textContent) : '';
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
 
@@ -1138,7 +1254,6 @@
                 openFamilyNoteInternal(id, false, 'copy');
             };
 
-            // === CREATE ===
             window.createFamilyNote = function () {
                 var form = document.getElementById('editNoteForm');
                 var modalTitle = document.getElementById('editNoteModalTitle');
@@ -1177,7 +1292,7 @@
                 setTimeout(function () { if (titleInp) titleInp.focus(); }, 350);
             };
 
-            // === EDIT / CREATE / COPY form submit (AJAX) ===
+            // === EDIT / CREATE / COPY form submit ===
             var editForm = document.getElementById('editNoteForm');
             if (editForm) {
                 editForm.addEventListener('submit', function (e) {
@@ -1203,23 +1318,40 @@
                     document.querySelectorAll('#editNoteModal .is-invalid').forEach(function (el) {
                         el.classList.remove('is-invalid');
                     });
+                    snapshotEditState();
                     window.__editFormSubmitting = false;
                 });
             }
 
-            // === PIN ===
+            // === OPTIMISTIC PIN ===
             window.togglePin = function (id, e) {
                 if (e) e.stopPropagation();
+                var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                if (!card) return;
                 var btn = e ? e.currentTarget : null;
-                withLoading(btn, function () {
-                    return fetch('/notes/toggle-pin/' + id, {
-                        method: 'POST', headers: csrfHeaders()
-                    }).then(function (r) {
-                        if (r.ok) {
-                            flashToast(i18n.pinPinned, 'success');
-                            setTimeout(function () { location.reload(); }, 50);
-                        } else { showToast(i18n.archiveError, 'error'); }
-                    }).catch(function () { showToast(i18n.loadError, 'error'); });
+                var pinIcon = btn ? btn.querySelector('i') : null;
+                var wasPinned = card.classList.contains('pinned');
+
+                // Optimistic update
+                card.classList.toggle('pinned', !wasPinned);
+                card.dataset.pinned = String(!wasPinned);
+                if (pinIcon) pinIcon.classList.toggle('pin-icon', !wasPinned);
+                if (btn) btn.title = !wasPinned ? (i18n.unpinLabel || 'Відкріпити') : (i18n.pinLabel || 'Закріпити');
+
+                fetch('/notes/toggle-pin/' + id, {
+                    method: 'POST',
+                    headers: csrfHeaders()
+                }).then(function (r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    showToast(wasPinned ? i18n.pinUnpinned : i18n.pinPinned, 'success');
+                    setTimeout(updateUI, 100);
+                }).catch(function () {
+                    // rollback
+                    card.classList.toggle('pinned', wasPinned);
+                    card.dataset.pinned = String(wasPinned);
+                    if (pinIcon) pinIcon.classList.toggle('pin-icon', wasPinned);
+                    if (btn) btn.title = wasPinned ? (i18n.unpinLabel || 'Відкріпити') : (i18n.pinLabel || 'Закріпити');
+                    showToast(i18n.loadError, 'error');
                 });
             };
 
@@ -1232,8 +1364,8 @@
             window.toggleArchive = function (id, e) {
                 if (e) e.stopPropagation();
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
-                var title = card && card.querySelector('.card-title')
-                    ? card.querySelector('.card-title').textContent.trim() : '';
+                var titleEl = card ? card.querySelector('.card-title') : null;
+                var title = titleEl ? (titleEl.dataset.originalText || titleEl.textContent).trim() : '';
                 if (archiveMessageEl) {
                     archiveMessageEl.textContent = title ? fmt(i18n.archiveConfirmMsg, title) : '';
                 }
@@ -1257,7 +1389,7 @@
                         }).then(function (r) {
                             if (r.ok) {
                                 flashToast(i18n.toastArchived, 'success');
-                                setTimeout(function () { location.reload(); }, 50);
+                                setTimeout(saveScrollAndReload, 50);
                             } else { showToast(i18n.archiveError, 'error'); }
                         }).catch(function () { showToast(i18n.loadError, 'error'); });
                     });
@@ -1312,7 +1444,6 @@
                 var countEl = document.getElementById('bulkCount');
                 if (countEl) countEl.textContent = selectedIds.size;
 
-                // Чи всі вибрані — власні?
                 var allMine = true;
                 selectedIds.forEach(function (id) {
                     var cb = noteGrid.querySelector('.note-checkbox[data-id="' + id + '"]');
@@ -1356,7 +1487,6 @@
                     var ids = Array.from(selectedIds);
 
                     if (action === 'copy') {
-                        // Копіюємо послідовно через /notes/copy/{id}
                         var promises = ids.map(function (id) {
                             return fetch('/notes/copy/' + id, {
                                 method: 'POST',
@@ -1368,13 +1498,12 @@
                             var success = results.filter(Boolean).length;
                             if (success > 0) {
                                 flashToast(fmt(i18n.bulkCopied, success, ids.length), 'success');
-                                setTimeout(function () { location.reload(); }, 50);
+                                setTimeout(saveScrollAndReload, 50);
                             } else {
                                 showToast(i18n.loadError, 'error');
                             }
                         });
                     } else if (action === 'archive' || action === 'delete') {
-                        // Bulk archive/delete — тільки для власних
                         var params = new URLSearchParams();
                         ids.forEach(function (id) { params.append('ids', id); });
                         fetch('/notes/bulk/' + action, {
@@ -1385,7 +1514,7 @@
                             .then(function (data) {
                                 if (data && data.success) {
                                     flashToast(action === 'delete' ? i18n.toastDeleted : i18n.toastArchived, 'success');
-                                    setTimeout(function () { location.reload(); }, 50);
+                                    setTimeout(saveScrollAndReload, 50);
                                 } else {
                                     showToast(fmt(i18n.errorPrefix, (data && data.error) || '?'), 'error');
                                 }
@@ -1397,7 +1526,7 @@
                 });
             }
 
-            // === KEYBOARD ===
+            // === KEYBOARD (fixed Esc priority) ===
             document.addEventListener('keydown', function (e) {
                 var tag = (e.target.tagName || '').toUpperCase();
                 var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
@@ -1418,15 +1547,16 @@
                     return;
                 }
                 if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal.show').forEach(function (m) {
-                        var inst = bootstrap.Modal.getInstance(m);
-                        if (inst) inst.hide();
-                    });
-                    if (selectedIds.size > 0) clearSelection();
+                    // Пріоритет: спочатку modal, потім bulk
+                    if (document.querySelector('.modal.show')) return;
+                    if (selectedIds.size > 0) {
+                        clearSelection();
+                        e.preventDefault();
+                    }
                 }
             });
 
-            // === A11Y: Enter / Space ===
+            // === A11Y ===
             noteGrid.addEventListener('keydown', function (e) {
                 var body = e.target.closest('.card-body[role="button"]');
                 if (!body) return;
@@ -1441,9 +1571,12 @@
                 var matchNonFilter = allCards.filter(function (w) {
                     var card = w.querySelector('.note-card');
                     if (!card) return false;
-                    var title = (card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '').toLowerCase();
-                    var content = (card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '').toLowerCase();
-                    var author = (card.querySelector('.author-badge .author-name') ? card.querySelector('.author-badge .author-name').textContent.trim() : '');
+                    var tEl = card.querySelector('.card-title');
+                    var cEl = card.querySelector('.card-text');
+                    var aEl = card.querySelector('.author-badge .author-name');
+                    var title = (tEl ? (tEl.dataset.originalText || tEl.textContent) : '').toLowerCase();
+                    var content = (cEl ? (cEl.dataset.originalText || cEl.textContent) : '').toLowerCase();
+                    var author = aEl ? aEl.textContent.trim() : '';
                     var matchesSearch = !searchText
                         || title.indexOf(searchText) !== -1
                         || content.indexOf(searchText) !== -1
@@ -1471,7 +1604,8 @@
                 var active = currentFilter !== 'all'
                     || currentSort !== 'default'
                     || memberFilter.value !== 'all'
-                    || (searchInput && searchInput.value.length > 0);
+                    || (searchInput && searchInput.value.length > 0)
+                    || pinnedOnly;
                 resetFiltersBtn.classList.toggle('d-none', !active);
             }
 
@@ -1487,23 +1621,43 @@
                 if (exportBtnMobile) exportBtnMobile.href = href;
             }
 
+            // === SEARCH HIGHLIGHT ===
+            function applySearchHighlight() {
+                document.querySelectorAll('.note-card .card-title, .note-card .card-text').forEach(function (el) {
+                    var orig = el.dataset.originalText;
+                    if (orig == null) return;
+                    if (!searchText) {
+                        if (el.querySelector('mark.search-hl')) {
+                            el.textContent = orig;
+                        }
+                    } else {
+                        el.innerHTML = highlightText(orig, searchText);
+                    }
+                });
+            }
+
             // === UPDATE UI ===
             function updateUI() {
                 var selectedMember = memberFilter.value;
                 var filtered = allCards.filter(function (wrapper) {
                     var card = wrapper.querySelector('.note-card');
                     if (!card) return false;
-                    var title = (card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '').toLowerCase();
-                    var content = (card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '').toLowerCase();
-                    var author = (card.querySelector('.author-badge .author-name') ? card.querySelector('.author-badge .author-name').textContent.trim() : '');
+                    var tEl = card.querySelector('.card-title');
+                    var cEl = card.querySelector('.card-text');
+                    var aEl = card.querySelector('.author-badge .author-name');
+                    var title = (tEl ? (tEl.dataset.originalText || tEl.textContent) : '').toLowerCase();
+                    var content = (cEl ? (cEl.dataset.originalText || cEl.textContent) : '').toLowerCase();
+                    var author = aEl ? aEl.textContent.trim() : '';
                     var isMine = wrapper.dataset.mine === 'true';
+                    var isPinned = card.dataset.pinned === 'true';
 
                     var matchesSearch = !searchText || (title.indexOf(searchText) !== -1 || content.indexOf(searchText) !== -1 || author.toLowerCase().indexOf(searchText) !== -1);
                     var matchesFilter = currentFilter === 'all'
                         || (currentFilter === 'mine' && isMine)
                         || (currentFilter === 'others' && !isMine);
                     var matchesMember = selectedMember === 'all' || author === selectedMember;
-                    return matchesSearch && matchesFilter && matchesMember;
+                    var matchesPinned = !pinnedOnly || isPinned;
+                    return matchesSearch && matchesFilter && matchesMember && matchesPinned;
                 });
 
                 filtered.sort(function (a, b) {
@@ -1521,7 +1675,6 @@
                 allCards.forEach(function (w) { w.style.display = 'none'; });
 
                 var total = filtered.length;
-                // Progressive render для "Всі" (pageSize === 0)
                 var effPageSize = pageSize === 0 ? RENDER_CHUNK : pageSize;
                 var end = Math.min(currentPage * effPageSize, total);
                 var toShow = filtered.slice(0, end);
@@ -1533,7 +1686,6 @@
 
                 if (headerNoteCount) headerNoteCount.textContent = total;
 
-                // === Empty state (розширений) ===
                 if (emptyFilterMessage) {
                     if (total === 0 && allCards.length > 0) {
                         var parts = [];
@@ -1541,6 +1693,7 @@
                         if (memberFilter.value !== 'all') parts.push(memberFilter.value);
                         if (currentFilter === 'mine') parts.push('Мої');
                         else if (currentFilter === 'others') parts.push('Інших');
+                        if (pinnedOnly) parts.push(i18n.pinLabel);
 
                         var titleEl = emptyFilterMessage.querySelector('h4');
                         var hintEl = emptyFilterMessage.querySelector('p');
@@ -1556,7 +1709,6 @@
                     }
                 }
 
-                // === Load More (враховує pageSize=0 як progressive) ===
                 if (loadMoreBtn) {
                     if (end < total) {
                         loadMoreBtn.classList.remove('d-none');
@@ -1575,6 +1727,7 @@
                     }
                 }
 
+                applySearchHighlight();
                 updateFilterBadges();
                 updateResetButton();
                 updateExportLink();
@@ -1628,9 +1781,7 @@
                 });
             });
 
-            if (memberFilter) {
-                memberFilter.addEventListener('change', applyFilters);
-            }
+            if (memberFilter) memberFilter.addEventListener('change', applyFilters);
 
             if (pageSizeSelect) {
                 pageSizeSelect.addEventListener('change', function () {
@@ -1648,6 +1799,13 @@
                 });
             }
 
+            if (pinnedOnlyToggle) {
+                pinnedOnlyToggle.addEventListener('change', function () {
+                    pinnedOnly = this.checked;
+                    applyFilters();
+                });
+            }
+
             function resetAllFilters() {
                 searchInput.value = '';
                 searchText = '';
@@ -1656,6 +1814,7 @@
                 currentSort = 'default';
                 if (pageSizeSelect) pageSizeSelect.value = '20';
                 pageSize = 20;
+                if (pinnedOnlyToggle) { pinnedOnlyToggle.checked = false; pinnedOnly = false; }
                 document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
                     b.classList.toggle('active', b.dataset.filter === 'all');
                 });
@@ -1673,6 +1832,9 @@
             var hasUrlParams = window.location.search.length > 1;
             if (!hasUrlParams) restoreFromSession();
             updateUI();
+
+            // Відновити скрол ПІСЛЯ layout
+            setTimeout(restoreScroll, 50);
         });
     })();
 </script>
