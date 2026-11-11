@@ -36,22 +36,10 @@
         .notes-sub-bar { background-color: #ffffff !important; }
         [data-bs-theme="dark"] .notes-sub-bar { background-color: #1d2027 !important; }
 
-        /* ===== STICKY TOOLBAR (десктоп) ===== */
         @media (min-width: 992px) {
-            .notes-toolbar.notes-sub-bar {
-                position: sticky;
-                top: 0;
-                z-index: 25;
-                background-color: #ffffff !important;
-            }
-            [data-bs-theme="dark"] .notes-toolbar.notes-sub-bar {
-                background-color: #1d2027 !important;
-            }
-            .search-bar.notes-sub-bar {
-                position: sticky;
-                top: 52px;
-                z-index: 24;
-            }
+            .notes-toolbar.notes-sub-bar { position: sticky; top: 0; z-index: 25; background-color: #ffffff !important; }
+            [data-bs-theme="dark"] .notes-toolbar.notes-sub-bar { background-color: #1d2027 !important; }
+            .search-bar.notes-sub-bar { position: sticky; top: 52px; z-index: 24; }
         }
 
         .view-toggle { display: flex; gap: 0.3rem; background: var(--bs-secondary-bg); border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0; }
@@ -69,7 +57,6 @@
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #ffffff !important; box-shadow: none !important; }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active .badge { background: rgba(255,255,255,0.25); color: #fff; }
 
-        /* ===== TOOLBAR ===== */
         .notes-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
         .notes-toolbar .dropdown .btn { border-radius: 0.5rem; font-size: 0.85rem; padding: 0.4rem 0.75rem; }
         .notes-toolbar .dropdown-menu { min-width: 220px; }
@@ -79,18 +66,7 @@
         .notes-toolbar #memberFilter { width: auto; max-width: 200px; border-radius: 0.5rem; font-size: 0.85rem; }
         .notes-toolbar #pageSizeSelect { width: auto; max-width: 100px; border-radius: 0.5rem; font-size: 0.85rem; }
 
-        /* Pinned-only toggle */
-        .pinned-only-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.85rem;
-            color: var(--bs-secondary-color);
-            white-space: nowrap;
-            padding: 0;
-            margin: 0;
-            user-select: none;
-        }
+        .pinned-only-toggle { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--bs-secondary-color); white-space: nowrap; padding: 0; margin: 0; user-select: none; }
         .pinned-only-toggle .form-check-input { margin: 0; flex-shrink: 0; }
         .pinned-only-toggle label { margin: 0; cursor: pointer; }
 
@@ -102,18 +78,26 @@
         [data-bs-theme="dark"] #searchClear { color: #adb5bd; border-color: #495057; }
         [data-bs-theme="dark"] #searchClear:hover { background-color: rgba(248, 113, 113, 0.15); border-color: #f87171; color: #f87171; }
 
-        /* NOTE CARDS */
+        .search-loading {
+            position: absolute;
+            right: 5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--bs-secondary-color);
+            font-size: 0.85rem;
+            pointer-events: none;
+            z-index: 5;
+        }
+
         .note-card { border: 1px solid var(--bs-border-color); border-radius: 1rem; height: 100%; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; cursor: pointer; }
         .note-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
 
-        /* Pinned outline */
         .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1); }
         .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15); }
         [data-bs-theme="dark"] .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.4); }
         [data-bs-theme="dark"] .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5); }
 
-        /* Selected visual */
         .note-card:has(.note-checkbox:checked),
         .note-card.selected {
             box-shadow: 0 0 0 3px var(--bs-primary), 0 4px 8px rgba(13, 110, 253, 0.35) !important;
@@ -136,41 +120,18 @@
         [data-bs-theme="dark"] .note-card .btn-icon { color: #bdc1c6; }
         .note-card .btn-icon:hover { background: rgba(26, 115, 232, 0.12); color: #1a73e8; transform: translateY(-1px); }
         .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
-
-        /* Pin icon color (active state) */
         .note-card .btn-icon .pin-icon { color: #fbbc04; }
 
-        /* Search highlight */
-        .search-hl {
-            background: #fff3cd;
-            color: #664d03;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-        [data-bs-theme="dark"] .search-hl {
-            background: #664d03;
-            color: #fff3cd;
-        }
+        .copy-link-btn { opacity: 0; transition: opacity 0.15s; }
+        .note-card:hover .copy-link-btn { opacity: 1; }
+        @media (hover: none), (max-width: 767.98px) { .copy-link-btn { opacity: 1; } }
 
-        /* CHECKBOX */
-        .note-checkbox.form-check-input {
-            flex-shrink: 0;
-            width: 1.15rem;
-            height: 1.15rem;
-            margin: 0;
-            cursor: pointer;
-            opacity: 0;
-            border: 2px solid #adb5bd;
-            background-color: rgba(255, 255, 255, 0.95);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-            transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-        }
+        .search-hl { background: #fff3cd; color: #664d03; padding: 0 2px; border-radius: 2px; }
+        [data-bs-theme="dark"] .search-hl { background: #664d03; color: #fff3cd; }
+
+        .note-checkbox.form-check-input { flex-shrink: 0; width: 1.15rem; height: 1.15rem; margin: 0; cursor: pointer; opacity: 0; border: 2px solid #adb5bd; background-color: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
         .note-checkbox.form-check-input:hover { border-color: var(--bs-primary); }
-        .note-checkbox.form-check-input:checked {
-            background-color: var(--bs-primary);
-            border-color: var(--bs-primary);
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
-        }
+        .note-checkbox.form-check-input:checked { background-color: var(--bs-primary); border-color: var(--bs-primary); box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2); }
         [data-bs-theme="dark"] .note-checkbox.form-check-input { background-color: rgba(255, 255, 255, 0.12); border-color: #6c757d; }
         [data-bs-theme="dark"] .note-checkbox.form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
 
@@ -184,7 +145,6 @@
             .note-checkbox.form-check-input { opacity: 1; }
         }
 
-        /* AUTHOR BADGE */
         .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; cursor: pointer; }
         .author-badge:hover { filter: brightness(0.95); }
         [data-bs-theme="dark"] .author-badge { background: rgba(13, 202, 240, 0.18); color: #7ee0f0; }
@@ -199,26 +159,17 @@
         .kbd-hint { font-size: 0.75rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
         .kbd-hint kbd { background: var(--bs-secondary-bg); color: var(--bs-body-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.7rem; font-weight: 600; font-family: var(--bs-font-monospace); border: 1px solid var(--bs-border-color); }
 
-        /* Color picker */
         .color-picker { display: flex; gap: 6px; flex-wrap: wrap; }
         .color-picker .color-option { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: border 0.2s, transform 0.2s; }
         .color-picker .color-option:hover { border-color: #5f6368; transform: scale(1.1); }
         .color-picker .color-option.selected { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25); }
         .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
 
-        /* ===== BULK BAR ===== */
         .bulk-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1d2027;
-            border-top: 1px solid #2a2e37;
-            color: #fff;
-            padding: 0.75rem 1rem;
-            z-index: 1045;
-            transform: translateY(100%);
-            transition: transform 0.25s ease;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #1d2027; border-top: 1px solid #2a2e37;
+            color: #fff; padding: 0.75rem 1rem; z-index: 1045;
+            transform: translateY(100%); transition: transform 0.25s ease;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
         }
         .bulk-bar.active { transform: translateY(0); }
@@ -226,7 +177,6 @@
         .bulk-bar .bulk-count .badge { font-size: 0.85rem; padding: 0.3rem 0.7rem; background: var(--bs-primary); color: #fff; }
         .bulk-bar .btn { font-size: 0.85rem; }
 
-        /* ===== MOBILE ===== */
         @media (max-width: 575.98px) {
             .notes-toolbar { padding: 0.5rem 0.75rem; gap: 0.5rem; flex-direction: row; flex-wrap: wrap; align-items: stretch; }
             .notes-toolbar .dropdown { flex: 1 1 calc(50% - 0.25rem); width: auto; }
@@ -252,7 +202,7 @@
 
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .view-toggle, .search-bar, .alert, .notes-toolbar, .bulk-bar, .note-checkbox { display: none !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .view-toggle, .search-bar, .alert, .notes-toolbar, .bulk-bar, .note-checkbox, .copy-link-btn { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
             .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
@@ -323,7 +273,10 @@
             </div>
             <div class="flex-grow-1 text-start" style="min-width: 0;">
                 <h6 class="mb-0" th:text="#{notes.family.heading}">Спільні нотатки</h6>
-                <h3 class="mb-0"><span id="headerNoteCount" th:text="${familyNotes.size()}">0</span></h3>
+                <h3 class="mb-0">
+                    <span id="headerNoteCount" th:text="${familyNotes.size()}">0</span>
+                    <small class="text-muted" id="headerNotePlural" style="font-size: 0.55em; font-weight: 400;"></small>
+                </h3>
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="filterToggle">
@@ -343,7 +296,6 @@
             </div>
         </div>
 
-        <!-- TOOLBAR -->
         <div class="notes-toolbar notes-sub-bar">
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -400,6 +352,9 @@
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            <span id="searchLoading" class="search-loading" style="display:none;">
+                <i class="fas fa-spinner fa-spin"></i>
+            </span>
         </div>
 
         <div class="p-3">
@@ -446,6 +401,12 @@
                                     <div class="d-flex align-items-center gap-1 flex-shrink-0">
                                         <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning"
                                            style="font-size: 0.85rem;" th:title="#{notes.action.pin}"></i>
+                                        <button type="button" class="btn-icon copy-link-btn"
+                                                th:title="#{notes.copyLink}"
+                                                th:aria-label="#{notes.copyLink}"
+                                                th:onclick="'copyNoteLink(' + ${note.id} + ', event)'">
+                                            <i class="fas fa-link" style="font-size: 0.8rem;"></i>
+                                        </button>
                                         <input type="checkbox" class="note-checkbox form-check-input"
                                                th:data-id="${note.id}"
                                                th:data-mine="${note.owner.id == currentUser.id}"
@@ -487,8 +448,6 @@
                                     <button type="button" class="btn-icon"
                                             th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
                                             th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
-                                            th:data-pin-label="#{notes.action.pin}"
-                                            th:data-unpin-label="#{notes.action.unpin}"
                                             th:onclick="'togglePin(' + ${note.id} + ', event)'">
                                         <i class="fas fa-thumbtack"
                                            th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
@@ -525,7 +484,6 @@
                 </th:block>
             </div>
 
-            <!-- Empty filter state -->
             <div id="emptyFilterMessage" class="empty-notes" style="display: none;">
                 <i class="fas fa-search"></i>
                 <h4 class="mt-3" th:text="#{notes.empty.search.title}">Нічого не знайдено</h4>
@@ -536,7 +494,6 @@
                 </button>
             </div>
 
-            <!-- Initial empty state -->
             <div th:if="${familyNotes.empty}" class="empty-notes" id="initialEmptyState">
                 <i class="fas fa-users-slash"></i>
                 <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
@@ -549,8 +506,6 @@
                         <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
                     </a>
                 </div>
-
-                <!-- CTA: запросити рідних -->
                 <div class="mt-4 pt-3" style="max-width: 420px; margin: 0 auto; border-top: 1px solid var(--bs-border-color);">
                     <p class="text-muted small mb-2">
                         <i class="fas fa-info-circle me-1"></i>
@@ -567,7 +522,7 @@
     </div>
 
     <div class="kbd-hint no-print text-center mb-5">
-        <kbd>N</kbd> — нова · <kbd>Ctrl+K</kbd> — пошук · <kbd>Esc</kbd> — закрити
+        <kbd>N</kbd> — нова · <kbd>Ctrl+K</kbd> — пошук · <kbd>Ctrl+A</kbd> — вибрати все · <kbd>Esc</kbd> — закрити
     </div>
 
     <div class="print-footer d-print-block" style="display: none;">
@@ -741,7 +696,7 @@
     window.csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
 
     window.lcI18n = {
-        showing:             /*[[#{common.showing}]]*/              'Показано: {0} з {1}',
+        showing:             /*[[#{common.showing}]]*/              'Показано: {0} з {1} {2}',
         allLoaded:           /*[[#{common.allLoaded}]]*/            'Всі завантажено',
         loadMore:            /*[[#{common.loadMore}]]*/             'Завантажити ще',
         loadError:           /*[[#{notes.network.error}]]*/         'Помилка завантаження',
@@ -767,8 +722,15 @@
         bulkCopied:          /*[[#{notes.bulk.copied}]]*/           'Скопійовано: {0} з {1}',
         bulkNothing:         /*[[#{notes.bulk.nothingSelected}]]*/  'Оберіть хоча б одну нотатку',
         noMatchPrefix:       'Немає нотаток:',
-        permissionDenied:    /*[[#{notes.error.prefix}]]*/          'Нотатка більше не доступна',
-        unavailable:         'Нотатка більше не доступна'
+        unavailable:         'Нотатка більше не доступна',
+        copyLink:            /*[[#{notes.copyLink}]]*/              'Копіювати посилання',
+        copied:              /*[[#{notes.copied}]]*/                'Посилання скопійовано',
+        draftRestore:        /*[[#{notes.draft.restore}]]*/         'Відновити чернетку?',
+        pinnedEmptyTitle:    /*[[#{notes.empty.pinned.title}]]*/    'Немає закріплених нотаток',
+        pinnedEmptyHint:     /*[[#{notes.empty.pinned.hint}]]*/     'Увімкніть «Усі», щоб побачити всі нотатки.',
+        countOne:            /*[[#{notes.count.one}]]*/             'нотатка',
+        countFew:            /*[[#{notes.count.few}]]*/             'нотатки',
+        countMany:           /*[[#{notes.count.many}]]*/            'нотаток'
     };
 </script>
 
@@ -784,12 +746,26 @@
         var RENDER_CHUNK = 100;
         var SCROLL_KEY = 'family_notes_scroll';
         var FILTERS_STORAGE_KEY = 'family_notes_filters_v1';
+        var DRAFT_KEY = 'family_notes_draft_new';
 
         function fmt(template) {
             var args = Array.prototype.slice.call(arguments, 1);
             return template.replace(/\{(\d+)\}/g, function (m, i) {
                 return args[i] !== undefined ? args[i] : m;
             });
+        }
+
+        // Pluralize word only (без числа)
+        function pluralWord(n, one, few, many) {
+            var n10 = n % 10;
+            var n100 = n % 100;
+            if (n10 === 1 && n100 !== 11) return one;
+            if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+            return many;
+        }
+
+        function notesWord(n) {
+            return pluralWord(n, i18n.countOne, i18n.countFew, i18n.countMany);
         }
 
         function csrfHeaders(extra) {
@@ -895,9 +871,7 @@
                 sessionStorage.removeItem(SCROLL_KEY);
                 var y = parseInt(saved, 10);
                 if (!isNaN(y) && y > 0) {
-                    requestAnimationFrame(function () {
-                        window.scrollTo(0, y);
-                    });
+                    requestAnimationFrame(function () { window.scrollTo(0, y); });
                 }
             } catch (e) {}
         }
@@ -960,9 +934,11 @@
             var noteGrid = document.getElementById('noteGrid');
             var searchInput = document.getElementById('searchInput');
             var searchClear = document.getElementById('searchClear');
+            var searchLoading = document.getElementById('searchLoading');
             var emptyFilterMessage = document.getElementById('emptyFilterMessage');
             var initialEmptyState = document.getElementById('initialEmptyState');
             var headerNoteCount = document.getElementById('headerNoteCount');
+            var headerNotePlural = document.getElementById('headerNotePlural');
             var memberFilter = document.getElementById('memberFilter');
             var loadMoreBtn = document.getElementById('loadMoreBtn');
             var visibleInfo = document.getElementById('visibleInfo');
@@ -979,13 +955,13 @@
             var currentPage = 1;
             var pageSize = 20;
             var pinnedOnly = false;
+            var lastFocusedBeforeModal = null;
 
-            // === SNAPSHOT ORIGINAL TEXT для highlight ===
+            // === Snapshot original text для highlight ===
             document.querySelectorAll('.note-card .card-title, .note-card .card-text').forEach(function (el) {
                 el.dataset.originalText = el.textContent;
             });
 
-            // === RELATIVE TIME ===
             function updateRelativeTimes() {
                 document.querySelectorAll('.rel-time[data-ts]').forEach(function (el) {
                     var txt = relTime(el.dataset.ts);
@@ -994,16 +970,15 @@
             }
             updateRelativeTimes();
 
-            // === INITIAL EMPTY STATE ===
             if (initialEmptyState) {
                 initialEmptyState.style.display = allCards.length === 0 ? 'block' : 'none';
             }
 
-            // === POPULATE MEMBER FILTER ===
+            // === Member filter ===
             var membersSet = new Set();
             allCards.forEach(function (w) {
-                var authorSpan = w.querySelector('.author-badge .author-name');
-                if (authorSpan) membersSet.add(authorSpan.textContent.trim());
+                var a = w.querySelector('.author-badge .author-name');
+                if (a) membersSet.add(a.textContent.trim());
             });
             membersSet.forEach(function (name) {
                 var opt = document.createElement('option');
@@ -1012,7 +987,7 @@
                 memberFilter.appendChild(opt);
             });
 
-            // === URL <-> state sync ===
+            // === URL sync ===
             function syncUrlFromState() {
                 try {
                     var url = new URL(window.location.href);
@@ -1104,7 +1079,7 @@
                 } catch (e) { return false; }
             }
 
-            // === COLOR PICKERS ===
+            // === Color pickers ===
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
                 picker.querySelectorAll('.color-option').forEach(function (el) {
                     el.addEventListener('click', function () {
@@ -1112,6 +1087,7 @@
                         this.classList.add('selected');
                         var hidden = picker.closest('.modal-body').querySelector('input[name="color"]');
                         if (hidden) hidden.value = this.dataset.color;
+                        scheduleDraftSave();
                     });
                 });
             });
@@ -1122,11 +1098,12 @@
                         this.classList.add('selected');
                         var hidden = picker.closest('.modal-body').querySelector('input[name="textColor"]');
                         if (hidden) hidden.value = this.dataset.color;
+                        scheduleDraftSave();
                     });
                 });
             });
 
-            // === CHAR COUNTERS ===
+            // === Char counters ===
             var titleInp = document.getElementById('editNoteTitle');
             var contentInp = document.getElementById('editNoteContent');
             var titleCount = document.getElementById('editNoteTitleCount');
@@ -1138,7 +1115,56 @@
             if (titleInp) titleInp.addEventListener('input', updateCharCounts);
             if (contentInp) contentInp.addEventListener('input', updateCharCounts);
 
-            // === DIRTY STATE ===
+            // === Draft (тільки для create mode) ===
+            var draftTimer = null;
+            function scheduleDraftSave() {
+                if (window.__editFormMode !== 'create') return;
+                clearTimeout(draftTimer);
+                draftTimer = setTimeout(saveDraft, 500);
+            }
+
+            function saveDraft() {
+                if (window.__editFormMode !== 'create') return;
+                var t = titleInp ? titleInp.value : '';
+                var c = contentInp ? contentInp.value : '';
+                if (!t && !c) {
+                    try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) {}
+                    return;
+                }
+                try {
+                    sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+                        title: t,
+                        content: c,
+                        color: document.getElementById('editSelectedColor').value,
+                        textColor: document.getElementById('editSelectedTextColor').value,
+                        ts: Date.now()
+                    }));
+                } catch (e) {}
+            }
+
+            function loadDraft() {
+                try {
+                    var raw = sessionStorage.getItem(DRAFT_KEY);
+                    if (!raw) return null;
+                    var d = JSON.parse(raw);
+                    // TTL 24 год
+                    if (!d.ts || (Date.now() - d.ts) > 24 * 60 * 60 * 1000) {
+                        sessionStorage.removeItem(DRAFT_KEY);
+                        return null;
+                    }
+                    if (!d.title && !d.content) return null;
+                    return d;
+                } catch (e) { return null; }
+            }
+
+            function clearDraft() {
+                try { sessionStorage.removeItem(DRAFT_KEY); } catch (e) {}
+            }
+
+            if (titleInp) titleInp.addEventListener('input', scheduleDraftSave);
+            if (contentInp) contentInp.addEventListener('input', scheduleDraftSave);
+
+            // === Dirty state ===
             var editInitialState = { title: '', content: '', color: '', textColor: '' };
 
             function snapshotEditState() {
@@ -1158,7 +1184,6 @@
                     || document.getElementById('editSelectedTextColor').value !== editInitialState.textColor;
             }
 
-            // === beforeunload (warning) ===
             window.addEventListener('beforeunload', function (e) {
                 if (window.__editFormSubmitting) return;
                 if (isEditDirty()) {
@@ -1167,6 +1192,13 @@
                     return '';
                 }
             });
+
+            // === Show modal with focus save ===
+            function showModalEl(modalEl) {
+                if (!modalEl) return;
+                lastFocusedBeforeModal = document.activeElement;
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
 
             // === OPEN NOTE ===
             function openFamilyNoteInternal(id, isMine, mode) {
@@ -1208,6 +1240,7 @@
                 if (selTextColor) selTextColor.value = textColor;
 
                 if (mode === 'copy') {
+                    window.__editFormMode = 'copy';
                     document.getElementById('editNoteId').value = '';
                     if (titleInp) { titleInp.value = title + i18n.copySuffix; titleInp.readOnly = false; }
                     if (contentInp) contentInp.readOnly = false;
@@ -1219,6 +1252,7 @@
                     if (shareContainer) shareContainer.style.display = 'block';
                     if (shareInput) shareInput.checked = false;
                 } else if (isMine) {
+                    window.__editFormMode = 'edit';
                     if (titleInp) titleInp.readOnly = false;
                     if (contentInp) contentInp.readOnly = false;
                     if (modalIcon) modalIcon.className = 'fas fa-edit me-2';
@@ -1229,6 +1263,7 @@
                     if (shareContainer) shareContainer.style.display = 'block';
                     if (shareInput) shareInput.checked = card.dataset.shareWithFamily === 'true';
                 } else {
+                    window.__editFormMode = 'view';
                     if (titleInp) titleInp.readOnly = true;
                     if (contentInp) contentInp.readOnly = true;
                     if (modalIcon) modalIcon.className = 'fas fa-eye me-2';
@@ -1240,9 +1275,7 @@
                 }
 
                 snapshotEditState();
-
-                var modalEl = document.getElementById('editNoteModal');
-                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                showModalEl(document.getElementById('editNoteModal'));
             }
 
             window.openFamilyNote = function (id, isMine) {
@@ -1254,6 +1287,7 @@
                 openFamilyNoteInternal(id, false, 'copy');
             };
 
+            // === CREATE (with draft check) ===
             window.createFamilyNote = function () {
                 var form = document.getElementById('editNoteForm');
                 var modalTitle = document.getElementById('editNoteModalTitle');
@@ -1262,6 +1296,7 @@
                 var shareInput = document.getElementById('editShareWithFamily');
                 var shareContainer = document.getElementById('editShareWithFamilyContainer');
 
+                window.__editFormMode = 'create';
                 document.getElementById('editNoteId').value = '';
                 if (titleInp) { titleInp.value = ''; titleInp.readOnly = false; }
                 if (contentInp) { contentInp.value = ''; contentInp.readOnly = false; }
@@ -1287,9 +1322,52 @@
                 updateCharCounts();
                 snapshotEditState();
 
-                var modalEl = document.getElementById('editNoteModal');
-                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                // === Draft check ===
+                var draft = loadDraft();
+                if (draft) {
+                    if (window.confirm(i18n.draftRestore)) {
+                        if (titleInp) titleInp.value = draft.title || '';
+                        if (contentInp) contentInp.value = draft.content || '';
+                        document.getElementById('editSelectedColor').value = draft.color || '#ffffff';
+                        document.getElementById('editSelectedTextColor').value = draft.textColor || '#212529';
+                        if (bgPicker) bgPicker.querySelectorAll('.color-option').forEach(function (el) {
+                            el.classList.toggle('selected', el.dataset.color === (draft.color || '#ffffff'));
+                        });
+                        if (textPicker) textPicker.querySelectorAll('.color-option').forEach(function (el) {
+                            el.classList.toggle('selected', el.dataset.color === (draft.textColor || '#212529'));
+                        });
+                        updateCharCounts();
+                    } else {
+                        clearDraft();
+                    }
+                }
+
+                showModalEl(document.getElementById('editNoteModal'));
                 setTimeout(function () { if (titleInp) titleInp.focus(); }, 350);
+            };
+
+            // === Copy link ===
+            window.copyNoteLink = function (id, e) {
+                if (e) e.stopPropagation();
+                var url = window.location.origin + window.location.pathname + '?open=' + id;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function () {
+                        showToast(i18n.copied, 'success');
+                    }).catch(function () {
+                        showToast(i18n.loadError, 'error');
+                    });
+                } else {
+                    // Fallback
+                    var ta = document.createElement('textarea');
+                    ta.value = url;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try { document.execCommand('copy'); showToast(i18n.copied, 'success'); }
+                    catch (err) { showToast(i18n.loadError, 'error'); }
+                    document.body.removeChild(ta);
+                }
             };
 
             // === EDIT / CREATE / COPY form submit ===
@@ -1298,11 +1376,12 @@
                 editForm.addEventListener('submit', function (e) {
                     e.preventDefault();
                     var isCreate = editForm.action.indexOf('/notes/create') !== -1;
+                    if (isCreate) clearDraft();
                     submitFormAjax(editForm, isCreate ? i18n.toastCreated : i18n.toastUpdated);
                 });
             }
 
-            // === UNSAVED CHANGES WARNING ===
+            // === UNSAVED WARNING + FOCUS RESTORE ===
             var editModalEl = document.getElementById('editNoteModal');
             if (editModalEl) {
                 editModalEl.addEventListener('hide.bs.modal', function (e) {
@@ -1320,6 +1399,11 @@
                     });
                     snapshotEditState();
                     window.__editFormSubmitting = false;
+                    // Restore focus
+                    if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function') {
+                        try { lastFocusedBeforeModal.focus(); } catch (e) {}
+                        lastFocusedBeforeModal = null;
+                    }
                 });
             }
 
@@ -1332,11 +1416,10 @@
                 var pinIcon = btn ? btn.querySelector('i') : null;
                 var wasPinned = card.classList.contains('pinned');
 
-                // Optimistic update
                 card.classList.toggle('pinned', !wasPinned);
                 card.dataset.pinned = String(!wasPinned);
                 if (pinIcon) pinIcon.classList.toggle('pin-icon', !wasPinned);
-                if (btn) btn.title = !wasPinned ? (i18n.unpinLabel || 'Відкріпити') : (i18n.pinLabel || 'Закріпити');
+                if (btn) btn.title = !wasPinned ? i18n.unpinLabel : i18n.pinLabel;
 
                 fetch('/notes/toggle-pin/' + id, {
                     method: 'POST',
@@ -1346,16 +1429,15 @@
                     showToast(wasPinned ? i18n.pinUnpinned : i18n.pinPinned, 'success');
                     setTimeout(updateUI, 100);
                 }).catch(function () {
-                    // rollback
                     card.classList.toggle('pinned', wasPinned);
                     card.dataset.pinned = String(wasPinned);
                     if (pinIcon) pinIcon.classList.toggle('pin-icon', wasPinned);
-                    if (btn) btn.title = wasPinned ? (i18n.unpinLabel || 'Відкріпити') : (i18n.pinLabel || 'Закріпити');
+                    if (btn) btn.title = wasPinned ? i18n.unpinLabel : i18n.pinLabel;
                     showToast(i18n.loadError, 'error');
                 });
             };
 
-            // === ARCHIVE (modal) ===
+            // === ARCHIVE ===
             var archiveModalEl = document.getElementById('archiveNoteConfirmModal');
             var archiveConfirmBtn = document.getElementById('archiveNoteConfirmBtn');
             var archiveMessageEl = document.getElementById('archiveNoteMessage');
@@ -1370,7 +1452,7 @@
                     archiveMessageEl.textContent = title ? fmt(i18n.archiveConfirmMsg, title) : '';
                 }
                 pendingArchive = { id: id, btn: e ? e.currentTarget : null };
-                if (archiveModalEl) bootstrap.Modal.getOrCreateInstance(archiveModalEl).show();
+                showModalEl(archiveModalEl);
             };
 
             if (archiveConfirmBtn) {
@@ -1401,8 +1483,7 @@
                 if (e) e.stopPropagation();
                 var form = document.getElementById('deleteNoteForm');
                 if (form) form.action = '/notes/delete/' + id;
-                var modalEl = document.getElementById('deleteNoteConfirmModal');
-                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+                showModalEl(document.getElementById('deleteNoteConfirmModal'));
             };
 
             var deleteForm = document.getElementById('deleteNoteForm');
@@ -1460,6 +1541,19 @@
                 selectedIds.clear();
                 noteGrid.querySelectorAll('.note-checkbox').forEach(function (cb) { cb.checked = false; });
                 noteGrid.querySelectorAll('.note-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+                updateBulkBar();
+            }
+
+            function selectAllVisible() {
+                allCards.forEach(function (w) {
+                    if (w.style.display === 'none') return;
+                    var cb = w.querySelector('.note-checkbox');
+                    if (!cb) return;
+                    cb.checked = true;
+                    var card = w.querySelector('.note-card');
+                    if (card) card.classList.add('selected');
+                    selectedIds.add(parseInt(cb.dataset.id, 10));
+                });
                 updateBulkBar();
             }
 
@@ -1526,11 +1620,17 @@
                 });
             }
 
-            // === KEYBOARD (fixed Esc priority) ===
+            // === KEYBOARD ===
             document.addEventListener('keydown', function (e) {
                 var tag = (e.target.tagName || '').toUpperCase();
                 var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
 
+                // Ctrl+A → вибрати всі видимі
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a' && !isEditable) {
+                    e.preventDefault();
+                    selectAllVisible();
+                    return;
+                }
                 if (!isEditable && (e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                     e.preventDefault();
                     window.createFamilyNote();
@@ -1547,7 +1647,6 @@
                     return;
                 }
                 if (e.key === 'Escape') {
-                    // Пріоритет: спочатку modal, потім bulk
                     if (document.querySelector('.modal.show')) return;
                     if (selectedIds.size > 0) {
                         clearSelection();
@@ -1598,7 +1697,6 @@
                 if (bOthers) bOthers.textContent = others;
             }
 
-            // === RESET FILTERS BTN ===
             function updateResetButton() {
                 if (!resetFiltersBtn) return;
                 var active = currentFilter !== 'all'
@@ -1609,7 +1707,6 @@
                 resetFiltersBtn.classList.toggle('d-none', !active);
             }
 
-            // === EXPORT LINK ===
             function updateExportLink() {
                 var params = ['filter=shared'];
                 if (searchInput && searchInput.value) params.push('q=' + encodeURIComponent(searchInput.value));
@@ -1621,7 +1718,6 @@
                 if (exportBtnMobile) exportBtnMobile.href = href;
             }
 
-            // === SEARCH HIGHLIGHT ===
             function applySearchHighlight() {
                 document.querySelectorAll('.note-card .card-title, .note-card .card-text').forEach(function (el) {
                     var orig = el.dataset.originalText;
@@ -1685,6 +1781,7 @@
                 });
 
                 if (headerNoteCount) headerNoteCount.textContent = total;
+                if (headerNotePlural) headerNotePlural.textContent = notesWord(total);
 
                 if (emptyFilterMessage) {
                     if (total === 0 && allCards.length > 0) {
@@ -1693,16 +1790,24 @@
                         if (memberFilter.value !== 'all') parts.push(memberFilter.value);
                         if (currentFilter === 'mine') parts.push('Мої');
                         else if (currentFilter === 'others') parts.push('Інших');
-                        if (pinnedOnly) parts.push(i18n.pinLabel);
 
                         var titleEl = emptyFilterMessage.querySelector('h4');
                         var hintEl = emptyFilterMessage.querySelector('p');
-                        if (titleEl) {
-                            titleEl.textContent = parts.length
-                                ? (i18n.noMatchPrefix + ' ' + parts.join(' · '))
-                                : 'Нічого не знайдено';
+                        var iconEl = emptyFilterMessage.querySelector('i');
+
+                        if (pinnedOnly && parts.length === 0) {
+                            if (titleEl) titleEl.textContent = i18n.pinnedEmptyTitle;
+                            if (hintEl) hintEl.textContent = i18n.pinnedEmptyHint;
+                            if (iconEl) iconEl.className = 'fas fa-thumbtack';
+                        } else {
+                            if (titleEl) {
+                                titleEl.textContent = parts.length
+                                    ? (i18n.noMatchPrefix + ' ' + parts.join(' · '))
+                                    : 'Нічого не знайдено';
+                            }
+                            if (hintEl) hintEl.textContent = 'Спробуйте змінити фільтри або створити нотатку.';
+                            if (iconEl) iconEl.className = 'fas fa-search';
                         }
-                        if (hintEl) hintEl.textContent = 'Спробуйте змінити фільтри або створити нотатку.';
                         emptyFilterMessage.style.display = 'block';
                     } else {
                         emptyFilterMessage.style.display = 'none';
@@ -1720,7 +1825,7 @@
 
                 if (visibleInfo) {
                     if (total > 0) {
-                        visibleInfo.textContent = fmt(i18n.showing, end, total);
+                        visibleInfo.textContent = fmt(i18n.showing, end, total, notesWord(total));
                         visibleInfo.classList.remove('d-none');
                     } else {
                         visibleInfo.classList.add('d-none');
@@ -1746,10 +1851,12 @@
                 var searchTimer;
                 searchInput.addEventListener('input', function () {
                     clearTimeout(searchTimer);
+                    if (searchLoading) searchLoading.style.display = 'inline-block';
                     var val = this.value.trim().toLowerCase();
                     searchTimer = setTimeout(function () {
                         searchText = val;
                         applyFilters();
+                        if (searchLoading) searchLoading.style.display = 'none';
                     }, 300);
                 });
             }
@@ -1757,6 +1864,7 @@
                 searchClear.addEventListener('click', function () {
                     searchInput.value = '';
                     searchText = '';
+                    if (searchLoading) searchLoading.style.display = 'none';
                     applyFilters();
                     searchInput.focus();
                 });
@@ -1833,8 +1941,29 @@
             if (!hasUrlParams) restoreFromSession();
             updateUI();
 
-            // Відновити скрол ПІСЛЯ layout
             setTimeout(restoreScroll, 50);
+
+            // === DEEP-LINK ?open=ID ===
+            var openId = new URLSearchParams(window.location.search).get('open');
+            if (openId) {
+                var id = parseInt(openId, 10);
+                if (!isNaN(id)) {
+                    setTimeout(function () {
+                        var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                        if (card) {
+                            var wrapper = card.closest('.note-card-wrapper');
+                            var isMine = wrapper && wrapper.dataset.mine === 'true';
+                            openFamilyNoteInternal(id, isMine, isMine ? 'edit' : 'view');
+                            // Прибрати ?open з URL, щоб F5 не відкривав знову
+                            try {
+                                var url = new URL(window.location.href);
+                                url.searchParams.delete('open');
+                                window.history.replaceState({}, '', url.toString());
+                            } catch (e) {}
+                        }
+                    }, 300);
+                }
+            }
         });
     })();
 </script>
