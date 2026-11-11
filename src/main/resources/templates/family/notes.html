@@ -36,14 +36,38 @@
         .notes-sub-bar { background-color: #ffffff !important; }
         [data-bs-theme="dark"] .notes-sub-bar { background-color: #1d2027 !important; }
 
+        /* ===== STICKY TOOLBAR (десктоп) ===== */
+        @media (min-width: 992px) {
+            .notes-toolbar.notes-sub-bar {
+                position: sticky;
+                top: 0;
+                z-index: 25;
+                background-color: #ffffff !important;
+            }
+            [data-bs-theme="dark"] .notes-toolbar.notes-sub-bar {
+                background-color: #1d2027 !important;
+            }
+            .search-bar.notes-sub-bar {
+                position: sticky;
+                top: 52px;
+                z-index: 24;
+            }
+        }
+
         .view-toggle { display: flex; gap: 0.3rem; background: var(--bs-secondary-bg); border-radius: 0.5rem; padding: 0.2rem; flex-shrink: 0; }
         .view-toggle .btn { border: none; padding: 0.5rem 1rem; font-size: 0.95rem; border-radius: 0.375rem !important; background: transparent; color: var(--bs-secondary-color); font-weight: 600; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.4rem; white-space: nowrap; }
+        .view-toggle .btn .badge { font-size: 0.7rem; padding: 0.15rem 0.45rem; background: rgba(0,0,0,0.08); color: inherit; border-radius: 0.75rem; font-weight: 700; min-width: 1.5rem; text-align: center; }
+        .view-toggle .btn.active .badge { background: var(--bs-primary); color: #fff; }
         .cat-header-theme .view-toggle { background: #e9ecef !important; }
         .cat-header-theme .view-toggle .btn { color: #495057 !important; }
+        .cat-header-theme .view-toggle .btn .badge { background: rgba(0,0,0,0.1); color: #495057; }
         .cat-header-theme .view-toggle .btn.active { background: #ffffff !important; color: #0d6efd !important; box-shadow: 0 2px 6px rgba(0,0,0,0.12) !important; }
+        .cat-header-theme .view-toggle .btn.active .badge { background: #0d6efd; color: #fff; }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255, 255, 255, 0.08) !important; }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255, 255, 255, 0.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn .badge { background: rgba(255,255,255,0.15); color: #e6e6e6; }
         [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #ffffff !important; box-shadow: none !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active .badge { background: rgba(255,255,255,0.25); color: #fff; }
 
         /* ===== TOOLBAR ===== */
         .notes-toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
@@ -68,18 +92,25 @@
         .note-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
 
-        /* Pinned outline — як у /notes */
-        .note-card.pinned {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1);
+        /* Pinned outline */
+        .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1); }
+        .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15); }
+        [data-bs-theme="dark"] .note-card.pinned { box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.4); }
+        [data-bs-theme="dark"] .note-card.pinned:hover { box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5); }
+
+        /* Selected visual */
+        .note-card:has(.note-checkbox:checked),
+        .note-card.selected {
+            box-shadow: 0 0 0 3px var(--bs-primary), 0 4px 8px rgba(13, 110, 253, 0.35) !important;
+            transform: translateY(-2px);
         }
-        .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15);
+        .note-card.pinned:has(.note-checkbox:checked),
+        .note-card.pinned.selected {
+            box-shadow: 0 0 0 2px #fbbc04, 0 0 0 5px var(--bs-primary), 0 4px 8px rgba(13, 110, 253, 0.35) !important;
         }
-        [data-bs-theme="dark"] .note-card.pinned {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.4);
-        }
-        [data-bs-theme="dark"] .note-card.pinned:hover {
-            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5);
+        [data-bs-theme="dark"] .note-card:has(.note-checkbox:checked),
+        [data-bs-theme="dark"] .note-card.selected {
+            box-shadow: 0 0 0 3px #6ea8fe, 0 4px 8px rgba(110, 168, 254, 0.4) !important;
         }
 
         .note-card .card-body { flex: 1; padding: 0.9rem 1rem 0.75rem; }
@@ -90,6 +121,38 @@
         [data-bs-theme="dark"] .note-card .btn-icon { color: #bdc1c6; }
         .note-card .btn-icon:hover { background: rgba(26, 115, 232, 0.12); color: #1a73e8; transform: translateY(-1px); }
         .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+
+        /* CHECKBOX (як у /notes) */
+        .note-checkbox.form-check-input {
+            flex-shrink: 0;
+            width: 1.15rem;
+            height: 1.15rem;
+            margin: 0;
+            cursor: pointer;
+            opacity: 0;
+            border: 2px solid #adb5bd;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .note-checkbox.form-check-input:hover { border-color: var(--bs-primary); }
+        .note-checkbox.form-check-input:checked {
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+        }
+        [data-bs-theme="dark"] .note-checkbox.form-check-input { background-color: rgba(255, 255, 255, 0.12); border-color: #6c757d; }
+        [data-bs-theme="dark"] .note-checkbox.form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
+
+        .note-card:hover .note-checkbox,
+        .note-card.selected .note-checkbox,
+        .note-checkbox:checked,
+        .note-checkbox:focus-visible,
+        #noteGrid.bulk-mode .note-checkbox { opacity: 1; }
+
+        @media (hover: none), (max-width: 767.98px) {
+            .note-checkbox.form-check-input { opacity: 1; }
+        }
 
         /* AUTHOR BADGE */
         .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; cursor: pointer; }
@@ -113,6 +176,26 @@
         .color-picker .color-option.selected { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.25); }
         .text-color-picker .color-option[data-color="#ffffff"] { border: 2px solid #ccc; }
 
+        /* ===== BULK BAR ===== */
+        .bulk-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1d2027;
+            border-top: 1px solid #2a2e37;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            z-index: 1045;
+            transform: translateY(100%);
+            transition: transform 0.25s ease;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+        }
+        .bulk-bar.active { transform: translateY(0); }
+        .bulk-bar .bulk-count { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; }
+        .bulk-bar .bulk-count .badge { font-size: 0.85rem; padding: 0.3rem 0.7rem; background: var(--bs-primary); color: #fff; }
+        .bulk-bar .btn { font-size: 0.85rem; }
+
         /* ===== MOBILE ADAPTATION ===== */
         @media (max-width: 575.98px) {
             .notes-toolbar { padding: 0.5rem 0.75rem; gap: 0.5rem; flex-direction: row; flex-wrap: wrap; align-items: stretch; }
@@ -126,12 +209,20 @@
             .cat-header-theme > div.no-print { width: 100% !important; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
             .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; height: auto !important; flex-wrap: wrap; padding: 0.25rem !important; gap: 0.25rem !important; }
             .cat-header-theme > div.no-print > .view-toggle > .btn { flex: 1 1 calc(33.33% - 0.25rem); min-width: 0; height: 40px !important; font-size: 0.8rem; padding: 0.3rem 0.5rem; justify-content: center; }
+            .cat-header-theme > div.no-print > .view-toggle > .btn .badge { font-size: 0.65rem; padding: 0.1rem 0.35rem; min-width: 1.2rem; }
             .kbd-hint { display: none; }
+
+            .bulk-bar { padding: 0.5rem 0.75rem; }
+            .bulk-bar .bulk-buttons { width: 100%; flex-wrap: wrap; gap: 0.4rem !important; }
+            .bulk-bar .bulk-count { width: 100%; justify-content: center; margin-bottom: 0.25rem; font-size: 0.85rem; }
+            .bulk-bar .bulk-count .badge { font-size: 0.8rem; padding: 0.25rem 0.55rem; }
+            .bulk-bar .btn { flex: 1 1 0; min-width: 0; font-size: 0.78rem; padding: 0.4rem 0.5rem; white-space: nowrap; }
+            .bulk-bar .btn i { margin-right: 0.2rem !important; }
         }
 
         @media print {
             body, html { margin: 0 !important; padding: 0 !important; }
-            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .view-toggle, .search-bar, .alert, .notes-toolbar { display: none !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .view-toggle, .search-bar, .alert, .notes-toolbar, .bulk-bar, .note-checkbox { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
             .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
@@ -208,9 +299,18 @@
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-center no-print">
                 <div class="view-toggle" id="filterToggle">
-                    <button class="btn active" data-filter="all" th:text="#{notes.filter.all}">Усі</button>
-                    <button class="btn" data-filter="mine" th:text="#{notes.family.myNotes}">Мої</button>
-                    <button class="btn" data-filter="others" th:text="#{notes.family.others}">Інших</button>
+                    <button class="btn active" data-filter="all">
+                        <span th:text="#{notes.filter.all}">Усі</span>
+                        <span class="badge" id="badgeAll">0</span>
+                    </button>
+                    <button class="btn" data-filter="mine">
+                        <span th:text="#{notes.family.myNotes}">Мої</span>
+                        <span class="badge" id="badgeMine">0</span>
+                    </button>
+                    <button class="btn" data-filter="others">
+                        <span th:text="#{notes.family.others}">Інших</span>
+                        <span class="badge" id="badgeOthers">0</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -241,6 +341,13 @@
                 <option value="100">100</option>
                 <option value="0" th:text="#{common.all}">Всі</option>
             </select>
+
+            <button type="button" id="resetFiltersBtn"
+                    class="btn btn-outline-secondary btn-sm d-none"
+                    th:title="#{btn.clear}">
+                <i class="fas fa-filter-circle-xmark"></i>
+                <span class="d-none d-lg-inline ms-1" th:text="#{btn.clear}">Очистити</span>
+            </button>
 
             <button id="loadMoreBtn" class="btn btn-outline-primary load-more-btn ms-auto d-none">
                 <i class="fas fa-plus-circle me-1"></i>
@@ -290,7 +397,8 @@
                                           th:classappend="${note.owner.id == currentUser.id} ? 'is-me' : ''"
                                           th:title="${note.owner.username}"
                                           th:data-author="${note.owner.username}"
-                                          onclick="event.stopPropagation(); if (this.dataset.author) filterByAuthor(this.dataset.author);">
+                                          th:data-mine="${note.owner.id == currentUser.id}"
+                                          onclick="event.stopPropagation(); filterByAuthor(this.dataset.author, this.dataset.mine === 'true');">
                                         <span class="author-avatar"
                                               th:text="${#strings.substring(note.owner.username, 0, 1).toUpperCase()}">A</span>
                                         <span class="text-truncate author-name" th:text="${note.owner.username}">user</span>
@@ -299,8 +407,15 @@
                                               style="font-size: 0.6rem; padding: 0.1rem 0.35rem; flex-shrink: 0;"
                                               th:text="#{family.member.you}">(ви)</span>
                                     </span>
-                                    <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning"
-                                       style="font-size: 0.85rem;" th:title="#{notes.action.pin}"></i>
+                                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                                        <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning"
+                                           style="font-size: 0.85rem;" th:title="#{notes.action.pin}"></i>
+                                        <input type="checkbox" class="note-checkbox form-check-input"
+                                               th:data-id="${note.id}"
+                                               th:data-mine="${note.owner.id == currentUser.id}"
+                                               th:aria-label="#{notes.select.aria(${note.title})}"
+                                               onclick="event.stopPropagation()"/>
+                                    </div>
                                 </div>
 
                                 <h5 class="card-title"
@@ -406,6 +521,34 @@
 
     <div class="print-footer d-print-block" style="display: none;">
         <span th:text="#{footer.copyright}">© 2026 LazyCent</span>
+    </div>
+</div>
+
+<!-- ==================== BULK BAR ==================== -->
+<div id="bulkBar" class="bulk-bar no-print" role="toolbar" th:aria-label="#{notes.title}">
+    <div class="d-flex align-items-center gap-2 flex-wrap bulk-buttons">
+        <span class="bulk-count me-auto">
+            <i class="fas fa-check-square"></i>
+            <span class="badge" id="bulkCount">0</span>
+            <span class="d-none d-sm-inline" th:text="#{notes.bulk.selected}">вибрано</span>
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-light" data-action="copy">
+            <i class="fas fa-copy me-1"></i>
+            <span th:text="#{notes.family.copy}">Копіювати</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light d-none" data-action="archive">
+            <i class="fas fa-archive me-1"></i>
+            <span th:text="#{notes.bulk.archive}">Архівувати</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger d-none" data-action="delete">
+            <i class="fas fa-trash me-1"></i>
+            <span th:text="#{notes.bulk.delete}">Видалити</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light" data-action="cancel"
+                th:aria-label="#{notes.bulk.cancel}">
+            <i class="fas fa-times"></i>
+            <span class="d-none d-sm-inline ms-1" th:text="#{notes.bulk.cancel}">Скасувати</span>
+        </button>
     </div>
 </div>
 
@@ -567,7 +710,10 @@
         toastDeleted:        /*[[#{toast.note.deleted}]]*/          'Нотатку видалено!',
         toastArchived:       /*[[#{toast.note.archived}]]*/         'Нотатку заархівовано!',
         errorPrefix:         /*[[#{notes.error.prefix}]]*/          'Помилка: {0}',
-        unsavedChanges:      /*[[#{notes.unsaved.changes}]]*/       'Незбережені зміни. Закрити?'
+        unsavedChanges:      /*[[#{notes.unsaved.changes}]]*/       'Незбережені зміни. Закрити?',
+        bulkCopied:          /*[[#{notes.bulk.copied}]]*/           'Скопійовано: {0} з {1}',
+        bulkNothing:         /*[[#{notes.bulk.nothingSelected}]]*/  'Оберіть хоча б одну нотатку',
+        noMatchPrefix:       'Немає нотаток:'
     };
 </script>
 
@@ -580,6 +726,7 @@
         'use strict';
 
         var i18n = window.lcI18n;
+        var RENDER_CHUNK = 100;
 
         function fmt(template) {
             var args = Array.prototype.slice.call(arguments, 1);
@@ -652,9 +799,15 @@
             } catch (e) { return ''; }
         }
 
-        /**
-         * AJAX-сабміт POST-форми + парсинг ApiErrorDto.message при помилці.
-         */
+        function isPermissionError(msg) {
+            if (!msg) return false;
+            var low = msg.toLowerCase();
+            return low.indexOf('не належить') !== -1
+                || low.indexOf('не знайдено') !== -1
+                || low.indexOf('не доступн') !== -1
+                || low.indexOf('access denied') !== -1;
+        }
+
         function submitFormAjax(form, successToastMsg) {
             var fd = new FormData(form);
             var btn = form.querySelector('[type="submit"]');
@@ -670,7 +823,7 @@
                         try {
                             var j = JSON.parse(body);
                             if (j && j.message) msg = j.message;
-                        } catch (e) { /* not JSON — ignore */ }
+                        } catch (e) { /* not JSON */ }
                         return { ok: false, msg: msg };
                     });
                 })
@@ -681,7 +834,12 @@
                     } else {
                         window.__editFormSubmitting = false;
                         if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
-                        showToast(res.msg, 'error');
+                        if (isPermissionError(res.msg)) {
+                            showToast('Нотатка більше не доступна', 'error');
+                            setTimeout(function () { location.reload(); }, 900);
+                        } else {
+                            showToast(res.msg, 'error');
+                        }
                     }
                 })
                 .catch(function (err) {
@@ -718,6 +876,8 @@
             var visibleInfo = document.getElementById('visibleInfo');
             var clearFiltersBtn = document.getElementById('clearFiltersBtn');
             var pageSizeSelect = document.getElementById('pageSizeSelect');
+            var resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            var bulkBar = document.getElementById('bulkBar');
 
             var allCards = Array.from(noteGrid.querySelectorAll('.note-card-wrapper'));
             var currentFilter = 'all';
@@ -759,18 +919,14 @@
                     var url = new URL(window.location.href);
                     if (currentFilter !== 'all') url.searchParams.set('filter', currentFilter);
                     else url.searchParams.delete('filter');
-
                     if (currentSort !== 'default') url.searchParams.set('sort', currentSort);
                     else url.searchParams.delete('sort');
-
                     if (memberFilter.value !== 'all') url.searchParams.set('member', memberFilter.value);
                     else url.searchParams.delete('member');
-
                     if (searchInput.value) url.searchParams.set('q', searchInput.value);
                     else url.searchParams.delete('q');
-
                     window.history.replaceState({}, '', url.toString());
-                } catch (e) { /* ignore */ }
+                } catch (e) {}
             }
 
             function saveFilters() {
@@ -898,7 +1054,7 @@
                     || document.getElementById('editSelectedTextColor').value !== editInitialState.textColor;
             }
 
-            // === OPEN NOTE: edit / view / copy ===
+            // === OPEN NOTE ===
             function openFamilyNoteInternal(id, isMine, mode) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
@@ -982,7 +1138,7 @@
                 openFamilyNoteInternal(id, false, 'copy');
             };
 
-            // === CREATE (inline) ===
+            // === CREATE ===
             window.createFamilyNote = function () {
                 var form = document.getElementById('editNoteForm');
                 var modalTitle = document.getElementById('editNoteModalTitle');
@@ -1057,20 +1213,17 @@
                 var btn = e ? e.currentTarget : null;
                 withLoading(btn, function () {
                     return fetch('/notes/toggle-pin/' + id, {
-                        method: 'POST',
-                        headers: csrfHeaders()
+                        method: 'POST', headers: csrfHeaders()
                     }).then(function (r) {
                         if (r.ok) {
                             flashToast(i18n.pinPinned, 'success');
                             setTimeout(function () { location.reload(); }, 50);
-                        } else {
-                            showToast(i18n.archiveError, 'error');
-                        }
+                        } else { showToast(i18n.archiveError, 'error'); }
                     }).catch(function () { showToast(i18n.loadError, 'error'); });
                 });
             };
 
-            // === ARCHIVE (modal confirm) ===
+            // === ARCHIVE (modal) ===
             var archiveModalEl = document.getElementById('archiveNoteConfirmModal');
             var archiveConfirmBtn = document.getElementById('archiveNoteConfirmBtn');
             var archiveMessageEl = document.getElementById('archiveNoteMessage');
@@ -1100,15 +1253,12 @@
                     }
                     withLoading(origBtn, function () {
                         return fetch('/notes/toggle-archive/' + id, {
-                            method: 'POST',
-                            headers: csrfHeaders()
+                            method: 'POST', headers: csrfHeaders()
                         }).then(function (r) {
                             if (r.ok) {
                                 flashToast(i18n.toastArchived, 'success');
                                 setTimeout(function () { location.reload(); }, 50);
-                            } else {
-                                showToast(i18n.archiveError, 'error');
-                            }
+                            } else { showToast(i18n.archiveError, 'error'); }
                         }).catch(function () { showToast(i18n.loadError, 'error'); });
                     });
                 });
@@ -1132,17 +1282,120 @@
             }
 
             // === FILTER BY AUTHOR ===
-            window.filterByAuthor = function (username) {
-                var opt = Array.from(memberFilter.options).find(function (o) { return o.value === username; });
-                if (opt) {
-                    memberFilter.value = username;
+            window.filterByAuthor = function (username, isMe) {
+                if (isMe) {
+                    currentFilter = 'mine';
+                    memberFilter.value = 'all';
+                } else {
                     currentFilter = 'all';
-                    document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
-                        b.classList.toggle('active', b.dataset.filter === 'all');
-                    });
-                    applyFilters();
+                    var opt = Array.from(memberFilter.options).find(function (o) { return o.value === username; });
+                    if (opt) memberFilter.value = username;
                 }
+                document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                    b.classList.toggle('active', b.dataset.filter === currentFilter);
+                });
+                applyFilters();
             };
+
+            // === BULK SELECTION ===
+            var selectedIds = new Set();
+
+            function updateBulkBar() {
+                if (!bulkBar) return;
+                if (selectedIds.size === 0) {
+                    bulkBar.classList.remove('active');
+                    noteGrid.classList.remove('bulk-mode');
+                    return;
+                }
+                bulkBar.classList.add('active');
+                noteGrid.classList.add('bulk-mode');
+                var countEl = document.getElementById('bulkCount');
+                if (countEl) countEl.textContent = selectedIds.size;
+
+                // Чи всі вибрані — власні?
+                var allMine = true;
+                selectedIds.forEach(function (id) {
+                    var cb = noteGrid.querySelector('.note-checkbox[data-id="' + id + '"]');
+                    if (!cb || cb.dataset.mine !== 'true') allMine = false;
+                });
+
+                var archiveBtn = bulkBar.querySelector('[data-action="archive"]');
+                var deleteBtn = bulkBar.querySelector('[data-action="delete"]');
+                if (archiveBtn) archiveBtn.classList.toggle('d-none', !allMine);
+                if (deleteBtn) deleteBtn.classList.toggle('d-none', !allMine);
+            }
+
+            function clearSelection() {
+                selectedIds.clear();
+                noteGrid.querySelectorAll('.note-checkbox').forEach(function (cb) { cb.checked = false; });
+                noteGrid.querySelectorAll('.note-card.selected').forEach(function (c) { c.classList.remove('selected'); });
+                updateBulkBar();
+            }
+
+            noteGrid.addEventListener('change', function (e) {
+                var cb = e.target.closest('.note-checkbox');
+                if (!cb) return;
+                var id = parseInt(cb.dataset.id, 10);
+                if (isNaN(id)) return;
+                var card = cb.closest('.note-card');
+                if (card) card.classList.toggle('selected', cb.checked);
+                if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+                updateBulkBar();
+            });
+
+            // === BULK ACTIONS ===
+            if (bulkBar) {
+                bulkBar.addEventListener('click', function (e) {
+                    var btn = e.target.closest('[data-action]');
+                    if (!btn) return;
+                    var action = btn.dataset.action;
+
+                    if (action === 'cancel') { clearSelection(); return; }
+                    if (selectedIds.size === 0) { showToast(i18n.bulkNothing, 'error'); return; }
+
+                    var ids = Array.from(selectedIds);
+
+                    if (action === 'copy') {
+                        // Копіюємо послідовно через /notes/copy/{id}
+                        var promises = ids.map(function (id) {
+                            return fetch('/notes/copy/' + id, {
+                                method: 'POST',
+                                headers: csrfHeaders()
+                            }).then(function (r) { return r.ok || r.redirected; })
+                                .catch(function () { return false; });
+                        });
+                        Promise.all(promises).then(function (results) {
+                            var success = results.filter(Boolean).length;
+                            if (success > 0) {
+                                flashToast(fmt(i18n.bulkCopied, success, ids.length), 'success');
+                                setTimeout(function () { location.reload(); }, 50);
+                            } else {
+                                showToast(i18n.loadError, 'error');
+                            }
+                        });
+                    } else if (action === 'archive' || action === 'delete') {
+                        // Bulk archive/delete — тільки для власних
+                        var params = new URLSearchParams();
+                        ids.forEach(function (id) { params.append('ids', id); });
+                        fetch('/notes/bulk/' + action, {
+                            method: 'POST',
+                            headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                            body: params.toString()
+                        }).then(function (r) { return r.ok ? r.json() : Promise.reject('HTTP ' + r.status); })
+                            .then(function (data) {
+                                if (data && data.success) {
+                                    flashToast(action === 'delete' ? i18n.toastDeleted : i18n.toastArchived, 'success');
+                                    setTimeout(function () { location.reload(); }, 50);
+                                } else {
+                                    showToast(fmt(i18n.errorPrefix, (data && data.error) || '?'), 'error');
+                                }
+                            })
+                            .catch(function (err) {
+                                showToast(fmt(i18n.errorPrefix, err.message || err), 'error');
+                            });
+                    }
+                });
+            }
 
             // === KEYBOARD ===
             document.addEventListener('keydown', function (e) {
@@ -1156,10 +1409,7 @@
                 }
                 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
                     e.preventDefault();
-                    if (searchInput) {
-                        searchInput.focus();
-                        searchInput.select();
-                    }
+                    if (searchInput) { searchInput.focus(); searchInput.select(); }
                     return;
                 }
                 if (!isEditable && e.key === '/' && !e.ctrlKey && !e.metaKey) {
@@ -1172,6 +1422,7 @@
                         var inst = bootstrap.Modal.getInstance(m);
                         if (inst) inst.hide();
                     });
+                    if (selectedIds.size > 0) clearSelection();
                 }
             });
 
@@ -1184,6 +1435,57 @@
                     body.click();
                 }
             });
+
+            // === FILTER BADGES ===
+            function updateFilterBadges() {
+                var matchNonFilter = allCards.filter(function (w) {
+                    var card = w.querySelector('.note-card');
+                    if (!card) return false;
+                    var title = (card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '').toLowerCase();
+                    var content = (card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '').toLowerCase();
+                    var author = (card.querySelector('.author-badge .author-name') ? card.querySelector('.author-badge .author-name').textContent.trim() : '');
+                    var matchesSearch = !searchText
+                        || title.indexOf(searchText) !== -1
+                        || content.indexOf(searchText) !== -1
+                        || author.toLowerCase().indexOf(searchText) !== -1;
+                    var matchesMember = memberFilter.value === 'all' || author === memberFilter.value;
+                    return matchesSearch && matchesMember;
+                });
+
+                var mine = 0, others = 0;
+                matchNonFilter.forEach(function (w) {
+                    if (w.dataset.mine === 'true') mine++; else others++;
+                });
+
+                var bAll = document.getElementById('badgeAll');
+                var bMine = document.getElementById('badgeMine');
+                var bOthers = document.getElementById('badgeOthers');
+                if (bAll) bAll.textContent = matchNonFilter.length;
+                if (bMine) bMine.textContent = mine;
+                if (bOthers) bOthers.textContent = others;
+            }
+
+            // === RESET FILTERS BTN ===
+            function updateResetButton() {
+                if (!resetFiltersBtn) return;
+                var active = currentFilter !== 'all'
+                    || currentSort !== 'default'
+                    || memberFilter.value !== 'all'
+                    || (searchInput && searchInput.value.length > 0);
+                resetFiltersBtn.classList.toggle('d-none', !active);
+            }
+
+            // === EXPORT LINK ===
+            function updateExportLink() {
+                var params = ['filter=shared'];
+                if (searchInput && searchInput.value) params.push('q=' + encodeURIComponent(searchInput.value));
+                if (memberFilter.value !== 'all') params.push('member=' + encodeURIComponent(memberFilter.value));
+                var href = '/notes/export?' + params.join('&');
+                var exportBtn = document.getElementById('exportBtn');
+                var exportBtnMobile = document.getElementById('exportBtnMobile');
+                if (exportBtn) exportBtn.href = href;
+                if (exportBtnMobile) exportBtnMobile.href = href;
+            }
 
             // === UPDATE UI ===
             function updateUI() {
@@ -1219,7 +1521,8 @@
                 allCards.forEach(function (w) { w.style.display = 'none'; });
 
                 var total = filtered.length;
-                var effPageSize = pageSize === 0 ? total : pageSize;
+                // Progressive render для "Всі" (pageSize === 0)
+                var effPageSize = pageSize === 0 ? RENDER_CHUNK : pageSize;
                 var end = Math.min(currentPage * effPageSize, total);
                 var toShow = filtered.slice(0, end);
 
@@ -1230,18 +1533,39 @@
 
                 if (headerNoteCount) headerNoteCount.textContent = total;
 
+                // === Empty state (розширений) ===
                 if (emptyFilterMessage) {
-                    emptyFilterMessage.style.display = (total === 0 && allCards.length > 0) ? 'block' : 'none';
+                    if (total === 0 && allCards.length > 0) {
+                        var parts = [];
+                        if (searchText) parts.push('«' + searchText + '»');
+                        if (memberFilter.value !== 'all') parts.push(memberFilter.value);
+                        if (currentFilter === 'mine') parts.push('Мої');
+                        else if (currentFilter === 'others') parts.push('Інших');
+
+                        var titleEl = emptyFilterMessage.querySelector('h4');
+                        var hintEl = emptyFilterMessage.querySelector('p');
+                        if (titleEl) {
+                            titleEl.textContent = parts.length
+                                ? (i18n.noMatchPrefix + ' ' + parts.join(' · '))
+                                : 'Нічого не знайдено';
+                        }
+                        if (hintEl) hintEl.textContent = 'Спробуйте змінити фільтри або створити нотатку.';
+                        emptyFilterMessage.style.display = 'block';
+                    } else {
+                        emptyFilterMessage.style.display = 'none';
+                    }
                 }
 
+                // === Load More (враховує pageSize=0 як progressive) ===
                 if (loadMoreBtn) {
-                    if (pageSize !== 0 && end < total) {
+                    if (end < total) {
                         loadMoreBtn.classList.remove('d-none');
                         loadMoreBtn.disabled = false;
                     } else {
                         loadMoreBtn.classList.add('d-none');
                     }
                 }
+
                 if (visibleInfo) {
                     if (total > 0) {
                         visibleInfo.textContent = fmt(i18n.showing, end, total);
@@ -1251,6 +1575,9 @@
                     }
                 }
 
+                updateFilterBadges();
+                updateResetButton();
+                updateExportLink();
                 syncUrlFromState();
                 saveFilters();
                 updateRelativeTimes();
@@ -1321,24 +1648,25 @@
                 });
             }
 
-            if (clearFiltersBtn) {
-                clearFiltersBtn.addEventListener('click', function () {
-                    searchInput.value = '';
-                    searchText = '';
-                    memberFilter.value = 'all';
-                    currentFilter = 'all';
-                    currentSort = 'default';
-                    if (pageSizeSelect) pageSizeSelect.value = '20';
-                    pageSize = 20;
-                    document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
-                        b.classList.toggle('active', b.dataset.filter === 'all');
-                    });
-                    document.querySelectorAll('[data-sort-choice]').forEach(function (l) {
-                        l.classList.toggle('active', l.dataset.sortChoice === 'default');
-                    });
-                    applyFilters();
+            function resetAllFilters() {
+                searchInput.value = '';
+                searchText = '';
+                memberFilter.value = 'all';
+                currentFilter = 'all';
+                currentSort = 'default';
+                if (pageSizeSelect) pageSizeSelect.value = '20';
+                pageSize = 20;
+                document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                    b.classList.toggle('active', b.dataset.filter === 'all');
                 });
+                document.querySelectorAll('[data-sort-choice]').forEach(function (l) {
+                    l.classList.toggle('active', l.dataset.sortChoice === 'default');
+                });
+                applyFilters();
             }
+
+            if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', resetAllFilters);
+            if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', resetAllFilters);
 
             // === INIT ===
             restoreFromUrl();
