@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.web.servlet.JakartaServletWebApplication; // <-- ДОДАНО ІМПОРТ
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -37,6 +39,78 @@ public class NoteApiController extends BaseController {
     private static final Set<String> ACTIVE_CARD_SELECTOR   = Set.of("activeCard");
     private static final Set<String> ARCHIVED_CARD_SELECTOR = Set.of("archivedCard");
     private static final Set<String> FULL_GRID_SELECTOR     = Set.of("fullGrid");
+
+    // ==================== FAMILY SHARED — PAGED (AJAX) ====================
+
+    private static final String FAMILY_NOTES_CARDS_TEMPLATE = "fragments/family-note-cards";
+
+    @GetMapping(value = "/family", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Object>> familyNotesPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String author,
+            @RequestParam(defaultValue = "all") String owner,
+            @RequestParam(defaultValue = "false") boolean pinned,
+            @RequestParam(defaultValue = "default") String sort,
+            Authentication authentication,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null || currentUser.getFamilyId() == null) {
+            return ResponseEntity.ok(Map.of(
+                    "html", "", "hasMore", false, "total", 0L,
+                    "page", 0, "badgeAll", 0L, "badgeMine", 0L));
+        }
+
+        Page<Note> pageResult = noteService.getFamilySharedNotesPaged(
+                currentUser, q, author, owner, pinned, page, size,
+                resolveFamilySortForApi(sort));
+
+        long[] badges = noteService.countFamilySharedBadges(currentUser, q, author, pinned);
+
+        String html = "";
+        if (!pageResult.isEmpty()) {
+            try {
+                var application = JakartaServletWebApplication.buildApplication(request.getServletContext());
+                var exchange = application.buildExchange(request, response);
+                WebContext ctx = new WebContext(exchange,
+                        org.springframework.context.i18n.LocaleContextHolder.getLocale());
+                ctx.setVariable("familyNotes", pageResult.getContent());
+                ctx.setVariable("currentUser", currentUser);
+                html = templateEngine.process(FAMILY_NOTES_CARDS_TEMPLATE, ctx);
+            } catch (Exception e) {
+                log.error("family notes fragment render failed: {}", e.getMessage(), e);
+                return ResponseEntity.ok(Map.of(
+                        "html", "", "hasMore", false, "total", 0L,
+                        "page", page, "badgeAll", badges[0], "badgeMine", badges[1]));
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "html", html,
+                "hasMore", pageResult.hasNext(),
+                "total", pageResult.getTotalElements(),
+                "page", page,
+                "badgeAll", badges[0],
+                "badgeMine", badges[1]));
+    }
+
+    private static org.springframework.data.domain.Sort resolveFamilySortForApi(String sortKey) {
+        if (sortKey == null || sortKey.isBlank()) {
+            return org.springframework.data.domain.Sort.by("pinned").descending()
+                    .and(org.springframework.data.domain.Sort.by("updatedAt").descending());
+        }
+        return switch (sortKey) {
+            case "title"   -> org.springframework.data.domain.Sort.by("title").ascending();
+            case "author"  -> org.springframework.data.domain.Sort.by("owner.username").ascending();
+            case "created" -> org.springframework.data.domain.Sort.by("createdAt").descending();
+            case "updated" -> org.springframework.data.domain.Sort.by("updatedAt").descending();
+            default        -> org.springframework.data.domain.Sort.by("pinned").descending()
+                    .and(org.springframework.data.domain.Sort.by("updatedAt").descending());
+        };
+    }
 
     // ==================== LOAD MORE ====================
 

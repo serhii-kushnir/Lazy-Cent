@@ -108,4 +108,69 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     // ==================== COUNTS ====================
     long countByOwnerAndShareWithFamilyTrue(User owner);
+
+    // ==================== FAMILY SHARED — PAGED ====================
+
+    @Query(
+            value = "SELECT n FROM Note n " +
+                    "LEFT JOIN FETCH n.owner " +
+                    "WHERE n.owner.family.id = :familyId " +
+                    "AND n.shareWithFamily = true " +
+                    "AND n.archived = false " +
+                    "AND (:q = '' OR LOWER(n.title) LIKE LOWER(CONCAT('%', :q, '%')) " +
+                    "     OR LOWER(n.content) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+                    "AND (:author = '' OR n.owner.username = :author) " +
+                    "AND (:ownerMode = 'all' " +
+                    "     OR (:ownerMode = 'mine' AND n.owner.id = :currentUserId) " +
+                    "     OR (:ownerMode = 'others' AND n.owner.id <> :currentUserId)) " +
+                    "AND (:pinnedOnly = false OR n.pinned = true)",
+            countQuery = "SELECT COUNT(n) FROM Note n " +
+                    "WHERE n.owner.family.id = :familyId " +
+                    "AND n.shareWithFamily = true " +
+                    "AND n.archived = false " +
+                    "AND (:q = '' OR LOWER(n.title) LIKE LOWER(CONCAT('%', :q, '%')) " +
+                    "     OR LOWER(n.content) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+                    "AND (:author = '' OR n.owner.username = :author) " +
+                    "AND (:ownerMode = 'all' " +
+                    "     OR (:ownerMode = 'mine' AND n.owner.id = :currentUserId) " +
+                    "     OR (:ownerMode = 'others' AND n.owner.id <> :currentUserId)) " +
+                    "AND (:pinnedOnly = false OR n.pinned = true)")
+    Page<Note> findSharedWithFamilyPaged(
+            @Param("familyId") Long familyId,
+            @Param("q") String q,
+            @Param("author") String author,
+            @Param("ownerMode") String ownerMode,
+            @Param("currentUserId") Long currentUserId,
+            @Param("pinnedOnly") boolean pinnedOnly,
+            Pageable pageable);
+
+    @Query("SELECT COUNT(n) FROM Note n " +
+            "WHERE n.owner.family.id = :familyId " +
+            "AND n.shareWithFamily = true " +
+            "AND n.archived = false " +
+            "AND (:q = '' OR LOWER(n.title) LIKE LOWER(CONCAT('%', :q, '%')) " +
+            "     OR LOWER(n.content) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+            "AND (:author = '' OR n.owner.username = :author) " +
+            "AND (:pinnedOnly = false OR n.pinned = true)")
+    long countSharedByFamilyFiltered(
+            @Param("familyId") Long familyId,
+            @Param("q") String q,
+            @Param("author") String author,
+            @Param("pinnedOnly") boolean pinnedOnly);
+
+    @Query("SELECT COUNT(n) FROM Note n " +
+            "WHERE n.owner.family.id = :familyId " +
+            "AND n.owner.id = :userId " +
+            "AND n.shareWithFamily = true " +
+            "AND n.archived = false " +
+            "AND (:q = '' OR LOWER(n.title) LIKE LOWER(CONCAT('%', :q, '%')) " +
+            "     OR LOWER(n.content) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+            "AND (:author = '' OR n.owner.username = :author) " +
+            "AND (:pinnedOnly = false OR n.pinned = true)")
+    long countSharedByFamilyOwnerFiltered(
+            @Param("familyId") Long familyId,
+            @Param("userId") Long userId,
+            @Param("q") String q,
+            @Param("author") String author,
+            @Param("pinnedOnly") boolean pinnedOnly);
 }

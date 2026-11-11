@@ -367,10 +367,6 @@ public class NoteService {
         return noteRepository.countByOwnerAndShareWithFamilyTrue(user);
     }
 
-    /**
-     * Всі активні нотатки без пагінації — для експорту.
-     * {@code size = 0} → {@link Integer#MAX_VALUE} (див. {@link #buildPageable}).
-     */
     @Transactional(readOnly = true)
     public List<Note> getAllActiveNotes(User user, Sort sort) {
         if (user == null) return List.of();
@@ -378,13 +374,60 @@ public class NoteService {
         return noteRepository.findByOwnerAndArchivedFalse(user, pageable).getContent();
     }
 
-    /**
-     * Всі архівні нотатки без пагінації — для експорту.
-     */
     @Transactional(readOnly = true)
     public List<Note> getAllArchivedNotes(User user, Sort sort) {
         if (user == null) return List.of();
         Pageable pageable = buildPageable(0, 0, sort);
         return noteRepository.findByOwnerAndArchivedTrue(user, pageable).getContent();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Note> getFamilySharedNotesPaged(
+            User user,
+            String q,
+            String author,
+            String ownerMode,
+            boolean pinnedOnly,
+            int page,
+            int size,
+            Sort sort) {
+
+        if (user == null || user.getFamilyId() == null) {
+            return Page.empty();
+        }
+
+        String qNorm = (q == null) ? "" : q.trim();
+        String authorNorm = (author == null || "all".equalsIgnoreCase(author)) ? "" : author.trim();
+        String modeNorm = (ownerMode == null || ownerMode.isBlank()) ? "all" : ownerMode.trim().toLowerCase();
+        if (!modeNorm.equals("mine") && !modeNorm.equals("others")) {
+            modeNorm = "all";
+        }
+
+        int effectiveSize = size <= 0 ? 500 : Math.min(size, 500);
+
+        Pageable pageable = PageRequest.of(Math.max(0, page), effectiveSize, sort);
+
+        return noteRepository.findSharedWithFamilyPaged(
+                user.getFamilyId(),
+                qNorm,
+                authorNorm,
+                modeNorm,
+                user.getId(),
+                pinnedOnly,
+                pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public long[] countFamilySharedBadges(User user, String q, String author, boolean pinnedOnly) {
+        if (user == null || user.getFamilyId() == null) {
+            return new long[]{0L, 0L};
+        }
+        String qNorm = (q == null) ? "" : q.trim();
+        String authorNorm = (author == null || "all".equalsIgnoreCase(author)) ? "" : author.trim();
+
+        long all = noteRepository.countSharedByFamilyFiltered(user.getFamilyId(), qNorm, authorNorm, pinnedOnly);
+        long mine = noteRepository.countSharedByFamilyOwnerFiltered(
+                user.getFamilyId(), user.getId(), qNorm, authorNorm, pinnedOnly);
+        return new long[]{all, mine};
     }
 }

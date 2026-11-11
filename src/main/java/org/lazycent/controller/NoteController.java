@@ -26,8 +26,50 @@ public class NoteController extends BaseController {
     private final NoteService noteService;
     private final FamilyService familyService;
     private final NoteExportService noteExportService;
+    private static final int FAMILY_NOTES_PAGE_SIZE = 20;
 
+    @GetMapping("/family")
+    public String viewFamilyNotes(Authentication authentication,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+        User currentUser = getCurrentUser(authentication);
+        if (currentUser == null) return "redirect:/login";
 
+        if (currentUser.getFamilyId() == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", msg("error.family.notInFamily"));
+            return "redirect:/family";
+        }
+
+        Family family = familyService.getFamily(currentUser);
+
+        Page<Note> page0 = noteService.getFamilySharedNotesPaged(
+                currentUser, "", "", "all", false,
+                0, FAMILY_NOTES_PAGE_SIZE, resolveFamilySort("default"));
+
+        long[] badges = noteService.countFamilySharedBadges(currentUser, "", "", false);
+
+        model.addAttribute("family", family);
+        model.addAttribute("familyNotes", page0.getContent());
+        model.addAttribute("familyNotesTotal", page0.getTotalElements());
+        model.addAttribute("familyNotesHasMore", page0.hasNext());
+        model.addAttribute("familyNotesBadgeAll", badges[0]);
+        model.addAttribute("familyNotesBadgeMine", badges[1]);
+        model.addAttribute("currentUser", currentUser);
+        return "family/notes";
+    }
+
+    private static Sort resolveFamilySort(String sortKey) {
+        if (sortKey == null || sortKey.isBlank()) {
+            return Sort.by("pinned").descending().and(Sort.by("updatedAt").descending());
+        }
+        return switch (sortKey) {
+            case "title"   -> Sort.by("title").ascending();
+            case "author"  -> Sort.by("owner.username").ascending();
+            case "created" -> Sort.by("createdAt").descending();
+            case "updated" -> Sort.by("updatedAt").descending();
+            default        -> Sort.by("pinned").descending().and(Sort.by("updatedAt").descending());
+        };
+    }
 
     // ==================== СТОРІНКА ====================
 
@@ -70,27 +112,6 @@ public class NoteController extends BaseController {
         model.addAttribute("openCreateModal", create);
 
         return "notes";
-    }
-
-    @GetMapping("/family")
-    public String viewFamilyNotes(Authentication authentication,
-                                  Model model,
-                                  RedirectAttributes redirectAttributes) {
-        User currentUser = getCurrentUser(authentication);
-        if (currentUser == null) return "redirect:/login";
-
-        if (currentUser.getFamilyId() == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", msg("error.family.notInFamily"));
-            return "redirect:/family";
-        }
-
-        Family family = familyService.getFamily(currentUser);
-        List<Note> familyNotes = noteService.getFamilySharedNotes(currentUser);
-
-        model.addAttribute("family", family);
-        model.addAttribute("familyNotes", familyNotes);
-        model.addAttribute("currentUser", currentUser);
-        return "family/notes";
     }
 
     // ==================== CRUD ====================

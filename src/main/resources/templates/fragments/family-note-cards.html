@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- ============================================================
+     FAMILY NOTE CARDS — рендеринг одного пакета нотаток.
+     Використовується в family/notes.html (initial render)
+     та в /notes/api/family (AJAX load-more/filter).
+     ============================================================ -->
+<th:block th:fragment="cards">
+    <div th:each="note : ${familyNotes}"
+         class="col-12 col-sm-6 col-md-4 col-xl-3 note-card-wrapper animate-fade-up"
+         th:attr="data-mine=${note.owner.id == currentUser.id}"
+         th:data-title="${note.title}"
+         th:data-author="${note.owner.username}"
+         th:data-created="${note.createdAt != null ? note.createdAt : ''}"
+         th:data-updated="${note.updatedAt != null ? note.updatedAt : ''}">
+
+        <div class="note-card"
+             th:classappend="${(note.owner.id == currentUser.id ? 'is-mine ' : '') + (note.pinned ? 'pinned' : '')}"
+             th:data-id="${note.id}"
+             th:data-color="${note.color}"
+             th:data-textcolor="${note.textColor}"
+             th:data-share-with-family="true"
+             th:data-archived="false"
+             th:data-pinned="${note.pinned}"
+             th:style="'background-color:' + ${note.color}">
+
+            <div class="card-body"
+                 role="button" tabindex="0"
+                 th:aria-label="${note.title}"
+                 th:onclick="'openFamilyNote(' + ${note.id} + ', ' + ${note.owner.id == currentUser.id} + ')'">
+
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <span class="author-badge"
+                          th:classappend="${note.owner.id == currentUser.id} ? 'is-me' : ''"
+                          th:title="${note.owner.username}"
+                          th:data-author="${note.owner.username}"
+                          th:data-mine="${note.owner.id == currentUser.id}"
+                          onclick="event.stopPropagation(); filterByAuthor(this.dataset.author, this.dataset.mine === 'true');">
+                        <span class="author-avatar"
+                              th:text="${#strings.substring(note.owner.username, 0, 1).toUpperCase()}">A</span>
+                        <span class="text-truncate author-name" th:text="${note.owner.username}">user</span>
+                        <span th:if="${note.owner.id == currentUser.id}"
+                              class="badge bg-secondary ms-1"
+                              style="font-size: 0.6rem; padding: 0.1rem 0.35rem; flex-shrink: 0;"
+                              th:text="#{family.member.you}">(ви)</span>
+                    </span>
+                    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning"
+                           style="font-size: 0.85rem;" th:title="#{notes.action.pin}"></i>
+                        <button type="button" class="btn-icon copy-link-btn"
+                                th:title="#{notes.copyLink}"
+                                th:aria-label="#{notes.copyLink}"
+                                th:onclick="'copyNoteLink(' + ${note.id} + ', event)'">
+                            <i class="fas fa-link" style="font-size: 0.8rem;"></i>
+                        </button>
+                        <input type="checkbox" class="note-checkbox form-check-input"
+                               th:data-id="${note.id}"
+                               th:data-mine="${note.owner.id == currentUser.id}"
+                               th:aria-label="#{notes.select.aria(${note.title})}"
+                               onclick="event.stopPropagation()"/>
+                    </div>
+                </div>
+
+                <h5 class="card-title"
+                    th:text="${note.title}"
+                    th:title="${note.title}"
+                    th:style="'color:' + ${note.textColor}">Заголовок</h5>
+                <p class="card-text"
+                   th:text="${note.content}"
+                   th:title="${note.content != null and note.content.length() > 150 ? note.content : ''}"
+                   th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
+
+                <div class="mt-2 text-end d-flex justify-content-end gap-1 align-items-center"
+                     th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
+                    <th:block th:if="${note.updatedAt != null}">
+                        <i class="fas fa-pen" th:title="#{notes.col.updated}"></i>
+                        <span class="rel-time"
+                              th:data-ts="${#temporals.formatISO(note.updatedAt)}"
+                              th:title="${#temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm')}"
+                              th:text="${#temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm')}"></span>
+                    </th:block>
+                    <th:block th:if="${note.updatedAt == null and note.createdAt != null}">
+                        <i class="far fa-clock" th:title="#{notes.col.created}"></i>
+                        <span class="rel-time"
+                              th:data-ts="${#temporals.formatISO(note.createdAt)}"
+                              th:title="${#temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                              th:text="${#temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"></span>
+                    </th:block>
+                </div>
+            </div>
+
+            <div th:if="${note.owner.id == currentUser.id}" class="card-footer">
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn-icon"
+                            th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                            th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                            th:onclick="'togglePin(' + ${note.id} + ', event)'">
+                        <i class="fas fa-thumbtack"
+                           th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
+                    </button>
+                    <button type="button" class="btn-icon"
+                            th:title="#{notes.action.archive}"
+                            th:aria-label="#{notes.action.archive}"
+                            th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
+                        <i class="fas fa-archive"></i>
+                    </button>
+                </div>
+                <button type="button" class="btn-icon text-danger"
+                        th:title="#{notes.action.delete}"
+                        th:aria-label="#{notes.action.delete}"
+                        th:onclick="'deleteNote(' + ${note.id} + ', event)'">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+
+            <div th:unless="${note.owner.id == currentUser.id}" class="card-footer">
+                <span class="text-muted small">
+                    <i class="fas fa-lock me-1"></i>
+                    <span th:text="#{notes.family.viewOnly}">Тільки перегляд</span>
+                </span>
+                <button type="button" class="btn-icon"
+                        th:title="#{notes.family.copy}"
+                        th:aria-label="#{notes.family.copy}"
+                        th:onclick="'copyNote(' + ${note.id} + ', event)'">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</th:block>
+
+</body>
+</html>
