@@ -50,11 +50,8 @@
         .notes-toolbar .dropdown .btn { border-radius: 0.5rem; font-size: 0.85rem; padding: 0.4rem 0.75rem; }
         .notes-toolbar .dropdown-menu { min-width: 220px; }
         .notes-toolbar .dropdown-item.active, .notes-toolbar .dropdown-item:active { background-color: var(--bs-primary); color: #fff; }
-
-        /* Стилі для кнопки "Завантажити ще" */
         .load-more-btn { font-size: 0.85rem; padding: 0.4rem 1rem; border-radius: 0.5rem; transition: all 0.2s; }
         .load-more-btn:hover { background-color: var(--bs-primary); color: white; }
-
         .notes-toolbar #memberFilter { width: auto; max-width: 200px; border-radius: 0.5rem; font-size: 0.85rem; }
 
         .search-bar { position: relative; }
@@ -69,6 +66,21 @@
         .note-card { border: 1px solid var(--bs-border-color); border-radius: 1rem; height: 100%; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden; cursor: pointer; }
         .note-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
         [data-bs-theme="dark"] .note-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+
+        /* Pinned outline — як у /notes */
+        .note-card.pinned {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .note-card.pinned:hover {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.15);
+        }
+        [data-bs-theme="dark"] .note-card.pinned {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 12px rgba(0,0,0,0.4);
+        }
+        [data-bs-theme="dark"] .note-card.pinned:hover {
+            box-shadow: 0 0 0 2px #fbbc04, 0 4px 8px rgba(0,0,0,0.5);
+        }
+
         .note-card .card-body { flex: 1; padding: 0.9rem 1rem 0.75rem; }
         .note-card .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .note-card .card-text { font-size: 0.9rem; max-height: 120px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; word-wrap: break-word; margin-bottom: 0; }
@@ -79,7 +91,7 @@
         .note-card .btn-icon.text-danger:hover { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 
         /* AUTHOR BADGE */
-        .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+        .author-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; background: rgba(13, 202, 240, 0.12); color: #0b7285; border-radius: 0.5rem; white-space: nowrap; max-width: 100%; overflow: hidden; }
         [data-bs-theme="dark"] .author-badge { background: rgba(13, 202, 240, 0.18); color: #7ee0f0; }
         .author-badge .author-avatar { width: 20px; height: 20px; border-radius: 50%; background: #0dcaf0; color: #000; display: inline-flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; flex-shrink: 0; }
         .author-badge.is-me { background: rgba(25, 135, 84, 0.12); color: #0f5132; }
@@ -101,39 +113,12 @@
 
         /* ===== MOBILE ADAPTATION ===== */
         @media (max-width: 575.98px) {
-            .notes-toolbar {
-                padding: 0.5rem 0.75rem;
-                gap: 0.5rem;
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: stretch;
-            }
-            .notes-toolbar .dropdown {
-                flex: 1 1 calc(50% - 0.25rem);
-                width: auto;
-            }
-            .notes-toolbar .dropdown .btn {
-                width: 100%;
-                text-align: left;
-                font-size: 0.8rem;
-                padding: 0.35rem 0.5rem;
-            }
-            .notes-toolbar .dropdown-menu {
-                min-width: 100%;
-                width: 100%;
-            }
-            .notes-toolbar #memberFilter {
-                flex: 1 1 calc(50% - 0.25rem);
-                width: auto;
-                max-width: none;
-                font-size: 0.8rem;
-                padding: 0.35rem 1.5rem 0.35rem 0.5rem;
-            }
-            .notes-toolbar .load-more-btn {
-                flex: 1 1 100%;
-                width: 100%;
-                margin-top: 0.25rem;
-            }
+            .notes-toolbar { padding: 0.5rem 0.75rem; gap: 0.5rem; flex-direction: row; flex-wrap: wrap; align-items: stretch; }
+            .notes-toolbar .dropdown { flex: 1 1 calc(50% - 0.25rem); width: auto; }
+            .notes-toolbar .dropdown .btn { width: 100%; text-align: left; font-size: 0.8rem; padding: 0.35rem 0.5rem; }
+            .notes-toolbar .dropdown-menu { min-width: 100%; width: 100%; }
+            .notes-toolbar #memberFilter { flex: 1 1 calc(50% - 0.25rem); width: auto; max-width: none; font-size: 0.8rem; padding: 0.35rem 1.5rem 0.35rem 0.5rem; }
+            .notes-toolbar .load-more-btn { flex: 1 1 100%; width: 100%; margin-top: 0.25rem; }
 
             .cat-header-theme > div.no-print { width: 100% !important; flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
             .cat-header-theme > div.no-print > .view-toggle { width: 100% !important; height: auto !important; flex-wrap: wrap; padding: 0.25rem !important; gap: 0.25rem !important; }
@@ -180,7 +165,6 @@
                 <a th:href="@{/notes}" class="btn btn-outline-primary">
                     <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
                 </a>
-                <!-- Кнопка Експорту з ID для JS-маніпуляцій -->
                 <a th:href="@{/notes/export(filter='shared')}" id="exportBtn" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i> <span th:text="#{notes.export.button}">Експорт</span>
                 </a>
@@ -223,7 +207,7 @@
                 <div class="view-toggle" id="filterToggle">
                     <button class="btn active" data-filter="all" th:text="#{notes.filter.all}">Усі</button>
                     <button class="btn" data-filter="mine" th:text="#{notes.family.myNotes}">Мої</button>
-                    <button class="btn" data-filter="others" th:text="#{notes.filter.active}">Чужі</button>
+                    <button class="btn" data-filter="others" th:text="#{notes.family.others}">Інших</button>
                 </div>
             </div>
         </div>
@@ -238,8 +222,7 @@
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item active" href="#" data-sort-choice="default" th:text="#{notes.sort.default}">За замовчуванням</a></li>
                     <li><a class="dropdown-item" href="#" data-sort-choice="title" th:text="#{notes.sort.title}">За назвою (A–Z)</a></li>
-                    <!-- Новий пункт сортування -->
-                    <li><a class="dropdown-item" href="#" data-sort-choice="author">За автором (А–Я)</a></li>
+                    <li><a class="dropdown-item" href="#" data-sort-choice="author" th:text="#{notes.sort.author}">За автором (А–Я)</a></li>
                     <li><a class="dropdown-item" href="#" data-sort-choice="created" th:text="#{notes.sort.created}">Спочатку нові</a></li>
                     <li><a class="dropdown-item" href="#" data-sort-choice="updated" th:text="#{notes.sort.updated}">Спочатку змінені</a></li>
                 </ul>
@@ -249,7 +232,6 @@
                 <option value="all" th:text="#{family.shared.allMembers}">Всі учасники</option>
             </select>
 
-            <!-- Замість випадаючого списку - кнопка "Завантажити ще" -->
             <button id="loadMoreBtn" class="btn btn-outline-primary load-more-btn ms-auto d-none">
                 <i class="fas fa-plus-circle me-1"></i>
                 <span th:text="#{common.loadMore}">Завантажити ще</span>
@@ -261,7 +243,7 @@
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-search"></i></span>
                 <input type="text" id="searchInput" class="form-control" th:placeholder="#{notes.search}" autocomplete="off">
-                <button type="button" id="searchClear" class="btn btn-outline-secondary" th:title="#{notes.search.clear}">
+                <button type="button" id="searchClear" class="btn btn-outline-secondary" th:title="#{notes.search.clear}" th:aria-label="#{notes.search.clear}">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -279,7 +261,7 @@
                          th:data-updated="${note.updatedAt != null ? note.updatedAt : ''}">
 
                         <div class="note-card animate-fade-up"
-                             th:classappend="${note.owner.id == currentUser.id} ? 'is-mine' : ''"
+                             th:classappend="${(note.owner.id == currentUser.id ? 'is-mine ' : '') + (note.pinned ? 'pinned' : '')}"
                              th:data-id="${note.id}"
                              th:data-color="${note.color}"
                              th:data-textcolor="${note.textColor}"
@@ -299,8 +281,13 @@
                                         <span class="author-avatar"
                                               th:text="${#strings.substring(note.owner.username, 0, 1).toUpperCase()}">A</span>
                                         <span class="text-truncate author-name" th:text="${note.owner.username}">user</span>
+                                        <span th:if="${note.owner.id == currentUser.id}"
+                                              class="badge bg-secondary ms-1"
+                                              style="font-size: 0.6rem; padding: 0.1rem 0.35rem; flex-shrink: 0;"
+                                              th:text="#{family.member.you}">(ви)</span>
                                     </span>
-                                    <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning" style="font-size: 0.85rem;" title="Закріплена"></i>
+                                    <i th:if="${note.pinned}" class="fas fa-thumbtack text-warning"
+                                       style="font-size: 0.85rem;" th:title="#{notes.action.pin}"></i>
                                 </div>
 
                                 <h5 class="card-title"
@@ -310,29 +297,36 @@
                                    th:text="${note.content}"
                                    th:style="'color:' + ${note.textColor}">Текст нотатки...</p>
 
-                                <div class="mt-2 text-end" style="font-size: 0.7rem; opacity: 0.6;" th:style="'color:' + ${note.textColor}">
+                                <div class="mt-2 text-end"
+                                     th:style="'font-size: 0.7rem; opacity: 0.6; color: ' + ${note.textColor}">
                                     <i class="far fa-clock me-1"></i>
-                                    <span th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
+                                    <span class="rel-time"
+                                          th:data-ts="${note.updatedAt != null ? #temporals.formatISO(note.updatedAt) : #temporals.formatISO(note.createdAt)}"
+                                          th:title="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}"
+                                          th:text="${note.updatedAt != null ? #temporals.format(note.updatedAt, 'dd.MM.yyyy HH:mm') : #temporals.format(note.createdAt, 'dd.MM.yyyy HH:mm')}">12.11.2026</span>
                                 </div>
                             </div>
 
                             <div th:if="${note.owner.id == currentUser.id}" class="card-footer">
                                 <div class="d-flex gap-1">
-                                    <button class="btn-icon" onclick="event.stopPropagation();"
+                                    <button type="button" class="btn-icon"
                                             th:title="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
-                                            th:onclick="'togglePin(' + ${note.id} + ')'">
+                                            th:aria-label="${note.pinned} ? #{notes.action.unpin} : #{notes.action.pin}"
+                                            th:onclick="'togglePin(' + ${note.id} + ', event)'">
                                         <i class="fas fa-thumbtack"
                                            th:classappend="${note.pinned} ? 'pin-icon' : ''"></i>
                                     </button>
-                                    <button class="btn-icon" onclick="event.stopPropagation();"
+                                    <button type="button" class="btn-icon"
                                             th:title="#{notes.action.archive}"
-                                            th:onclick="'toggleArchive(' + ${note.id} + ')'">
+                                            th:aria-label="#{notes.action.archive}"
+                                            th:onclick="'toggleArchive(' + ${note.id} + ', event)'">
                                         <i class="fas fa-archive"></i>
                                     </button>
                                 </div>
-                                <button class="btn-icon text-danger" onclick="event.stopPropagation();"
+                                <button type="button" class="btn-icon text-danger"
                                         th:title="#{notes.action.delete}"
-                                        th:onclick="'deleteNote(' + ${note.id} + ')'">
+                                        th:aria-label="#{notes.action.delete}"
+                                        th:onclick="'deleteNote(' + ${note.id} + ', event)'">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -342,28 +336,30 @@
                                     <i class="fas fa-lock me-1"></i>
                                     <span th:text="#{notes.family.viewOnly}">Тільки перегляд</span>
                                 </span>
-                                <form th:action="@{/notes/copy/{id}(id=${note.id})}"
-                                      method="post" class="d-inline" onclick="event.stopPropagation();">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                    <button type="submit" class="btn-icon"
-                                            th:title="#{notes.family.copy}">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-icon"
+                                        th:title="#{notes.family.copy}"
+                                        th:aria-label="#{notes.family.copy}"
+                                        th:onclick="'copyNote(' + ${note.id} + ', event)'">
+                                    <i class="fas fa-copy"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </th:block>
             </div>
 
-            <!-- Empty State (No results) -->
+            <!-- Empty filter state -->
             <div id="emptyFilterMessage" class="empty-notes" style="display: none;">
                 <i class="fas fa-search"></i>
                 <h4 class="mt-3" th:text="#{notes.empty.search.title}">Нічого не знайдено</h4>
-                <p class="mb-0" th:text="#{notes.empty.search.hint}">Спробуйте змінити фільтр або створити нотатку.</p>
+                <p class="mb-3" th:text="#{notes.empty.search.hint}">Спробуйте змінити фільтр або створити нотатку.</p>
+                <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn">
+                    <i class="fas fa-times me-1"></i>
+                    <span th:text="#{btn.clear}">Очистити</span>
+                </button>
             </div>
 
-            <!-- Initial Empty State -->
+            <!-- Initial empty state -->
             <div th:if="${familyNotes.empty}" class="empty-notes" id="initialEmptyState">
                 <i class="fas fa-users-slash"></i>
                 <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
@@ -389,28 +385,32 @@
     </div>
 </div>
 
-<!-- ==================== NOTE MODAL ==================== -->
+<!-- ==================== NOTE EDIT / CREATE / COPY MODAL ==================== -->
 <div class="modal fade" id="editNoteModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-primary text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit me-2" id="editNoteModalIcon"></i> <span id="editNoteModalTitle" th:text="#{notes.modal.edit}">Редагувати нотатку</span>
+                    <i class="fas fa-edit me-2" id="editNoteModalIcon"></i>
+                    <span id="editNoteModalTitle" th:text="#{notes.modal.edit}">Редагувати нотатку</span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" th:aria-label="#{btn.close}"></button>
             </div>
+
             <form id="editNoteForm" th:action="@{/notes/update/}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="modal-body p-4">
                     <input type="hidden" name="id" id="editNoteId">
                     <div class="mb-3">
-                        <input type="text" class="form-control" name="title" id="editNoteTitle" th:placeholder="#{notes.field.title}" required maxlength="255">
+                        <input type="text" class="form-control" name="title" id="editNoteTitle"
+                               th:placeholder="#{notes.field.title}" required maxlength="255">
                         <div class="text-end mt-1" style="font-size: 0.75rem; color: var(--bs-secondary-color);">
                             <span id="editNoteTitleCount">0</span> / 255
                         </div>
                     </div>
                     <div class="mb-3">
-                        <textarea class="form-control" name="content" id="editNoteContent" rows="4" th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
+                        <textarea class="form-control" name="content" id="editNoteContent" rows="4"
+                                  th:placeholder="#{notes.field.content}" maxlength="5000"></textarea>
                         <div class="text-end mt-1" style="font-size: 0.75rem; color: var(--bs-secondary-color);">
                             <span id="editNoteContentCount">0</span> / 5000
                         </div>
@@ -447,7 +447,8 @@
                     </div>
                     <div class="mb-0" id="editShareWithFamilyContainer">
                         <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="editShareWithFamily" name="shareWithFamily" value="true" checked>
+                            <input type="checkbox" class="form-check-input" id="editShareWithFamily"
+                                   name="shareWithFamily" value="true" checked>
                             <label class="form-check-label" for="editShareWithFamily">
                                 <i class="fas fa-users me-1"></i> <span th:text="#{modal.shareWithFamily}">Поділитися з сім'єю</span>
                             </label>
@@ -455,35 +456,53 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.close}">Закрити</button>
-
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
                     <button type="submit" class="btn btn-primary px-4" id="editNoteSaveBtn" th:text="#{btn.save}">Зберегти</button>
-
-                    <form id="copyFamilyNoteForm" method="post" style="display: none; margin: 0;">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <button type="submit" class="btn btn-success px-4">
-                            <i class="fas fa-copy me-1"></i> <span th:text="#{notes.family.copy}">Копіювати до себе</span>
-                        </button>
-                    </form>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- ==================== DELETE NOTE MODAL ==================== -->
+<!-- ==================== ARCHIVE CONFIRM MODAL (top-positioned) ==================== -->
+<div class="modal fade no-print" id="archiveNoteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header bg-warning border-0" style="border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-archive me-2"></i>
+                    <span th:text="#{notes.archive.confirm.title}">Архівувати нотатку?</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" th:aria-label="#{btn.close}"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p id="archiveNoteMessage" class="mb-0"></p>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <button type="button" class="btn btn-warning px-4" id="archiveNoteConfirmBtn">
+                    <i class="fas fa-archive me-1"></i>
+                    <span th:text="#{notes.action.archive}">Архівувати</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== DELETE CONFIRM MODAL (top-positioned) ==================== -->
 <div class="modal fade no-print" id="deleteNoteConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
             <div class="modal-header bg-danger text-white border-0" style="border-radius: 1rem 1rem 0 0;">
                 <h5 class="modal-title">
-                    <i class="fas fa-exclamation-triangle me-2"></i> <span th:text="#{notes.delete.confirm}">Підтвердження видалення</span>
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="#{notes.delete.confirm}">Підтвердження видалення</span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" th:aria-label="#{btn.close}"></button>
             </div>
             <div class="modal-body p-4">
                 <p class="text-center" th:text="#{notes.delete.question}">Ви впевнені, що хочете видалити цю нотатку?</p>
-                <p class="text-muted small text-center" th:text="#{notes.delete.note}">Цю дію не можна скасувати.</p>
+                <p class="text-muted small text-center mb-0" th:text="#{notes.delete.note}">Цю дію не можна скасувати.</p>
             </div>
             <div class="modal-footer border-0 p-4 pt-0">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
@@ -498,6 +517,34 @@
     </div>
 </div>
 
+<!-- ==================== INLINE i18n + CSRF ==================== -->
+<script th:inline="javascript">
+    window.csrfToken  = /*[[${_csrf.token}]]*/ '';
+    window.csrfHeader = /*[[${_csrf.headerName}]]*/ 'X-CSRF-TOKEN';
+
+    window.lcI18n = {
+        showing:             /*[[#{common.showing}]]*/              'Показано: {0} з {1}',
+        allLoaded:           /*[[#{common.allLoaded}]]*/            'Всі завантажено',
+        loadMore:            /*[[#{common.loadMore}]]*/             'Завантажити ще',
+        loadError:           /*[[#{notes.network.error}]]*/         'Помилка завантаження',
+        archiveConfirmMsg:   /*[[#{notes.archive.confirm.message}]]*/ '«{0}» буде переміщено в архів.',
+        archiveError:        /*[[#{notes.archive.error}]]*/         'Не вдалося змінити стан',
+        pinPinned:           /*[[#{notes.pin.pinned}]]*/            'Нотатку закріплено',
+        pinUnpinned:         /*[[#{notes.pin.unpinned}]]*/          'Нотатку відкріплено',
+        viewMode:            /*[[#{notes.family.viewOnly}]]*/       'Тільки перегляд',
+        editMode:            /*[[#{notes.modal.edit}]]*/            'Редагувати нотатку',
+        copyMode:            /*[[#{notes.modal.duplicate}]]*/       'Копіювати нотатку',
+        copySuffix:          ' (копія)',
+        toastSuccess:        /*[[#{toast.success}]]*/               'Успішно!',
+        toastError:          /*[[#{toast.error}]]*/                 'Помилка!',
+        toastCreated:        /*[[#{toast.note.created}]]*/          'Нотатку створено!',
+        toastUpdated:        /*[[#{toast.note.updated}]]*/          'Нотатку оновлено!',
+        toastDeleted:        /*[[#{toast.note.deleted}]]*/          'Нотатку видалено!',
+        toastArchived:       /*[[#{toast.note.archived}]]*/         'Нотатку заархівовано!',
+        errorPrefix:         /*[[#{notes.error.prefix}]]*/          'Помилка: {0}'
+    };
+</script>
+
 <script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
@@ -506,7 +553,122 @@
     (function () {
         'use strict';
 
+        var i18n = window.lcI18n;
+
+        function fmt(template) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return template.replace(/\{(\d+)\}/g, function (m, i) {
+                return args[i] !== undefined ? args[i] : m;
+            });
+        }
+
+        function csrfHeaders(extra) {
+            var h = {};
+            h[window.csrfHeader || 'X-CSRF-TOKEN'] = window.csrfToken || '';
+            if (extra) for (var k in extra) h[k] = extra[k];
+            return h;
+        }
+
+        function showToast(message, type) {
+            var el = document.getElementById('liveToast');
+            if (!el || typeof bootstrap === 'undefined') { alert(message); return; }
+            var title = document.getElementById('toastTitle');
+            var text = document.getElementById('toastMessage');
+            var icon = document.getElementById('toastIcon');
+            el.classList.remove('success', 'error');
+            if (type === 'error') {
+                el.classList.add('error');
+                title.textContent = i18n.toastError;
+                icon.className = 'fas fa-exclamation-circle me-2';
+            } else {
+                el.classList.add('success');
+                title.textContent = i18n.toastSuccess;
+                icon.className = 'fas fa-check-circle me-2';
+            }
+            text.textContent = message;
+            bootstrap.Toast.getOrCreateInstance(el, { autohide: true, delay: 5000 }).show();
+        }
+
+        var PENDING_TOAST_KEY = 'family_notes_pending_toast';
+
+        function flashToast(msg, type) {
+            try {
+                sessionStorage.setItem(PENDING_TOAST_KEY, JSON.stringify({ msg: msg, type: type || 'success' }));
+            } catch (e) {}
+        }
+
+        function drainPendingToast() {
+            try {
+                var raw = sessionStorage.getItem(PENDING_TOAST_KEY);
+                if (!raw) return;
+                sessionStorage.removeItem(PENDING_TOAST_KEY);
+                var obj = JSON.parse(raw);
+                if (obj && obj.msg) setTimeout(function () { showToast(obj.msg, obj.type || 'success'); }, 150);
+            } catch (e) {}
+        }
+
+        function relTime(tsIso) {
+            if (!tsIso) return '';
+            try {
+                var d = new Date(tsIso);
+                if (isNaN(d.getTime())) return '';
+                var lang = document.documentElement.getAttribute('lang') || 'uk';
+                var rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' });
+                var diffSec = Math.round((Date.now() - d.getTime()) / 1000);
+                if (Math.abs(diffSec) < 60) return rtf.format(-diffSec, 'second');
+                var diffMin = Math.round(diffSec / 60);
+                if (Math.abs(diffMin) < 60) return rtf.format(-diffMin, 'minute');
+                var diffHour = Math.round(diffMin / 60);
+                if (Math.abs(diffHour) < 24) return rtf.format(-diffHour, 'hour');
+                var diffDay = Math.round(diffHour / 24);
+                if (Math.abs(diffDay) < 7) return rtf.format(-diffDay, 'day');
+                return d.toLocaleDateString(lang);
+            } catch (e) { return ''; }
+        }
+
+        /**
+         * AJAX-сабміт POST-форми.
+         * Після успіху — flashToast + location.reload(), щоб залишитись на поточній
+         * сторінці (/family/notes), а не переходити на /notes (куди редіректить
+         * контролер після звичайного form submit).
+         */
+        function submitFormAjax(form, successToastMsg) {
+            var fd = new FormData(form);
+            var btn = form.querySelector('[type="submit"]');
+            var origHtml = btn ? btn.innerHTML : null;
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>'; }
+
+            fetch(form.action, { method: 'POST', body: fd })
+                .then(function (r) {
+                    if (r.ok || r.redirected) {
+                        flashToast(successToastMsg, 'success');
+                        setTimeout(function () { location.reload(); }, 50);
+                    } else {
+                        throw new Error('HTTP ' + r.status);
+                    }
+                })
+                .catch(function (err) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                    showToast(fmt(i18n.errorPrefix, err.message || 'network'), 'error');
+                });
+        }
+
+        function withLoading(btn, fn) {
+            if (!btn) return fn();
+            var html = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            return Promise.resolve(fn()).finally(function () {
+                btn.disabled = false;
+                btn.innerHTML = html;
+            });
+        }
+
+        var FILTERS_STORAGE_KEY = 'family_notes_filters_v1';
+
         document.addEventListener('DOMContentLoaded', function () {
+            drainPendingToast();
+
             var noteGrid = document.getElementById('noteGrid');
             var searchInput = document.getElementById('searchInput');
             var searchClear = document.getElementById('searchClear');
@@ -516,34 +678,81 @@
             var memberFilter = document.getElementById('memberFilter');
             var loadMoreBtn = document.getElementById('loadMoreBtn');
             var visibleInfo = document.getElementById('visibleInfo');
-            var exportBtn = document.getElementById('exportBtn');
-            var exportBtnMobile = document.getElementById('exportBtnMobile');
+            var clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
             var allCards = Array.from(noteGrid.querySelectorAll('.note-card-wrapper'));
             var currentFilter = 'all';
             var searchText = '';
             var currentSort = 'default';
             var currentPage = 1;
-            var pageSize = 20; // Фіксований розмір для "Завантажити ще"
-            var visibleCount = 0;
+            var pageSize = 20;
 
-            // === INITIALIZATION ===
+            // === RELATIVE TIME ===
+            function updateRelativeTimes() {
+                document.querySelectorAll('.rel-time[data-ts]').forEach(function (el) {
+                    var txt = relTime(el.dataset.ts);
+                    if (txt) el.textContent = txt;
+                });
+            }
+            updateRelativeTimes();
+
+            // === INITIAL EMPTY STATE ===
             if (initialEmptyState) {
                 initialEmptyState.style.display = allCards.length === 0 ? 'block' : 'none';
             }
 
-            // Заповнюємо фільтр по учасниках
+            // === POPULATE MEMBER FILTER ===
             var membersSet = new Set();
-            allCards.forEach(function(w) {
+            allCards.forEach(function (w) {
                 var authorSpan = w.querySelector('.author-badge .author-name');
                 if (authorSpan) membersSet.add(authorSpan.textContent.trim());
             });
-            membersSet.forEach(function(name) {
+            membersSet.forEach(function (name) {
                 var opt = document.createElement('option');
                 opt.value = name;
                 opt.textContent = name;
                 memberFilter.appendChild(opt);
             });
+
+            // === SAVE / RESTORE FILTERS ===
+            function saveFilters() {
+                try {
+                    sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({
+                        filter: currentFilter,
+                        sort: currentSort,
+                        member: memberFilter.value,
+                        search: searchInput.value
+                    }));
+                } catch (e) {}
+            }
+
+            function restoreFilters() {
+                try {
+                    var raw = sessionStorage.getItem(FILTERS_STORAGE_KEY);
+                    if (!raw) return;
+                    var f = JSON.parse(raw);
+                    if (f.filter) {
+                        currentFilter = f.filter;
+                        document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                            b.classList.toggle('active', b.dataset.filter === currentFilter);
+                        });
+                    }
+                    if (f.sort) {
+                        currentSort = f.sort;
+                        document.querySelectorAll('[data-sort-choice]').forEach(function (l) {
+                            l.classList.toggle('active', l.dataset.sortChoice === currentSort);
+                        });
+                    }
+                    if (f.member) {
+                        var exists = Array.from(memberFilter.options).some(function (o) { return o.value === f.member; });
+                        if (exists) memberFilter.value = f.member;
+                    }
+                    if (f.search) {
+                        searchInput.value = f.search;
+                        searchText = f.search.trim().toLowerCase();
+                    }
+                } catch (e) {}
+            }
 
             // === COLOR PICKERS ===
             document.querySelectorAll('.color-picker:not(.text-color-picker)').forEach(function (picker) {
@@ -551,8 +760,8 @@
                     el.addEventListener('click', function () {
                         picker.querySelectorAll('.color-option').forEach(function (c) { c.classList.remove('selected'); });
                         this.classList.add('selected');
-                        var hiddenInput = picker.closest('.modal-body').querySelector('input[name="color"]');
-                        if (hiddenInput) hiddenInput.value = this.dataset.color;
+                        var hidden = picker.closest('.modal-body').querySelector('input[name="color"]');
+                        if (hidden) hidden.value = this.dataset.color;
                     });
                 });
             });
@@ -561,128 +770,205 @@
                     el.addEventListener('click', function () {
                         picker.querySelectorAll('.color-option').forEach(function (c) { c.classList.remove('selected'); });
                         this.classList.add('selected');
-                        var hiddenInput = picker.closest('.modal-body').querySelector('input[name="textColor"]');
-                        if (hiddenInput) hiddenInput.value = this.dataset.color;
+                        var hidden = picker.closest('.modal-body').querySelector('input[name="textColor"]');
+                        if (hidden) hidden.value = this.dataset.color;
                     });
                 });
             });
 
-            // === CHARACTER COUNTERS ===
+            // === CHAR COUNTERS ===
             var titleInp = document.getElementById('editNoteTitle');
             var contentInp = document.getElementById('editNoteContent');
             var titleCount = document.getElementById('editNoteTitleCount');
             var contentCount = document.getElementById('editNoteContentCount');
-
             function updateCharCounts() {
-                if(titleCount && titleInp) titleCount.textContent = titleInp.value.length;
-                if(contentCount && contentInp) contentCount.textContent = contentInp.value.length;
+                if (titleCount && titleInp) titleCount.textContent = titleInp.value.length;
+                if (contentCount && contentInp) contentCount.textContent = contentInp.value.length;
             }
+            if (titleInp) titleInp.addEventListener('input', updateCharCounts);
+            if (contentInp) contentInp.addEventListener('input', updateCharCounts);
 
-            if(titleInp) titleInp.addEventListener('input', updateCharCounts);
-            if(contentInp) contentInp.addEventListener('input', updateCharCounts);
-
-            // === CORE FUNCTIONS ===
-            window.openFamilyNote = function (id, isMine) {
+            // === OPEN NOTE: edit / view / copy ===
+            function openFamilyNoteInternal(id, isMine, mode) {
                 var card = document.querySelector('.note-card[data-id="' + id + '"]');
                 if (!card) return;
+
                 var title = card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '';
                 var content = card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '';
                 var color = card.dataset.color || '#ffffff';
                 var textColor = card.dataset.textcolor || '#212529';
 
-                var elNoteId = document.getElementById('editNoteId');
-                var elNoteTitle = document.getElementById('editNoteTitle');
-                var elNoteContent = document.getElementById('editNoteContent');
-
-                if(elNoteId) elNoteId.value = id;
-                if(elNoteTitle) elNoteTitle.value = title;
-                if(elNoteContent) elNoteContent.value = content;
-
-                updateCharCounts(); // Оновлюємо лічильники
-
+                var titleInput = document.getElementById('editNoteTitle');
+                var contentInput = document.getElementById('editNoteContent');
+                var selColor = document.getElementById('editSelectedColor');
+                var selTextColor = document.getElementById('editSelectedTextColor');
                 var bgPicker = document.getElementById('editColorPicker');
-                if (bgPicker) {
-                    bgPicker.querySelectorAll('.color-option').forEach(function (el) { el.classList.toggle('selected', el.dataset.color === color); });
-                }
-                var elSelectedColor = document.getElementById('editSelectedColor');
-                if (elSelectedColor) elSelectedColor.value = color;
-
                 var textPicker = document.getElementById('editTextColorPicker');
-                if (textPicker) {
-                    textPicker.querySelectorAll('.color-option').forEach(function (el) { el.classList.toggle('selected', el.dataset.color === textColor); });
-                }
-                var elSelectedTextColor = document.getElementById('editSelectedTextColor');
-                if (elSelectedTextColor) elSelectedTextColor.value = textColor;
-
                 var modalTitle = document.getElementById('editNoteModalTitle');
                 var modalIcon = document.getElementById('editNoteModalIcon');
                 var saveBtn = document.getElementById('editNoteSaveBtn');
-                var copyForm = document.getElementById('copyFamilyNoteForm');
                 var form = document.getElementById('editNoteForm');
-                var titleInput = document.getElementById('editNoteTitle');
-                var contentInput = document.getElementById('editNoteContent');
                 var shareContainer = document.getElementById('editShareWithFamilyContainer');
+                var shareInput = document.getElementById('editShareWithFamily');
                 var colorPickers = document.querySelectorAll('#editNoteModal .color-picker');
 
-                if (isMine) {
-                    if(modalIcon) modalIcon.className = 'fas fa-edit me-2';
-                    if(modalTitle) modalTitle.textContent = 'Редагувати нотатку';
-                    if(titleInput) titleInput.readOnly = false;
-                    if(contentInput) contentInput.readOnly = false;
-                    if(saveBtn) saveBtn.style.display = 'inline-block';
-                    if(copyForm) copyForm.style.display = 'none';
-                    if(form) form.action = '/notes/update/' + id;
-                    colorPickers.forEach(function(el) { if(el) el.style.pointerEvents = 'auto'; });
-                    if(shareContainer) shareContainer.style.display = 'block';
+                // default values
+                document.getElementById('editNoteId').value = id;
+                if (titleInput) titleInput.value = title;
+                if (contentInput) contentInput.value = content;
+                updateCharCounts();
+
+                if (bgPicker) bgPicker.querySelectorAll('.color-option').forEach(function (el) {
+                    el.classList.toggle('selected', el.dataset.color === color);
+                });
+                if (selColor) selColor.value = color;
+
+                if (textPicker) textPicker.querySelectorAll('.color-option').forEach(function (el) {
+                    el.classList.toggle('selected', el.dataset.color === textColor);
+                });
+                if (selTextColor) selTextColor.value = textColor;
+
+                if (mode === 'copy') {
+                    // Копіювання: відкриваємо як create, префікс " (копія)"
+                    document.getElementById('editNoteId').value = '';
+                    if (titleInput) titleInput.value = title + i18n.copySuffix;
+                    if (titleInput) titleInput.readOnly = false;
+                    if (contentInput) contentInput.readOnly = false;
+                    if (modalIcon) modalIcon.className = 'fas fa-copy me-2';
+                    if (modalTitle) modalTitle.textContent = i18n.copyMode;
+                    if (saveBtn) saveBtn.style.display = 'inline-block';
+                    if (form) form.action = '/notes/create';
+                    colorPickers.forEach(function (el) { if (el) el.style.pointerEvents = 'auto'; });
+                    if (shareContainer) shareContainer.style.display = 'block';
+                    if (shareInput) shareInput.checked = false;
+                } else if (isMine) {
+                    // Редагування
+                    if (titleInput) titleInput.readOnly = false;
+                    if (contentInput) contentInput.readOnly = false;
+                    if (modalIcon) modalIcon.className = 'fas fa-edit me-2';
+                    if (modalTitle) modalTitle.textContent = i18n.editMode;
+                    if (saveBtn) saveBtn.style.display = 'inline-block';
+                    if (form) form.action = '/notes/update/' + id;
+                    colorPickers.forEach(function (el) { if (el) el.style.pointerEvents = 'auto'; });
+                    if (shareContainer) shareContainer.style.display = 'block';
+                    if (shareInput) shareInput.checked = card.dataset.shareWithFamily === 'true';
                 } else {
-                    if(modalIcon) modalIcon.className = 'fas fa-eye me-2';
-                    if(modalTitle) modalTitle.textContent = 'Перегляд нотатки';
-                    if(titleInput) titleInput.readOnly = true;
-                    if(contentInput) contentInput.readOnly = true;
-                    if(saveBtn) saveBtn.style.display = 'none';
-                    if(copyForm) {
-                        copyForm.style.display = 'inline-block';
-                        copyForm.action = '/notes/copy/' + id;
-                    }
-                    if(form) form.action = '#';
-                    colorPickers.forEach(function(el) { if(el) el.style.pointerEvents = 'none'; });
-                    if(shareContainer) shareContainer.style.display = 'none';
+                    // Перегляд
+                    if (titleInput) titleInput.readOnly = true;
+                    if (contentInput) contentInput.readOnly = true;
+                    if (modalIcon) modalIcon.className = 'fas fa-eye me-2';
+                    if (modalTitle) modalTitle.textContent = i18n.viewMode;
+                    if (saveBtn) saveBtn.style.display = 'none';
+                    if (form) form.action = '#';
+                    colorPickers.forEach(function (el) { if (el) el.style.pointerEvents = 'none'; });
+                    if (shareContainer) shareContainer.style.display = 'none';
                 }
 
                 var modalEl = document.getElementById('editNoteModal');
                 if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            }
+
+            window.openFamilyNote = function (id, isMine) {
+                openFamilyNoteInternal(id, isMine, isMine ? 'edit' : 'view');
             };
 
-            window.togglePin = function (id) {
-                var csrf = document.querySelector('input[name="_csrf"]');
-                fetch('/notes/toggle-pin/' + id, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' } }).then(function (r) { if (r.ok) location.reload(); });
+            window.copyNote = function (id, e) {
+                if (e) e.stopPropagation();
+                openFamilyNoteInternal(id, false, 'copy');
             };
 
-            window.toggleArchive = function (id) {
-                var csrf = document.querySelector('input[name="_csrf"]');
-                fetch('/notes/toggle-archive/' + id, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf ? csrf.value : '' } }).then(function (r) { if (r.ok) location.reload(); });
+            // === EDIT / CREATE / COPY form submit (AJAX) ===
+            var editForm = document.getElementById('editNoteForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var isCreate = editForm.action.indexOf('/notes/create') !== -1;
+                    submitFormAjax(editForm, isCreate ? i18n.toastCreated : i18n.toastUpdated);
+                });
+            }
+
+            // === PIN ===
+            window.togglePin = function (id, e) {
+                if (e) e.stopPropagation();
+                var btn = e ? e.currentTarget : null;
+                withLoading(btn, function () {
+                    return fetch('/notes/toggle-pin/' + id, {
+                        method: 'POST',
+                        headers: csrfHeaders()
+                    }).then(function (r) {
+                        if (r.ok) {
+                            flashToast(i18n.pinPinned, 'success');
+                            setTimeout(function () { location.reload(); }, 50);
+                        } else {
+                            showToast(i18n.archiveError, 'error');
+                        }
+                    }).catch(function () { showToast(i18n.loadError, 'error'); });
+                });
             };
 
-            window.deleteNote = function (id) {
+            // === ARCHIVE (modal confirm) ===
+            var archiveModalEl = document.getElementById('archiveNoteConfirmModal');
+            var archiveConfirmBtn = document.getElementById('archiveNoteConfirmBtn');
+            var archiveMessageEl = document.getElementById('archiveNoteMessage');
+            var pendingArchive = null;
+
+            window.toggleArchive = function (id, e) {
+                if (e) e.stopPropagation();
+                var card = document.querySelector('.note-card[data-id="' + id + '"]');
+                var title = card && card.querySelector('.card-title')
+                    ? card.querySelector('.card-title').textContent.trim() : '';
+                if (archiveMessageEl) {
+                    archiveMessageEl.textContent = title ? fmt(i18n.archiveConfirmMsg, title) : '';
+                }
+                pendingArchive = { id: id, btn: e ? e.currentTarget : null };
+                if (archiveModalEl) bootstrap.Modal.getOrCreateInstance(archiveModalEl).show();
+            };
+
+            if (archiveConfirmBtn) {
+                archiveConfirmBtn.addEventListener('click', function () {
+                    if (!pendingArchive) return;
+                    var id = pendingArchive.id;
+                    var origBtn = pendingArchive.btn;
+                    pendingArchive = null;
+                    if (archiveModalEl) {
+                        var inst = bootstrap.Modal.getInstance(archiveModalEl);
+                        if (inst) inst.hide();
+                    }
+                    withLoading(origBtn, function () {
+                        return fetch('/notes/toggle-archive/' + id, {
+                            method: 'POST',
+                            headers: csrfHeaders()
+                        }).then(function (r) {
+                            if (r.ok) {
+                                flashToast(i18n.toastArchived, 'success');
+                                setTimeout(function () { location.reload(); }, 50);
+                            } else {
+                                showToast(i18n.archiveError, 'error');
+                            }
+                        }).catch(function () { showToast(i18n.loadError, 'error'); });
+                    });
+                });
+            }
+
+            // === DELETE ===
+            window.deleteNote = function (id, e) {
+                if (e) e.stopPropagation();
                 var form = document.getElementById('deleteNoteForm');
                 if (form) form.action = '/notes/delete/' + id;
                 var modalEl = document.getElementById('deleteNoteConfirmModal');
                 if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
             };
 
-            // === SPINNERS ON SUBMIT ===
-            document.querySelectorAll('#editNoteModal form, #deleteNoteConfirmModal form').forEach(function(form) {
-                form.addEventListener('submit', function() {
-                    var btn = this.querySelector('button[type="submit"]');
-                    if (btn && !btn.disabled) {
-                        btn.disabled = true;
-                        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Зачекайте...';
-                    }
+            var deleteForm = document.getElementById('deleteNoteForm');
+            if (deleteForm) {
+                deleteForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    submitFormAjax(deleteForm, i18n.toastDeleted);
                 });
-            });
+            }
 
-            // === KEYBOARD SHORTCUTS ===
-            document.addEventListener('keydown', function(e) {
+            // === KEYBOARD ===
+            document.addEventListener('keydown', function (e) {
                 var tag = (e.target.tagName || '').toUpperCase();
                 var isEditable = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
 
@@ -690,12 +976,10 @@
                     e.preventDefault();
                     window.location.href = '/notes?create=true';
                 }
-
                 if (!isEditable && e.key === '/' && !e.ctrlKey && !e.metaKey) {
                     e.preventDefault();
                     if (searchInput) searchInput.focus();
                 }
-
                 if (e.key === 'Escape') {
                     document.querySelectorAll('.modal.show').forEach(function (m) {
                         var inst = bootstrap.Modal.getInstance(m);
@@ -704,112 +988,107 @@
                 }
             });
 
-            // === EXPORT DINAMIC LINK ===
-            function updateExportLink(selectedMember) {
-                var baseUrl = '/notes/export?filter=shared';
-                if (selectedMember !== 'all') {
-                    // Якщо обрано учасника, ми не можемо відфільтрувати на бекенді через відсутність параметра,
-                    // тому експортуємо все, але це вже залежить від бекенду.
-                    // Поки залишимо базову логіку.
+            // === A11Y: Enter / Space ===
+            noteGrid.addEventListener('keydown', function (e) {
+                var body = e.target.closest('.card-body[role="button"]');
+                if (!body) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    body.click();
                 }
-                if (exportBtn) exportBtn.href = baseUrl;
-                if (exportBtnMobile) exportBtnMobile.href = baseUrl;
-            }
+            });
 
-            // === FILTER & SORT & PAGINATION LOGIC ===
+            // === UPDATE UI ===
             function updateUI() {
                 var selectedMember = memberFilter.value;
-                updateExportLink(selectedMember);
-
-                var filtered = allCards.filter(function(wrapper) {
+                var filtered = allCards.filter(function (wrapper) {
                     var card = wrapper.querySelector('.note-card');
+                    if (!card) return false;
                     var title = (card.querySelector('.card-title') ? card.querySelector('.card-title').textContent : '').toLowerCase();
                     var content = (card.querySelector('.card-text') ? card.querySelector('.card-text').textContent : '').toLowerCase();
                     var author = (card.querySelector('.author-badge .author-name') ? card.querySelector('.author-badge .author-name').textContent.trim() : '');
                     var isMine = wrapper.dataset.mine === 'true';
 
                     var matchesSearch = !searchText || (title.indexOf(searchText) !== -1 || content.indexOf(searchText) !== -1 || author.toLowerCase().indexOf(searchText) !== -1);
-                    var matchesFilter = currentFilter === 'all' || (currentFilter === 'mine' && isMine) || (currentFilter === 'others' && !isMine);
+                    var matchesFilter = currentFilter === 'all'
+                        || (currentFilter === 'mine' && isMine)
+                        || (currentFilter === 'others' && !isMine);
                     var matchesMember = selectedMember === 'all' || author === selectedMember;
-
                     return matchesSearch && matchesFilter && matchesMember;
                 });
 
-                // Сортування
-                filtered.sort(function(a, b) {
+                filtered.sort(function (a, b) {
                     var aPinned = a.querySelector('.note-card').dataset.pinned === 'true';
                     var bPinned = b.querySelector('.note-card').dataset.pinned === 'true';
                     if (aPinned && !bPinned) return -1;
                     if (!aPinned && bPinned) return 1;
-
-                    if (currentSort === 'title') {
-                        return (a.dataset.title || '').localeCompare(b.dataset.title || '');
-                    } else if (currentSort === 'author') {
-                        return (a.dataset.author || '').localeCompare(b.dataset.author || '');
-                    } else if (currentSort === 'created') {
-                        return (b.dataset.created || '').localeCompare(a.dataset.created || '');
-                    } else if (currentSort === 'updated') {
-                        return (b.dataset.updated || '').localeCompare(a.dataset.updated || '');
-                    }
+                    if (currentSort === 'title')   return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+                    if (currentSort === 'author')  return (a.dataset.author || '').localeCompare(b.dataset.author || '');
+                    if (currentSort === 'created') return (b.dataset.created || '').localeCompare(a.dataset.created || '');
+                    if (currentSort === 'updated') return (b.dataset.updated || '').localeCompare(a.dataset.updated || '');
                     return 0;
                 });
 
-                // Візуальне переміщення карток (DOM reorder)
-                allCards.forEach(function(w) { w.style.display = 'none'; });
+                allCards.forEach(function (w) { w.style.display = 'none'; });
 
                 var total = filtered.length;
                 var end = Math.min(currentPage * pageSize, total);
                 var toShow = filtered.slice(0, end);
 
-                toShow.forEach(function(card) {
+                toShow.forEach(function (card) {
                     card.style.display = '';
                     noteGrid.appendChild(card);
                 });
 
-                visibleCount = total;
-                if (headerNoteCount) headerNoteCount.textContent = visibleCount;
+                if (headerNoteCount) headerNoteCount.textContent = total;
 
                 if (emptyFilterMessage) {
-                    emptyFilterMessage.style.display = (visibleCount === 0 && allCards.length > 0) ? 'block' : 'none';
+                    emptyFilterMessage.style.display = (total === 0 && allCards.length > 0) ? 'block' : 'none';
                 }
 
-                // Логіка для кнопки "Завантажити ще"
                 if (loadMoreBtn) {
                     if (end < total) {
                         loadMoreBtn.classList.remove('d-none');
                         loadMoreBtn.disabled = false;
-                        if (visibleInfo) {
-                            visibleInfo.textContent = 'Показано: ' + end + ' з ' + total;
-                            visibleInfo.classList.remove('d-none');
-                        }
                     } else {
                         loadMoreBtn.classList.add('d-none');
-                        if (visibleInfo) {
-                            if (total > 0) {
-                                visibleInfo.textContent = 'Всі завантажено';
-                                visibleInfo.classList.remove('d-none');
-                            } else {
-                                visibleInfo.classList.add('d-none');
-                            }
-                        }
                     }
                 }
+                if (visibleInfo) {
+                    if (total > 0) {
+                        visibleInfo.textContent = fmt(i18n.showing, end, total);
+                        visibleInfo.classList.remove('d-none');
+                    } else {
+                        visibleInfo.classList.add('d-none');
+                    }
+                }
+
+                saveFilters();
+                updateRelativeTimes();
+            }
+
+            function applyFilters() {
+                currentPage = 1;
+                updateUI();
             }
 
             // === LISTENERS ===
             if (searchInput) {
+                var searchTimer;
                 searchInput.addEventListener('input', function () {
-                    searchText = this.value.trim().toLowerCase();
-                    currentPage = 1;
-                    updateUI();
+                    clearTimeout(searchTimer);
+                    var val = this.value.trim().toLowerCase();
+                    searchTimer = setTimeout(function () {
+                        searchText = val;
+                        applyFilters();
+                    }, 300);
                 });
             }
             if (searchClear) {
                 searchClear.addEventListener('click', function () {
                     searchInput.value = '';
                     searchText = '';
-                    currentPage = 1;
-                    updateUI();
+                    applyFilters();
                     searchInput.focus();
                 });
             }
@@ -819,37 +1098,62 @@
                     document.querySelectorAll('#filterToggle .btn').forEach(function (b) { b.classList.remove('active'); });
                     this.classList.add('active');
                     currentFilter = this.dataset.filter;
-                    currentPage = 1;
-                    updateUI();
+                    applyFilters();
                 });
             });
 
             document.querySelectorAll('[data-sort-choice]').forEach(function (link) {
                 link.addEventListener('click', function (e) {
                     e.preventDefault();
-                    document.querySelectorAll('[data-sort-choice]').forEach(function(l) { l.classList.remove('active'); });
+                    document.querySelectorAll('[data-sort-choice]').forEach(function (l) { l.classList.remove('active'); });
                     this.classList.add('active');
                     currentSort = this.dataset.sortChoice;
-                    currentPage = 1;
-                    updateUI();
+                    applyFilters();
                 });
             });
 
             if (memberFilter) {
-                memberFilter.addEventListener('change', function() {
-                    currentPage = 1;
-                    updateUI();
-                });
+                memberFilter.addEventListener('change', applyFilters);
             }
 
             if (loadMoreBtn) {
-                loadMoreBtn.addEventListener('click', function() {
+                loadMoreBtn.addEventListener('click', function () {
                     currentPage++;
                     updateUI();
                 });
             }
 
-            // Init
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    searchText = '';
+                    memberFilter.value = 'all';
+                    currentFilter = 'all';
+                    currentSort = 'default';
+                    document.querySelectorAll('#filterToggle .btn').forEach(function (b) {
+                        b.classList.toggle('active', b.dataset.filter === 'all');
+                    });
+                    document.querySelectorAll('[data-sort-choice]').forEach(function (l) {
+                        l.classList.toggle('active', l.dataset.sortChoice === 'default');
+                    });
+                    applyFilters();
+                });
+            }
+
+            // === RESET EDIT MODAL ON HIDE ===
+            var editModalEl = document.getElementById('editNoteModal');
+            if (editModalEl) {
+                editModalEl.addEventListener('hidden.bs.modal', function () {
+                    var form = document.getElementById('editNoteForm');
+                    if (form) form.reset();
+                    document.querySelectorAll('#editNoteModal .is-invalid').forEach(function (el) {
+                        el.classList.remove('is-invalid');
+                    });
+                });
+            }
+
+            // === INIT ===
+            restoreFilters();
             updateUI();
         });
     })();
