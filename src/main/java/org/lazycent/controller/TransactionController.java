@@ -11,6 +11,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -134,5 +136,73 @@ public class TransactionController extends BaseController {
         LocalDate date = budgetService.getDateByIncome(id, currentUser);
         redirectAttributes.addFlashAttribute("successMessage", msg("toast.income.updated"));
         return "redirect:" + safeReturnTo(returnTo, "/day/" + date);
+    }
+
+    // ==================== BULK ====================
+
+    @PostMapping("/expense/bulk/delete")
+    @ResponseBody
+    public Map<String, Object> bulkDeleteExpenses(
+            @RequestParam("ids") List<Long> ids,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return Map.of("success", false, "error", "Unauthorized");
+        try {
+            int count = budgetService.bulkDeleteExpenses(ids, user);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            log.error("bulkDeleteExpenses failed", e);
+            return Map.of("success", false, "error", e.getMessage() != null ? e.getMessage() : "error");
+        }
+    }
+
+    @PostMapping("/income/bulk/delete")
+    @ResponseBody
+    public Map<String, Object> bulkDeleteIncomes(
+            @RequestParam("ids") List<Long> ids,
+            @RequestParam(value = "returnTo", required = false) String returnTo,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return Map.of("success", false, "error", "Unauthorized");
+        try {
+            int count = budgetService.bulkDeleteIncomes(ids, user);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            log.error("bulkDeleteIncomes failed", e);
+            return Map.of("success", false, "error", e.getMessage() != null ? e.getMessage() : "error");
+        }
+    }
+
+    @PostMapping("/expense/bulk/duplicate")
+    @ResponseBody
+    public Map<String, Object> bulkDuplicateExpenses(
+            @RequestParam("ids") List<Long> ids,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return Map.of("success", false, "error", "Unauthorized");
+        try {
+            int count = budgetService.bulkDuplicateExpenses(ids, user);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            log.error("bulkDuplicateExpenses failed", e);
+            return Map.of("success", false, "error", e.getMessage() != null ? e.getMessage() : "error");
+        }
+    }
+
+    @PostMapping("/income/bulk/duplicate")
+    @ResponseBody
+    public Map<String, Object> bulkDuplicateIncomes(
+            @RequestParam("ids") List<Long> ids,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return Map.of("success", false, "error", "Unauthorized");
+        try {
+            int count = budgetService.bulkDuplicateIncomes(ids, user);
+            return Map.of("success", true, "count", count);
+        } catch (Exception e) {
+            log.error("bulkDuplicateIncomes failed", e);
+            return Map.of("success", false, "error", e.getMessage() != null ? e.getMessage() : "error");
+        }
     }
 }

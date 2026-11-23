@@ -57,44 +57,19 @@
         .days-toolbar .page-size-wrap select { width: auto; min-width: 80px; border-radius: .5rem; font-size: .85rem; }
         .days-toolbar .info-text { font-size: .85rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
 
-        /* ✅ MOBILE: компактний пошук 34px */
         @media (max-width: 767.98px) {
             .days-toolbar { padding: .5rem .75rem; flex-direction: column; align-items: stretch; gap: .4rem; }
             .days-toolbar .search-wrap { flex: 0 0 auto; width: 100%; min-width: 0; }
-            .days-toolbar .search-wrap .input-group {
-                height: 34px !important;
-                min-height: 34px !important;
-                max-height: 34px !important;
-                flex-wrap: nowrap;
-                align-items: stretch;
-            }
+            .days-toolbar .search-wrap .input-group { height: 34px !important; min-height: 34px !important; max-height: 34px !important; flex-wrap: nowrap; align-items: stretch; }
             .days-toolbar .search-wrap .input-group > .input-group-text,
             .days-toolbar .search-wrap .input-group > .form-control,
             .days-toolbar .search-wrap .input-group > .btn {
-                height: 34px !important;
-                min-height: 34px !important;
-                max-height: 34px !important;
-                padding-top: 0 !important;
-                padding-bottom: 0 !important;
-                line-height: 32px !important;
-                font-size: .85rem !important;
-                display: flex;
-                align-items: center;
+                height: 34px !important; min-height: 34px !important; max-height: 34px !important;
+                padding-top: 0 !important; padding-bottom: 0 !important;
+                line-height: 32px !important; font-size: .85rem !important;
+                display: flex; align-items: center;
             }
-            .days-toolbar .search-wrap .input-group > .form-control {
-                display: block;
-                padding-left: .5rem !important;
-                padding-right: .5rem !important;
-            }
-            .days-toolbar .search-wrap .input-group > .input-group-text {
-                padding-left: .5rem !important;
-                padding-right: .4rem !important;
-            }
-            .days-toolbar .search-wrap .input-group > .btn-clear {
-                padding-left: .65rem !important;
-                padding-right: .65rem !important;
-            }
-
+            .days-toolbar .search-wrap .input-group > .form-control { display: block; padding-left: .5rem !important; padding-right: .5rem !important; }
             .days-toolbar .filter-group { flex-direction: column; align-items: stretch; width: 100%; gap: .4rem; }
             .days-toolbar .filter-group > * { width: 100% !important; min-width: 0 !important; }
             .days-toolbar .page-size-wrap { width: 100%; justify-content: space-between; }
@@ -102,7 +77,7 @@
         }
 
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .table-transactions { table-layout: fixed; width: 100%; font-size: .8rem; border-collapse: collapse; min-width: 1300px; }
+        .table-transactions { table-layout: fixed; width: 100%; font-size: .8rem; border-collapse: collapse; min-width: 1330px; }
         .table-transactions th, .table-transactions td { border-bottom: 1px solid var(--bs-border-color); vertical-align: middle; padding: .4rem .3rem; overflow: hidden; text-overflow: ellipsis; }
         .table-transactions th { background-color: var(--bs-tertiary-bg); color: var(--bs-secondary-color); font-weight: 600; font-size: .82rem; text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid var(--bs-border-color); white-space: nowrap; position: sticky; top: 0; z-index: 10; }
         [data-bs-theme="dark"] .table-transactions th { background-color: #23262e; color: #9aa3b2; border-bottom-color: #3a3f4a; }
@@ -115,6 +90,8 @@
         [data-bs-theme="dark"] .table-transactions th .resize-handle { background: #6c757d; }
         [data-bs-theme="dark"] .table-transactions th .resize-handle:hover, [data-bs-theme="dark"] .table-transactions th .resize-handle.active { background: #5a8ac5; }
 
+        .table-transactions .col-bulk    { width: 40px;  min-width: 40px;  text-align: center; }
+        .table-transactions .col-bulk input { width: 18px; height: 18px; cursor: pointer; }
         .table-transactions .col-num      { width: 48px;  min-width: 48px;  text-align: center; }
         .table-transactions .col-time     { width: 80px;  min-width: 80px;  text-align: center; }
         .table-transactions .col-type     { width: 90px;  min-width: 90px;  text-align: center; }
@@ -128,6 +105,30 @@
         .table-transactions .col-details  { width: 140px; min-width: 120px; text-align: center; }
         .table-transactions .col-running  { width: 110px; min-width: 110px; text-align: right; }
         .table-transactions .col-actions  { width: 150px; min-width: 150px; text-align: center; white-space: nowrap; }
+
+        .table-transactions tr.row-selected > td { background-color: rgba(13,110,253,.15) !important; }
+        [data-bs-theme="dark"] .table-transactions tr.row-selected > td { background-color: rgba(90,138,197,.25) !important; }
+
+        .table-transactions tr.row-hidden > td { opacity: .45; }
+        .table-transactions tr.row-hidden .col-name::after {
+            content: 'архів';
+            display: inline-block;
+            font-size: .65rem;
+            padding: .1rem .35rem;
+            margin-left: .35rem;
+            background: var(--bs-secondary-bg);
+            color: var(--bs-secondary-color);
+            border-radius: .25rem;
+        }
+
+        .table-transactions tfoot td {
+            font-weight: 700;
+            background-color: var(--bs-secondary-bg);
+            border-top: 2px solid var(--bs-border-color);
+            border-bottom: 2px solid var(--bs-border-color);
+            padding: .6rem .3rem;
+        }
+        [data-bs-theme="dark"] .table-transactions tfoot td { background-color: #23262e; }
 
         .table-transactions .col-actions .btn {
             width: 40px; height: 40px;
@@ -148,11 +149,20 @@
         [data-bs-theme="dark"] .type-text.expense { color: #f87171; }
         [data-bs-theme="dark"] .type-text.income { color: #6ee7b7; }
 
+        .search-hl { background: #fff3cd; color: #664d03; padding: 0 2px; border-radius: 2px; }
+        [data-bs-theme="dark"] .search-hl { background: #664d03; color: #fff3cd; }
+
         .transaction-card-wrapper { display: flex; }
-        .transaction-card { background: #fff; border-radius: .75rem; border: 1px solid #dee2e6; overflow: hidden; width: 100%; height: 100%; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; }
+        .transaction-card { background: #fff; border-radius: .75rem; border: 1px solid #dee2e6; overflow: hidden; width: 100%; height: 100%; display: flex; flex-direction: column; transition: transform .2s, box-shadow .2s; position: relative; }
         .transaction-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
         [data-bs-theme="dark"] .transaction-card { background: #1d2027; border-color: #2a2e37; }
-        .transaction-card .card-header { padding: .5rem .75rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; flex-wrap: wrap; gap: .25rem; background: #f8f9fa; }
+        .transaction-card.card-selected { box-shadow: 0 0 0 3px var(--bs-primary), 0 4px 8px rgba(13,110,253,.35) !important; }
+        .transaction-card.card-hidden { opacity: .5; }
+
+        .transaction-card .card-bulk { position: absolute; top: .5rem; right: .5rem; z-index: 2; }
+        .transaction-card .card-bulk input { width: 20px; height: 20px; cursor: pointer; }
+
+        .transaction-card .card-header { padding: .5rem .75rem; padding-right: 2.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; flex-wrap: wrap; gap: .25rem; background: #f8f9fa; }
         [data-bs-theme="dark"] .transaction-card .card-header { border-bottom-color: #2a2e37; background: #23262e; }
         .transaction-card .card-header .type-badge { font-size: .7rem; padding: .15rem .5rem; border-radius: 20px; font-weight: 600; }
         .type-badge.expense { color: #dc3545; }
@@ -180,7 +190,6 @@
         .empty-state { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-state i { font-size: 4rem; opacity: .25; }
 
-        /* Breakdown */
         .breakdown-list { display: flex; flex-direction: column; gap: .35rem; }
         .breakdown-item { display: flex; align-items: center; gap: .6rem; font-size: .85rem; }
         .breakdown-item .bd-name { flex: 0 0 35%; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -189,7 +198,6 @@
         .breakdown-item .bd-value { flex: 0 0 auto; font-weight: 700; white-space: nowrap; min-width: 90px; text-align: right; }
         .breakdown-empty { font-size: .85rem; color: var(--bs-secondary-color); padding: .5rem 0; }
 
-        /* ✅ Заголовки секцій у розбивці */
         .breakdown-section-title {
             font-size: .75rem;
             font-weight: 700;
@@ -203,6 +211,7 @@
 
         #onlyMineBtn { border-radius: .5rem; }
         #onlyMineBtn.active { background-color: var(--bs-primary) !important; color: #fff !important; border-color: var(--bs-primary) !important; }
+        #showHiddenBtn.active { background-color: var(--bs-secondary) !important; color: #fff !important; border-color: var(--bs-secondary) !important; }
 
         .columns-menu .form-check { padding-left: 2rem; }
         .columns-menu .form-check-label { cursor: pointer; user-select: none; }
@@ -213,13 +222,47 @@
 
         #loadMoreWrap { padding: 1rem 0 1.5rem; }
 
+        /* ✅ BULK BAR */
+        .bulk-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #1d2027; border-top: 1px solid #2a2e37;
+            color: #fff; padding: .75rem 1rem; z-index: 1045;
+            transform: translateY(100%); transition: transform .25s ease;
+            box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+        }
+        .bulk-bar.active { transform: translateY(0); }
+        .bulk-bar .bulk-count { display: inline-flex; align-items: center; gap: .4rem; font-weight: 600; }
+        .bulk-bar .bulk-count .badge { font-size: .85rem; padding: .3rem .7rem; background: var(--bs-primary); color: #fff; }
+        .bulk-bar .btn { font-size: .85rem; }
+        .bulk-bar .bulk-hint {
+            font-size: .75rem;
+            color: rgba(255,255,255,.6);
+            margin-left: .5rem;
+        }
+
+        @media (max-width: 575.98px) {
+            .bulk-bar { padding: .5rem .75rem; }
+            .bulk-bar .bulk-buttons { width: 100%; flex-wrap: wrap; gap: .35rem !important; }
+            .bulk-bar .bulk-count { width: 100%; justify-content: center; margin-bottom: .25rem; font-size: .85rem; }
+            .bulk-bar .btn { flex: 1 1 calc(50% - .2rem); min-width: 0; font-size: .78rem; padding: .45rem .4rem; white-space: nowrap; }
+        }
+
+        .popover { max-width: 500px; font-size: .85rem; }
+        .detail-cell { cursor: help; }
+
+        #bulkDeleteList li {
+            padding: .35rem 0;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+        #bulkDeleteList li:last-child { border-bottom: none; }
+
         @media print {
             @page { margin: 10mm; }
             body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
             nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
             .view-toggle, .days-toolbar, .cat-header-theme > div.no-print,
-            .col-actions, .col-num, .resize-handle, .toast-container,
-            .cookie-banner, .settings-drawer, .settings-overlay,
+            .col-actions, .col-num, .col-bulk, .resize-handle, .toast-container,
+            .cookie-banner, .settings-drawer, .settings-overlay, .bulk-bar,
             .page-header-wrap .btn, .alert, #breakdownRow, #loadMoreWrap { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex  { display: flex !important; }
@@ -243,6 +286,11 @@
             #tableView { display: block !important; }
             .column-hidden { display: table-cell !important; }
             th.column-hidden { display: table-cell !important; }
+            .table-transactions tfoot { display: table-row-group !important; }
+        }
+        .mobile-totals {
+            border-top: 2px solid var(--bs-border-color);
+            border-bottom: none;
         }
     </style>
 </head>
@@ -297,6 +345,12 @@
             </div>
 
             <div class="d-flex gap-2 no-print flex-wrap justify-content-center justify-content-md-end">
+                <a th:href="@{/day/{d}(d=${#temporals.format(date, 'yyyy-MM-dd')})}"
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-user me-1"></i>
+                    <span th:text="#{family.shared.goToMyDay}">До мого дня</span>
+                </a>
+
                 <button type="button" class="btn btn-outline-secondary" id="toggleBreakdownBtn" th:title="#{family.shared.breakdown.categories}">
                     <i class="fas fa-chart-pie"></i>
                 </button>
@@ -343,13 +397,12 @@
                     </ul>
                 </div>
 
-                <a th:href="@{/family/shared/day/{d}/export(d=${#temporals.format(date, 'yyyy-MM-dd')})}"
+                <a id="exportBtn" th:href="@{/family/shared/day/{d}/export(d=${#temporals.format(date, 'yyyy-MM-dd')})}"
                    class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i>
                     <span th:text="#{btn.export}">Експорт</span>
                 </a>
 
-                <!-- ✅ Друк тільки для ПК -->
                 <button type="button" class="btn btn-warning d-none d-md-inline-flex" onclick="window.print()">
                     <i class="fas fa-print me-1"></i>
                     <span th:text="#{btn.print}">Друк</span>
@@ -493,6 +546,17 @@
                     <i class="fas fa-user me-1"></i>
                     <span th:text="#{family.shared.onlyMine}">Тільки мої</span>
                 </button>
+
+                <button type="button" id="showHiddenBtn" class="btn btn-outline-secondary btn-sm d-none">
+                    <i class="fas fa-archive me-1"></i>
+                    <span th:text="#{family.shared.showHidden}">Архів</span>
+                    <span class="badge bg-secondary ms-1" id="hiddenCount">0</span>
+                </button>
+
+                <button type="button" id="resetFiltersBtn" class="btn btn-outline-warning btn-sm d-none">
+                    <i class="fas fa-filter-circle-xmark me-1"></i>
+                    <span th:text="#{family.shared.resetFilters}">Скинути</span>
+                </button>
             </div>
 
             <div class="page-size-wrap">
@@ -514,6 +578,9 @@
                 <table class="table-transactions" id="sharedDayTable">
                     <thead>
                     <tr>
+                        <th class="col-bulk no-print">
+                            <input type="checkbox" id="selectAllCheckbox" title="Select all">
+                        </th>
                         <th class="col-num">№</th>
                         <th class="col-time sortable" data-sort="time" data-type="string">
                             <span th:text="#{common.time}">Час</span> <i class="fas fa-sort sort-icon"></i>
@@ -562,6 +629,9 @@
                         th:data-buyer="${t.buyer() != null ? t.buyer() : ''}"
                         th:data-seller="${t.seller() != null ? t.seller() : ''}"
                         th:data-details="${t.details() != null ? t.details() : ''}">
+                        <td class="col-bulk no-print">
+                            <input type="checkbox" class="row-checkbox" th:data-id="${t.id()}">
+                        </td>
                         <td class="col-num" th:text="${stat.index + 1}"></td>
                         <td class="col-time">
                             <span th:if="${t.time() != null}" th:text="${#temporals.format(t.time(), 'HH:mm')}"></span>
@@ -576,15 +646,23 @@
                             <span th:if="${t.memberUsername() == currentUser?.username}"
                                   class="badge bg-secondary ms-1" th:text="#{family.member.you}">(ви)</span>
                         </td>
-                        <td class="col-name" th:title="${t.description()}"><span class="fw-semibold" th:text="${t.description()}">Продукти</span></td>
+                        <td class="col-name" th:title="${t.description()}">
+                            <i class="fas fa-users text-info me-1" style="font-size: .7rem; opacity: .6;" th:title="#{family.shared.badgeItem}"></i>
+                            <span class="fw-semibold" th:text="${t.description()}">Продукти</span>
+                        </td>
                         <td class="col-quantity" th:text="${t.quantity() != null ? t.quantity() : 1}">1</td>
                         <td class="col-amount fw-bold" th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
                             th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">150 ₴</td>
                         <td class="col-buyer" data-column="buyer" th:text="${t.buyer()} ?: '—'" th:title="${t.buyer()}">—</td>
                         <td class="col-seller" data-column="seller" th:text="${t.seller()} ?: '—'" th:title="${t.seller()}">—</td>
                         <td class="col-category" data-column="category" th:text="${t.categoryName()}">Їжа</td>
-                        <td class="col-details" data-column="details">
-                            <span th:if="${t.details() != null and !t.details().isEmpty()}" th:text="${t.details()}" th:title="${t.details()}"></span>
+                        <td class="col-details detail-cell" data-column="details"
+                            th:data-bs-toggle="${t.details() != null and t.details().length() > 30 ? 'popover' : null}"
+                            th:data-bs-content="${t.details()}"
+                            th:data-bs-placement="top"
+                            th:title="${t.details() != null and t.details().length() > 30 ? null : (t.details() != null ? t.details() : '—')}">
+                            <span th:if="${t.details() != null and !t.details().isEmpty()}"
+                                  th:text="${t.details().length() > 30 ? #strings.substring(t.details(), 0, 30) + '…' : t.details()}"></span>
                             <span th:if="${t.details() == null or t.details().isEmpty()}" class="text-muted">—</span>
                         </td>
                         <td class="col-running fw-bold" data-column="runningBalance">—</td>
@@ -627,6 +705,26 @@
                         </td>
                     </tr>
                     </tbody>
+                    <tfoot id="totalsFooter">
+                    <tr>
+                        <td class="col-bulk no-print"></td>
+                        <td class="col-num"></td>
+                        <td class="col-time"></td>
+                        <td class="col-type"></td>
+                        <td class="col-member"></td>
+                        <td class="col-name" style="text-align: right;">
+                            <span th:text="#{family.shared.total}">Всього</span>:
+                        </td>
+                        <td class="col-quantity" id="footerQty">0</td>
+                        <td class="col-amount" id="footerAmount">0 ₴</td>
+                        <td class="col-buyer"></td>
+                        <td class="col-seller"></td>
+                        <td class="col-category"></td>
+                        <td class="col-details"></td>
+                        <td class="col-running" id="footerRunning">0 ₴</td>
+                        <td class="col-actions no-print"></td>
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
             <div th:if="${transactions.isEmpty()}" class="empty-state">
@@ -651,6 +749,9 @@
                          th:data-seller="${t.seller() != null ? t.seller() : ''}"
                          th:data-details="${t.details() != null ? t.details() : ''}">
                         <div class="transaction-card">
+                            <div class="card-bulk no-print">
+                                <input type="checkbox" class="row-checkbox" th:data-id="${t.id()}">
+                            </div>
                             <div class="card-header">
                                 <span class="type-badge" th:classappend="${t.expense()} ? 'expense' : 'income'"
                                       th:text="${t.expense()} ? #{type.EXPENSE} : #{type.INCOME}">Витрата</span>
@@ -737,7 +838,65 @@
     </div>
 </div>
 
-<!-- DELETE MODAL -->
+<!-- BULK BAR -->
+<div id="bulkBar" class="bulk-bar no-print" role="toolbar">
+    <div class="d-flex align-items-center gap-2 flex-wrap bulk-buttons">
+        <span class="bulk-count me-auto">
+            <i class="fas fa-check-square"></i>
+            <span class="badge" id="bulkCount">0</span>
+            <span class="d-none d-sm-inline" th:text="#{family.shared.bulk.selected}">вибрано</span>
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-light" data-action="copy">
+            <i class="fas fa-copy me-1"></i>
+            <span th:text="#{family.shared.bulk.copy}">Копіювати</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light" data-action="archive">
+            <i class="fas fa-archive me-1"></i>
+            <span th:text="#{family.shared.bulk.archive}">Архів</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">
+            <i class="fas fa-trash me-1"></i>
+            <span th:text="#{family.shared.bulk.delete}">Видалити</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-light" data-action="cancel">
+            <i class="fas fa-times"></i>
+            <span class="d-none d-sm-inline ms-1" th:text="#{family.shared.bulk.cancel}">Скасувати</span>
+        </button>
+    </div>
+</div>
+
+<!-- BULK DELETE MODAL -->
+<div class="modal fade no-print" id="bulkDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1rem;">
+            <div class="modal-header bg-danger text-white border-0" style="border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="#{family.shared.bulk.deleteModalTitle}">Видалити вибрані транзакції?</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p>
+                    <span th:text="#{family.shared.bulk.deleteModalIntro}">Буде назавжди видалено</span>
+                    <strong id="bulkDeleteCount">0</strong>
+                    <span th:text="#{family.shared.bulk.selectedTransactions}">транзакцій:</span>
+                </p>
+                <ul class="list-unstyled small mb-3" id="bulkDeleteList" style="max-height: 280px; overflow-y: auto;"></ul>
+                <p class="text-muted small mb-0" th:text="#{delete.note}">Цю дію не можна скасувати.</p>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" th:text="#{btn.cancel}">Скасувати</button>
+                <button type="button" class="btn btn-danger px-4" id="bulkDeleteConfirmBtn">
+                    <i class="fas fa-trash me-1"></i>
+                    <span th:text="#{family.shared.bulk.delete}">Видалити</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SINGLE DELETE MODAL -->
 <div class="modal fade no-print" id="deleteSharedModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -786,6 +945,7 @@
         var yesterdayExpenses = /*[[${yesterdayExpenses}]]*/ 0.0;
         var dateIso = /*[[${#temporals.format(date, 'yyyy-MM-dd')}]]*/ '2026-01-01';
         var dayName = /*[[${dayNames[dayName]} ?: ${dayName}]]*/ '';
+        var initialCount = /*[[${transactions.size()}]]*/ 0;
 
         var i18n = {
             showing:   /*[[#{common.showing}]]*/   'Показано: {0} з {1}',
@@ -799,7 +959,12 @@
             vsYesterday: /*[[#{family.shared.compare.vsYesterday}]]*/ 'проти вчора',
             breakdownEmpty: /*[[#{family.shared.breakdown.empty}]]*/ 'Немає даних',
             expensesLabel: /*[[#{family.shared.col.expenses}]]*/ 'Витрати',
-            incomesLabel:  /*[[#{family.shared.col.incomes}]]*/  'Доходи'
+            incomesLabel:  /*[[#{family.shared.col.incomes}]]*/  'Доходи',
+            bulkCopied: /*[[#{family.shared.bulk.copied}]]*/ 'Скопійовано: {0}',
+            bulkDeleted: /*[[#{family.shared.bulk.deleted}]]*/ 'Видалено: {0}',
+            bulkArchived: /*[[#{family.shared.bulk.archived}]]*/ 'Заархівовано: {0}',
+            newTx: /*[[#{family.shared.newTransactions}]]*/ 'Є нові транзакції. Оновити?',
+            archiveBadge: /*[[#{family.shared.archiveBadge}]]*/ 'архів'
         };
         function safeI18n(v, fb) {
             return (typeof v === 'string' && v.indexOf('??') === 0) ? fb : v;
@@ -829,6 +994,51 @@
             p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
             return p.join(',') + ' ' + currencySymbol;
         }
+        function escapeHtml(s) {
+            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+        function highlightText(text, query) {
+            if (!text || !query) return escapeHtml(text || '');
+            var lower = text.toLowerCase();
+            var qLower = query.toLowerCase();
+            var idx = 0, result = '', pos;
+            while ((pos = lower.indexOf(qLower, idx)) !== -1) {
+                result += escapeHtml(text.substring(idx, pos));
+                result += '<mark class="search-hl">' + escapeHtml(text.substring(pos, pos + query.length)) + '</mark>';
+                idx = pos + query.length;
+            }
+            result += escapeHtml(text.substring(idx));
+            return result;
+        }
+        function csrfHeaders(extra) {
+            var h = {
+                'X-CSRF-TOKEN': (window.csrfToken || (document.querySelector('meta[name="_csrf"]') && document.querySelector('meta[name="_csrf"]').content) || ''),
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            if (extra) for (var k in extra) h[k] = extra[k];
+            return h;
+        }
+        function showToast(msg, type) {
+            var el = document.getElementById('liveToast');
+            if (!el || typeof bootstrap === 'undefined') { console.log(msg); return; }
+            var title = document.getElementById('toastTitle');
+            var text = document.getElementById('toastMessage');
+            var icon = document.getElementById('toastIcon');
+            el.classList.remove('success', 'error');
+            if (type === 'error') {
+                el.classList.add('error');
+                if (title) title.textContent = 'Помилка';
+                if (icon) icon.className = 'fas fa-exclamation-circle me-2';
+            } else {
+                el.classList.add('success');
+                if (title) title.textContent = 'Успіх';
+                if (icon) icon.className = 'fas fa-check-circle me-2';
+            }
+            if (text) text.textContent = msg;
+            bootstrap.Toast.getOrCreateInstance(el, { autohide: true, delay: 5000 }).show();
+        }
 
         var viewToggle     = document.getElementById('viewToggle');
         var tableView      = document.getElementById('tableView');
@@ -839,6 +1049,9 @@
         var categoryFilter = document.getElementById('categoryFilter');
         var memberFilter   = document.getElementById('memberFilter');
         var onlyMineBtn    = document.getElementById('onlyMineBtn');
+        var showHiddenBtn  = document.getElementById('showHiddenBtn');
+        var hiddenCountEl  = document.getElementById('hiddenCount');
+        var resetFiltersBtn = document.getElementById('resetFiltersBtn');
         var pageSizeSelect = document.getElementById('pageSizeSelect');
         var loadMoreBtn    = document.getElementById('loadMoreBtn');
         var loadMoreWrap   = document.getElementById('loadMoreWrap');
@@ -849,9 +1062,57 @@
         var tableEl        = document.getElementById('sharedDayTable');
         var breakdownRow   = document.getElementById('breakdownRow');
         var toggleBreakdownBtn = document.getElementById('toggleBreakdownBtn');
+        var exportBtn      = document.getElementById('exportBtn');
+        var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        var bulkBar        = document.getElementById('bulkBar');
+        var bulkBarDeleteBtn = bulkBar ? bulkBar.querySelector('[data-action="delete"]') : null;
+        var bulkBarArchiveBtn = bulkBar ? bulkBar.querySelector('[data-action="archive"]') : null;
+        var bulkDeleteModal = document.getElementById('bulkDeleteModal');
+        var bulkDeleteConfirmBtn = document.getElementById('bulkDeleteConfirmBtn');
         var allRows        = Array.prototype.slice.call(document.querySelectorAll('.transaction-row'));
         var allCards       = Array.prototype.slice.call(document.querySelectorAll('.transaction-card-wrapper'));
 
+// ✅ Дедуплікація: якщо кілька <tr> мають однаковий data-id — це баг БД/рендерингу.
+//    Ховаємо повторні, щоб вибір одного не «тягнув» інший.
+        (function dedupeByDataId() {
+            var seenRowIds = new Set();
+            var removedRows = 0;
+            allRows = allRows.filter(function (r) {
+                var id = r.dataset.id;
+                if (!id) return true;
+                if (seenRowIds.has(id)) {
+                    console.warn('[dedupe] duplicate table row, data-id =', id);
+                    r.style.display = 'none';
+                    r.removeAttribute('data-id');  // прибираємо, щоб не синхронізувалось
+                    removedRows++;
+                    return false;
+                }
+                seenRowIds.add(id);
+                return true;
+            });
+
+            var seenCardIds = new Set();
+            var removedCards = 0;
+            allCards = allCards.filter(function (c) {
+                var id = c.dataset.id;
+                if (!id) return true;
+                if (seenCardIds.has(id)) {
+                    console.warn('[dedupe] duplicate card, data-id =', id);
+                    c.style.display = 'none';
+                    c.removeAttribute('data-id');
+                    removedCards++;
+                    return false;
+                }
+                seenCardIds.add(id);
+                return true;
+            });
+
+            if (removedRows || removedCards) {
+                console.warn('[dedupe] Hidden ' + removedRows + ' duplicate rows, ' + removedCards + ' duplicate cards.');
+            }
+        })();
+
+        var selectedIds = new Set();
         var currentPage = 1;
         var pageSize = 20;
 
@@ -860,8 +1121,30 @@
         var COL_VIS_KEY    = 'family_shared_day_col_visibility_v1';
         var COL_WIDTH_KEY  = 'family_shared_day_col_widths';
         var BREAKDOWN_KEY  = 'family_shared_day_breakdown_visible';
+        var HIDDEN_KEY     = 'family_shared_day_hidden';
 
-        // ===== BREAKDOWN TOGGLE =====
+        var showHidden = false;
+        function getHiddenIds() {
+            try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]').map(String); }
+            catch (e) { return []; }
+        }
+        function setHiddenIds(arr) {
+            try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(arr.map(String))); } catch (e) {}
+        }
+        function updateHiddenButton() {
+            if (!showHiddenBtn) return;
+            var ids = getHiddenIds();
+            if (hiddenCountEl) hiddenCountEl.textContent = ids.length;
+            showHiddenBtn.classList.toggle('d-none', ids.length === 0 && !showHidden);
+            showHiddenBtn.classList.toggle('active', showHidden);
+        }
+        if (showHiddenBtn) {
+            showHiddenBtn.addEventListener('click', function () {
+                showHidden = !showHidden;
+                applyFiltersAndPaginate();
+            });
+        }
+
         function setBreakdownVisible(visible) {
             if (!breakdownRow) return;
             breakdownRow.style.display = visible ? '' : 'none';
@@ -880,7 +1163,6 @@
             }
         }
 
-        // ===== VIEW =====
         function setViewMode(mode) {
             if (mode === 'cards') {
                 tableView.style.display = 'none';
@@ -904,7 +1186,6 @@
             });
         }
 
-        // ===== CATEGORIES =====
         if (categoryFilter) {
             var catCounts = {};
             allRows.forEach(function (r) {
@@ -919,7 +1200,6 @@
             });
         }
 
-        // ===== COLUMN VISIBILITY =====
         function getHiddenColumns() {
             try { return JSON.parse(localStorage.getItem(COL_VIS_KEY) || '[]'); }
             catch (e) { return []; }
@@ -949,7 +1229,6 @@
             });
         });
 
-        // ===== STATE =====
         function saveFilters() {
             try {
                 localStorage.setItem(FILTERS_KEY, JSON.stringify({
@@ -974,7 +1253,6 @@
             } catch (e) { return false; }
         }
 
-        // ===== URL =====
         function syncUrl() {
             try {
                 var url = new URL(location.href);
@@ -1001,7 +1279,17 @@
             } catch (e) { return false; }
         }
 
-        // ===== ONLY MINE =====
+        function updateExportLink() {
+            if (!exportBtn) return;
+            var params = new URLSearchParams();
+            if (typeFilter.value && typeFilter.value !== 'all') params.set('type', typeFilter.value);
+            if (categoryFilter.value) params.set('cat', categoryFilter.value.replace(/\s*\(\d+\)$/, ''));
+            if (memberFilter.value && memberFilter.value !== 'all') params.set('member', memberFilter.value);
+            if (searchInput.value && searchInput.value.trim()) params.set('q', searchInput.value.trim());
+            var base = '/family/shared/day/' + dateIso + '/export';
+            exportBtn.href = params.toString() ? base + '?' + params.toString() : base;
+        }
+
         function updateOnlyMineButton() {
             if (!onlyMineBtn || !memberFilter) return;
             var isMine = memberFilter.value === currentUsername && currentUsername;
@@ -1016,7 +1304,24 @@
             });
         }
 
-        // ===== FILTER =====
+        function updateResetButton() {
+            if (!resetFiltersBtn) return;
+            var active = (typeFilter.value !== 'all')
+                || (categoryFilter.value !== '')
+                || (memberFilter.value !== 'all')
+                || (searchInput.value.trim().length > 0);
+            resetFiltersBtn.classList.toggle('d-none', !active);
+        }
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
+                typeFilter.value = 'all';
+                categoryFilter.value = '';
+                memberFilter.value = 'all';
+                searchInput.value = '';
+                applyFiltersAndPaginate();
+            });
+        }
+
         function rowKey(el) {
             return el.dataset.id || [
                 el.dataset.time, el.dataset.member, el.dataset.description,
@@ -1028,8 +1333,12 @@
             var typeValue = typeFilter ? typeFilter.value : 'all';
             var catValue = categoryFilter ? categoryFilter.value : '';
             var memberValue = memberFilter ? memberFilter.value : 'all';
+            var hidden = getHiddenIds();
             if (catValue) catValue = catValue.replace(/\s*\(\d+\)$/, '');
             return allRows.filter(function (row) {
+                var id = String(row.dataset.id);
+                var hiddenItem = hidden.indexOf(id) !== -1;
+                if (!showHidden && hiddenItem) return false;
                 if (typeValue !== 'all' && row.dataset.type !== typeValue) return false;
                 if (catValue !== '' && row.dataset.category !== catValue) return false;
                 if (memberValue !== 'all' && row.dataset.member !== memberValue) return false;
@@ -1044,12 +1353,19 @@
 
         function applyFiltersAndPaginate() {
             var filtered = getFilteredRows();
+            console.log('[applyFilters] allRows=' + allRows.length + ' filtered=' + filtered.length);
+
             currentPage = 1;
             renderUI(filtered);
             updateOnlyMineButton();
+            updateResetButton();
+            updateHiddenButton();
             saveFilters();
             syncUrl();
+            updateExportLink();
             renderBreakdowns(filtered);
+            applySearchHighlight();
+            renderTotalsFooter(filtered);   
         }
 
         function renderUI(filtered) {
@@ -1078,10 +1394,22 @@
             }
 
             var visibleIds = {};
+            var hidden = getHiddenIds();
             visibleRows.forEach(function (r) { visibleIds[rowKey(r)] = true; });
 
-            allRows.forEach(function (r) { r.style.display = visibleIds[rowKey(r)] ? '' : 'none'; });
-            allCards.forEach(function (c) { c.style.display = visibleIds[rowKey(c)] ? '' : 'none'; });
+            allRows.forEach(function (r) {
+                var id = String(r.dataset.id);
+                var isHid = hidden.indexOf(id) !== -1;
+                r.style.display = visibleIds[rowKey(r)] ? '' : 'none';
+                r.classList.toggle('row-hidden', isHid);
+            });
+            allCards.forEach(function (c) {
+                var id = String(c.dataset.id);
+                var isHid = hidden.indexOf(id) !== -1;
+                c.style.display = visibleIds[rowKey(c)] ? '' : 'none';
+                var card = c.querySelector('.transaction-card');
+                if (card) card.classList.toggle('card-hidden', isHid);
+            });
 
             visibleRows.forEach(function (r, idx) {
                 var numCell = r.querySelector('.col-num');
@@ -1091,7 +1419,6 @@
             if (noResults) noResults.style.display = (total === 0 && all > 0) ? 'block' : 'none';
         }
 
-        // ===== RUNNING BALANCE =====
         function computeRunningBalances() {
             var sorted = allRows.slice().sort(function (a, b) {
                 var ta = a.dataset.time || '00:00';
@@ -1130,7 +1457,6 @@
             });
         }
 
-        // ===== COMPARE =====
         function renderCompare() {
             var el = document.getElementById('expensesCompare');
             if (!el) return;
@@ -1148,21 +1474,86 @@
             el.style.display = '';
         }
 
-        // ===== BREAKDOWNS =====
+        function renderTotalsFooter(filtered) {
+            var footerQty = document.getElementById('footerQty');
+            var footerAmount = document.getElementById('footerAmount');
+            var footerRunning = document.getElementById('footerRunning');
+
+            if (!footerQty || !footerAmount || !footerRunning) {
+                console.warn('[totals] footer elements not found!',
+                    { qty: !!footerQty, amount: !!footerAmount, running: !!footerRunning });
+                return;
+            }
+
+            // ✅ Захист: якщо filtered === undefined/порожній — беремо allRows
+            var rows = (filtered && filtered.length > 0)
+                ? filtered
+                : allRows.slice();
+
+            var totalExp = 0, totalInc = 0, count = 0;
+            rows.forEach(function (r) {
+                var amount = parseFloat(r.dataset.amount) || 0;
+                count++;
+                if (r.dataset.type === 'expense') totalExp += amount;
+                else if (r.dataset.type === 'income') totalInc += amount;
+            });
+
+            var net = totalInc - totalExp;
+            var lastBalance = 0;
+            if (rows.length > 0) {
+                var latest = rows.slice().sort(function (a, b) {
+                    var ta = a.dataset.time || '00:00';
+                    var tb = b.dataset.time || '00:00';
+                    if (ta !== tb) return ta.localeCompare(tb);
+                    return (parseInt(a.dataset.id) || 0) - (parseInt(b.dataset.id) || 0);
+                }).pop();
+                if (latest) lastBalance = parseFloat(latest.dataset.runningBalance) || 0;
+            }
+
+            footerQty.textContent = String(count);
+            footerAmount.textContent = (net >= 0 ? '+' : '') + fmtMoney(net);
+            footerAmount.className = 'col-amount ' + (net >= 0 ? 'text-success' : 'text-danger');
+            footerRunning.textContent = fmtMoney(lastBalance);
+            footerRunning.className = 'col-running ' + (lastBalance >= 0 ? 'text-success' : 'text-danger');
+
+            // ✅ Діагностика — подивіться в консоль (F12)
+            if (rows.length === 0) {
+                console.warn('[totals] rows=0. filtered=', filtered, ' allRows.length=', allRows.length);
+            } else {
+                console.log('[totals] rows=' + rows.length
+                    + ' exp=' + totalExp.toFixed(2)
+                    + ' inc=' + totalInc.toFixed(2)
+                    + ' net=' + net.toFixed(2)
+                    + ' lastBalance=' + lastBalance.toFixed(2));
+            }
+        }
+
+        function applySearchHighlight() {
+            var q = searchInput.value.trim();
+            document.querySelectorAll('.table-transactions tbody .col-name, .table-transactions tbody .col-buyer, .table-transactions tbody .col-seller, .table-transactions tbody .col-details, .table-transactions tbody .col-category').forEach(function (cell) {
+                var original = cell.dataset.originalText;
+                if (original == null) {
+                    original = cell.textContent;
+                    cell.dataset.originalText = original;
+                }
+                if (!q) {
+                    if (cell.querySelector('mark.search-hl')) cell.textContent = original;
+                } else {
+                    cell.innerHTML = highlightText(original, q);
+                }
+            });
+        }
+
         function renderBreakdowns(filtered) {
             renderCategoryBreakdown(filtered);
             renderMemberBreakdown(filtered);
         }
 
-        // ✅ Розбивка по категоріях — з окремими секціями для витрат і доходів
         function renderCategoryBreakdown(filtered) {
             var el = document.getElementById('categoryBreakdown');
             if (!el) return;
-
-            var expenseGroups = {};
-            var incomeGroups = {};
-            var totalExpense = 0;
-            var totalIncome = 0;
+            var expenseGroups = {}, incomeGroups = {};
+            var totalExpense = 0, totalIncome = 0;
 
             filtered.forEach(function (r) {
                 var cat = r.dataset.category || '—';
@@ -1177,24 +1568,19 @@
             });
 
             var html = '';
-
             if (Object.keys(expenseGroups).length > 0) {
                 html += '<div class="breakdown-section-title text-danger">'
                     + '<i class="fas fa-arrow-down me-1"></i>' + i18n.expensesLabel + ' · ' + fmtMoney(totalExpense)
                     + '</div>';
                 html += renderBreakdownList(expenseGroups, totalExpense, 'bg-danger');
             }
-
             if (Object.keys(incomeGroups).length > 0) {
                 html += '<div class="breakdown-section-title text-success">'
                     + '<i class="fas fa-arrow-up me-1"></i>' + i18n.incomesLabel + ' · ' + fmtMoney(totalIncome)
                     + '</div>';
                 html += renderBreakdownList(incomeGroups, totalIncome, 'bg-success');
             }
-
-            if (!html) {
-                html = '<div class="breakdown-empty">' + i18n.breakdownEmpty + '</div>';
-            }
+            if (!html) html = '<div class="breakdown-empty">' + i18n.breakdownEmpty + '</div>';
             el.innerHTML = html;
         }
 
@@ -1220,9 +1606,10 @@
                 var m = r.dataset.member || '—';
                 var amount = parseFloat(r.dataset.amount) || 0;
                 var isExpense = r.dataset.type === 'expense';
-                if (!groups[m]) groups[m] = { expenses: 0, incomes: 0 };
+                if (!groups[m]) groups[m] = { expenses: 0, incomes: 0, count: 0 };
                 if (isExpense) groups[m].expenses += amount;
                 else groups[m].incomes += amount;
+                groups[m].count++;
             });
             var keys = Object.keys(groups);
             if (keys.length === 0) {
@@ -1240,22 +1627,17 @@
                 var parts = [];
                 if (g.expenses > 0) parts.push('<span class="text-danger">−' + fmtMoney(g.expenses) + '</span>');
                 if (g.incomes > 0) parts.push('<span class="text-success">+' + fmtMoney(g.incomes) + '</span>');
+                var countText = g.count + ' ' + txWord(g.count);
                 return '<div class="breakdown-item">'
                     + '<div class="bd-name" title="' + escapeHtml(m) + '">' + escapeHtml(m) + '</div>'
                     + '<div class="bd-bar"><div class="bg-primary" style="width:' + percent.toFixed(1) + '%"></div></div>'
-                    + '<div class="bd-value small">' + parts.join(' · ') + '</div>'
+                    + '<div class="bd-value small" title="' + countText + '">' + parts.join(' · ')
+                    + ' <span class="text-muted">(' + g.count + ')</span></div>'
                     + '</div>';
             }).join('');
             el.innerHTML = html;
         }
 
-        function escapeHtml(s) {
-            return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-            });
-        }
-
-        // ===== EVENTS =====
         if (searchInput) searchInput.addEventListener('input', applyFiltersAndPaginate);
         if (searchClear) {
             searchClear.addEventListener('click', function () {
@@ -1284,7 +1666,6 @@
             });
         }
 
-        // ===== SORT =====
         function sortRowsBy(column, direction, silent) {
             var th = document.querySelector('.sortable[data-sort="' + column + '"]');
             var dataType = th ? th.dataset.type : 'string';
@@ -1327,7 +1708,6 @@
             });
         });
 
-        // ===== RESIZE =====
         function initColumnResize() {
             if (!tableEl) return;
             var headers = tableEl.querySelectorAll('thead th');
@@ -1335,7 +1715,7 @@
             try { var s = localStorage.getItem(COL_WIDTH_KEY); if (s) colWidths = JSON.parse(s); } catch (e) {}
 
             headers.forEach(function (th, index) {
-                if (th.classList.contains('col-actions')) return;
+                if (th.classList.contains('col-actions') || th.classList.contains('col-bulk')) return;
                 if (th.querySelector('.resize-handle')) return;
                 th.style.position = 'relative';
                 var handle = document.createElement('div');
@@ -1376,7 +1756,239 @@
             });
         }
 
-        // ===== DELETE =====
+        // ===== BULK BAR =====
+        function updateBulkBar() {
+            if (!bulkBar) return;
+            if (selectedIds.size === 0) {
+                bulkBar.classList.remove('active');
+                return;
+            }
+            bulkBar.classList.add('active');
+            var cnt = document.getElementById('bulkCount');
+            if (cnt) cnt.textContent = selectedIds.size;
+
+            // ✅ "Всі мої" — перевіряємо ЛИШЕ по першому match кожного id
+            var allMine = true;
+            selectedIds.forEach(function (id) {
+                var row = null;
+                document.querySelectorAll('.transaction-row').forEach(function (r) {
+                    if (row === null && r.dataset.id === id) row = r;
+                });
+                if (!row || row.dataset.member !== currentUsername) allMine = false;
+            });
+            if (bulkBarDeleteBtn) {
+                bulkBarDeleteBtn.classList.toggle('d-none', !allMine);
+            }
+            if (bulkBarArchiveBtn) {
+                bulkBarArchiveBtn.classList.toggle('d-none', !allMine);
+            }
+        }
+
+        function clearSelection() {
+            selectedIds.clear();
+            document.querySelectorAll('.row-checkbox').forEach(function (cb) { cb.checked = false; });
+            document.querySelectorAll('.transaction-row.row-selected').forEach(function (r) { r.classList.remove('row-selected'); });
+            document.querySelectorAll('.transaction-card.card-selected').forEach(function (c) { c.classList.remove('card-selected'); });
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            updateBulkBar();
+        }
+
+        document.querySelectorAll('.row-checkbox').forEach(function (cb) {
+            cb.addEventListener('change', function (e) {
+                e.stopPropagation();
+                var id = this.dataset.id;  // ✅ string, без parseInt
+                if (!id) return;
+                var isChecked = this.checked;
+
+                // Синхронізація всіх чекбоксів з ТИМ САМИМ data-id (таблиця + картка)
+                document.querySelectorAll('.row-checkbox').forEach(function (other) {
+                    if (other.dataset.id === id) other.checked = isChecked;
+                });
+
+                // Підсвітка рядка таблиці
+                document.querySelectorAll('.transaction-row').forEach(function (row) {
+                    if (row.dataset.id === id) row.classList.toggle('row-selected', isChecked);
+                });
+                // Підсвітка картки
+                document.querySelectorAll('.transaction-card-wrapper').forEach(function (wrapper) {
+                    if (wrapper.dataset.id === id) {
+                        var card = wrapper.querySelector('.transaction-card');
+                        if (card) card.classList.toggle('card-selected', isChecked);
+                    }
+                });
+
+                if (isChecked) selectedIds.add(id);
+                else selectedIds.delete(id);
+
+                updateBulkBar();
+            });
+        });
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
+                var checked = this.checked;
+                document.querySelectorAll('.transaction-row').forEach(function (row) {
+                    if (row.style.display === 'none') return;
+                    var id = row.dataset.id;
+                    if (!id) return;
+                    if (checked) selectedIds.add(id);
+                    else selectedIds.delete(id);
+                    document.querySelectorAll('.row-checkbox').forEach(function (cb) {
+                        if (cb.dataset.id === id) cb.checked = checked;
+                    });
+                    row.classList.toggle('row-selected', checked);
+                    document.querySelectorAll('.transaction-card-wrapper').forEach(function (w) {
+                        if (w.dataset.id === id) {
+                            var c = w.querySelector('.transaction-card');
+                            if (c) c.classList.toggle('card-selected', checked);
+                        }
+                    });
+                });
+                updateBulkBar();
+            });
+        }
+
+        function splitIdsByType(ids) {
+            var expIds = [], incIds = [];
+            ids.forEach(function (id) {
+                var row = null;
+                document.querySelectorAll('.transaction-row').forEach(function (r) {
+                    if (row === null && r.dataset.id === id) row = r;
+                });
+                if (!row) return;
+                if (row.dataset.type === 'expense') expIds.push(id);
+                else if (row.dataset.type === 'income') incIds.push(id);
+            });
+            return { expIds: expIds, incIds: incIds };
+        }
+
+        function reloadWithToast(msg) {
+            try { sessionStorage.setItem('family_shared_pending_toast', JSON.stringify({ msg: msg, type: 'success' })); } catch (ex) {}
+            location.reload();
+        }
+
+        function openBulkDeleteModal() {
+            var ids = Array.from(selectedIds);
+            if (ids.length === 0) return;
+
+            var countEl = document.getElementById('bulkDeleteCount');
+            var listEl = document.getElementById('bulkDeleteList');
+            if (countEl) countEl.textContent = ids.length;
+
+            if (listEl) {
+                listEl.innerHTML = '';
+                ids.forEach(function (id) {
+                    var row = document.querySelector('.transaction-row[data-id="' + id + '"]');
+                    if (!row) return;
+                    var li = document.createElement('li');
+                    li.className = 'd-flex justify-content-between gap-2';
+                    var time = row.dataset.time || '—';
+                    var desc = row.dataset.description || '—';
+                    var amount = parseFloat(row.dataset.amount) || 0;
+                    var typeCls = row.dataset.type === 'expense' ? 'text-danger' : 'text-success';
+                    li.innerHTML = '<span class="text-truncate"><span class="text-muted small">' + escapeHtml(time) + '</span> · ' + escapeHtml(desc) + '</span>'
+                        + '<span class="fw-bold ' + typeCls + '">' + (row.dataset.type === 'expense' ? '−' : '+') + fmtMoney(amount) + '</span>';
+                    listEl.appendChild(li);
+                });
+            }
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(bulkDeleteModal).show();
+            }
+        }
+
+        if (bulkDeleteConfirmBtn) {
+            bulkDeleteConfirmBtn.addEventListener('click', function () {
+                if (selectedIds.size === 0) return;
+                var ids = Array.from(selectedIds);
+                var split = splitIdsByType(ids);
+                var promises = [];
+                if (split.expIds.length > 0) {
+                    var p1 = new URLSearchParams();
+                    split.expIds.forEach(function (id) { p1.append('ids', id); });
+                    promises.push(fetch('/expense/bulk/delete', {
+                        method: 'POST',
+                        headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                        body: p1.toString()
+                    }).then(function (r) { return r.json(); }));
+                }
+                if (split.incIds.length > 0) {
+                    var p2 = new URLSearchParams();
+                    split.incIds.forEach(function (id) { p2.append('ids', id); });
+                    promises.push(fetch('/income/bulk/delete', {
+                        method: 'POST',
+                        headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                        body: p2.toString()
+                    }).then(function (r) { return r.json(); }));
+                }
+                Promise.all(promises).then(function (results) {
+                    var total = results.reduce(function (s, r) { return s + (r.count || 0); }, 0);
+                    if (total > 0) reloadWithToast(fmt(i18n.bulkDeleted, total));
+                    else showToast('Помилка', 'error');
+                }).catch(function () { showToast('Помилка', 'error'); });
+            });
+        }
+
+        function archiveSelected() {
+            if (selectedIds.size === 0) return;
+            var hidden = getHiddenIds();
+            var count = 0;
+            selectedIds.forEach(function (id) {
+                var sid = String(id);
+                if (hidden.indexOf(sid) === -1) { hidden.push(sid); count++; }
+            });
+            setHiddenIds(hidden);
+            clearSelection();
+            updateHiddenButton();
+            applyFiltersAndPaginate();
+            if (count > 0) showToast(fmt(i18n.bulkArchived, count), 'success');
+        }
+
+        if (bulkBar) {
+            bulkBar.addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                var action = btn.dataset.action;
+
+                if (action === 'cancel') { clearSelection(); return; }
+                if (selectedIds.size === 0) return;
+
+                if (action === 'copy') {
+                    var ids = Array.from(selectedIds);
+                    var split = splitIdsByType(ids);
+                    var promises = [];
+                    if (split.expIds.length > 0) {
+                        var p1 = new URLSearchParams();
+                        split.expIds.forEach(function (id) { p1.append('ids', id); });
+                        promises.push(fetch('/expense/bulk/duplicate', {
+                            method: 'POST',
+                            headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                            body: p1.toString()
+                        }).then(function (r) { return r.json(); }));
+                    }
+                    if (split.incIds.length > 0) {
+                        var p2 = new URLSearchParams();
+                        split.incIds.forEach(function (id) { p2.append('ids', id); });
+                        promises.push(fetch('/income/bulk/duplicate', {
+                            method: 'POST',
+                            headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                            body: p2.toString()
+                        }).then(function (r) { return r.json(); }));
+                    }
+                    Promise.all(promises).then(function (results) {
+                        var total = results.reduce(function (s, r) { return s + (r.count || 0); }, 0);
+                        if (total > 0) reloadWithToast(fmt(i18n.bulkCopied, total));
+                        else showToast('Помилка', 'error');
+                    }).catch(function () { showToast('Помилка', 'error'); });
+
+                } else if (action === 'delete') {
+                    openBulkDeleteModal();
+
+                } else if (action === 'archive') {
+                    archiveSelected();
+                }
+            });
+        }
+
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('.js-delete-shared');
             if (!btn) return;
@@ -1403,7 +2015,6 @@
             }
         });
 
-        // ===== KEYBOARD =====
         document.addEventListener('keydown', function (e) {
             var target = e.target;
             if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
@@ -1413,27 +2024,56 @@
                 e.preventDefault();
                 if (searchInput) searchInput.focus();
             } else if (e.key === 'Escape') {
+                if (selectedIds.size > 0) { clearSelection(); return; }
                 if (searchInput && searchInput.value) {
                     searchInput.value = '';
                     applyFiltersAndPaginate();
                 }
             } else if ((e.ctrlKey || e.metaKey) && (e.key === 'e' || e.key === 'E')) {
                 e.preventDefault();
-                window.location.href = '/family/shared/day/' + dateIso + '/export';
+                window.location.href = exportBtn ? exportBtn.href : '/family/shared/day/' + dateIso + '/export';
             } else if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
                 e.preventDefault();
                 window.print();
+            } else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+                e.preventDefault();
+                if (selectAllCheckbox) { selectAllCheckbox.checked = true; selectAllCheckbox.dispatchEvent(new Event('change')); }
             }
         });
 
-        // ===== TITLE =====
         function updateTitle() {
             var visible = getFilteredRows().length;
             var baseTitle = dayName + ' ' + /*[[${#temporals.format(date, 'dd.MM.yyyy')}]]*/ '—';
             document.title = '(' + visible + ') ' + baseTitle + ' — Lazy Cent';
         }
 
-        // ===== INIT =====
+        (function drainPendingToast() {
+            try {
+                var raw = sessionStorage.getItem('family_shared_pending_toast');
+                if (!raw) return;
+                sessionStorage.removeItem('family_shared_pending_toast');
+                var obj = JSON.parse(raw);
+                if (obj && obj.msg) setTimeout(function () { showToast(obj.msg, obj.type || 'success'); }, 200);
+            } catch (e) {}
+        })();
+
+        (function initPolling() {
+            var lastCount = initialCount;
+            setInterval(function () {
+                if (document.hidden) return;
+                fetch('/family/shared/day/' + dateIso + '/count', { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) return;
+                        if (data.count !== lastCount) {
+                            showToast(i18n.newTx, 'info');
+                            lastCount = data.count;
+                        }
+                    })
+                    .catch(function () {});
+            }, 60000);
+        })();
+
         initBreakdownToggle();
         initColumnResize();
         applyColumnVisibility();
@@ -1447,6 +2087,17 @@
         computeRunningBalances();
         renderCompare();
 
+        document.querySelectorAll('.table-transactions tbody .col-name, .table-transactions tbody .col-buyer, .table-transactions tbody .col-seller, .table-transactions tbody .col-details, .table-transactions tbody .col-category').forEach(function (cell) {
+            if (cell.dataset.originalText == null) cell.dataset.originalText = cell.textContent;
+        });
+
+        if (typeof bootstrap !== 'undefined' && bootstrap.Popover) {
+            document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+                try { new bootstrap.Popover(el, { trigger: 'hover', html: false, placement: 'top' }); } catch (e) {}
+            });
+        }
+
+        updateHiddenButton();
         applyFiltersAndPaginate();
         updateTitle();
     });

@@ -11,15 +11,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.lazycent.model.dto.SharedDayDto;
 import org.lazycent.model.dto.SharedTransactionDto;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -29,6 +27,7 @@ public class FamilyController extends BaseController {
     private final FamilyService familyService;
     private final FamilySharedDayExportService familySharedDayExportService;
     private final DayBudgetRepository dayBudgetRepository;
+    private static String nullSafe(String s) { return s == null ? "" : s; }
 
 
     @GetMapping
@@ -146,6 +145,10 @@ public class FamilyController extends BaseController {
     @GetMapping("/shared/day/{date}/export")
     public void exportSharedDay(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String cat,
+            @RequestParam(required = false) String member,
+            @RequestParam(required = false) String q,
             Authentication authentication,
             HttpServletResponse response) throws java.io.IOException {
 
@@ -159,8 +162,33 @@ public class FamilyController extends BaseController {
         }
 
         var txs = familyService.getSharedTransactionsByDate(freshUser, date);
-        String dayName = familyService.getDayName(date);
 
+        // ✅ Фільтрація
+        if (type != null && !type.isBlank() && !"all".equals(type)) {
+            boolean wantExpense = "expense".equalsIgnoreCase(type);
+            txs = txs.stream().filter(t -> wantExpense ? t.expense() : t.income()).toList();
+        }
+        if (cat != null && !cat.isBlank()) {
+            String catNorm = cat.replaceAll("\\s*\\(\\d+\\)$", "").trim();
+            txs = txs.stream().filter(t -> catNorm.equals(t.categoryName())).toList();
+        }
+        if (member != null && !member.isBlank() && !"all".equals(member)) {
+            txs = txs.stream().filter(t -> member.equals(t.memberUsername())).toList();
+        }
+        if (q != null && !q.isBlank()) {
+            String qLower = q.toLowerCase().trim();
+            txs = txs.stream().filter(t -> {
+                String hay = String.join(" ",
+                        nullSafe(t.description()), nullSafe(t.categoryName()),
+                        nullSafe(t.memberUsername()), nullSafe(t.buyer()),
+                        nullSafe(t.seller()), nullSafe(t.details()),
+                        t.amount() != null ? String.valueOf(t.amount()) : ""
+                ).toLowerCase();
+                return hay.contains(qLower);
+            }).toList();
+        }
+
+        String dayName = familyService.getDayName(date);
         Double startingBalance = dayBudgetRepository
                 .sumStartingBalanceByFamilyAndDate(freshUser.getFamilyId(), date);
         if (startingBalance == null) startingBalance = 0.0;
@@ -173,5 +201,17 @@ public class FamilyController extends BaseController {
         response.setHeader("Content-Disposition", "attachment; filename=\"family-shared-" + date + ".xlsx\"");
         response.setContentLength(xlsx.length);
         response.getOutputStream().write(xlsx);
+    }
+
+    @GetMapping("/shared/day/{date}/count")
+    @ResponseBody
+    public Map<String, Object> getSharedDayCount(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            Authentication authentication) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return Map.of("count", 0);
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return Map.of("count", 0);
+        return Map.of("count", familyService.getSharedTransactionsByDate(freshUser, date).size());
     }
 }
