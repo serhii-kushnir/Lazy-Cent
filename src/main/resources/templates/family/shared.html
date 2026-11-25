@@ -357,21 +357,6 @@
             </div>
         </div>
 
-        <!-- EMPTY -->
-        <div th:if="${totalDays == 0}" class="card shadow mt-4 anim-fade-up delay-2">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-inbox fa-4x mb-3 text-muted" style="opacity: .3;"></i>
-                <h4 th:if="${!hasActiveFilters}"
-                    th:text="#{family.shared.empty}">Поки що ніхто не поділився транзакціями.</h4>
-                <h4 th:unless="${!hasActiveFilters}"
-                    th:text="#{common.noData}">Нічого не знайдено</h4>
-                <p class="text-muted mb-0" th:if="${!hasActiveFilters}"
-                   th:text="#{family.shared.empty.hint}">
-                    Позначте свої транзакції як "Спільні" на сторінці дня, і вони з'являться тут.
-                </p>
-            </div>
-        </div>
-
         <!-- MAIN SECTION -->
         <div th:if="${inFamily}" class="days-section mb-3 anim-fade-up delay-2">
 
@@ -524,6 +509,22 @@
                                     <i class="fas fa-eye"></i>
                                     <span th:text="#{family.shared.viewDay}">Переглянути</span>
                                 </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${totalDays == 0}">
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <h4 th:if="${!hasActiveFilters}" th:text="#{family.shared.empty}">
+                                        Поки що ніхто не поділився транзакціями.
+                                    </h4>
+                                    <h4 th:unless="${!hasActiveFilters}" th:text="#{common.noData}">
+                                        Нічого не знайдено
+                                    </h4>
+                                    <p class="mb-0" th:if="${!hasActiveFilters}" th:text="#{family.shared.empty.hint}">
+                                        Позначте свої транзакції як "Спільні" на сторінці дня, і вони з'являться тут.
+                                    </p>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
