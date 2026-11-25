@@ -18,6 +18,7 @@
         .delay-1 { animation-delay: 0.05s; }
         .delay-2 { animation-delay: 0.10s; }
         .delay-3 { animation-delay: 0.15s; }
+        .page-max { max-width: 1920px; margin-left: auto; margin-right: auto; }
 
         .btn:not(.btn-close):not(.navbar-toggler) { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
@@ -104,7 +105,7 @@
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
 
-<div class="container-fluid px-3 px-md-4 mt-4">
+<div class="container-fluid px-3 px-md-4 mt-4 page-max">
 
     <div class="print-header d-print-flex" style="display: none;">
         <span class="logo">💰 LazyCent</span>

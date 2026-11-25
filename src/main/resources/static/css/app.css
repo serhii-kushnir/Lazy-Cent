@@ -68,11 +68,18 @@
 
 .wm-navbar .user-avatar {
     cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.2rem 0.6rem; border-radius: 2rem;
-    transition: background 0.2s; border: none; background: transparent;
+    padding: 0.35rem 0.75rem; border-radius: 0.65rem;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
     color: var(--wm-navbar-color);
 }
-.wm-navbar .user-avatar:hover { background: rgba(var(--bs-primary-rgb), 0.06); }
+.wm-navbar .user-avatar:hover,
+.wm-navbar .user-avatar:focus-visible {
+    background: rgba(var(--bs-primary-rgb), 0.06);
+    border-color: var(--bs-primary);
+}
+.wm-navbar .user-avatar:focus-visible { outline: 0; box-shadow: 0 0 0 .2rem rgba(var(--bs-primary-rgb), .2); }
+.wm-navbar .user-avatar-chevron { font-size: .7rem; color: var(--bs-secondary-color); margin-left: .2rem; }
 .wm-navbar .user-avatar .avatar-placeholder {
     width: 32px; height: 32px; border-radius: 50%;
     background: var(--bs-primary); color: #fff;
