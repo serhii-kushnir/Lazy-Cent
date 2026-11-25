@@ -3,6 +3,7 @@ package org.lazycent.service;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.lazycent.model.dto.SharedCategoryTotalDto;
 import org.lazycent.model.dto.SharedDayDto;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -104,6 +105,61 @@ public class FamilySharedExportService {
             }
             sheet.setColumnWidth(1, 18 * 256);
 
+            workbook.write(output);
+            return output.toByteArray();
+        }
+    }
+
+    public byte[] exportTotals(List<SharedCategoryTotalDto> categories, LocalDate startDate,
+                               LocalDate endDate, Locale locale) throws IOException {
+        try (XSSFWorkbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet(msg("family.shared.totalsPage.heading", locale));
+            CellStyle titleStyle = workbook.createCellStyle();
+            Font titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 14);
+            titleStyle.setFont(titleFont);
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            CellStyle moneyStyle = workbook.createCellStyle();
+            moneyStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0.00"));
+
+            Row title = sheet.createRow(0);
+            title.createCell(0).setCellValue(msg("family.shared.totalsPage.heading", locale) + " "
+                    + startDate.format(DATE_FORMAT) + " - " + endDate.format(DATE_FORMAT));
+            title.getCell(0).setCellStyle(titleStyle);
+
+            Row header = sheet.createRow(2);
+            String[] headers = {
+                    msg("totals.col.category", locale),
+                    msg("totals.col.type", locale),
+                    msg("totals.col.amount", locale)
+            };
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = header.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            int rowIndex = 3;
+            for (SharedCategoryTotalDto category : categories) {
+                Row row = sheet.createRow(rowIndex++);
+                row.createCell(0).setCellValue(category.categoryName());
+                row.createCell(1).setCellValue(msg(
+                        "EXPENSE".equals(category.type()) ? "family.shared.col.expenses" : "family.shared.col.incomes",
+                        locale));
+                row.createCell(2).setCellValue(category.amount());
+                row.getCell(2).setCellStyle(moneyStyle);
+            }
+            for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
             workbook.write(output);
             return output.toByteArray();
         }

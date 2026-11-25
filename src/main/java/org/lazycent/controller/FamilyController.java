@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.lazycent.model.Family;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.SharedDayDto;
+import org.lazycent.model.dto.SharedCategoryTotalDto;
 import org.lazycent.model.dto.SharedMemberSummaryDto;
 import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.DayBudgetRepository;
@@ -26,6 +27,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +66,91 @@ public class FamilyController extends BaseController {
     }
 
     // ==================== SHARED — LIST ====================
+
+    @GetMapping("/shared/totals")
+    public String viewSharedTotals(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Authentication authentication, Model model) {
+
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+
+        LocalDate today = LocalDate.now();
+        if (startDate == null) startDate = today.withDayOfMonth(1);
+        if (endDate == null) endDate = today;
+        model.addAttribute("defaultStartDate", today.withDayOfMonth(1));
+        model.addAttribute("defaultEndDate", today);
+
+        List<SharedCategoryTotalDto> categories = getSharedCategoryTotals(freshUser, startDate, endDate);
+        double expenses = sumCategoryTotals(categories, "EXPENSE");
+        double incomes = sumCategoryTotals(categories, "INCOME");
+
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("totalExpenses", expenses);
+        model.addAttribute("totalIncomes", incomes);
+        model.addAttribute("balance", incomes - expenses);
+        model.addAttribute("categories", categories);
+        return "family/shared-totals";
+    }
+
+    @GetMapping("/shared/totals/export")
+    public void exportSharedTotals(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Authentication authentication, HttpServletResponse response) throws java.io.IOException {
+
+        User user = getCurrentUser(authentication);
+        if (user == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) {
+            response.sendRedirect("/family/shared");
+            return;
+        }
+        LocalDate today = LocalDate.now();
+        if (startDate == null) startDate = today.withDayOfMonth(1);
+        if (endDate == null) endDate = today;
+
+        byte[] file = familySharedExportService.exportTotals(
+                getSharedCategoryTotals(freshUser, startDate, endDate), startDate, endDate,
+                org.springframework.context.i18n.LocaleContextHolder.getLocale());
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"shared-totals-" + startDate + "_" + endDate + ".xlsx\"");
+        response.setContentLength(file.length);
+        response.getOutputStream().write(file);
+    }
+
+    private List<SharedCategoryTotalDto> getSharedCategoryTotals(User user, LocalDate startDate, LocalDate endDate) {
+        Map<String, Map<String, Double>> totalsByCategory = new HashMap<>();
+        for (SharedTransactionDto transaction : familyService.getSharedTransactions(user, startDate, endDate)) {
+            if (!transaction.expense() && !transaction.income()) continue;
+            String categoryName = transaction.categoryName() == null || transaction.categoryName().isBlank()
+                    ? "—" : transaction.categoryName();
+            double amount = transaction.amount() != null ? transaction.amount() : 0;
+            totalsByCategory.computeIfAbsent(transaction.type(), key -> new HashMap<>())
+                    .merge(categoryName, amount, Double::sum);
+        }
+
+        List<SharedCategoryTotalDto> categories = new ArrayList<>();
+        totalsByCategory.forEach((type, categoryTotals) -> categoryTotals.forEach((name, amount) ->
+                categories.add(new SharedCategoryTotalDto(name, type, amount))));
+        categories.sort(Comparator.comparing(SharedCategoryTotalDto::type)
+                .thenComparing(SharedCategoryTotalDto::categoryName, String.CASE_INSENSITIVE_ORDER));
+        return categories;
+    }
+
+    private double sumCategoryTotals(List<SharedCategoryTotalDto> categories, String type) {
+        return categories.stream().filter(category -> type.equals(category.type()))
+                .mapToDouble(SharedCategoryTotalDto::amount).sum();
+    }
 
     @GetMapping("/shared")
     public String viewShared(

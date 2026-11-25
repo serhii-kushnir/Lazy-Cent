@@ -231,6 +231,10 @@
                 <span th:text="#{family.shared.heading}">Спільні транзакції сім'ї</span>
             </h2>
             <div class="d-flex gap-2 no-print flex-wrap justify-content-center justify-content-md-end">
+                <a href="/family/shared/totals" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    <span th:text="#{family.shared.totalsPage.open}">Підсумки</span>
+                </a>
                 <button type="button" class="btn btn-outline-secondary" id="analyticsToggle"
                         th:title="#{family.shared.analytics.hide}"
                         th:attr="aria-label=#{family.shared.analytics.hide}"
