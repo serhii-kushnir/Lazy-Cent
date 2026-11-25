@@ -585,136 +585,125 @@ public class BudgetService {
     }
 
     // ==================== BULK OPERATIONS ====================
+// ==================== BULK OPERATIONS ====================
 
     @Transactional
     public int bulkDeleteExpenses(List<Long> ids, User user) {
         if (ids == null || ids.isEmpty()) return 0;
-        LocalDate earliestDate = null;
-        int count = 0;
-        for (Long id : ids) {
-            try {
-                Expense e = expenseRepository.findById(id).orElse(null);
-                if (e == null) continue;
-                DayBudget db = e.getDayBudget();
-                if (db == null || !db.getOwner().equals(user)) continue;
-                LocalDate d = db.getDate();
-                if (earliestDate == null || d.isBefore(earliestDate)) earliestDate = d;
-                db.getExpenses().remove(e);
-                expenseRepository.delete(e);
-                count++;
-            } catch (Exception ex) {
-                log.warn("bulkDeleteExpenses: failed id={}: {}", id, ex.getMessage());
-            }
+
+        List<Expense> expenses = expenseRepository.findAllById(ids);
+        if (expenses.isEmpty()) return 0;
+
+        LocalDate earliest = null;
+        List<Expense> toDelete = new ArrayList<>();
+        for (Expense e : expenses) {
+            DayBudget db = e.getDayBudget();
+            if (db == null || !db.getOwner().equals(user)) continue;
+            if (earliest == null || db.getDate().isBefore(earliest)) earliest = db.getDate();
+            db.getExpenses().remove(e);
+            toDelete.add(e);
         }
-        if (earliestDate != null && count > 0) {
-            expenseRepository.flush();
-            recalculateBalancesAfter(earliestDate.minusDays(1), user);
-        }
-        return count;
+        if (toDelete.isEmpty()) return 0;
+
+        expenseRepository.deleteAll(toDelete);
+        expenseRepository.flush();
+        recalculateBalancesAfter(earliest.minusDays(1), user);
+        return toDelete.size();
     }
 
     @Transactional
     public int bulkDeleteIncomes(List<Long> ids, User user) {
         if (ids == null || ids.isEmpty()) return 0;
-        LocalDate earliestDate = null;
-        int count = 0;
-        for (Long id : ids) {
-            try {
-                Income i = incomeRepository.findById(id).orElse(null);
-                if (i == null) continue;
-                DayBudget db = i.getDayBudget();
-                if (db == null || !db.getOwner().equals(user)) continue;
-                LocalDate d = db.getDate();
-                if (earliestDate == null || d.isBefore(earliestDate)) earliestDate = d;
-                db.getIncomes().remove(i);
-                incomeRepository.delete(i);
-                count++;
-            } catch (Exception ex) {
-                log.warn("bulkDeleteIncomes: failed id={}: {}", id, ex.getMessage());
-            }
+
+        List<Income> incomes = incomeRepository.findAllById(ids);
+        if (incomes.isEmpty()) return 0;
+
+        LocalDate earliest = null;
+        List<Income> toDelete = new ArrayList<>();
+        for (Income i : incomes) {
+            DayBudget db = i.getDayBudget();
+            if (db == null || !db.getOwner().equals(user)) continue;
+            if (earliest == null || db.getDate().isBefore(earliest)) earliest = db.getDate();
+            db.getIncomes().remove(i);
+            toDelete.add(i);
         }
-        if (earliestDate != null && count > 0) {
-            incomeRepository.flush();
-            recalculateBalancesAfter(earliestDate.minusDays(1), user);
-        }
-        return count;
+        if (toDelete.isEmpty()) return 0;
+
+        incomeRepository.deleteAll(toDelete);
+        incomeRepository.flush();
+        recalculateBalancesAfter(earliest.minusDays(1), user);
+        return toDelete.size();
     }
 
     @Transactional
     public int bulkDuplicateExpenses(List<Long> ids, User user) {
         if (ids == null || ids.isEmpty()) return 0;
-        LocalDate earliestDate = null;
-        int count = 0;
-        for (Long id : ids) {
-            try {
-                Expense e = expenseRepository.findById(id).orElse(null);
-                if (e == null) continue;
-                DayBudget db = e.getDayBudget();
-                if (db == null || !db.getOwner().equals(user)) continue;
-                LocalDate d = db.getDate();
-                if (earliestDate == null || d.isBefore(earliestDate)) earliestDate = d;
 
-                Expense dup = new Expense();
-                dup.setDayBudget(db);
-                dup.setCategory(e.getCategory());
-                dup.setDescription(e.getDescription() != null ? e.getDescription() + " (копія)" : "Копія");
-                dup.setAmount(e.getAmount());
-                dup.setQuantity(e.getQuantity());
-                dup.setDetails(e.getDetails());
-                dup.setTime(e.getTime());
-                dup.setBuyer(e.getBuyer());
-                dup.setSeller(e.getSeller());
-                dup.setShareWithFamily(e.getShareWithFamily());
-                expenseRepository.save(dup);
-                db.getExpenses().add(dup);
-                count++;
-            } catch (Exception ex) {
-                log.warn("bulkDuplicateExpenses: failed id={}: {}", id, ex.getMessage());
-            }
+        List<Expense> expenses = expenseRepository.findAllById(ids);
+        if (expenses.isEmpty()) return 0;
+
+        LocalDate earliest = null;
+        List<Expense> toAdd = new ArrayList<>();
+        for (Expense e : expenses) {
+            DayBudget db = e.getDayBudget();
+            if (db == null || !db.getOwner().equals(user)) continue;
+            if (earliest == null || db.getDate().isBefore(earliest)) earliest = db.getDate();
+
+            Expense dup = new Expense();
+            dup.setDayBudget(db);
+            dup.setCategory(e.getCategory());
+            dup.setDescription(e.getDescription() != null ? e.getDescription() + " (копія)" : "Копія");
+            dup.setAmount(e.getAmount());
+            dup.setQuantity(e.getQuantity());
+            dup.setDetails(e.getDetails());
+            dup.setTime(e.getTime());
+            dup.setBuyer(e.getBuyer());
+            dup.setSeller(e.getSeller());
+            dup.setShareWithFamily(e.getShareWithFamily());
+            toAdd.add(dup);
+            db.getExpenses().add(dup);
         }
-        if (earliestDate != null && count > 0) {
-            expenseRepository.flush();
-            recalculateBalancesAfter(earliestDate.minusDays(1), user);
-        }
-        return count;
+        if (toAdd.isEmpty()) return 0;
+
+        expenseRepository.saveAll(toAdd);
+        expenseRepository.flush();
+        recalculateBalancesAfter(earliest.minusDays(1), user);
+        return toAdd.size();
     }
 
     @Transactional
     public int bulkDuplicateIncomes(List<Long> ids, User user) {
         if (ids == null || ids.isEmpty()) return 0;
-        LocalDate earliestDate = null;
-        int count = 0;
-        for (Long id : ids) {
-            try {
-                Income i = incomeRepository.findById(id).orElse(null);
-                if (i == null) continue;
-                DayBudget db = i.getDayBudget();
-                if (db == null || !db.getOwner().equals(user)) continue;
-                LocalDate d = db.getDate();
-                if (earliestDate == null || d.isBefore(earliestDate)) earliestDate = d;
 
-                Income dup = new Income();
-                dup.setDayBudget(db);
-                dup.setCategory(i.getCategory());
-                dup.setDescription(i.getDescription() != null ? i.getDescription() + " (копія)" : "Копія");
-                dup.setAmount(i.getAmount());
-                dup.setQuantity(i.getQuantity());
-                dup.setDetails(i.getDetails());
-                dup.setTime(i.getTime());
-                dup.setBuyer(i.getBuyer());
-                dup.setSeller(i.getSeller());
-                dup.setShareWithFamily(i.getShareWithFamily());
-                incomeRepository.save(dup);
-                db.getIncomes().add(dup);
-                count++;
-            } catch (Exception ex) {
-                log.warn("bulkDuplicateIncomes: failed id={}: {}", id, ex.getMessage());
-            }
+        List<Income> incomes = incomeRepository.findAllById(ids);
+        if (incomes.isEmpty()) return 0;
+
+        LocalDate earliest = null;
+        List<Income> toAdd = new ArrayList<>();
+        for (Income i : incomes) {
+            DayBudget db = i.getDayBudget();
+            if (db == null || !db.getOwner().equals(user)) continue;
+            if (earliest == null || db.getDate().isBefore(earliest)) earliest = db.getDate();
+
+            Income dup = new Income();
+            dup.setDayBudget(db);
+            dup.setCategory(i.getCategory());
+            dup.setDescription(i.getDescription() != null ? i.getDescription() + " (копія)" : "Копія");
+            dup.setAmount(i.getAmount());
+            dup.setQuantity(i.getQuantity());
+            dup.setDetails(i.getDetails());
+            dup.setTime(i.getTime());
+            dup.setBuyer(i.getBuyer());
+            dup.setSeller(i.getSeller());
+            dup.setShareWithFamily(i.getShareWithFamily());
+            toAdd.add(dup);
+            db.getIncomes().add(dup);
         }
-        if (earliestDate != null && count > 0) {
-            incomeRepository.flush();
-            recalculateBalancesAfter(earliestDate.minusDays(1), user);
-        }
-        return count;
+        if (toAdd.isEmpty()) return 0;
+
+        incomeRepository.saveAll(toAdd);
+        incomeRepository.flush();
+        recalculateBalancesAfter(earliest.minusDays(1), user);
+        return toAdd.size();
     }
 }

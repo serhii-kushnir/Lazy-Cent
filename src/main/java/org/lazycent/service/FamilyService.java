@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +29,16 @@ public class FamilyService {
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final int CODE_LENGTH = 8;
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    private static final Map<DayOfWeek, String> DAY_NAMES = Map.of(
+            DayOfWeek.MONDAY,    "Понеділок",
+            DayOfWeek.TUESDAY,   "Вівторок",
+            DayOfWeek.WEDNESDAY, "Середа",
+            DayOfWeek.THURSDAY,  "Четвер",
+            DayOfWeek.FRIDAY,    "П'ятниця",
+            DayOfWeek.SATURDAY,  "Субота",
+            DayOfWeek.SUNDAY,    "Неділя"
+    );
 
     private final FamilyRepository familyRepository;
     private final FamilyJoinRequestRepository joinRequestRepository;
@@ -180,15 +190,6 @@ public class FamilyService {
                 .toList();
     }
 
-    /**
-     * Повертає сім'ю користувача з eager-fetch {@code owner}.
-     *
-     * <p><b>P1.13 / P1.16:</b> {@code owner} — LAZY. Без eager-fetch
-     * {@code family.getOwner().getId()} працює (Hibernate-трюк), але
-     * {@code family.getOwner().getUsername()} уже кине {@code LazyInitializationException}
-     * поза транзакцією (наприклад, у {@code FamilyApiController.getData}).
-     * {@code findByIdWithOwner} гарантує, що {@code owner} завантажений.
-     */
     @Transactional(readOnly = true)
     public Family getFamily(User user) {
         Long familyId = user.getFamilyId();
@@ -196,10 +197,6 @@ public class FamilyService {
         return familyRepository.findByIdWithOwner(familyId).orElse(null);
     }
 
-    /**
-     * P1.13: {@code @Transactional(readOnly = true)} — гарантує, що
-     * {@code f.getOwner()} (LAZY proxy) доступний в межах сесії.
-     */
     @Transactional(readOnly = true)
     public boolean isOwner(User user) {
         Long familyId = user.getFamilyId();
@@ -209,19 +206,84 @@ public class FamilyService {
                 .orElse(false);
     }
 
+    // ==================== SHARED TRANSACTIONS ====================
+
+    /**
+     * Повертає всі спільні транзакції сім'ї за період.
+     *
+     * <p><b>Сортування (P0):</b> date DESC → time DESC → id DESC.
+     * Стабільний порядок — критично для коректного обчислення
+     * running balance на клієнті (інакше баланс «стрибає» між запитами).
+     */
     @Transactional(readOnly = true)
     public List<SharedTransactionDto> getSharedTransactions(
             User currentUser, LocalDate start, LocalDate end) {
+
         Long familyId = currentUser.getFamilyId();
         if (familyId == null) return List.of();
 
         List<SharedTransactionDto> all = new ArrayList<>();
-
         all.addAll(expenseRepository.findSharedExpensesByFamily(familyId, start, end));
         all.addAll(incomeRepository.findSharedIncomesByFamily(familyId, start, end));
 
-        all.sort(Comparator.comparing(SharedTransactionDto::date).reversed());
+        Comparator<SharedTransactionDto> cmp = Comparator
+                .comparing(SharedTransactionDto::date,
+                        Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(SharedTransactionDto::time,
+                        Comparator.nullsLast(Comparator.reverseOrder()))
+                .thenComparing(SharedTransactionDto::id,
+                        Comparator.nullsLast(Comparator.reverseOrder()));
+
+        all.sort(cmp);
         return all;
+    }
+
+    /** Транзакції за конкретний день (для /family/shared/day/{date}). */
+    @Transactional(readOnly = true)
+    public List<SharedTransactionDto> getSharedTransactionsByDate(User currentUser, LocalDate date) {
+        return getSharedTransactions(currentUser, date, date);
+    }
+
+    /**
+     * Список днів зі спільними транзакціями + підсумки.
+     *
+     * <p>Використовує SQL-агрегацію (SUM/COUNT по днях) — не тягне
+     * 1000+ транзакцій у пам'ять, лише 30-60 днів.
+     */
+    @Transactional(readOnly = true)
+    public List<SharedDayDto> getSharedDays(User currentUser, LocalDate start, LocalDate end) {
+        Long familyId = currentUser.getFamilyId();
+        if (familyId == null) return List.of();
+
+        Map<LocalDate, double[]> stats = new TreeMap<>(Comparator.reverseOrder());
+
+        for (Object[] r : expenseRepository.sumSharedExpensesByDay(familyId, start, end)) {
+            LocalDate d = (LocalDate) r[0];
+            stats.computeIfAbsent(d, k -> new double[2]);
+            stats.get(d)[0] += (Double) r[1];
+        }
+        for (Object[] r : incomeRepository.sumSharedIncomesByDay(familyId, start, end)) {
+            LocalDate d = (LocalDate) r[0];
+            stats.computeIfAbsent(d, k -> new double[2]);
+            stats.get(d)[1] += (Double) r[1];
+        }
+
+        List<SharedDayDto> result = new ArrayList<>(stats.size());
+        for (var entry : stats.entrySet()) {
+            LocalDate date = entry.getKey();
+            List<SharedTransactionDto> txs = getSharedTransactionsByDate(currentUser, date);
+            result.add(new SharedDayDto(
+                    date, getDayName(date),
+                    entry.getValue()[0], entry.getValue()[1],
+                    entry.getValue()[1] - entry.getValue()[0],
+                    txs));
+        }
+        return result;
+    }
+
+    public String getDayName(LocalDate date) {
+        if (date == null) return "";
+        return DAY_NAMES.getOrDefault(date.getDayOfWeek(), "");
     }
 
     // ==================== JOIN REQUESTS ====================
@@ -440,55 +502,5 @@ public class FamilyService {
         } catch (Exception e) {
             return fallback;
         }
-    }
-
-    // ==================== SHARED DAYS ====================
-
-    private static final java.util.Map<java.time.DayOfWeek, String> DAY_NAMES = java.util.Map.of(
-            java.time.DayOfWeek.MONDAY,    "Понеділок",
-            java.time.DayOfWeek.TUESDAY,   "Вівторок",
-            java.time.DayOfWeek.WEDNESDAY, "Середа",
-            java.time.DayOfWeek.THURSDAY,  "Четвер",
-            java.time.DayOfWeek.FRIDAY,    "П'ятниця",
-            java.time.DayOfWeek.SATURDAY,  "Субота",
-            java.time.DayOfWeek.SUNDAY,    "Неділя"
-    );
-
-    public String getDayName(LocalDate date) {
-        if (date == null) return "";
-        return DAY_NAMES.getOrDefault(date.getDayOfWeek(), "");
-    }
-
-    @Transactional(readOnly = true)
-    public List<SharedDayDto> getSharedDays(User currentUser, LocalDate start, LocalDate end) {
-        List<SharedTransactionDto> all = getSharedTransactions(currentUser, start, end);
-        if (all.isEmpty()) return List.of();
-
-        java.util.Map<LocalDate, List<SharedTransactionDto>> grouped = all.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        SharedTransactionDto::date,
-                        java.util.LinkedHashMap::new,
-                        java.util.stream.Collectors.toList()));
-
-        List<SharedDayDto> result = new java.util.ArrayList<>(grouped.size());
-        for (var entry : grouped.entrySet()) {
-            LocalDate date = entry.getKey();
-            List<SharedTransactionDto> txs = entry.getValue();
-            double exp = 0, inc = 0;
-            for (SharedTransactionDto t : txs) {
-                double amt = t.amount() != null ? t.amount() : 0.0;
-                if (t.expense()) exp += amt;
-                else if (t.income()) inc += amt;
-            }
-            result.add(new SharedDayDto(date, getDayName(date), exp, inc, inc - exp, txs));
-        }
-
-        result.sort(java.util.Comparator.comparing(SharedDayDto::date).reversed());
-        return result;
-    }
-
-    @Transactional(readOnly = true)
-    public List<SharedTransactionDto> getSharedTransactionsByDate(User currentUser, LocalDate date) {
-        return getSharedTransactions(currentUser, date, date);
     }
 }

@@ -938,6 +938,15 @@
     document.addEventListener('DOMContentLoaded', function () {
         'use strict';
 
+        /* ============================================================
+           SAFETY: глобальний перехоплювач — щоб одна помилка
+           не «вбивала» всі фільтри.
+           ============================================================ */
+        function safeCall(label, fn) {
+            try { return fn(); }
+            catch (e) { console.error('[' + label + ']', e); return undefined; }
+        }
+
         var currencySymbolEl = document.getElementById('currencySymbolDisplay');
         var currencySymbol = (currencySymbolEl && currencySymbolEl.textContent) || '₴';
         var currentUsername = /*[[${currentUser?.username}]]*/ '';
@@ -964,13 +973,21 @@
             bulkDeleted: /*[[#{family.shared.bulk.deleted}]]*/ 'Видалено: {0}',
             bulkArchived: /*[[#{family.shared.bulk.archived}]]*/ 'Заархівовано: {0}',
             newTx: /*[[#{family.shared.newTransactions}]]*/ 'Є нові транзакції. Оновити?',
-            archiveBadge: /*[[#{family.shared.archiveBadge}]]*/ 'архів'
+            archiveBadge: /*[[#{family.shared.archiveBadge}]]*/ 'архів',
+            toastError:   /*[[#{toast.error}]]*/   'Помилка!',
+            toastSuccess: /*[[#{toast.success}]]*/ 'Успішно!',
+            genericError: /*[[#{error.technical}]]*/ 'Помилка'
         };
+
         function safeI18n(v, fb) {
             return (typeof v === 'string' && v.indexOf('??') === 0) ? fb : v;
         }
-        ['txOne', 'txFew', 'txMany', 'vsYesterday', 'breakdownEmpty'].forEach(function(k){
-            i18n[k] = safeI18n(i18n[k], k === 'txOne' ? 'транзакція' : (k === 'txFew' ? 'транзакції' : (k === 'txMany' ? 'транзакцій' : (k === 'vsYesterday' ? 'vs вчора' : 'Немає даних'))));
+        ['txOne', 'txFew', 'txMany', 'vsYesterday', 'breakdownEmpty'].forEach(function (k) {
+            i18n[k] = safeI18n(i18n[k],
+                k === 'txOne' ? 'транзакція' :
+                    k === 'txFew' ? 'транзакції' :
+                        k === 'txMany' ? 'транзакцій' :
+                            k === 'vsYesterday' ? 'vs вчора' : 'Немає даних');
         });
 
         function fmt(t) {
@@ -1001,8 +1018,7 @@
         }
         function highlightText(text, query) {
             if (!text || !query) return escapeHtml(text || '');
-            var lower = text.toLowerCase();
-            var qLower = query.toLowerCase();
+            var lower = text.toLowerCase(), qLower = query.toLowerCase();
             var idx = 0, result = '', pos;
             while ((pos = lower.indexOf(qLower, idx)) !== -1) {
                 result += escapeHtml(text.substring(idx, pos));
@@ -1014,7 +1030,9 @@
         }
         function csrfHeaders(extra) {
             var h = {
-                'X-CSRF-TOKEN': (window.csrfToken || (document.querySelector('meta[name="_csrf"]') && document.querySelector('meta[name="_csrf"]').content) || ''),
+                'X-CSRF-TOKEN': (window.csrfToken ||
+                    (document.querySelector('meta[name="_csrf"]') &&
+                        document.querySelector('meta[name="_csrf"]').content) || ''),
                 'X-Requested-With': 'XMLHttpRequest'
             };
             if (extra) for (var k in extra) h[k] = extra[k];
@@ -1040,6 +1058,7 @@
             bootstrap.Toast.getOrCreateInstance(el, { autohide: true, delay: 5000 }).show();
         }
 
+        /* ================= REFERENCES ================= */
         var viewToggle     = document.getElementById('viewToggle');
         var tableView      = document.getElementById('tableView');
         var cardsView      = document.getElementById('cardsView');
@@ -1069,30 +1088,26 @@
         var bulkBarArchiveBtn = bulkBar ? bulkBar.querySelector('[data-action="archive"]') : null;
         var bulkDeleteModal = document.getElementById('bulkDeleteModal');
         var bulkDeleteConfirmBtn = document.getElementById('bulkDeleteConfirmBtn');
-        var allRows        = Array.prototype.slice.call(document.querySelectorAll('.transaction-row'));
-        var allCards       = Array.prototype.slice.call(document.querySelectorAll('.transaction-card-wrapper'));
 
-// ✅ Дедуплікація: якщо кілька <tr> мають однаковий data-id — це баг БД/рендерингу.
-//    Ховаємо повторні, щоб вибір одного не «тягнув» інший.
+        var allRows  = Array.prototype.slice.call(document.querySelectorAll('.transaction-row'));
+        var allCards = Array.prototype.slice.call(document.querySelectorAll('.transaction-card-wrapper'));
+
         (function dedupeByDataId() {
-            var seenRowIds = new Set();
-            var removedRows = 0;
+            var seenRowIds = new Set(), removedRows = 0;
             allRows = allRows.filter(function (r) {
                 var id = r.dataset.id;
                 if (!id) return true;
                 if (seenRowIds.has(id)) {
                     console.warn('[dedupe] duplicate table row, data-id =', id);
                     r.style.display = 'none';
-                    r.removeAttribute('data-id');  // прибираємо, щоб не синхронізувалось
+                    r.removeAttribute('data-id');
                     removedRows++;
                     return false;
                 }
                 seenRowIds.add(id);
                 return true;
             });
-
-            var seenCardIds = new Set();
-            var removedCards = 0;
+            var seenCardIds = new Set(), removedCards = 0;
             allCards = allCards.filter(function (c) {
                 var id = c.dataset.id;
                 if (!id) return true;
@@ -1106,7 +1121,6 @@
                 seenCardIds.add(id);
                 return true;
             });
-
             if (removedRows || removedCards) {
                 console.warn('[dedupe] Hidden ' + removedRows + ' duplicate rows, ' + removedCards + ' duplicate cards.');
             }
@@ -1116,20 +1130,22 @@
         var currentPage = 1;
         var pageSize = 20;
 
-        var VIEW_KEY       = 'family_shared_day_view_mode';
-        var FILTERS_KEY    = 'family_shared_day_filters_v1';
-        var COL_VIS_KEY    = 'family_shared_day_col_visibility_v1';
-        var COL_WIDTH_KEY  = 'family_shared_day_col_widths';
-        var BREAKDOWN_KEY  = 'family_shared_day_breakdown_visible';
-        var HIDDEN_KEY     = 'family_shared_day_hidden';
+        var VIEW_KEY      = 'family_shared_day_view_mode';
+        var FILTERS_KEY   = 'family_shared_day_filters_v1';
+        var COL_VIS_KEY   = 'family_shared_day_col_visibility_v1';
+        var COL_WIDTH_KEY = 'family_shared_day_col_widths';
+        var BREAKDOWN_KEY = 'family_shared_day_breakdown_visible';
+        var HIDDEN_KEY    = 'family_shared_day_hidden';
 
         var showHidden = false;
         function getHiddenIds() {
-            try { return JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]').map(String); }
-            catch (e) { return []; }
+            try {
+                var raw = JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]');
+                return Array.isArray(raw) ? raw.map(String) : [];
+            } catch (e) { return []; }
         }
         function setHiddenIds(arr) {
-            try { localStorage.setItem(HIDDEN_KEY, JSON.stringify(arr.map(String))); } catch (e) {}
+            try { localStorage.setItem(HIDDEN_KEY, JSON.stringify((arr || []).map(String))); } catch (e) {}
         }
         function updateHiddenButton() {
             if (!showHiddenBtn) return;
@@ -1163,18 +1179,19 @@
             }
         }
 
+        /* ================= VIEW MODE ================= */
         function setViewMode(mode) {
+            if (!tableView || !cardsView || !viewToggle) return;
             if (mode === 'cards') {
                 tableView.style.display = 'none';
                 cardsView.style.display = 'block';
-                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
-                var cb = viewToggle.querySelector('[data-view="cards"]'); if (cb) cb.classList.add('active');
             } else {
                 tableView.style.display = '';
                 cardsView.style.display = 'none';
-                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
-                var tb = viewToggle.querySelector('[data-view="table"]'); if (tb) tb.classList.add('active');
             }
+            viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+            var target = viewToggle.querySelector('[data-view="' + (mode === 'cards' ? 'cards' : 'table') + '"]');
+            if (target) target.classList.add('active');
             try { localStorage.setItem(VIEW_KEY, mode); } catch (e) {}
         }
         if (viewToggle) {
@@ -1186,6 +1203,7 @@
             });
         }
 
+        /* ================= CATEGORY FILTER INIT ================= */
         if (categoryFilter) {
             var catCounts = {};
             allRows.forEach(function (r) {
@@ -1200,12 +1218,15 @@
             });
         }
 
+        /* ================= COLUMNS ================= */
         function getHiddenColumns() {
-            try { return JSON.parse(localStorage.getItem(COL_VIS_KEY) || '[]'); }
-            catch (e) { return []; }
+            try {
+                var raw = JSON.parse(localStorage.getItem(COL_VIS_KEY) || '[]');
+                return Array.isArray(raw) ? raw : [];
+            } catch (e) { return []; }
         }
         function saveHiddenColumns(arr) {
-            try { localStorage.setItem(COL_VIS_KEY, JSON.stringify(arr)); } catch (e) {}
+            try { localStorage.setItem(COL_VIS_KEY, JSON.stringify(arr || [])); } catch (e) {}
         }
         function applyColumnVisibility() {
             var hidden = getHiddenColumns();
@@ -1229,6 +1250,7 @@
             });
         });
 
+        /* ================= FILTERS PERSIST ================= */
         function saveFilters() {
             try {
                 localStorage.setItem(FILTERS_KEY, JSON.stringify({
@@ -1252,7 +1274,6 @@
                 return true;
             } catch (e) { return false; }
         }
-
         function syncUrl() {
             try {
                 var url = new URL(location.href);
@@ -1286,15 +1307,22 @@
             if (categoryFilter.value) params.set('cat', categoryFilter.value.replace(/\s*\(\d+\)$/, ''));
             if (memberFilter.value && memberFilter.value !== 'all') params.set('member', memberFilter.value);
             if (searchInput.value && searchInput.value.trim()) params.set('q', searchInput.value.trim());
+
+            // ✅ Архів (приховані) — виключаємо з експорту, якщо не показані
+            if (!showHidden) {
+                var hidden = getHiddenIds();
+                if (hidden.length > 0) params.set('excludeIds', hidden.join(','));
+            }
+
             var base = '/family/shared/day/' + dateIso + '/export';
             exportBtn.href = params.toString() ? base + '?' + params.toString() : base;
         }
 
         function updateOnlyMineButton() {
             if (!onlyMineBtn || !memberFilter) return;
-            var isMine = memberFilter.value === currentUsername && currentUsername;
-            onlyMineBtn.classList.toggle('active', isMine);
+            onlyMineBtn.classList.toggle('active', memberFilter.value === currentUsername && !!currentUsername);
         }
+
         if (onlyMineBtn) {
             onlyMineBtn.addEventListener('click', function () {
                 if (!memberFilter) return;
@@ -1303,40 +1331,44 @@
                 applyFiltersAndPaginate();
             });
         }
-
         function updateResetButton() {
             if (!resetFiltersBtn) return;
-            var active = (typeFilter.value !== 'all')
-                || (categoryFilter.value !== '')
-                || (memberFilter.value !== 'all')
-                || (searchInput.value.trim().length > 0);
+            var active = (typeFilter && typeFilter.value !== 'all')
+                || (categoryFilter && categoryFilter.value !== '')
+                || (memberFilter && memberFilter.value !== 'all')
+                || (searchInput && searchInput.value.trim().length > 0);
             resetFiltersBtn.classList.toggle('d-none', !active);
         }
         if (resetFiltersBtn) {
             resetFiltersBtn.addEventListener('click', function () {
-                typeFilter.value = 'all';
-                categoryFilter.value = '';
-                memberFilter.value = 'all';
-                searchInput.value = '';
+                if (typeFilter) typeFilter.value = 'all';
+                if (categoryFilter) categoryFilter.value = '';
+                if (memberFilter) memberFilter.value = 'all';
+                if (searchInput) searchInput.value = '';
                 applyFiltersAndPaginate();
             });
         }
 
+        /* ================= FILTERING ================= */
         function rowKey(el) {
+            if (!el) return '';
             return el.dataset.id || [
                 el.dataset.time, el.dataset.member, el.dataset.description,
                 el.dataset.amount, el.dataset.type
             ].join('|');
         }
+
         function getFilteredRows() {
-            var searchTerm = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            if (!Array.isArray(allRows)) allRows = [];
+            var searchTerm = (searchInput && searchInput.value || '').toLowerCase().trim();
             var typeValue = typeFilter ? typeFilter.value : 'all';
             var catValue = categoryFilter ? categoryFilter.value : '';
             var memberValue = memberFilter ? memberFilter.value : 'all';
             var hidden = getHiddenIds();
             if (catValue) catValue = catValue.replace(/\s*\(\d+\)$/, '');
+
             return allRows.filter(function (row) {
-                var id = String(row.dataset.id);
+                var id = String(row.dataset.id || '');
                 var hiddenItem = hidden.indexOf(id) !== -1;
                 if (!showHidden && hiddenItem) return false;
                 if (typeValue !== 'all' && row.dataset.type !== typeValue) return false;
@@ -1344,19 +1376,34 @@
                 if (memberValue !== 'all' && row.dataset.member !== memberValue) return false;
                 if (searchTerm) {
                     var hay = [row.dataset.description, row.dataset.category, row.dataset.member,
-                        row.dataset.amount, row.dataset.buyer, row.dataset.seller, row.dataset.details].join(' ').toLowerCase();
+                        row.dataset.amount, row.dataset.buyer, row.dataset.seller, row.dataset.details]
+                        .join(' ').toLowerCase();
                     if (hay.indexOf(searchTerm) === -1) return false;
                 }
                 return true;
             });
         }
 
+        /* ================= MAIN FILTER + RENDER ================= */
         function applyFiltersAndPaginate() {
-            var filtered = getFilteredRows();
-            console.log('[applyFilters] allRows=' + allRows.length + ' filtered=' + filtered.length);
+            if (!Array.isArray(allRows)) {
+                allRows = Array.prototype.slice.call(document.querySelectorAll('.transaction-row'));
+            }
+            if (!Array.isArray(allCards)) {
+                allCards = Array.prototype.slice.call(document.querySelectorAll('.transaction-card-wrapper'));
+            }
+
+            var filtered;
+            try {
+                filtered = getFilteredRows();
+            } catch (e) {
+                console.error('[applyFilters] getFilteredRows() error:', e);
+                filtered = [];
+            }
+            if (!Array.isArray(filtered)) filtered = [];
 
             currentPage = 1;
-            renderUI(filtered);
+            updateUI(filtered);
             updateOnlyMineButton();
             updateResetButton();
             updateHiddenButton();
@@ -1365,10 +1412,18 @@
             updateExportLink();
             renderBreakdowns(filtered);
             applySearchHighlight();
-            renderTotalsFooter(filtered);   
+            renderTotalsFooter(filtered);
         }
 
-        function renderUI(filtered) {
+        function updateUI(filtered) {
+            if (!Array.isArray(filtered)) {
+                console.warn('[updateUI] filtered is not array, fallback to allRows:', filtered);
+                filtered = Array.isArray(allRows) ? allRows.slice() : [];
+            }
+            if (!Array.isArray(allRows)) allRows = [];
+            if (!Array.isArray(allCards)) allCards = [];
+
+            var MAX_RENDER_ALL = 500;   // ✅ захист від DOM-freeze
             var total = filtered.length;
             var all = allRows.length;
 
@@ -1377,9 +1432,13 @@
 
             var visibleRows;
             if (pageSize === 0) {
-                visibleRows = filtered;
+                visibleRows = filtered.slice(0, MAX_RENDER_ALL);
                 if (loadMoreWrap) loadMoreWrap.style.display = 'none';
-                if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, total, total);
+                if (visibleInfo) {
+                    visibleInfo.textContent = (visibleRows.length < total)
+                        ? fmt(i18n.showing, visibleRows.length, total) + ' (max ' + MAX_RENDER_ALL + ')'
+                        : fmt(i18n.showing, total, total);
+                }
             } else {
                 var end = Math.min(currentPage * pageSize, total);
                 visibleRows = filtered.slice(0, end);
@@ -1393,8 +1452,10 @@
                 if (visibleInfo) visibleInfo.textContent = fmt(i18n.showing, end, total);
             }
 
+            if (!Array.isArray(visibleRows)) visibleRows = [];
+
             var visibleIds = {};
-            var hidden = getHiddenIds();
+            var hidden = (typeof getHiddenIds === 'function') ? getHiddenIds() : [];
             visibleRows.forEach(function (r) { visibleIds[rowKey(r)] = true; });
 
             allRows.forEach(function (r) {
@@ -1419,12 +1480,15 @@
             if (noResults) noResults.style.display = (total === 0 && all > 0) ? 'block' : 'none';
         }
 
+        /* ================= RUNNING BALANCES ================= */
         function computeRunningBalances() {
+            if (!Array.isArray(allRows))  allRows  = [];
+            if (!Array.isArray(allCards)) allCards = [];
             var sorted = allRows.slice().sort(function (a, b) {
                 var ta = a.dataset.time || '00:00';
                 var tb = b.dataset.time || '00:00';
                 if (ta !== tb) return ta.localeCompare(tb);
-                return (parseInt(a.dataset.id) || 0) - (parseInt(b.dataset.id) || 0);
+                return (parseInt(a.dataset.id, 10) || 0) - (parseInt(b.dataset.id, 10) || 0);
             });
             var running = parseFloat(startingBalance) || 0;
             sorted.forEach(function (row) {
@@ -1457,11 +1521,12 @@
             });
         }
 
+        /* ================= COMPARE vs YESTERDAY ================= */
         function renderCompare() {
             var el = document.getElementById('expensesCompare');
             if (!el) return;
             var totalExp = 0;
-            allRows.forEach(function (r) {
+            (allRows || []).forEach(function (r) {
                 if (r.dataset.type === 'expense') totalExp += parseFloat(r.dataset.amount) || 0;
             });
             if (!yesterdayExpenses || yesterdayExpenses <= 0) { el.style.display = 'none'; return; }
@@ -1474,21 +1539,15 @@
             el.style.display = '';
         }
 
+        /* ================= FOOTER TOTALS ================= */
         function renderTotalsFooter(filtered) {
-            var footerQty = document.getElementById('footerQty');
-            var footerAmount = document.getElementById('footerAmount');
+            var footerQty     = document.getElementById('footerQty');
+            var footerAmount  = document.getElementById('footerAmount');
             var footerRunning = document.getElementById('footerRunning');
+            if (!footerQty || !footerAmount || !footerRunning) return;
 
-            if (!footerQty || !footerAmount || !footerRunning) {
-                console.warn('[totals] footer elements not found!',
-                    { qty: !!footerQty, amount: !!footerAmount, running: !!footerRunning });
-                return;
-            }
-
-            // ✅ Захист: якщо filtered === undefined/порожній — беремо allRows
-            var rows = (filtered && filtered.length > 0)
-                ? filtered
-                : allRows.slice();
+            // ✅ ФІКС: поважаємо порожній filtered (фільтр без результатів)
+            var rows = Array.isArray(filtered) ? filtered : (Array.isArray(allRows) ? allRows.slice() : []);
 
             var totalExp = 0, totalInc = 0, count = 0;
             rows.forEach(function (r) {
@@ -1505,7 +1564,7 @@
                     var ta = a.dataset.time || '00:00';
                     var tb = b.dataset.time || '00:00';
                     if (ta !== tb) return ta.localeCompare(tb);
-                    return (parseInt(a.dataset.id) || 0) - (parseInt(b.dataset.id) || 0);
+                    return (parseInt(a.dataset.id, 10) || 0) - (parseInt(b.dataset.id, 10) || 0);
                 }).pop();
                 if (latest) lastBalance = parseFloat(latest.dataset.runningBalance) || 0;
             }
@@ -1515,22 +1574,30 @@
             footerAmount.className = 'col-amount ' + (net >= 0 ? 'text-success' : 'text-danger');
             footerRunning.textContent = fmtMoney(lastBalance);
             footerRunning.className = 'col-running ' + (lastBalance >= 0 ? 'text-success' : 'text-danger');
-
-            // ✅ Діагностика — подивіться в консоль (F12)
-            if (rows.length === 0) {
-                console.warn('[totals] rows=0. filtered=', filtered, ' allRows.length=', allRows.length);
-            } else {
-                console.log('[totals] rows=' + rows.length
-                    + ' exp=' + totalExp.toFixed(2)
-                    + ' inc=' + totalInc.toFixed(2)
-                    + ' net=' + net.toFixed(2)
-                    + ' lastBalance=' + lastBalance.toFixed(2));
-            }
         }
 
+        /* ================= SEARCH HIGHLIGHT ================= */
         function applySearchHighlight() {
-            var q = searchInput.value.trim();
-            document.querySelectorAll('.table-transactions tbody .col-name, .table-transactions tbody .col-buyer, .table-transactions tbody .col-seller, .table-transactions tbody .col-details, .table-transactions tbody .col-category').forEach(function (cell) {
+            if (!searchInput) return;
+            var q = (searchInput.value || '').trim();
+            document.querySelectorAll(
+                '.table-transactions tbody .col-name, .table-transactions tbody .col-buyer, ' +
+                '.table-transactions tbody .col-seller, .table-transactions tbody .col-details, ' +
+                '.table-transactions tbody .col-category'
+            ).forEach(function (cell) {
+                var original = cell.dataset.originalText;
+                if (original == null) {
+                    original = cell.textContent;
+                    cell.dataset.originalText = original;
+                }
+                if (!q) {
+                    if (cell.querySelector('mark.search-hl')) cell.textContent = original;
+                } else {
+                    cell.innerHTML = highlightText(original, q);
+                }
+            });
+
+            document.querySelectorAll('.transaction-card .card-body .row .value').forEach(function (cell) {
                 var original = cell.dataset.originalText;
                 if (original == null) {
                     original = cell.textContent;
@@ -1544,7 +1611,9 @@
             });
         }
 
+        /* ================= BREAKDOWNS ================= */
         function renderBreakdowns(filtered) {
+            filtered = Array.isArray(filtered) ? filtered : [];
             renderCategoryBreakdown(filtered);
             renderMemberBreakdown(filtered);
         }
@@ -1552,6 +1621,7 @@
         function renderCategoryBreakdown(filtered) {
             var el = document.getElementById('categoryBreakdown');
             if (!el) return;
+            if (!Array.isArray(filtered)) filtered = [];
             var expenseGroups = {}, incomeGroups = {};
             var totalExpense = 0, totalIncome = 0;
 
@@ -1601,6 +1671,7 @@
         function renderMemberBreakdown(filtered) {
             var el = document.getElementById('memberBreakdown');
             if (!el) return;
+            if (!Array.isArray(filtered)) filtered = [];
             var groups = {};
             filtered.forEach(function (r) {
                 var m = r.dataset.member || '—';
@@ -1626,46 +1697,49 @@
                 var percent = maxTotal > 0 ? (sum / maxTotal * 100) : 0;
                 var parts = [];
                 if (g.expenses > 0) parts.push('<span class="text-danger">−' + fmtMoney(g.expenses) + '</span>');
-                if (g.incomes > 0) parts.push('<span class="text-success">+' + fmtMoney(g.incomes) + '</span>');
-                var countText = g.count + ' ' + txWord(g.count);
+                if (g.incomes > 0)  parts.push('<span class="text-success">+' + fmtMoney(g.incomes) + '</span>');
                 return '<div class="breakdown-item">'
                     + '<div class="bd-name" title="' + escapeHtml(m) + '">' + escapeHtml(m) + '</div>'
                     + '<div class="bd-bar"><div class="bg-primary" style="width:' + percent.toFixed(1) + '%"></div></div>'
-                    + '<div class="bd-value small" title="' + countText + '">' + parts.join(' · ')
+                    + '<div class="bd-value small">' + parts.join(' · ')
                     + ' <span class="text-muted">(' + g.count + ')</span></div>'
                     + '</div>';
             }).join('');
             el.innerHTML = html;
         }
 
-        if (searchInput) searchInput.addEventListener('input', applyFiltersAndPaginate);
+        /* ================= FILTER LISTENERS ================= */
+        if (searchInput)    searchInput.addEventListener('input',  applyFiltersAndPaginate);
         if (searchClear) {
             searchClear.addEventListener('click', function () {
-                if (searchInput) searchInput.value = '';
+                if (searchInput) { searchInput.value = ''; searchInput.focus(); }
                 applyFiltersAndPaginate();
-                if (searchInput) searchInput.focus();
             });
         }
         if (typeFilter)     typeFilter.addEventListener('change', applyFiltersAndPaginate);
         if (categoryFilter) categoryFilter.addEventListener('change', applyFiltersAndPaginate);
         if (memberFilter)   memberFilter.addEventListener('change', applyFiltersAndPaginate);
+
         if (pageSizeSelect) {
             pageSizeSelect.addEventListener('change', function () {
-                pageSize = parseInt(this.value, 10) || 0;
+                var v = parseInt(this.value, 10);
+                pageSize = isNaN(v) ? 20 : v;
                 currentPage = 1;
                 applyFiltersAndPaginate();
             });
         }
+
         if (loadMoreBtn) {
             loadMoreBtn.addEventListener('click', function () {
                 if (pageSize === 0) return;
                 var filtered = getFilteredRows();
                 if (Math.min(currentPage * pageSize, filtered.length) >= filtered.length) return;
                 currentPage++;
-                renderUI(filtered);
+                updateUI(filtered);
             });
         }
 
+        /* ================= SORTING ================= */
         function sortRowsBy(column, direction, silent) {
             var th = document.querySelector('.sortable[data-sort="' + column + '"]');
             var dataType = th ? th.dataset.type : 'string';
@@ -1678,14 +1752,13 @@
                         ? (parseFloat(aVal) || 0) - (parseFloat(bVal) || 0)
                         : (parseFloat(bVal) || 0) - (parseFloat(aVal) || 0);
                 }
-                aVal = aVal.toString().toLowerCase();
-                bVal = bVal.toString().toLowerCase();
+                aVal = String(aVal).toLowerCase();
+                bVal = String(bVal).toLowerCase();
                 return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
             });
             var tbody = document.getElementById('transactionsBody');
-            sorted.forEach(function (row) { tbody.appendChild(row); });
+            if (tbody) sorted.forEach(function (row) { tbody.appendChild(row); });
             allRows = sorted;
-
             document.querySelectorAll('.sortable').forEach(function (t) {
                 t.classList.remove('active-asc', 'active-desc');
                 var i = t.querySelector('.sort-icon');
@@ -1708,11 +1781,12 @@
             });
         });
 
+        /* ================= COLUMN RESIZE ================= */
         function initColumnResize() {
             if (!tableEl) return;
             var headers = tableEl.querySelectorAll('thead th');
             var colWidths = {};
-            try { var s = localStorage.getItem(COL_WIDTH_KEY); if (s) colWidths = JSON.parse(s); } catch (e) {}
+            try { var s = localStorage.getItem(COL_WIDTH_KEY); if (s) colWidths = JSON.parse(s) || {}; } catch (e) {}
 
             headers.forEach(function (th, index) {
                 if (th.classList.contains('col-actions') || th.classList.contains('col-bulk')) return;
@@ -1729,7 +1803,6 @@
                     th.style.minWidth = w + 'px';
                     th.style.maxWidth = w + 'px';
                 }
-
                 var startX, startWidth;
                 function onMove(e) {
                     var newW = Math.max(30, startWidth + (e.clientX - startX));
@@ -1756,7 +1829,7 @@
             });
         }
 
-        // ===== BULK BAR =====
+        /* ================= BULK SELECTION ================= */
         function updateBulkBar() {
             if (!bulkBar) return;
             if (selectedIds.size === 0) {
@@ -1767,21 +1840,14 @@
             var cnt = document.getElementById('bulkCount');
             if (cnt) cnt.textContent = selectedIds.size;
 
-            // ✅ "Всі мої" — перевіряємо ЛИШЕ по першому match кожного id
+            var map = rowsById();
             var allMine = true;
             selectedIds.forEach(function (id) {
-                var row = null;
-                document.querySelectorAll('.transaction-row').forEach(function (r) {
-                    if (row === null && r.dataset.id === id) row = r;
-                });
+                var row = map.get(String(id));
                 if (!row || row.dataset.member !== currentUsername) allMine = false;
             });
-            if (bulkBarDeleteBtn) {
-                bulkBarDeleteBtn.classList.toggle('d-none', !allMine);
-            }
-            if (bulkBarArchiveBtn) {
-                bulkBarArchiveBtn.classList.toggle('d-none', !allMine);
-            }
+            if (bulkBarDeleteBtn) bulkBarDeleteBtn.classList.toggle('d-none', !allMine);
+            if (bulkBarArchiveBtn) bulkBarArchiveBtn.classList.toggle('d-none', !allMine);
         }
 
         function clearSelection() {
@@ -1796,20 +1862,16 @@
         document.querySelectorAll('.row-checkbox').forEach(function (cb) {
             cb.addEventListener('change', function (e) {
                 e.stopPropagation();
-                var id = this.dataset.id;  // ✅ string, без parseInt
+                var id = this.dataset.id;
                 if (!id) return;
                 var isChecked = this.checked;
 
-                // Синхронізація всіх чекбоксів з ТИМ САМИМ data-id (таблиця + картка)
                 document.querySelectorAll('.row-checkbox').forEach(function (other) {
                     if (other.dataset.id === id) other.checked = isChecked;
                 });
-
-                // Підсвітка рядка таблиці
                 document.querySelectorAll('.transaction-row').forEach(function (row) {
                     if (row.dataset.id === id) row.classList.toggle('row-selected', isChecked);
                 });
-                // Підсвітка картки
                 document.querySelectorAll('.transaction-card-wrapper').forEach(function (wrapper) {
                     if (wrapper.dataset.id === id) {
                         var card = wrapper.querySelector('.transaction-card');
@@ -1819,7 +1881,6 @@
 
                 if (isChecked) selectedIds.add(id);
                 else selectedIds.delete(id);
-
                 updateBulkBar();
             });
         });
@@ -1837,24 +1898,25 @@
                         if (cb.dataset.id === id) cb.checked = checked;
                     });
                     row.classList.toggle('row-selected', checked);
-                    document.querySelectorAll('.transaction-card-wrapper').forEach(function (w) {
-                        if (w.dataset.id === id) {
-                            var c = w.querySelector('.transaction-card');
-                            if (c) c.classList.toggle('card-selected', checked);
-                        }
-                    });
                 });
                 updateBulkBar();
             });
         }
 
+        function rowsById() {
+            var map = new Map();
+            allRows.forEach(function (r) {
+                var id = r.dataset.id;
+                if (id && !map.has(id)) map.set(id, r);
+            });
+            return map;
+        }
+
         function splitIdsByType(ids) {
+            var map = rowsById();
             var expIds = [], incIds = [];
             ids.forEach(function (id) {
-                var row = null;
-                document.querySelectorAll('.transaction-row').forEach(function (r) {
-                    if (row === null && r.dataset.id === id) row = r;
-                });
+                var row = map.get(String(id));
                 if (!row) return;
                 if (row.dataset.type === 'expense') expIds.push(id);
                 else if (row.dataset.type === 'income') incIds.push(id);
@@ -1863,16 +1925,18 @@
         }
 
         function reloadWithToast(msg) {
-            try { sessionStorage.setItem('family_shared_pending_toast', JSON.stringify({ msg: msg, type: 'success' })); } catch (ex) {}
+            try {
+                sessionStorage.setItem('family_shared_pending_toast',
+                    JSON.stringify({ msg: msg, type: 'success' }));
+            } catch (ex) {}
             location.reload();
         }
 
         function openBulkDeleteModal() {
             var ids = Array.from(selectedIds);
             if (ids.length === 0) return;
-
             var countEl = document.getElementById('bulkDeleteCount');
-            var listEl = document.getElementById('bulkDeleteList');
+            var listEl  = document.getElementById('bulkDeleteList');
             if (countEl) countEl.textContent = ids.length;
 
             if (listEl) {
@@ -1886,12 +1950,14 @@
                     var desc = row.dataset.description || '—';
                     var amount = parseFloat(row.dataset.amount) || 0;
                     var typeCls = row.dataset.type === 'expense' ? 'text-danger' : 'text-success';
-                    li.innerHTML = '<span class="text-truncate"><span class="text-muted small">' + escapeHtml(time) + '</span> · ' + escapeHtml(desc) + '</span>'
-                        + '<span class="fw-bold ' + typeCls + '">' + (row.dataset.type === 'expense' ? '−' : '+') + fmtMoney(amount) + '</span>';
+                    li.innerHTML = '<span class="text-truncate"><span class="text-muted small">'
+                        + escapeHtml(time) + '</span> · ' + escapeHtml(desc) + '</span>'
+                        + '<span class="fw-bold ' + typeCls + '">'
+                        + (row.dataset.type === 'expense' ? '−' : '+') + fmtMoney(amount) + '</span>';
                     listEl.appendChild(li);
                 });
             }
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            if (typeof bootstrap !== 'undefined' && bootstrap.Modal && bulkDeleteModal) {
                 bootstrap.Modal.getOrCreateInstance(bulkDeleteModal).show();
             }
         }
@@ -1923,8 +1989,8 @@
                 Promise.all(promises).then(function (results) {
                     var total = results.reduce(function (s, r) { return s + (r.count || 0); }, 0);
                     if (total > 0) reloadWithToast(fmt(i18n.bulkDeleted, total));
-                    else showToast('Помилка', 'error');
-                }).catch(function () { showToast('Помилка', 'error'); });
+                    else showToast(i18n.genericError, 'error');
+                }).catch(function () { showToast(i18n.genericError, 'error'); });
             });
         }
 
@@ -1948,47 +2014,53 @@
                 var btn = e.target.closest('[data-action]');
                 if (!btn) return;
                 var action = btn.dataset.action;
-
                 if (action === 'cancel') { clearSelection(); return; }
                 if (selectedIds.size === 0) return;
 
                 if (action === 'copy') {
                     var ids = Array.from(selectedIds);
                     var split = splitIdsByType(ids);
-                    var promises = [];
-                    if (split.expIds.length > 0) {
-                        var p1 = new URLSearchParams();
-                        split.expIds.forEach(function (id) { p1.append('ids', id); });
-                        promises.push(fetch('/expense/bulk/duplicate', {
-                            method: 'POST',
-                            headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
-                            body: p1.toString()
-                        }).then(function (r) { return r.json(); }));
-                    }
-                    if (split.incIds.length > 0) {
-                        var p2 = new URLSearchParams();
-                        split.incIds.forEach(function (id) { p2.append('ids', id); });
-                        promises.push(fetch('/income/bulk/duplicate', {
-                            method: 'POST',
-                            headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
-                            body: p2.toString()
-                        }).then(function (r) { return r.json(); }));
-                    }
-                    Promise.all(promises).then(function (results) {
-                        var total = results.reduce(function (s, r) { return s + (r.count || 0); }, 0);
-                        if (total > 0) reloadWithToast(fmt(i18n.bulkCopied, total));
-                        else showToast('Помилка', 'error');
-                    }).catch(function () { showToast('Помилка', 'error'); });
-
-                } else if (action === 'delete') {
-                    openBulkDeleteModal();
-
-                } else if (action === 'archive') {
-                    archiveSelected();
+                    (async function () {
+                        var ok = 0, fail = 0;
+                        if (split.expIds.length > 0) {
+                            try {
+                                var p = new URLSearchParams();
+                                split.expIds.forEach(function (id) { p.append('ids', id); });
+                                var r = await fetch('/expense/bulk/duplicate', {
+                                    method: 'POST',
+                                    headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                                    body: p.toString()
+                                });
+                                var j = await r.json();
+                                ok += (j.count || 0);
+                            } catch (e) { fail += split.expIds.length; }
+                        }
+                        if (split.incIds.length > 0) {
+                            try {
+                                var p2 = new URLSearchParams();
+                                split.incIds.forEach(function (id) { p2.append('ids', id); });
+                                var r2 = await fetch('/income/bulk/duplicate', {
+                                    method: 'POST',
+                                    headers: csrfHeaders({ 'Content-Type': 'application/x-www-form-urlencoded' }),
+                                    body: p2.toString()
+                                });
+                                var j2 = await r2.json();
+                                ok += (j2.count || 0);
+                            } catch (e) { fail += split.incIds.length; }
+                        }
+                        if (ok > 0) {
+                            var msg = fmt(i18n.bulkCopied, ok);
+                            if (fail > 0) msg += ' (помилок: ' + fail + ')';
+                            reloadWithToast(msg);
+                        } else {
+                            showToast('Помилка', 'error');
+                        }
+                    })();
                 }
             });
         }
 
+        /* ================= SINGLE DELETE ================= */
         document.addEventListener('click', function (e) {
             var btn = e.target.closest('.js-delete-shared');
             if (!btn) return;
@@ -2001,8 +2073,8 @@
             var delCat  = document.getElementById('delCategory');
             if (delType) delType.textContent = btn.dataset.type === 'expense' ? i18n.expense : i18n.income;
             if (delDesc) delDesc.textContent = btn.dataset.description || '—';
-            if (delAmt)  delAmt.textContent = (parseFloat(btn.dataset.amount) || 0).toFixed(2) + ' ' + currencySymbol;
-            if (delCat)  delCat.textContent = btn.dataset.category || '—';
+            if (delAmt)  delAmt.textContent  = (parseFloat(btn.dataset.amount) || 0).toFixed(2) + ' ' + currencySymbol;
+            if (delCat)  delCat.textContent  = btn.dataset.category || '—';
 
             var form = document.getElementById('deleteSharedForm');
             if (form) {
@@ -2011,13 +2083,16 @@
                     : '/income/delete/' + btn.dataset.id;
             }
             if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteSharedModal')).show();
+                var modalEl = document.getElementById('deleteSharedModal');
+                if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
             }
         });
 
+        /* ================= KEYBOARD ================= */
         document.addEventListener('keydown', function (e) {
             var target = e.target;
-            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
+            if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA'
+                || target.tagName === 'SELECT' || target.isContentEditable)) return;
             if (document.querySelector('.modal.show')) return;
 
             if (e.key === '/') {
@@ -2037,13 +2112,16 @@
                 window.print();
             } else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
                 e.preventDefault();
-                if (selectAllCheckbox) { selectAllCheckbox.checked = true; selectAllCheckbox.dispatchEvent(new Event('change')); }
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.dispatchEvent(new Event('change'));
+                }
             }
         });
 
         function updateTitle() {
             var visible = getFilteredRows().length;
-            var baseTitle = dayName + ' ' + /*[[${#temporals.format(date, 'dd.MM.yyyy')}]]*/ '—';
+            var baseTitle = (dayName || '') + ' ' + /*[[${#temporals.format(date, 'dd.MM.yyyy')}]]*/ '—';
             document.title = '(' + visible + ') ' + baseTitle + ' — Lazy Cent';
         }
 
@@ -2058,22 +2136,28 @@
         })();
 
         (function initPolling() {
-            var lastCount = initialCount;
+            var lastMaxId = -1;
+            fetch('/family/shared/day/' + dateIso + '/count', { headers: { 'Accept': 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) { if (data) lastMaxId = data.maxId || 0; })
+                .catch(function () {});
+
             setInterval(function () {
                 if (document.hidden) return;
                 fetch('/family/shared/day/' + dateIso + '/count', { headers: { 'Accept': 'application/json' } })
                     .then(function (r) { return r.ok ? r.json() : null; })
                     .then(function (data) {
                         if (!data) return;
-                        if (data.count !== lastCount) {
+                        if ((data.maxId || 0) > lastMaxId) {
                             showToast(i18n.newTx, 'info');
-                            lastCount = data.count;
+                            lastMaxId = data.maxId || 0;
                         }
                     })
                     .catch(function () {});
             }, 60000);
         })();
 
+        /* ================= INIT SEQUENCE ================= */
         initBreakdownToggle();
         initColumnResize();
         applyColumnVisibility();
@@ -2082,12 +2166,20 @@
         var urlRestored = restoreFromUrl();
         if (!urlRestored) restoreFilters();
 
-        if (pageSizeSelect) pageSize = parseInt(pageSizeSelect.value, 10) || 20;
+        // ✅ ФІКС: pageSize = 0 (Всі) має зберігатись
+        if (pageSizeSelect) {
+            var _ps = parseInt(pageSizeSelect.value, 10);
+            pageSize = isNaN(_ps) ? 20 : _ps;
+        }
 
         computeRunningBalances();
         renderCompare();
 
-        document.querySelectorAll('.table-transactions tbody .col-name, .table-transactions tbody .col-buyer, .table-transactions tbody .col-seller, .table-transactions tbody .col-details, .table-transactions tbody .col-category').forEach(function (cell) {
+        document.querySelectorAll(
+            '.table-transactions tbody .col-name, .table-transactions tbody .col-buyer, ' +
+            '.table-transactions tbody .col-seller, .table-transactions tbody .col-details, ' +
+            '.table-transactions tbody .col-category'
+        ).forEach(function (cell) {
             if (cell.dataset.originalText == null) cell.dataset.originalText = cell.textContent;
         });
 

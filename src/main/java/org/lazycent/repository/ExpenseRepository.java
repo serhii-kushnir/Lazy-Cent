@@ -127,4 +127,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             "WHERE e.dayBudget.owner = :user AND e.dayBudget.date <= :date")
     Double sumExpensesUpTo(@Param("user") User user, @Param("date") LocalDate date);
 
+    @Query("SELECT e.dayBudget.date, COALESCE(SUM(e.amount), 0.0) " +
+            "FROM Expense e " +
+            "WHERE e.dayBudget.owner.family.id = :familyId " +
+            "  AND e.shareWithFamily = true " +
+            "  AND e.dayBudget.date BETWEEN :start AND :end " +
+            "GROUP BY e.dayBudget.date")
+    List<Object[]> sumSharedExpensesByDay(
+            @Param("familyId") Long familyId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end);
 }

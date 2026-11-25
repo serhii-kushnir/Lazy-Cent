@@ -4,20 +4,28 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.lazycent.model.Family;
 import org.lazycent.model.User;
+import org.lazycent.model.dto.SharedDayDto;
+import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.DayBudgetRepository;
+import org.lazycent.repository.UserRepository;
 import org.lazycent.service.FamilyService;
 import org.lazycent.service.FamilySharedDayExportService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import org.lazycent.model.dto.SharedDayDto;
-import org.lazycent.model.dto.SharedTransactionDto;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -25,10 +33,13 @@ import java.util.Map;
 public class FamilyController extends BaseController {
 
     private final FamilyService familyService;
-    private final FamilySharedDayExportService familySharedDayExportService;
     private final DayBudgetRepository dayBudgetRepository;
+    private final FamilySharedDayExportService familySharedDayExportService;
+    private final UserRepository userRepository;
+
     private static String nullSafe(String s) { return s == null ? "" : s; }
 
+    // ==================== HUB ====================
 
     @GetMapping
     public String viewFamilyHub(Authentication authentication, Model model) {
@@ -44,8 +55,10 @@ public class FamilyController extends BaseController {
 
         model.addAttribute("family", family);
         model.addAttribute("membersCount", familyService.getFamilyMembers(freshUser).size());
-        return "family/hub";                       // ← ЗМІНЕНО
+        return "family/hub";
     }
+
+    // ==================== SHARED — LIST ====================
 
     @GetMapping("/shared")
     public String viewShared(
@@ -94,6 +107,8 @@ public class FamilyController extends BaseController {
         return "family/shared";
     }
 
+    // ==================== SHARED — DAY DETAIL ====================
+
     @GetMapping("/shared/day/{date}")
     public String viewSharedDay(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -122,7 +137,6 @@ public class FamilyController extends BaseController {
 
         double balance = startingBalance + totalInc - totalExp;
 
-        // ✅ Порівняння з учора
         LocalDate yesterday = date.minusDays(1);
         double yesterdayExpenses = 0.0;
         for (SharedTransactionDto t : familyService.getSharedTransactionsByDate(freshUser, yesterday)) {
@@ -142,6 +156,8 @@ public class FamilyController extends BaseController {
         return "family/shared-day";
     }
 
+    // ==================== SHARED — EXPORT ====================
+
     @GetMapping("/shared/day/{date}/export")
     public void exportSharedDay(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -149,6 +165,7 @@ public class FamilyController extends BaseController {
             @RequestParam(required = false) String cat,
             @RequestParam(required = false) String member,
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String excludeIds,
             Authentication authentication,
             HttpServletResponse response) throws java.io.IOException {
 
@@ -163,29 +180,19 @@ public class FamilyController extends BaseController {
 
         var txs = familyService.getSharedTransactionsByDate(freshUser, date);
 
-        // ✅ Фільтрація
-        if (type != null && !type.isBlank() && !"all".equals(type)) {
-            boolean wantExpense = "expense".equalsIgnoreCase(type);
-            txs = txs.stream().filter(t -> wantExpense ? t.expense() : t.income()).toList();
-        }
-        if (cat != null && !cat.isBlank()) {
-            String catNorm = cat.replaceAll("\\s*\\(\\d+\\)$", "").trim();
-            txs = txs.stream().filter(t -> catNorm.equals(t.categoryName())).toList();
-        }
-        if (member != null && !member.isBlank() && !"all".equals(member)) {
-            txs = txs.stream().filter(t -> member.equals(t.memberUsername())).toList();
-        }
-        if (q != null && !q.isBlank()) {
-            String qLower = q.toLowerCase().trim();
-            txs = txs.stream().filter(t -> {
-                String hay = String.join(" ",
-                        nullSafe(t.description()), nullSafe(t.categoryName()),
-                        nullSafe(t.memberUsername()), nullSafe(t.buyer()),
-                        nullSafe(t.seller()), nullSafe(t.details()),
-                        t.amount() != null ? String.valueOf(t.amount()) : ""
-                ).toLowerCase();
-                return hay.contains(qLower);
-            }).toList();
+        // ✅ Фільтри (винесено у filterShared — єдина логіка)
+        txs = filterShared(txs, type, cat, member, q);
+
+        // ✅ Виключення прихованих (архів)
+        if (excludeIds != null && !excludeIds.isBlank()) {
+            Set<Long> exclude = Arrays.stream(excludeIds.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(Long::valueOf)
+                    .collect(Collectors.toSet());
+            txs = txs.stream()
+                    .filter(t -> t.id() == null || !exclude.contains(t.id()))
+                    .toList();
         }
 
         String dayName = familyService.getDayName(date);
@@ -203,15 +210,68 @@ public class FamilyController extends BaseController {
         response.getOutputStream().write(xlsx);
     }
 
+    // ==================== SHARED — POLLING ====================
+
     @GetMapping("/shared/day/{date}/count")
     @ResponseBody
     public Map<String, Object> getSharedDayCount(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             Authentication authentication) {
         User user = getCurrentUser(authentication);
-        if (user == null) return Map.of("count", 0);
+        if (user == null) return Map.of("count", 0, "maxId", 0L);
+
         User freshUser = userRepository.findById(user.getId()).orElse(user);
-        if (freshUser.getFamilyId() == null) return Map.of("count", 0);
-        return Map.of("count", familyService.getSharedTransactionsByDate(freshUser, date).size());
+        if (freshUser.getFamilyId() == null) return Map.of("count", 0, "maxId", 0L);
+
+        var txs = familyService.getSharedTransactionsByDate(freshUser, date);
+        long maxId = txs.stream()
+                .map(SharedTransactionDto::id)
+                .filter(java.util.Objects::nonNull)
+                .max(Long::compare)
+                .orElse(0L);
+
+        return Map.of("count", txs.size(), "maxId", maxId);
+    }
+
+    // ==================== HELPER ====================
+
+    /**
+     * Єдина логіка фільтрації shared-транзакцій.
+     * Використовується в /export (view фільтрується на клієнті).
+     */
+    private List<SharedTransactionDto> filterShared(
+            List<SharedTransactionDto> txs,
+            String type, String cat, String member, String q) {
+
+        if (type != null && !type.isBlank() && !"all".equals(type)) {
+            boolean wantExpense = "expense".equalsIgnoreCase(type);
+            txs = txs.stream()
+                    .filter(t -> wantExpense ? t.expense() : t.income())
+                    .toList();
+        }
+        if (cat != null && !cat.isBlank()) {
+            String catNorm = cat.replaceAll("\\s*\\(\\d+\\)$", "").trim();
+            txs = txs.stream()
+                    .filter(t -> catNorm.equals(t.categoryName()))
+                    .toList();
+        }
+        if (member != null && !member.isBlank() && !"all".equals(member)) {
+            txs = txs.stream()
+                    .filter(t -> member.equals(t.memberUsername()))
+                    .toList();
+        }
+        if (q != null && !q.isBlank()) {
+            String qLower = q.toLowerCase().trim();
+            txs = txs.stream().filter(t -> {
+                String hay = String.join(" ",
+                        nullSafe(t.description()), nullSafe(t.categoryName()),
+                        nullSafe(t.memberUsername()), nullSafe(t.buyer()),
+                        nullSafe(t.seller()), nullSafe(t.details()),
+                        t.amount() != null ? String.valueOf(t.amount()) : ""
+                ).toLowerCase();
+                return hay.contains(qLower);
+            }).toList();
+        }
+        return txs;
     }
 }
