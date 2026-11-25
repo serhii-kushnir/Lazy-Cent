@@ -10,6 +10,7 @@ import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.repository.UserRepository;
 import org.lazycent.service.FamilyService;
 import org.lazycent.service.FamilySharedDayExportService;
+import org.lazycent.service.FamilySharedExportService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -21,11 +22,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -35,6 +33,7 @@ public class FamilyController extends BaseController {
     private final FamilyService familyService;
     private final DayBudgetRepository dayBudgetRepository;
     private final FamilySharedDayExportService familySharedDayExportService;
+    private final FamilySharedExportService familySharedExportService;
     private final UserRepository userRepository;
 
     private static String nullSafe(String s) { return s == null ? "" : s; }
@@ -158,6 +157,37 @@ public class FamilyController extends BaseController {
 
     // ==================== SHARED — EXPORT ====================
 
+    @GetMapping("/shared/export")
+    public void exportShared(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Authentication authentication,
+            HttpServletResponse response) throws java.io.IOException {
+
+        User user = getCurrentUser(authentication);
+        if (user == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) {
+            response.sendRedirect("/family/shared");
+            return;
+        }
+
+        LocalDate from = startDate != null ? startDate : LocalDate.now().minusMonths(6);
+        LocalDate to = endDate != null ? endDate : LocalDate.now();
+        List<SharedDayDto> days = familyService.getSharedDays(freshUser, from, to);
+        byte[] xlsx = familySharedExportService.export(days, from, to,
+                org.springframework.context.i18n.LocaleContextHolder.getLocale());
+
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=\"family-shared-" + from + "-to-" + to + ".xlsx\"");
+        response.setContentLength(xlsx.length);
+        response.getOutputStream().write(xlsx);
+    }
+
     @GetMapping("/shared/day/{date}/export")
     public void exportSharedDay(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -165,7 +195,6 @@ public class FamilyController extends BaseController {
             @RequestParam(required = false) String cat,
             @RequestParam(required = false) String member,
             @RequestParam(required = false) String q,
-            @RequestParam(required = false) String excludeIds,
             Authentication authentication,
             HttpServletResponse response) throws java.io.IOException {
 
@@ -182,18 +211,6 @@ public class FamilyController extends BaseController {
 
         // ✅ Фільтри (винесено у filterShared — єдина логіка)
         txs = filterShared(txs, type, cat, member, q);
-
-        // ✅ Виключення прихованих (архів)
-        if (excludeIds != null && !excludeIds.isBlank()) {
-            Set<Long> exclude = Arrays.stream(excludeIds.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .map(Long::valueOf)
-                    .collect(Collectors.toSet());
-            txs = txs.stream()
-                    .filter(t -> t.id() == null || !exclude.contains(t.id()))
-                    .toList();
-        }
 
         String dayName = familyService.getDayName(date);
         Double startingBalance = dayBudgetRepository

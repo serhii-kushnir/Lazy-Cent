@@ -12,6 +12,8 @@
         .anim-fade-down { animation: fadeInDown .4s ease forwards; opacity: 0; }
         .delay-1 { animation-delay: .05s; } .delay-2 { animation-delay: .10s; }
         .page-max { max-width: 1920px; margin: 0 auto; }
+        .d-print-block { display: none; }
+        .d-print-flex { display: none; }
         .btn:not(.btn-close), .nav-btn { border-radius: .5rem !important; }
         .btn:not(.btn-close):not(.navbar-toggler) { transition: transform .2s ease, box-shadow .2s ease; }
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,.15); }
@@ -64,6 +66,15 @@
         [data-bs-theme="dark"] .cat-header-theme h3, [data-bs-theme="dark"] .cat-header-theme h3 * { color: #fff !important; }
         .sub-bar { background-color: #fff !important; }
         [data-bs-theme="dark"] .sub-bar { background-color: #1d2027 !important; }
+
+        .view-toggle { display: flex; gap: .3rem; background: var(--bs-secondary-bg); border-radius: .5rem; padding: .2rem; flex-shrink: 0; }
+        .view-toggle .btn { border: none; padding: .5rem 1rem; font-size: .95rem; border-radius: .375rem !important; background: transparent; color: var(--bs-secondary-color); font-weight: 600; transition: all .2s ease; display: inline-flex; align-items: center; gap: .4rem; white-space: nowrap; }
+        .cat-header-theme .view-toggle { background: #e9ecef !important; }
+        .cat-header-theme .view-toggle .btn { color: #495057 !important; }
+        .cat-header-theme .view-toggle .btn.active { background: #fff !important; color: #0d6efd !important; box-shadow: 0 2px 6px rgba(0,0,0,.12) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle { background: rgba(255,255,255,.08) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn { color: rgba(255,255,255,.7) !important; }
+        [data-bs-theme="dark"] .cat-header-theme .view-toggle .btn.active { background: #0d6efd !important; color: #fff !important; box-shadow: none !important; }
 
         /* TABLE */
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -123,6 +134,52 @@
         .cards-view-container { display: none; } .cards-view-container.show { display: block; }
         .empty-state { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-state i { font-size: 4rem; opacity: .25; }
+
+        @media (max-width: 575.98px) {
+            .view-toggle .btn { padding: .4rem .7rem; font-size: .8rem; }
+            .cat-header-theme > div.no-print {
+                width: 100% !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: .5rem !important;
+            }
+            .cat-header-theme > div.no-print > .view-toggle {
+                width: 100% !important;
+                flex-wrap: wrap;
+                padding: .25rem !important;
+                gap: .25rem !important;
+            }
+            .cat-header-theme > div.no-print > .view-toggle > .btn {
+                flex: 1 1 calc(50% - .25rem);
+                min-width: 0;
+                height: 40px !important;
+                justify-content: center;
+            }
+        }
+
+        @media print {
+            @page { size: A4 landscape; margin: 8mm; }
+            body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
+            .view-toggle, .days-toolbar, .totals-row, .alert { display: none !important; }
+            .d-print-block { display: block !important; }
+            .d-print-flex { display: flex !important; }
+            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
+            .print-header { justify-content: space-between; align-items: center; padding: 0 0 6px 0 !important; border-bottom: 2px solid #333; margin-bottom: 12px !important; }
+            .print-header .logo { font-size: 14pt; font-weight: bold; }
+            .print-header h2 { font-size: 12pt; margin: 0; }
+            .print-footer { text-align: center; font-size: 8pt; color: #666; border-top: 1px solid #ccc; padding-top: 6px; margin-top: 12px; }
+            .days-section { border: 1px solid #999 !important; box-shadow: none !important; background: #fff !important; }
+            .cat-header-theme { background: #fff !important; border-bottom: 2px solid #333 !important; }
+            .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
+            .table-responsive { overflow: visible !important; }
+            .table-days { width: 100% !important; table-layout: fixed !important; font-size: 7pt !important; }
+            .table-days th, .table-days td { border: 1px solid #555 !important; padding: 2px 3px !important; white-space: normal !important; word-break: break-word !important; overflow-wrap: anywhere !important; color: #000 !important; }
+            .table-days th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            #cardsView { display: none !important; }
+            #tableView { display: block !important; }
+            tr { page-break-inside: avoid !important; }
+        }
     </style>
 </head>
 <body>
@@ -136,6 +193,11 @@
 
 <div class="container-fluid px-3 px-md-4 mt-4 page-max">
 
+    <div class="print-header d-print-flex" style="display:none;">
+        <span class="logo">LazyCent</span>
+        <h2 th:text="#{family.shared.title}">Спільні транзакції</h2>
+    </div>
+
     <!-- PAGE HEADER -->
     <div class="page-header-wrap mb-4 anim-fade-down">
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
@@ -144,9 +206,14 @@
                 <span th:text="#{family.shared.heading}">Спільні транзакції сім'ї</span>
             </h2>
             <div class="position-absolute end-0 no-print d-flex gap-2">
-                <a th:href="@{/family}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Назад</span>
+                <a th:href="@{/family/shared/export(startDate=${startDate},endDate=${endDate})}" class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i>
+                    <span th:text="#{allDays.action.export}">Експорт</span>
                 </a>
+                <button type="button" class="btn btn-warning" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>
+                    <span th:text="#{allDays.action.print}">Друк</span>
+                </button>
             </div>
         </div>
         <div class="d-lg-none">
@@ -154,10 +221,18 @@
                 <i class="fas fa-users me-2 text-primary"></i>
                 <span th:text="#{family.shared.heading}">Спільні транзакції сім'ї</span>
             </h2>
-            <a th:href="@{/family}" class="btn btn-outline-secondary w-100 no-print mb-2">
-                <i class="fas fa-arrow-left me-1"></i><span th:text="#{btn.back}">Назад</span>
-            </a>
+            <div class="d-grid gap-2 mb-2 no-print">
+                <a th:href="@{/family/shared/export(startDate=${startDate},endDate=${endDate})}" class="btn btn-success">
+                    <i class="fas fa-file-excel me-1"></i>
+                    <span th:text="#{allDays.action.export}">Експорт</span>
+                </a>
+                <button type="button" class="btn btn-warning" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>
+                    <span th:text="#{allDays.action.print}">Друк</span>
+                </button>
+            </div>
         </div>
+
     </div>
 
     <!-- НЕ В СІМ'Ї -->
@@ -204,6 +279,10 @@
                          th:text="${#numbers.formatDecimal(balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
                     <div class="total-sub" id="totalsBalanceSub">—</div>
                 </div>
+            </div>
+
+            <div class="print-footer d-print-block" style="display:none;">
+                <span th:text="#{footer.copyright}">© 2026 LazyCent</span>
             </div>
         </div>
 
@@ -476,6 +555,8 @@
         var totalsBalanceEl = document.getElementById('totalsBalance');
         var totalsBalanceSub = document.getElementById('totalsBalanceSub');
 
+        if (!searchInput || !tableBody) return;
+
         // VIEW
         var VIEW_KEY = 'family_shared_view_mode';
         function isCardsMode() { return !cardsView.classList.contains('hidden'); }
@@ -494,19 +575,20 @@
             localStorage.setItem(VIEW_KEY, mode);
             applyFiltersAndPaginate();
         }
+        var allRows = Array.from(tableBody.querySelectorAll('.day-row'));
+        var allCards = Array.from(document.querySelectorAll('.day-card-wrapper'));
+        var currentPage = 1;
+        var pageSize = parseInt(pageSizeSelect.value) || 20;
+        var searchText = '';
+        var dateFromVal = '', dateToVal = '', dayVal = '';
+        var filtered = [];
+
         viewToggle.addEventListener('click', function (e) {
             var btn = e.target.closest('button');
             if (!btn) return;
             setViewMode(btn.dataset.view);
         });
         setViewMode(localStorage.getItem(VIEW_KEY) || 'table');
-
-        var allRows = Array.from(tableBody.querySelectorAll('.day-row'));
-        var currentPage = 1;
-        var pageSize = parseInt(pageSizeSelect.value) || 20;
-        var searchText = '';
-        var dateFromVal = '', dateToVal = '', dayVal = '';
-        var filtered = [];
 
         function getFilteredItems() {
             var items = isCardsMode()
@@ -644,28 +726,38 @@
         function sortRowsBy(column, direction) {
             var th = document.querySelector('.sortable[data-sort="' + column + '"]');
             var dataType = th ? th.dataset.type : 'string';
-            var sorted = allRows.slice();
-            sorted.sort(function (a, b) {
+            function extractValue(el) {
                 var aVal, bVal;
                 if (column === 'count') {
-                    aVal = parseInt(a.dataset.count) || 0;
-                    bVal = parseInt(b.dataset.count) || 0;
+                    return parseInt(el.dataset.count) || 0;
                 } else {
-                    aVal = a.dataset[column] || '';
-                    bVal = b.dataset[column] || '';
+                    aVal = el.dataset[column] || '';
                     if (dataType === 'number') {
                         aVal = parseFloat(aVal) || 0;
-                        bVal = parseFloat(bVal) || 0;
                     } else {
                         aVal = aVal.toString().toLowerCase();
-                        bVal = bVal.toString().toLowerCase();
                     }
+                    return aVal;
                 }
-                if (dataType === 'number') return direction === 'asc' ? aVal - bVal : bVal - aVal;
-                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-            });
-            sorted.forEach(function (row) { tableBody.appendChild(row); });
-            allRows = sorted;
+            }
+            function compare(a, b) {
+                var aVal = extractValue(a);
+                var bVal = extractValue(b);
+                if (dataType === 'number' || column === 'count') {
+                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
+                }
+                return direction === 'asc'
+                    ? aVal.toString().localeCompare(bVal.toString())
+                    : bVal.toString().localeCompare(aVal.toString());
+            }
+            var sortedRows = allRows.slice().sort(compare);
+            var sortedCards = allCards.slice().sort(compare);
+            sortedRows.forEach(function (row) { tableBody.appendChild(row); });
+            if (cardsContainer) {
+                sortedCards.forEach(function (card) { cardsContainer.appendChild(card); });
+            }
+            allRows = sortedRows;
+            allCards = sortedCards;
             document.querySelectorAll('.sortable').forEach(function (t) {
                 t.classList.remove('active-asc', 'active-desc');
                 var i = t.querySelector('.sort-icon');

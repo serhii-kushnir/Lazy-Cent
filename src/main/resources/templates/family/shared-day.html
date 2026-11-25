@@ -109,18 +109,6 @@
         .table-transactions tr.row-selected > td { background-color: rgba(13,110,253,.15) !important; }
         [data-bs-theme="dark"] .table-transactions tr.row-selected > td { background-color: rgba(90,138,197,.25) !important; }
 
-        .table-transactions tr.row-hidden > td { opacity: .45; }
-        .table-transactions tr.row-hidden .col-name::after {
-            content: 'архів';
-            display: inline-block;
-            font-size: .65rem;
-            padding: .1rem .35rem;
-            margin-left: .35rem;
-            background: var(--bs-secondary-bg);
-            color: var(--bs-secondary-color);
-            border-radius: .25rem;
-        }
-
         .table-transactions tfoot td {
             font-weight: 700;
             background-color: var(--bs-secondary-bg);
@@ -157,8 +145,6 @@
         .transaction-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
         [data-bs-theme="dark"] .transaction-card { background: #1d2027; border-color: #2a2e37; }
         .transaction-card.card-selected { box-shadow: 0 0 0 3px var(--bs-primary), 0 4px 8px rgba(13,110,253,.35) !important; }
-        .transaction-card.card-hidden { opacity: .5; }
-
         .transaction-card .card-bulk { position: absolute; top: .5rem; right: .5rem; z-index: 2; }
         .transaction-card .card-bulk input { width: 20px; height: 20px; cursor: pointer; }
 
@@ -211,8 +197,6 @@
 
         #onlyMineBtn { border-radius: .5rem; }
         #onlyMineBtn.active { background-color: var(--bs-primary) !important; color: #fff !important; border-color: var(--bs-primary) !important; }
-        #showHiddenBtn.active { background-color: var(--bs-secondary) !important; color: #fff !important; border-color: var(--bs-secondary) !important; }
-
         .columns-menu .form-check { padding-left: 2rem; }
         .columns-menu .form-check-label { cursor: pointer; user-select: none; }
 
@@ -257,7 +241,7 @@
         #bulkDeleteList li:last-child { border-bottom: none; }
 
         @media print {
-            @page { margin: 10mm; }
+            @page { size: A4 landscape; margin: 8mm; }
             body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
             nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
             .view-toggle, .days-toolbar, .cat-header-theme > div.no-print,
@@ -272,8 +256,10 @@
             .print-header h2 { font-size: 12pt; margin: 0; }
             .print-footer { display: block !important; text-align: center; font-size: 8pt; color: #666; border-top: 1px solid #ccc; padding-top: 6px; margin-top: 12px; }
             .stat-card, .days-section { border: 1px solid #999 !important; box-shadow: none !important; background: #fff !important; }
-            .table-transactions { font-size: 8pt !important; min-width: 0 !important; }
-            .table-transactions th, .table-transactions td { border: 1px solid #555 !important; padding: 3px !important; white-space: normal !important; word-break: break-word !important; color: #000 !important; }
+            .table-transactions { font-size: 7pt !important; min-width: 0 !important; table-layout: fixed !important; width: 100% !important; }
+            .table-transactions th, .table-transactions td { border: 1px solid #555 !important; padding: 2px 3px !important; white-space: normal !important; word-break: break-word !important; overflow-wrap: anywhere !important; color: #000 !important; }
+            .table-transactions th, .table-transactions td { width: auto !important; }
+            .table-responsive { overflow: visible !important; }
             .table-transactions th { background-color: #eee !important; -webkit-print-color-adjust: exact; }
             .cat-header-theme { background-color: #fff !important; border-bottom: 2px solid #333 !important; }
             .cat-header-theme h6, .cat-header-theme h3 { color: #000 !important; }
@@ -284,8 +270,6 @@
             tr { page-break-inside: avoid !important; }
             #cardsView { display: none !important; }
             #tableView { display: block !important; }
-            .column-hidden { display: table-cell !important; }
-            th.column-hidden { display: table-cell !important; }
             .table-transactions tfoot { display: table-row-group !important; }
         }
         .mobile-totals {
@@ -545,12 +529,6 @@
                 <button type="button" id="onlyMineBtn" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-user me-1"></i>
                     <span th:text="#{family.shared.onlyMine}">Тільки мої</span>
-                </button>
-
-                <button type="button" id="showHiddenBtn" class="btn btn-outline-secondary btn-sm d-none">
-                    <i class="fas fa-archive me-1"></i>
-                    <span th:text="#{family.shared.showHidden}">Архів</span>
-                    <span class="badge bg-secondary ms-1" id="hiddenCount">0</span>
                 </button>
 
                 <button type="button" id="resetFiltersBtn" class="btn btn-outline-warning btn-sm d-none">
@@ -850,10 +828,6 @@
             <i class="fas fa-copy me-1"></i>
             <span th:text="#{family.shared.bulk.copy}">Копіювати</span>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-light" data-action="archive">
-            <i class="fas fa-archive me-1"></i>
-            <span th:text="#{family.shared.bulk.archive}">Архів</span>
-        </button>
         <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete">
             <i class="fas fa-trash me-1"></i>
             <span th:text="#{family.shared.bulk.delete}">Видалити</span>
@@ -949,6 +923,7 @@
 
         var currencySymbolEl = document.getElementById('currencySymbolDisplay');
         var currencySymbol = (currencySymbolEl && currencySymbolEl.textContent) || '₴';
+        try { localStorage.removeItem('family_shared_day_hidden'); } catch (e) {}
         var currentUsername = /*[[${currentUser?.username}]]*/ '';
         var startingBalance = /*[[${startingBalance}]]*/ 0.0;
         var yesterdayExpenses = /*[[${yesterdayExpenses}]]*/ 0.0;
@@ -971,9 +946,7 @@
             incomesLabel:  /*[[#{family.shared.col.incomes}]]*/  'Доходи',
             bulkCopied: /*[[#{family.shared.bulk.copied}]]*/ 'Скопійовано: {0}',
             bulkDeleted: /*[[#{family.shared.bulk.deleted}]]*/ 'Видалено: {0}',
-            bulkArchived: /*[[#{family.shared.bulk.archived}]]*/ 'Заархівовано: {0}',
             newTx: /*[[#{family.shared.newTransactions}]]*/ 'Є нові транзакції. Оновити?',
-            archiveBadge: /*[[#{family.shared.archiveBadge}]]*/ 'архів',
             toastError:   /*[[#{toast.error}]]*/   'Помилка!',
             toastSuccess: /*[[#{toast.success}]]*/ 'Успішно!',
             genericError: /*[[#{error.technical}]]*/ 'Помилка'
@@ -1068,8 +1041,6 @@
         var categoryFilter = document.getElementById('categoryFilter');
         var memberFilter   = document.getElementById('memberFilter');
         var onlyMineBtn    = document.getElementById('onlyMineBtn');
-        var showHiddenBtn  = document.getElementById('showHiddenBtn');
-        var hiddenCountEl  = document.getElementById('hiddenCount');
         var resetFiltersBtn = document.getElementById('resetFiltersBtn');
         var pageSizeSelect = document.getElementById('pageSizeSelect');
         var loadMoreBtn    = document.getElementById('loadMoreBtn');
@@ -1084,8 +1055,8 @@
         var exportBtn      = document.getElementById('exportBtn');
         var selectAllCheckbox = document.getElementById('selectAllCheckbox');
         var bulkBar        = document.getElementById('bulkBar');
+        var bulkBarCopyBtn = bulkBar ? bulkBar.querySelector('[data-action="copy"]') : null;
         var bulkBarDeleteBtn = bulkBar ? bulkBar.querySelector('[data-action="delete"]') : null;
-        var bulkBarArchiveBtn = bulkBar ? bulkBar.querySelector('[data-action="archive"]') : null;
         var bulkDeleteModal = document.getElementById('bulkDeleteModal');
         var bulkDeleteConfirmBtn = document.getElementById('bulkDeleteConfirmBtn');
 
@@ -1135,32 +1106,6 @@
         var COL_VIS_KEY   = 'family_shared_day_col_visibility_v1';
         var COL_WIDTH_KEY = 'family_shared_day_col_widths';
         var BREAKDOWN_KEY = 'family_shared_day_breakdown_visible';
-        var HIDDEN_KEY    = 'family_shared_day_hidden';
-
-        var showHidden = false;
-        function getHiddenIds() {
-            try {
-                var raw = JSON.parse(localStorage.getItem(HIDDEN_KEY) || '[]');
-                return Array.isArray(raw) ? raw.map(String) : [];
-            } catch (e) { return []; }
-        }
-        function setHiddenIds(arr) {
-            try { localStorage.setItem(HIDDEN_KEY, JSON.stringify((arr || []).map(String))); } catch (e) {}
-        }
-        function updateHiddenButton() {
-            if (!showHiddenBtn) return;
-            var ids = getHiddenIds();
-            if (hiddenCountEl) hiddenCountEl.textContent = ids.length;
-            showHiddenBtn.classList.toggle('d-none', ids.length === 0 && !showHidden);
-            showHiddenBtn.classList.toggle('active', showHidden);
-        }
-        if (showHiddenBtn) {
-            showHiddenBtn.addEventListener('click', function () {
-                showHidden = !showHidden;
-                applyFiltersAndPaginate();
-            });
-        }
-
         function setBreakdownVisible(visible) {
             if (!breakdownRow) return;
             breakdownRow.style.display = visible ? '' : 'none';
@@ -1308,12 +1253,6 @@
             if (memberFilter.value && memberFilter.value !== 'all') params.set('member', memberFilter.value);
             if (searchInput.value && searchInput.value.trim()) params.set('q', searchInput.value.trim());
 
-            // ✅ Архів (приховані) — виключаємо з експорту, якщо не показані
-            if (!showHidden) {
-                var hidden = getHiddenIds();
-                if (hidden.length > 0) params.set('excludeIds', hidden.join(','));
-            }
-
             var base = '/family/shared/day/' + dateIso + '/export';
             exportBtn.href = params.toString() ? base + '?' + params.toString() : base;
         }
@@ -1364,13 +1303,9 @@
             var typeValue = typeFilter ? typeFilter.value : 'all';
             var catValue = categoryFilter ? categoryFilter.value : '';
             var memberValue = memberFilter ? memberFilter.value : 'all';
-            var hidden = getHiddenIds();
             if (catValue) catValue = catValue.replace(/\s*\(\d+\)$/, '');
 
             return allRows.filter(function (row) {
-                var id = String(row.dataset.id || '');
-                var hiddenItem = hidden.indexOf(id) !== -1;
-                if (!showHidden && hiddenItem) return false;
                 if (typeValue !== 'all' && row.dataset.type !== typeValue) return false;
                 if (catValue !== '' && row.dataset.category !== catValue) return false;
                 if (memberValue !== 'all' && row.dataset.member !== memberValue) return false;
@@ -1406,7 +1341,6 @@
             updateUI(filtered);
             updateOnlyMineButton();
             updateResetButton();
-            updateHiddenButton();
             saveFilters();
             syncUrl();
             updateExportLink();
@@ -1455,21 +1389,13 @@
             if (!Array.isArray(visibleRows)) visibleRows = [];
 
             var visibleIds = {};
-            var hidden = (typeof getHiddenIds === 'function') ? getHiddenIds() : [];
             visibleRows.forEach(function (r) { visibleIds[rowKey(r)] = true; });
 
             allRows.forEach(function (r) {
-                var id = String(r.dataset.id);
-                var isHid = hidden.indexOf(id) !== -1;
                 r.style.display = visibleIds[rowKey(r)] ? '' : 'none';
-                r.classList.toggle('row-hidden', isHid);
             });
             allCards.forEach(function (c) {
-                var id = String(c.dataset.id);
-                var isHid = hidden.indexOf(id) !== -1;
                 c.style.display = visibleIds[rowKey(c)] ? '' : 'none';
-                var card = c.querySelector('.transaction-card');
-                if (card) card.classList.toggle('card-hidden', isHid);
             });
 
             visibleRows.forEach(function (r, idx) {
@@ -1846,8 +1772,8 @@
                 var row = map.get(String(id));
                 if (!row || row.dataset.member !== currentUsername) allMine = false;
             });
+            if (bulkBarCopyBtn) bulkBarCopyBtn.classList.toggle('d-none', !allMine);
             if (bulkBarDeleteBtn) bulkBarDeleteBtn.classList.toggle('d-none', !allMine);
-            if (bulkBarArchiveBtn) bulkBarArchiveBtn.classList.toggle('d-none', !allMine);
         }
 
         function clearSelection() {
@@ -1992,21 +1918,6 @@
                     else showToast(i18n.genericError, 'error');
                 }).catch(function () { showToast(i18n.genericError, 'error'); });
             });
-        }
-
-        function archiveSelected() {
-            if (selectedIds.size === 0) return;
-            var hidden = getHiddenIds();
-            var count = 0;
-            selectedIds.forEach(function (id) {
-                var sid = String(id);
-                if (hidden.indexOf(sid) === -1) { hidden.push(sid); count++; }
-            });
-            setHiddenIds(hidden);
-            clearSelection();
-            updateHiddenButton();
-            applyFiltersAndPaginate();
-            if (count > 0) showToast(fmt(i18n.bulkArchived, count), 'success');
         }
 
         if (bulkBar) {
@@ -2189,7 +2100,6 @@
             });
         }
 
-        updateHiddenButton();
         applyFiltersAndPaginate();
         updateTitle();
     });
