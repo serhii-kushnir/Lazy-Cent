@@ -131,4 +131,15 @@ public interface IncomeRepository extends JpaRepository<Income, Long> {
             @Param("familyId") Long familyId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
+
+    @Query("SELECT i.dayBudget.owner.username, COALESCE(SUM(i.amount), 0.0) " +
+            "FROM Income i " +
+            "WHERE i.dayBudget.owner.family.id = :familyId " +
+            "  AND i.shareWithFamily = true " +
+            "  AND i.dayBudget.date BETWEEN :start AND :end " +
+            "GROUP BY i.dayBudget.owner.username")
+    List<Object[]> sumSharedIncomesByMember(
+            @Param("familyId") Long familyId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end);
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="#{family.shared.title} + ' - ' + #{app.title}">Спільні транзакції</title>
-    <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
+    <div th:replace="~{fragments/head :: themeAssetsWithCharts(robots='noindex, nofollow')}"></div>
     <style>
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
@@ -19,16 +19,9 @@
         .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,.15); }
         .icon-circle { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
 
-        /* TOTALS */
-        .totals-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1rem; }
-        @media (max-width: 767.98px) { .totals-row { grid-template-columns: 1fr; } }
-        .total-card { display: flex; align-items: center; gap: .85rem; padding: .85rem 1rem; background: var(--bs-card-bg); border: 1px solid var(--bs-border-color); border-radius: 1rem; min-width: 0; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
-        [data-bs-theme="dark"] .total-card { background: #1d2027; border-color: #2a2e37; }
-        .total-card .total-icon { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.15rem; flex-shrink: 0; }
-        .total-card .total-body { min-width: 0; flex: 1; }
-        .total-card .total-label { font-size: .75rem; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: .4px; margin-bottom: .15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .total-card .total-value { font-size: 1.15rem; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .total-card .total-sub   { font-size: .72rem; color: var(--bs-secondary-color); margin-top: .15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .page-header-wrap { position: relative; z-index: 10; }
+        .stat-card { border-radius: 1rem; border: none; background-color: var(--bs-card-bg); box-shadow: 0 4px 12px rgba(0,0,0,.05); height: 100%; }
+        [data-bs-theme="dark"] .stat-card { background-color: #1d2027; border: 1px solid #2a2e37; }
 
         /* TOOLBAR */
         .days-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; padding: .75rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
@@ -46,15 +39,6 @@
         .days-toolbar .page-size-wrap { display: flex; align-items: center; gap: .4rem; font-size: .85rem; color: var(--bs-secondary-color); }
         .days-toolbar .page-size-wrap select { width: auto; min-width: 80px; border-radius: .5rem; font-size: .85rem; }
         .days-toolbar .info-text { font-size: .85rem; color: var(--bs-secondary-color); margin-left: auto; white-space: nowrap; }
-        @media (max-width: 575.98px) {
-            .days-toolbar { padding: .5rem .75rem; flex-direction: column; align-items: stretch; }
-            .days-toolbar .filter-group { flex-direction: column; align-items: stretch; width: 100%; }
-            .days-toolbar .filter-group > * { width: 100% !important; min-width: 0 !important; }
-            .days-toolbar .date-field { flex-direction: column; align-items: stretch; gap: .15rem; }
-            .days-toolbar .date-field .form-control { width: 100% !important; }
-            .days-toolbar .info-text { text-align: center; margin-left: 0; order: 99; }
-        }
-
         /* SECTION / HEADER */
         .days-section { background: var(--bs-card-bg); border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,.05); overflow: hidden; }
         [data-bs-theme="dark"] .days-section { background: #212529 !important; border: 1px solid #2a2e37; }
@@ -134,6 +118,47 @@
         .cards-view-container { display: none; } .cards-view-container.show { display: block; }
         .empty-state { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color); }
         .empty-state i { font-size: 4rem; opacity: .25; }
+        .shared-analytics .stat-card { min-width: 0; overflow: hidden; }
+        .chart-wrap { height: 260px; position: relative; min-width: 0; }
+        .chart-wrap canvas { max-width: 100%; }
+        .member-summary-list { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+        .member-summary-item { display: flex; flex-direction: column; gap: .25rem; padding: .45rem 0; border-bottom: 1px solid var(--bs-border-color); min-width: 0; }
+        .member-summary-item:last-child { border-bottom: 0; }
+        .member-summary-name { font-weight: 600; overflow-wrap: anywhere; }
+        .member-summary-value { display: flex; justify-content: space-between; gap: .5rem; font-size: .85rem; min-width: 0; }
+        .member-summary-value span:last-child { text-align: right; overflow-wrap: anywhere; }
+        .breakdown-empty { font-size: .85rem; color: var(--bs-secondary-color); padding: .5rem 0; }
+        .quick-periods { display: flex; flex-wrap: wrap; gap: .35rem; }
+        .load-more-wrap { display: flex; align-items: center; justify-content: center; gap: .75rem; padding: 1rem; }
+        @media (max-width: 767.98px) {
+            .days-toolbar { padding: .5rem .75rem; flex-direction: column; align-items: stretch; gap: .4rem; }
+            .days-toolbar .quick-periods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .days-toolbar .quick-periods .btn { min-width: 0; white-space: normal; }
+            .days-toolbar .search-wrap { flex: 0 0 auto; width: 100%; min-width: 0; }
+            .days-toolbar .search-wrap .input-group { height: 34px !important; min-height: 34px !important; max-height: 34px !important; flex-wrap: nowrap; align-items: stretch; }
+            .days-toolbar .search-wrap .input-group > .input-group-text,
+            .days-toolbar .search-wrap .input-group > .form-control,
+            .days-toolbar .search-wrap .input-group > .btn {
+                height: 34px !important; min-height: 34px !important; max-height: 34px !important;
+                padding-top: 0 !important; padding-bottom: 0 !important;
+                line-height: 32px !important; font-size: .85rem !important;
+                display: flex; align-items: center;
+            }
+            .days-toolbar .search-wrap .input-group > .form-control { display: block; padding-left: .5rem !important; padding-right: .5rem !important; }
+            .days-toolbar .filter-group { flex-direction: column; align-items: stretch; width: 100%; gap: .4rem; }
+            .days-toolbar .filter-group > * { width: 100% !important; min-width: 0 !important; }
+            .days-toolbar .filter-group .date-field { display: flex; width: 100%; min-width: 0; }
+            .days-toolbar .filter-group .date-field .form-control { flex: 1 1 0; width: 0; min-width: 0; }
+            .days-toolbar .page-size-wrap { width: 100%; justify-content: space-between; }
+            .days-toolbar .info-text { text-align: center; margin-left: 0; order: 99; }
+        }
+        @media (max-width: 767.98px) {
+            .member-summary-value span:last-child { max-width: 65%; }
+        }
+        @media (max-width: 575.98px) {
+            .chart-wrap { height: 220px; }
+        }
+        @media print { .chart-wrap { height: 180px; } }
 
         @media (max-width: 575.98px) {
             .view-toggle .btn { padding: .4rem .7rem; font-size: .8rem; }
@@ -161,7 +186,7 @@
             @page { size: A4 landscape; margin: 8mm; }
             body, html { margin: 0 !important; padding: 0 !important; background: #fff !important; }
             nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop,
-            .view-toggle, .days-toolbar, .totals-row, .alert { display: none !important; }
+            .view-toggle, .days-toolbar, .shared-analytics, .alert { display: none !important; }
             .d-print-block { display: block !important; }
             .d-print-flex { display: flex !important; }
             .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
@@ -200,49 +225,38 @@
 
     <!-- PAGE HEADER -->
     <div class="page-header-wrap mb-4 anim-fade-down">
-        <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
-            <h2 class="mb-0 fw-bold">
+        <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3">
+            <h2 class="mb-0 fw-bold text-center text-md-start">
                 <i class="fas fa-users me-2 text-primary"></i>
                 <span th:text="#{family.shared.heading}">Спільні транзакції сім'ї</span>
             </h2>
-            <div class="position-absolute end-0 no-print d-flex gap-2">
-                <a th:href="@{/family/shared/export(startDate=${startDate},endDate=${endDate})}" class="btn btn-success">
+            <div class="d-flex gap-2 no-print flex-wrap justify-content-center justify-content-md-end">
+                <button type="button" class="btn btn-outline-secondary" id="analyticsToggle"
+                        th:title="#{family.shared.analytics.hide}"
+                        th:attr="aria-label=#{family.shared.analytics.hide}"
+                        aria-controls="sharedAnalytics" aria-expanded="true">
+                    <i class="fas fa-chart-pie"></i>
+                </button>
+                <a id="exportLink" th:href="@{/family/shared/export(startDate=${startDate},endDate=${endDate})}" class="btn btn-success">
                     <i class="fas fa-file-excel me-1"></i>
                     <span th:text="#{allDays.action.export}">Експорт</span>
                 </a>
-                <button type="button" class="btn btn-warning" onclick="window.print()">
+                <button type="button" class="btn btn-warning d-none d-md-inline-flex" onclick="window.print()">
                     <i class="fas fa-print me-1"></i>
                     <span th:text="#{allDays.action.print}">Друк</span>
                 </button>
             </div>
         </div>
-        <div class="d-lg-none">
-            <h2 class="mb-3 fw-bold text-center">
-                <i class="fas fa-users me-2 text-primary"></i>
-                <span th:text="#{family.shared.heading}">Спільні транзакції сім'ї</span>
-            </h2>
-            <div class="d-grid gap-2 mb-2 no-print">
-                <a th:href="@{/family/shared/export(startDate=${startDate},endDate=${endDate})}" class="btn btn-success">
-                    <i class="fas fa-file-excel me-1"></i>
-                    <span th:text="#{allDays.action.export}">Експорт</span>
-                </a>
-                <button type="button" class="btn btn-warning" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i>
-                    <span th:text="#{allDays.action.print}">Друк</span>
-                </button>
-            </div>
-        </div>
-
     </div>
 
     <!-- НЕ В СІМ'Ї -->
     <div th:if="${!inFamily}" class="card shadow mt-4 anim-fade-up delay-1">
         <div class="card-body text-center py-5">
             <i class="fas fa-users-slash fa-5x mb-4 text-muted" style="opacity: .2;"></i>
-            <h4>Ви ще не є учасником сім'ї</h4>
-            <p class="text-muted mb-4">Щоб переглядати спільні транзакції, вам потрібно створити сім'ю або приєднатися до існуючої.</p>
+            <h4 th:text="#{family.shared.notMember.title}">Ви ще не є учасником сім'ї</h4>
+            <p class="text-muted mb-4" th:text="#{family.shared.notMember.description}">Щоб переглядати спільні транзакції, вам потрібно створити сім'ю або приєднатися до існуючої.</p>
             <button class="btn btn-primary btn-lg rounded-pill px-4" onclick="window.openSettingsDrawer('family')">
-                <i class="fas fa-cog me-2"></i> Перейти до налаштувань сім'ї
+                <i class="fas fa-cog me-2"></i><span th:text="#{family.shared.notMember.settings}">Перейти до налаштувань сім'ї</span>
             </button>
         </div>
     </div>
@@ -251,52 +265,115 @@
     <div th:if="${inFamily}">
 
         <!-- TOTALS -->
-        <div class="totals-row no-print anim-fade-up delay-1" id="totalsRow">
-            <div class="total-card">
-                <div class="total-icon bg-danger-subtle text-danger"><i class="fas fa-arrow-down"></i></div>
-                <div class="total-body">
-                    <div class="total-label" th:text="#{family.shared.totals.expenses}">Витрати</div>
-                    <div class="total-value text-danger" id="totalsExpenses"
-                         th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
-                    <div class="total-sub" id="totalsExpensesSub">—</div>
+        <div class="row g-3 mb-4 no-print anim-fade-up delay-1" id="totalsRow">
+            <div class="col-12 col-sm-6 col-xl-4">
+                <div class="stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-circle bg-danger-subtle text-danger"><i class="fas fa-arrow-down"></i></div>
+                            <div class="flex-grow-1 text-start">
+                                <h6 class="text-muted mb-1" th:text="#{family.shared.totals.expenses}">Витрати</h6>
+                                <h3 class="mb-0 text-danger" id="totalsExpenses"
+                                    th:text="${#numbers.formatDecimal(totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                                <small class="text-muted" id="totalsExpensesSub"
+                                       th:text="#{family.shared.daysIncluded(${totalDays})}">Днів: 0</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="total-card">
-                <div class="total-icon bg-success-subtle text-success"><i class="fas fa-arrow-up"></i></div>
-                <div class="total-body">
-                    <div class="total-label" th:text="#{family.shared.totals.incomes}">Доходи</div>
-                    <div class="total-value text-success" id="totalsIncomes"
-                         th:text="${#numbers.formatDecimal(totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
-                    <div class="total-sub" id="totalsIncomesSub">—</div>
+            <div class="col-12 col-sm-6 col-xl-4">
+                <div class="stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-circle bg-success-subtle text-success"><i class="fas fa-arrow-up"></i></div>
+                            <div class="flex-grow-1 text-start">
+                                <h6 class="text-muted mb-1" th:text="#{family.shared.totals.incomes}">Доходи</h6>
+                                <h3 class="mb-0 text-success" id="totalsIncomes"
+                                    th:text="${#numbers.formatDecimal(totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                                <small class="text-muted" id="totalsIncomesSub"
+                                       th:text="#{family.shared.daysIncluded(${totalDays})}">Днів: 0</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="total-card">
-                <div class="total-icon bg-primary-subtle text-primary"><i class="fas fa-wallet"></i></div>
-                <div class="total-body">
-                    <div class="total-label" th:text="#{family.shared.totals.balance}">Баланс</div>
-                    <div class="total-value" id="totalsBalance"
-                         th:classappend="${balance >= 0} ? 'text-success' : 'text-danger'"
-                         th:text="${#numbers.formatDecimal(balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</div>
-                    <div class="total-sub" id="totalsBalanceSub">—</div>
+            <div class="col-12 col-sm-6 col-xl-4">
+                <div class="stat-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-circle bg-primary-subtle text-primary"><i class="fas fa-wallet"></i></div>
+                            <div class="flex-grow-1 text-start">
+                                <h6 class="text-muted mb-1" th:text="#{family.shared.totals.balance}">Баланс</h6>
+                                <h3 class="mb-0" id="totalsBalance"
+                                    th:classappend="${balance >= 0} ? 'text-success' : 'text-danger'"
+                                    th:text="${#numbers.formatDecimal(balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0 ₴</h3>
+                                <small class="text-muted" id="totalsBalanceSub"
+                                       th:text="#{family.shared.daysIncluded(${totalDays})}">Днів: 0</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="print-footer d-print-block" style="display:none;">
-                <span th:text="#{footer.copyright}">© 2026 LazyCent</span>
+        <div class="row g-3 mb-4" id="sharedAnalytics">
+            <div class="col-12 col-lg-6 anim-fade-up delay-2">
+                <section class="stat-card p-3">
+                    <h6 class="text-muted mb-3">
+                        <i class="fas fa-chart-pie me-1"></i>
+                        <span th:text="#{family.shared.analytics.trend}">Витрати та доходи за днями</span>
+                    </h6>
+                    <div class="chart-wrap"><canvas id="sharedTrendChart" th:attr="aria-label=#{family.shared.analytics.trend}"></canvas></div>
+                </section>
+            </div>
+            <div class="col-12 col-lg-6 anim-fade-up delay-2">
+                <section class="stat-card p-3">
+                    <h6 class="text-muted mb-3">
+                        <i class="fas fa-users me-1"></i>
+                        <span th:text="#{family.shared.analytics.members}">Підсумки по учасниках</span>
+                    </h6>
+                    <div class="member-summary-list">
+                        <div class="member-summary-item" th:each="summary : ${memberSummaries}">
+                            <div class="member-summary-name" th:text="${summary.username}">user</div>
+                            <div class="member-summary-value">
+                                <span class="text-muted" th:text="#{family.shared.col.expenses}">Витрати</span>
+                                <span class="text-danger" th:text="${#numbers.formatDecimal(summary.totalExpenses, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0</span>
+                            </div>
+                            <div class="member-summary-value">
+                                <span class="text-muted" th:text="#{family.shared.col.incomes}">Доходи</span>
+                                <span class="text-success" th:text="${#numbers.formatDecimal(summary.totalIncomes, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0</span>
+                            </div>
+                            <div class="member-summary-value">
+                                <span class="text-muted" th:text="#{family.shared.col.balance}">Баланс</span>
+                                <span th:classappend="${summary.balance >= 0} ? 'text-success' : 'text-danger'"
+                                      th:text="${#numbers.formatDecimal(summary.balance, 1, 'COMMA', 2, 'POINT')} + ' ' + ${currencySymbol}">0</span>
+                            </div>
+                        </div>
+                        <div th:if="${memberSummaries.isEmpty()}" class="breakdown-empty"
+                             th:text="#{family.shared.analytics.noMemberData}">Немає даних</div>
+                    </div>
+                </section>
             </div>
         </div>
 
         <!-- EMPTY -->
-        <div th:if="${days.isEmpty()}" class="card shadow mt-4 anim-fade-up delay-2">
+        <div th:if="${totalDays == 0}" class="card shadow mt-4 anim-fade-up delay-2">
             <div class="card-body text-center py-5">
                 <i class="fas fa-inbox fa-4x mb-3 text-muted" style="opacity: .3;"></i>
-                <h4 th:text="#{family.shared.empty}">Поки що ніхто не поділився транзакціями.</h4>
-                <p class="text-muted mb-0">Позначте свої транзакції як "Спільні" на сторінці дня, і вони з'являться тут.</p>
+                <h4 th:if="${!hasActiveFilters}"
+                    th:text="#{family.shared.empty}">Поки що ніхто не поділився транзакціями.</h4>
+                <h4 th:unless="${!hasActiveFilters}"
+                    th:text="#{common.noData}">Нічого не знайдено</h4>
+                <p class="text-muted mb-0" th:if="${!hasActiveFilters}"
+                   th:text="#{family.shared.empty.hint}">
+                    Позначте свої транзакції як "Спільні" на сторінці дня, і вони з'являться тут.
+                </p>
             </div>
         </div>
 
         <!-- MAIN SECTION -->
-        <div th:if="${!days.isEmpty()}" class="days-section mb-3 anim-fade-up delay-2">
+        <div th:if="${inFamily}" class="days-section mb-3 anim-fade-up delay-2">
 
             <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
                 <div class="icon-circle bg-primary text-white"><i class="fas fa-calendar-alt"></i></div>
@@ -318,11 +395,17 @@
 
             <!-- TOOLBAR -->
             <div class="days-toolbar sub-bar">
+                <div class="quick-periods w-100">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-period="7" th:text="#{family.shared.period.last7}">7 днів</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-period="30" th:text="#{family.shared.period.last30}">30 днів</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-period="month" th:text="#{family.shared.period.thisMonth}">Цей місяць</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-period="previous-month" th:text="#{family.shared.period.previousMonth}">Минулий місяць</button>
+                </div>
                 <div class="search-wrap">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
                         <input type="text" id="searchInput" class="form-control"
-                               th:placeholder="#{common.searchAll}" autocomplete="off">
+                               th:placeholder="#{common.searchAll}" autocomplete="off" th:value="${searchQuery}">
                         <button type="button" id="searchClear" class="btn btn-clear"
                                 th:title="#{btn.clear}" th:aria-label="#{btn.clear}">
                             <i class="fas fa-times"></i>
@@ -332,46 +415,59 @@
 
                 <div class="filter-group">
                     <select id="dayFilter" class="form-select form-select-sm">
-                        <option value="" th:text="#{allDays.filter.allDays}">Всі дні</option>
-                        <option value="Понеділок" th:text="#{day.monday}">Понеділок</option>
-                        <option value="Вівторок" th:text="#{day.tuesday}">Вівторок</option>
-                        <option value="Середа" th:text="#{day.wednesday}">Середа</option>
-                        <option value="Четвер" th:text="#{day.thursday}">Четвер</option>
-                        <option value="П'ятниця" th:text="#{day.friday}">П'ятниця</option>
-                        <option value="Субота" th:text="#{day.saturday}">Субота</option>
-                        <option value="Неділя" th:text="#{day.sunday}">Неділя</option>
+                        <option value="" th:selected="${dayNameFilter == null or dayNameFilter == ''}" th:text="#{allDays.filter.allDays}">Всі дні</option>
+                        <option value="Понеділок" th:selected="${dayNameFilter == 'Понеділок'}" th:text="#{day.monday}">Понеділок</option>
+                        <option value="Вівторок" th:selected="${dayNameFilter == 'Вівторок'}" th:text="#{day.tuesday}">Вівторок</option>
+                        <option value="Середа" th:selected="${dayNameFilter == 'Середа'}" th:text="#{day.wednesday}">Середа</option>
+                        <option value="Четвер" th:selected="${dayNameFilter == 'Четвер'}" th:text="#{day.thursday}">Четвер</option>
+                        <option value="П'ятниця" th:selected="${dayNameFilter == &quot;П'ятниця&quot;}" th:text="#{day.friday}">П'ятниця</option>
+                        <option value="Субота" th:selected="${dayNameFilter == 'Субота'}" th:text="#{day.saturday}">Субота</option>
+                        <option value="Неділя" th:selected="${dayNameFilter == 'Неділя'}" th:text="#{day.sunday}">Неділя</option>
+                    </select>
+
+                    <select id="memberFilter" class="form-select form-select-sm">
+                        <option value="" th:selected="${memberFilter == null or memberFilter == ''}" th:text="#{family.shared.allMembers}">Всі учасники</option>
+                        <option th:each="m : ${familyMembers}" th:value="${m.username}" th:text="${m.username}" th:selected="${memberFilter == m.username}"></option>
+                    </select>
+
+                    <select id="balanceFilter" class="form-select form-select-sm">
+                        <option value="" th:selected="${balanceFilter == null or balanceFilter == ''}" th:text="#{family.shared.balance.all}">Всі баланси</option>
+                        <option value="positive" th:selected="${balanceFilter == 'positive'}" th:text="#{family.shared.balance.positive}">Додатні</option>
+                        <option value="negative" th:selected="${balanceFilter == 'negative'}" th:text="#{family.shared.balance.negative}">Від'ємні</option>
+                        <option value="zero" th:selected="${balanceFilter == 'zero'}" th:text="#{family.shared.balance.zero}">Нульові</option>
                     </select>
 
                     <div class="date-field">
                         <span class="date-label" th:text="#{common.from}">від</span>
-                        <input type="date" id="dateFrom" class="form-control form-control-sm">
+                        <input type="date" id="dateFrom" class="form-control form-control-sm" th:value="${startDate}">
                     </div>
                     <span class="date-sep d-none d-sm-inline">→</span>
                     <div class="date-field">
                         <span class="date-label" th:text="#{common.to}">до</span>
-                        <input type="date" id="dateTo" class="form-control form-control-sm">
+                        <input type="date" id="dateTo" class="form-control form-control-sm" th:value="${endDate}">
                     </div>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearDateFilter" th:title="#{btn.clear}">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clearDateFilter"
+                            th:title="#{btn.clear}" th:aria-label="#{btn.clear}">
                         <i class="fas fa-times"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-warning btn-sm d-none" id="resetFiltersBtn"
+                            th:attr="data-default-start=${defaultStartDate},data-default-end=${defaultEndDate}">
+                        <i class="fas fa-filter-circle-xmark me-1"></i>
+                        <span th:text="#{family.shared.resetFilters}">Скинути</span>
                     </button>
                 </div>
 
                 <div class="page-size-wrap">
                     <i class="fas fa-list-ol"></i>
+                    <label for="pageSizeSelect" class="visually-hidden" th:text="#{allDays.show.rows}">Показати</label>
                     <select id="pageSizeSelect" class="form-select form-select-sm">
-                        <option value="0" th:text="#{common.all}">Всі</option>
-                        <option value="20" selected>20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
+                        <option value="30" th:selected="${pageSize == 30}">30</option>
+                        <option value="50" th:selected="${pageSize == 50}">50</option>
+                        <option value="100" th:selected="${pageSize == 100}">100</option>
                     </select>
                 </div>
-
-                <button id="loadMoreBtn" class="btn btn-primary btn-sm no-print">
-                    <i class="fas fa-plus-circle me-1"></i>
-                    <span th:text="#{common.loadMore}">Завантажити ще</span>
-                </button>
-
-                <span class="info-text" id="visibleInfo">—</span>
+                <span class="info-text" id="visibleInfo"
+                      th:text="${totalDays == 0 ? '0 / 0' : (page * pageSize + 1) + '–' + (page * pageSize + days.size()) + ' / ' + totalDays}">0 / 0</span>
             </div>
 
             <!-- TABLE -->
@@ -409,6 +505,7 @@
                             th:data-expenses="${d.totalExpenses}"
                             th:data-incomes="${d.totalIncomes}"
                             th:data-balance="${d.balance}"
+                            th:data-members="${#strings.listJoin(d.transactions.![memberUsername], ',')}"
                             th:data-count="${d.transactionsCount}">
                             <td class="col-number" th:text="${stat.index + 1}"></td>
                             <td class="col-date" th:text="${#temporals.format(d.date, 'dd.MM.yyyy')}"></td>
@@ -444,6 +541,7 @@
                              th:data-expenses="${d.totalExpenses}"
                              th:data-incomes="${d.totalIncomes}"
                              th:data-balance="${d.balance}"
+                             th:data-members="${#strings.listJoin(d.transactions.![memberUsername], ',')}"
                              th:data-count="${d.transactionsCount}">
                             <div class="stat-card">
                                 <div class="card-body">
@@ -486,6 +584,15 @@
                 </div>
             </div>
 
+            <span id="paginationState" hidden
+                  th:attr="data-page=${page},data-size=${pageSize},data-total=${totalDays},data-has-next=${hasNext}"></span>
+            <div class="load-more-wrap no-print">
+                <button type="button" class="btn btn-outline-primary" id="loadMoreBtn"
+                        th:if="${hasNext}">
+                    <i class="fas fa-plus-circle me-1"></i><span th:text="#{family.shared.loadMore}">Завантажити ще</span>
+                </button>
+            </div>
+
             <div id="noResults" class="empty-state no-print" style="display: none;">
                 <i class="fas fa-search"></i>
                 <h5 class="mt-3" th:text="#{common.noData}">Нічого не знайдено</h5>
@@ -504,283 +611,283 @@
 <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
         'use strict';
-
-        var currencySymbol = document.getElementById('currencySymbolDisplay').textContent || '₴';
-        var i18n = {
-            showing:   /*[[#{common.showing}]]*/   'Показано: {0} з {1}',
-            allLoaded: /*[[#{common.allLoaded}]]*/ 'Всі завантажено',
-            loadMore:  /*[[#{common.loadMore}]]*/  'Завантажити ще'
-        };
-        function fmt(t) {
-            var a = Array.prototype.slice.call(arguments, 1);
-            return t.replace(/\{(\d+)\}/g, function (m, i) { return a[i] !== undefined ? a[i] : m; });
-        }
-        function fmtMoney(v) {
-            var n = (v || 0).toFixed(2).replace('.', ',');
-            var p = n.split(',');
-            p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-            return p.join(',') + ' ' + currencySymbol;
-        }
-        function fmtDate(iso) {
-            if (!iso) return '—';
-            var p = iso.split('-');
-            return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : iso;
-        }
-        function localizedDayName(raw) {
-            var map = document.getElementById('dayNamesMap');
-            return raw;
-        }
-
-        var viewToggle = document.getElementById('viewToggle');
-        var tableView = document.getElementById('tableView');
-        var cardsView = document.getElementById('cardsView');
-        var searchInput = document.getElementById('searchInput');
-        var searchClear = document.getElementById('searchClear');
         var dateFrom = document.getElementById('dateFrom');
         var dateTo = document.getElementById('dateTo');
+        var searchInput = document.getElementById('searchInput');
         var dayFilter = document.getElementById('dayFilter');
-        var clearDateBtn = document.getElementById('clearDateFilter');
+        var memberFilter = document.getElementById('memberFilter');
+        var balanceFilter = document.getElementById('balanceFilter');
         var pageSizeSelect = document.getElementById('pageSizeSelect');
+        var paginationState = document.getElementById('paginationState');
         var loadMoreBtn = document.getElementById('loadMoreBtn');
-        var visibleInfo = document.getElementById('visibleInfo');
-        var headerDayCount = document.getElementById('headerDayCount');
-        var noResults = document.getElementById('noResults');
+        var resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        var exportLinks = document.querySelectorAll('a[href*="/family/shared/export"]');
+        var tableView = document.getElementById('tableView');
+        var cardsView = document.getElementById('cardsView');
+        var viewToggle = document.getElementById('viewToggle');
         var tableBody = document.getElementById('daysTableBody');
         var cardsContainer = document.getElementById('daysContainer');
+        var currentPage = paginationState ? parseInt(paginationState.dataset.page, 10) || 0 : 0;
+        var pageSize = paginationState ? parseInt(paginationState.dataset.size, 10) || 30 : 30;
+        var totalDays = paginationState ? parseInt(paginationState.dataset.total, 10) || 0 : 0;
+        var analyticsToggle = document.getElementById('analyticsToggle');
+        var sharedAnalytics = document.getElementById('sharedAnalytics');
+        var sharedTrendChart = null;
+        var i18n = {
+            loading: /*[[#{family.shared.loading}]]*/ 'Завантаження…',
+            loadMore: /*[[#{family.shared.loadMore}]]*/ 'Завантажити ще',
+            loadMoreError: /*[[#{family.shared.loadMoreError}]]*/ 'Не вдалося завантажити наступні дні.',
+            analyticsShow: /*[[#{family.shared.analytics.show}]]*/ 'Показати аналітику',
+            analyticsHide: /*[[#{family.shared.analytics.hide}]]*/ 'Приховати аналітику',
+            expenses: /*[[#{family.shared.col.expenses}]]*/ 'Витрати',
+            incomes: /*[[#{family.shared.col.incomes}]]*/ 'Доходи'
+        };
 
-        var totalsExpensesEl = document.getElementById('totalsExpenses');
-        var totalsExpensesSub = document.getElementById('totalsExpensesSub');
-        var totalsIncomesEl = document.getElementById('totalsIncomes');
-        var totalsIncomesSub = document.getElementById('totalsIncomesSub');
-        var totalsBalanceEl = document.getElementById('totalsBalance');
-        var totalsBalanceSub = document.getElementById('totalsBalanceSub');
+        function filterParams(page) {
+            var params = new URLSearchParams();
+            if (dateFrom && dateFrom.value) params.set('startDate', dateFrom.value);
+            if (dateTo && dateTo.value) params.set('endDate', dateTo.value);
+            if (searchInput && searchInput.value.trim()) params.set('q', searchInput.value.trim());
+            if (dayFilter && dayFilter.value) params.set('dayName', dayFilter.value);
+            if (memberFilter && memberFilter.value) params.set('member', memberFilter.value);
+            if (balanceFilter && balanceFilter.value) params.set('balance', balanceFilter.value);
+            params.set('page', String(page));
+            params.set('size', String(pageSizeSelect ? pageSizeSelect.value : pageSize));
+            return params;
+        }
+        function navigate(page) {
+            window.location.href = '/family/shared?' + filterParams(page).toString();
+        }
+        function updateExports() {
+            var params = filterParams(currentPage);
+            params.delete('page');
+            params.delete('size');
+            exportLinks.forEach(function (link) {
+                link.href = '/family/shared/export' + (params.toString() ? '?' + params.toString() : '');
+            });
+        }
 
-        if (!searchInput || !tableBody) return;
-
-        // VIEW
-        var VIEW_KEY = 'family_shared_view_mode';
-        function isCardsMode() { return !cardsView.classList.contains('hidden'); }
-        function setViewMode(mode) {
-            if (mode === 'cards') {
-                tableView.classList.add('hidden');
-                cardsView.classList.remove('hidden');
-                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
-                viewToggle.querySelector('[data-view="cards"]').classList.add('active');
-            } else {
-                tableView.classList.remove('hidden');
-                cardsView.classList.add('hidden');
-                viewToggle.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
-                viewToggle.querySelector('[data-view="table"]').classList.add('active');
+        function updateLoadedCount() {
+            var loaded = tableBody ? tableBody.querySelectorAll('.day-row').length : 0;
+            var info = document.getElementById('visibleInfo');
+            if (info) info.textContent = loaded + ' / ' + totalDays;
+            if (paginationState) {
+                paginationState.dataset.page = String(currentPage);
+                paginationState.dataset.size = String(pageSize);
+                paginationState.dataset.total = String(totalDays);
             }
-            localStorage.setItem(VIEW_KEY, mode);
-            applyFiltersAndPaginate();
-        }
-        var allRows = Array.from(tableBody.querySelectorAll('.day-row'));
-        var allCards = Array.from(document.querySelectorAll('.day-card-wrapper'));
-        var currentPage = 1;
-        var pageSize = parseInt(pageSizeSelect.value) || 20;
-        var searchText = '';
-        var dateFromVal = '', dateToVal = '', dayVal = '';
-        var filtered = [];
-
-        viewToggle.addEventListener('click', function (e) {
-            var btn = e.target.closest('button');
-            if (!btn) return;
-            setViewMode(btn.dataset.view);
-        });
-        setViewMode(localStorage.getItem(VIEW_KEY) || 'table');
-
-        function getFilteredItems() {
-            var items = isCardsMode()
-                ? document.querySelectorAll('.day-card-wrapper')
-                : document.querySelectorAll('.day-row');
-            var result = [];
-            items.forEach(function (item) {
-                var dateStr = item.dataset.date || '';
-                var dayNameRaw = item.dataset.dayname || '';
-                var count = parseInt(item.dataset.count) || 0;
-                var match = true;
-                if (searchText) {
-                    var hay = (dayNameRaw + ' ' + dateStr + ' ' + (item.dataset.expenses || '0') + ' '
-                        + (item.dataset.incomes || '0') + ' ' + (item.dataset.balance || '0') + ' ' + count).toLowerCase();
-                    match = hay.indexOf(searchText) !== -1;
-                }
-                if (match && dateFromVal && dateStr < dateFromVal) match = false;
-                if (match && dateToVal && dateStr > dateToVal) match = false;
-                if (match && dayVal && dayNameRaw !== dayVal) match = false;
-                if (match) result.push(item);
-            });
-            return result;
-        }
-
-        function recalcTotals(items) {
-            var exp = 0, inc = 0;
-            var minDate = null, maxDate = null;
-            items.forEach(function (it) {
-                exp += parseFloat(it.dataset.expenses) || 0;
-                inc += parseFloat(it.dataset.incomes) || 0;
-                var d = it.dataset.date;
-                if (d) {
-                    if (!minDate || d < minDate) minDate = d;
-                    if (!maxDate || d > maxDate) maxDate = d;
-                }
-            });
-            var bal = inc - exp;
-            totalsExpensesEl.textContent = fmtMoney(exp);
-            totalsIncomesEl.textContent = fmtMoney(inc);
-            totalsBalanceEl.textContent = fmtMoney(bal);
-            totalsBalanceEl.className = 'total-value ' + (bal >= 0 ? 'text-success' : 'text-danger');
-            totalsExpensesSub.textContent = items.length + ' дн.';
-            totalsIncomesSub.textContent = items.length + ' дн.';
-            if (minDate && maxDate) {
-                totalsBalanceSub.textContent = minDate === maxDate
-                    ? fmtDate(minDate) : fmtDate(minDate) + ' — ' + fmtDate(maxDate);
-            } else {
-                totalsBalanceSub.textContent = '—';
+            if (loadMoreBtn) {
+                loadMoreBtn.hidden = !paginationState || paginationState.dataset.hasNext !== 'true';
             }
         }
+        updateLoadedCount();
+        updateExports();
 
-        function updateUI() {
-            var total = filtered.length;
-            headerDayCount.textContent = total;
-
-            allRows.forEach(function (r) { r.style.display = 'none'; });
-            document.querySelectorAll('.day-card-wrapper').forEach(function (c) { c.style.display = 'none'; });
-
-            var toShow;
-            if (pageSize === 0) {
-                toShow = filtered;
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function () {
+                var nextPage = currentPage + 1;
                 loadMoreBtn.disabled = true;
-                loadMoreBtn.innerHTML = '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded;
-                visibleInfo.textContent = fmt(i18n.showing, total, total);
-            } else {
-                var end = Math.min(currentPage * pageSize, total);
-                toShow = filtered.slice(0, end);
-                var allShown = (end >= total);
-                loadMoreBtn.disabled = allShown || total === 0;
-                loadMoreBtn.innerHTML = allShown && total > 0
-                    ? '<i class="fas fa-check me-1"></i> ' + i18n.allLoaded
-                    : '<i class="fas fa-plus-circle me-1"></i> ' + i18n.loadMore;
-                visibleInfo.textContent = fmt(i18n.showing, end, total);
-            }
-
-            var visibleDates = new Set(toShow.map(function (el) { return el.dataset.date; }));
-            toShow.forEach(function (el) { el.style.display = ''; });
-            document.querySelectorAll('.day-card-wrapper').forEach(function (c) {
-                if (visibleDates.has(c.dataset.date)) c.style.display = '';
+                loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + i18n.loading;
+                fetch('/family/shared?' + filterParams(nextPage).toString(), {
+                    headers: { 'Accept': 'text/html' }
+                }).then(function (response) {
+                    if (!response.ok) throw new Error('Failed to load the next page');
+                    return response.text();
+                }).then(function (html) {
+                    var loadedDocument = new DOMParser().parseFromString(html, 'text/html');
+                    var nextState = loadedDocument.getElementById('paginationState');
+                    if (!nextState) throw new Error('Pagination state was not returned');
+                    var nextRows = loadedDocument.querySelectorAll('#daysTableBody .day-row');
+                    var nextCards = loadedDocument.querySelectorAll('#daysContainer .day-card-wrapper');
+                    nextRows.forEach(function (row) { tableBody.appendChild(document.importNode(row, true)); });
+                    nextCards.forEach(function (card) { cardsContainer.appendChild(document.importNode(card, true)); });
+                    currentPage = parseInt(nextState.dataset.page, 10) || nextPage;
+                    totalDays = parseInt(nextState.dataset.total, 10) || 0;
+                    paginationState.dataset.hasNext = nextState.dataset.hasNext;
+                    updateLoadedCount();
+                    var rows = tableBody.querySelectorAll('.day-row');
+                    rows.forEach(function (row, index) {
+                        var number = row.querySelector('.col-number');
+                        if (number) number.textContent = String(index + 1);
+                    });
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.innerHTML = '<i class="fas fa-plus-circle me-1"></i>' + i18n.loadMore;
+                }).catch(function (error) {
+                    console.error('Unable to load additional shared days.', error);
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.innerHTML = '<i class="fas fa-plus-circle me-1"></i>' + i18n.loadMore;
+                    if (window.showToast) window.showToast(i18n.loadMoreError, 'error');
+                    else window.alert(i18n.loadMoreError);
+                });
             });
-
-            if (!isCardsMode()) renumber();
-            recalcTotals(toShow);
-            noResults.style.display = total === 0 ? 'block' : 'none';
         }
 
-        function renumber() {
-            var n = 1;
-            document.querySelectorAll('#daysTableBody .day-row').forEach(function (row) {
-                if (row.style.display === 'none') return;
-                var c = row.querySelector('.col-number');
-                if (c) c.textContent = n++;
+        var viewKey = 'family_shared_view_mode';
+        function setView(mode) {
+            var cards = mode === 'cards';
+            tableView.classList.toggle('hidden', cards);
+            cardsView.classList.toggle('hidden', !cards);
+            viewToggle.querySelectorAll('button').forEach(function (button) {
+                button.classList.toggle('active', button.dataset.view === mode);
+            });
+            localStorage.setItem(viewKey, mode);
+        }
+        if (viewToggle && tableView && cardsView) {
+            viewToggle.addEventListener('click', function (event) {
+                var button = event.target.closest('button[data-view]');
+                if (button) setView(button.dataset.view);
+            });
+            setView(localStorage.getItem(viewKey) || 'table');
+        }
+        var analyticsKey = 'family_shared_day_breakdown_visible';
+        function setAnalyticsVisible(visible) {
+            if (!sharedAnalytics || !analyticsToggle) return;
+            sharedAnalytics.classList.toggle('d-none', !visible);
+            analyticsToggle.classList.toggle('active', !visible);
+            analyticsToggle.setAttribute('aria-expanded', String(visible));
+            analyticsToggle.setAttribute('aria-label', visible ? i18n.analyticsHide : i18n.analyticsShow);
+            analyticsToggle.setAttribute('title', visible ? i18n.analyticsHide : i18n.analyticsShow);
+            try { localStorage.setItem(analyticsKey, visible ? '1' : '0'); } catch (error) {}
+            if (visible && sharedTrendChart) sharedTrendChart.resize();
+        }
+        if (analyticsToggle && sharedAnalytics) {
+            var analyticsVisible = '1';
+            try { analyticsVisible = localStorage.getItem(analyticsKey) || '1'; } catch (error) {}
+            setAnalyticsVisible(analyticsVisible === '1');
+            analyticsToggle.addEventListener('click', function () {
+                var currentlyVisible = analyticsToggle.getAttribute('aria-expanded') === 'true';
+                setAnalyticsVisible(!currentlyVisible);
             });
         }
 
-        function applyFiltersAndPaginate() {
-            filtered = getFilteredItems();
-            currentPage = 1;
-            updateUI();
+        function updateResetButton() {
+            if (!resetFiltersBtn) return;
+            var active = (searchInput && searchInput.value.trim().length > 0)
+                || (dayFilter && dayFilter.value !== '')
+                || (memberFilter && memberFilter.value !== '')
+                || (balanceFilter && balanceFilter.value !== '')
+                || (dateFrom && dateFrom.value !== resetFiltersBtn.dataset.defaultStart)
+                || (dateTo && dateTo.value !== resetFiltersBtn.dataset.defaultEnd);
+            resetFiltersBtn.classList.toggle('d-none', !active);
         }
-
-        // EVENTS
-        searchInput.addEventListener('input', function () {
-            searchText = this.value.toLowerCase().trim();
-            applyFiltersAndPaginate();
-        });
-        if (searchClear) {
-            searchClear.addEventListener('click', function () {
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
                 searchInput.value = '';
-                searchText = '';
-                applyFiltersAndPaginate();
-                searchInput.focus();
+                dayFilter.value = '';
+                memberFilter.value = '';
+                balanceFilter.value = '';
+                dateFrom.value = resetFiltersBtn.dataset.defaultStart;
+                dateTo.value = resetFiltersBtn.dataset.defaultEnd;
+                navigate(0);
             });
         }
-        dateFrom.addEventListener('change', function () { dateFromVal = this.value; applyFiltersAndPaginate(); });
-        dateTo.addEventListener('change', function () { dateToVal = this.value; applyFiltersAndPaginate(); });
-        dayFilter.addEventListener('change', function () { dayVal = this.value; applyFiltersAndPaginate(); });
-        clearDateBtn.addEventListener('click', function () {
-            dateFrom.value = ''; dateTo.value = '';
-            dateFromVal = ''; dateToVal = '';
-            applyFiltersAndPaginate();
+        [searchInput, dayFilter, memberFilter, balanceFilter, dateFrom, dateTo].forEach(function (control) {
+            if (control) control.addEventListener('input', updateResetButton);
+            if (control) control.addEventListener('change', updateResetButton);
         });
-        pageSizeSelect.addEventListener('change', function () {
-            pageSize = parseInt(this.value) || 0;
-            applyFiltersAndPaginate();
+        updateResetButton();
+        var submitTimer;
+        if (searchInput) searchInput.addEventListener('input', function () {
+            clearTimeout(submitTimer);
+            submitTimer = setTimeout(function () { navigate(0); }, 350);
         });
-        loadMoreBtn.addEventListener('click', function () {
-            if (pageSize === 0) return;
-            if (Math.min(currentPage * pageSize, filtered.length) >= filtered.length) return;
-            currentPage++;
-            updateUI();
+        ['dayFilter', 'memberFilter', 'balanceFilter', 'dateFrom', 'dateTo'].forEach(function (id) {
+            var control = document.getElementById(id);
+            if (control) control.addEventListener('change', function () { navigate(0); });
+        });
+        var clearSearch = document.getElementById('searchClear');
+        if (clearSearch) clearSearch.addEventListener('click', function () {
+            searchInput.value = '';
+            navigate(0);
+        });
+        var clearDates = document.getElementById('clearDateFilter');
+        if (clearDates) clearDates.addEventListener('click', function () {
+            dateFrom.value = '';
+            dateTo.value = '';
+            navigate(0);
+        });
+        if (pageSizeSelect) pageSizeSelect.addEventListener('change', function () {
+            pageSize = parseInt(this.value, 10) || 30;
+            navigate(0);
+        });
+        document.querySelectorAll('[data-period]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var today = new Date();
+                var from = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                var period = button.dataset.period;
+                if (period === '7' || period === '30') {
+                    from.setDate(from.getDate() - (parseInt(period, 10) - 1));
+                } else if (period === 'month') {
+                    from = new Date(today.getFullYear(), today.getMonth(), 1);
+                } else if (period === 'previous-month') {
+                    from = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    today = new Date(today.getFullYear(), today.getMonth(), 0);
+                }
+                function iso(date) {
+                    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0')
+                        + '-' + String(date.getDate()).padStart(2, '0');
+                }
+                dateFrom.value = iso(from);
+                dateTo.value = iso(today);
+                navigate(0);
+            });
         });
 
-        // SORT
-        function sortRowsBy(column, direction) {
-            var th = document.querySelector('.sortable[data-sort="' + column + '"]');
-            var dataType = th ? th.dataset.type : 'string';
-            function extractValue(el) {
-                var aVal, bVal;
-                if (column === 'count') {
-                    return parseInt(el.dataset.count) || 0;
-                } else {
-                    aVal = el.dataset[column] || '';
-                    if (dataType === 'number') {
-                        aVal = parseFloat(aVal) || 0;
-                    } else {
-                        aVal = aVal.toString().toLowerCase();
+        if (tableBody && cardsContainer) {
+            var rows = Array.from(tableBody.querySelectorAll('.day-row'));
+            var cards = Array.from(cardsContainer.querySelectorAll('.day-card-wrapper'));
+            document.querySelectorAll('.sortable').forEach(function (heading) {
+                heading.addEventListener('click', function () {
+                    var key = heading.dataset.sort;
+                    var direction = heading.classList.contains('active-asc') ? 'desc' : 'asc';
+                    var numeric = heading.dataset.type === 'number';
+                    function value(element) {
+                        var raw = element.dataset[key] || '';
+                        return numeric ? (parseFloat(raw) || 0) : raw.toLowerCase();
                     }
-                    return aVal;
-                }
-            }
-            function compare(a, b) {
-                var aVal = extractValue(a);
-                var bVal = extractValue(b);
-                if (dataType === 'number' || column === 'count') {
-                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
-                }
-                return direction === 'asc'
-                    ? aVal.toString().localeCompare(bVal.toString())
-                    : bVal.toString().localeCompare(aVal.toString());
-            }
-            var sortedRows = allRows.slice().sort(compare);
-            var sortedCards = allCards.slice().sort(compare);
-            sortedRows.forEach(function (row) { tableBody.appendChild(row); });
-            if (cardsContainer) {
-                sortedCards.forEach(function (card) { cardsContainer.appendChild(card); });
-            }
-            allRows = sortedRows;
-            allCards = sortedCards;
-            document.querySelectorAll('.sortable').forEach(function (t) {
-                t.classList.remove('active-asc', 'active-desc');
-                var i = t.querySelector('.sort-icon');
-                if (i) i.className = 'fas fa-sort sort-icon';
+                    function compare(a, b) {
+                        var x = value(a), y = value(b);
+                        var result = numeric ? x - y : x.localeCompare(y);
+                        return direction === 'asc' ? result : -result;
+                    }
+                    rows.sort(compare).forEach(function (row) { tableBody.appendChild(row); });
+                    cards.sort(compare).forEach(function (card) { cardsContainer.appendChild(card); });
+                    document.querySelectorAll('.sortable').forEach(function (th) {
+                        th.classList.remove('active-asc', 'active-desc');
+                        var icon = th.querySelector('.sort-icon');
+                        if (icon) icon.className = 'fas fa-sort sort-icon';
+                    });
+                    heading.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
+                    var icon = heading.querySelector('.sort-icon');
+                    if (icon) icon.className = direction === 'asc'
+                        ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+                });
             });
-            if (th) {
-                th.classList.add(direction === 'asc' ? 'active-asc' : 'active-desc');
-                var i = th.querySelector('.sort-icon');
-                if (i) i.className = direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
-            }
-            applyFiltersAndPaginate();
         }
-        document.querySelectorAll('.sortable').forEach(function (th) {
-            th.addEventListener('click', function () {
-                var col = this.dataset.sort;
-                var cur = this.classList.contains('active-asc') ? 'asc'
-                    : (this.classList.contains('active-desc') ? 'desc' : null);
-                sortRowsBy(col, cur === 'asc' ? 'desc' : 'asc');
-            });
-        });
 
-        // INIT
-        applyFiltersAndPaginate();
+        var chartLabels = /*[[${chartLabels}]]*/ [];
+        var chartExpenses = /*[[${chartExpenses}]]*/ [];
+        var chartIncomes = /*[[${chartIncomes}]]*/ [];
+        var canvas = document.getElementById('sharedTrendChart');
+        if (canvas && window.Chart && chartLabels.length) {
+            sharedTrendChart = new Chart(canvas, {
+                type: 'line',
+                data: { labels: chartLabels.slice().reverse(), datasets: [
+                    { label: i18n.expenses, data: chartExpenses.slice().reverse(), borderColor: '#dc3545', backgroundColor: 'rgba(220,53,69,.12)', fill: true, tension: .3 },
+                    { label: i18n.incomes, data: chartIncomes.slice().reverse(), borderColor: '#198754', backgroundColor: 'rgba(25,135,84,.10)', fill: true, tension: .3 }
+                ] },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
+                    scales: { y: { beginAtZero: true } } }
+            });
+        }
+        document.addEventListener('keydown', function (event) {
+            var target = event.target;
+            if (target && /INPUT|TEXTAREA|SELECT/.test(target.tagName)) return;
+            if (event.key === '/' && searchInput) { event.preventDefault(); searchInput.focus(); }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'p') {
+                event.preventDefault(); window.print();
+            }
+        });
     });
 </script>
 </body>

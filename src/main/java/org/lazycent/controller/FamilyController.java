@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.lazycent.model.Family;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.SharedDayDto;
+import org.lazycent.model.dto.SharedMemberSummaryDto;
 import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.repository.UserRepository;
@@ -12,6 +13,9 @@ import org.lazycent.service.FamilyService;
 import org.lazycent.service.FamilySharedDayExportService;
 import org.lazycent.service.FamilySharedExportService;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -63,6 +67,12 @@ public class FamilyController extends BaseController {
     public String viewShared(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false) String dayName,
+            @RequestParam(required = false) String member,
+            @RequestParam(required = false) String balance,
+            @RequestParam(required = false) String q,
             Authentication authentication, Model model) {
 
         User user = getCurrentUser(authentication);
@@ -71,26 +81,69 @@ public class FamilyController extends BaseController {
         User freshUser = userRepository.findById(user.getId()).orElse(user);
         boolean inFamily = freshUser.getFamilyId() != null;
         model.addAttribute("inFamily", inFamily);
+        boolean customDateFilter = startDate != null || endDate != null;
+        LocalDate defaultStartDate = LocalDate.now().minusMonths(6);
+        LocalDate defaultEndDate = LocalDate.now();
+        model.addAttribute("defaultStartDate", defaultStartDate);
+        model.addAttribute("defaultEndDate", defaultEndDate);
 
         if (!inFamily) {
-            model.addAttribute("startDate", LocalDate.now().minusMonths(6));
-            model.addAttribute("endDate", LocalDate.now());
+            model.addAttribute("startDate", defaultStartDate);
+            model.addAttribute("endDate", defaultEndDate);
             model.addAttribute("days", List.of());
             model.addAttribute("totalExpenses", 0.0);
             model.addAttribute("totalIncomes", 0.0);
             model.addAttribute("balance", 0.0);
             model.addAttribute("familyMembers", List.of());
             model.addAttribute("currentUser", freshUser);
+            model.addAttribute("page", 0);
+            model.addAttribute("pageSize", 30);
+            model.addAttribute("totalDays", 0);
+            model.addAttribute("hasNext", false);
+            model.addAttribute("hasPrevious", false);
+            model.addAttribute("memberSummaries", List.of());
+            model.addAttribute("chartLabels", List.of());
+            model.addAttribute("chartExpenses", List.of());
+            model.addAttribute("chartIncomes", List.of());
+            model.addAttribute("hasActiveFilters", false);
             return "family/shared";
         }
 
-        if (startDate == null) startDate = LocalDate.now().minusMonths(6);
-        if (endDate == null)   endDate   = LocalDate.now();
+        if (startDate == null) startDate = defaultStartDate;
+        if (endDate == null)   endDate   = defaultEndDate;
 
-        List<SharedDayDto> days = familyService.getSharedDays(freshUser, startDate, endDate);
+        int safeSize = Math.max(1, Math.min(size, 100));
+        int safePage = Math.max(0, page);
+        boolean hasFilters = (dayName != null && !dayName.isBlank())
+                || (member != null && !member.isBlank())
+                || (balance != null && !balance.isBlank())
+                || (q != null && !q.isBlank());
+
+        List<SharedDayDto> chartDays = familyService.getSharedDaySummaries(freshUser, startDate, endDate);
+        Page<SharedDayDto> daysPage;
+        List<SharedDayDto> totalsDays;
+        if (hasFilters) {
+            List<SharedDayDto> matchingDays = filterSharedDays(
+                    familyService.getSharedDays(freshUser, startDate, endDate),
+                    member, balance, q, dayName);
+            totalsDays = matchingDays;
+            safePage = Math.min(safePage, Math.max(0, (matchingDays.size() - 1) / safeSize));
+            int fromIndex = Math.min(safePage * safeSize, matchingDays.size());
+            int toIndex = Math.min(fromIndex + safeSize, matchingDays.size());
+            daysPage = new PageImpl<>(matchingDays.subList(fromIndex, toIndex),
+                    PageRequest.of(safePage, safeSize), matchingDays.size());
+        } else {
+            safePage = Math.min(safePage, Math.max(0, (chartDays.size() - 1) / safeSize));
+            daysPage = familyService.getSharedDaysPaged(freshUser, startDate, endDate, safePage, safeSize);
+            totalsDays = chartDays;
+        }
+        List<SharedDayDto> days = daysPage.getContent();
+
+        List<SharedMemberSummaryDto> memberSummaries =
+                familyService.getSharedMemberSummaries(freshUser, startDate, endDate);
 
         double totalExp = 0, totalInc = 0;
-        for (SharedDayDto d : days) {
+        for (SharedDayDto d : totalsDays) {
             totalExp += d.totalExpenses();
             totalInc += d.totalIncomes();
         }
@@ -102,6 +155,23 @@ public class FamilyController extends BaseController {
         model.addAttribute("totalIncomes", totalInc);
         model.addAttribute("balance", totalInc - totalExp);
         model.addAttribute("familyMembers", familyService.getFamilyMembers(freshUser));
+        model.addAttribute("memberSummaries", memberSummaries);
+        model.addAttribute("chartDays", chartDays);
+        model.addAttribute("page", safePage);
+        model.addAttribute("pageSize", safeSize);
+        model.addAttribute("totalDays", daysPage.getTotalElements());
+        model.addAttribute("hasNext", daysPage.hasNext());
+        model.addAttribute("hasPrevious", daysPage.hasPrevious());
+        model.addAttribute("chartLabels", chartDays.stream().map(d -> d.date().toString()).toList());
+        model.addAttribute("chartExpenses", chartDays.stream().map(SharedDayDto::totalExpenses).toList());
+        model.addAttribute("chartIncomes", chartDays.stream().map(SharedDayDto::totalIncomes).toList());
+        model.addAttribute("dayNameFilter", dayName != null ? dayName : "");
+        model.addAttribute("memberFilter", member != null ? member : "");
+        model.addAttribute("balanceFilter", balance != null ? balance : "");
+        model.addAttribute("searchQuery", q != null ? q : "");
+        model.addAttribute("hasActiveFilters", customDateFilter || (dayName != null && !dayName.isBlank())
+                || (member != null && !member.isBlank()) || (balance != null && !balance.isBlank())
+                || (q != null && !q.isBlank()));
         model.addAttribute("currentUser", freshUser);
         return "family/shared";
     }
@@ -161,6 +231,10 @@ public class FamilyController extends BaseController {
     public void exportShared(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String member,
+            @RequestParam(required = false) String balance,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String dayName,
             Authentication authentication,
             HttpServletResponse response) throws java.io.IOException {
 
@@ -179,6 +253,7 @@ public class FamilyController extends BaseController {
         LocalDate from = startDate != null ? startDate : LocalDate.now().minusMonths(6);
         LocalDate to = endDate != null ? endDate : LocalDate.now();
         List<SharedDayDto> days = familyService.getSharedDays(freshUser, from, to);
+        days = filterSharedDays(days, member, balance, q, dayName);
         byte[] xlsx = familySharedExportService.export(days, from, to,
                 org.springframework.context.i18n.LocaleContextHolder.getLocale());
 
@@ -251,6 +326,50 @@ public class FamilyController extends BaseController {
     }
 
     // ==================== HELPER ====================
+
+    private List<SharedDayDto> filterSharedDays(
+            List<SharedDayDto> days, String member, String balance, String q, String dayName) {
+
+        return days.stream().map(day -> {
+            List<SharedTransactionDto> txs = day.transactions();
+            if (txs == null) txs = List.of();
+
+            if (member != null && !member.isBlank()) {
+                txs = txs.stream()
+                        .filter(t -> member.equals(t.memberUsername()))
+                        .toList();
+            }
+            if (q != null && !q.isBlank()) {
+                String qLower = q.toLowerCase().trim();
+                txs = txs.stream().filter(t -> {
+                    String hay = String.join(" ",
+                            nullSafe(day.dayName()),
+                            day.date().toString(),
+                            nullSafe(t.description()),
+                            nullSafe(t.categoryName()),
+                            nullSafe(t.memberUsername()),
+                            t.amount() != null ? String.valueOf(t.amount()) : ""
+                    ).toLowerCase();
+                    return hay.contains(qLower);
+                }).toList();
+            }
+
+            double expenses = txs.stream().filter(SharedTransactionDto::expense)
+                    .mapToDouble(t -> t.amount() != null ? t.amount() : 0.0).sum();
+            double incomes = txs.stream().filter(SharedTransactionDto::income)
+                    .mapToDouble(t -> t.amount() != null ? t.amount() : 0.0).sum();
+            double dayBalance = incomes - expenses;
+
+            return new SharedDayDto(day.date(), day.dayName(), expenses, incomes, dayBalance, txs);
+        }).filter(day -> {
+            if (day.transactions() == null || day.transactions().isEmpty()) return false;
+            if (dayName != null && !dayName.isBlank() && !dayName.equals(day.dayName())) return false;
+            if ("positive".equals(balance) && day.balance() < 0) return false;
+            if ("negative".equals(balance) && day.balance() >= 0) return false;
+            if ("zero".equals(balance) && day.balance() != 0) return false;
+            return true;
+        }).toList();
+    }
 
     /**
      * Єдина логіка фільтрації shared-транзакцій.

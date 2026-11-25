@@ -7,8 +7,12 @@ import org.lazycent.model.Family;
 import org.lazycent.model.FamilyJoinRequest;
 import org.lazycent.model.User;
 import org.lazycent.model.dto.SharedDayDto;
+import org.lazycent.model.dto.SharedMemberSummaryDto;
 import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AccessDeniedException;
@@ -252,6 +256,64 @@ public class FamilyService {
      */
     @Transactional(readOnly = true)
     public List<SharedDayDto> getSharedDays(User currentUser, LocalDate start, LocalDate end) {
+        List<SharedDayDto> summaries = getSharedDaySummaries(currentUser, start, end);
+        if (summaries.isEmpty()) return summaries;
+
+        List<SharedTransactionDto> transactions = getSharedTransactions(currentUser, start, end);
+        Map<LocalDate, List<SharedTransactionDto>> transactionsByDate = transactions.stream()
+                .collect(Collectors.groupingBy(SharedTransactionDto::date));
+        return summaries.stream()
+                .map(day -> withTransactions(day, transactionsByDate.getOrDefault(day.date(), List.of())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SharedDayDto> getSharedDaysPaged(User currentUser, LocalDate start, LocalDate end,
+                                                 int page, int size) {
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, Math.min(size, 200));
+        List<SharedDayDto> summaries = getSharedDaySummaries(currentUser, start, end);
+        safePage = Math.min(safePage, Math.max(0, (summaries.size() - 1) / safeSize));
+        int fromIndex = Math.min(safePage * safeSize, summaries.size());
+        int toIndex = Math.min(fromIndex + safeSize, summaries.size());
+        List<SharedDayDto> selected = summaries.subList(fromIndex, toIndex);
+        if (selected.isEmpty()) {
+            return new PageImpl<>(List.of(), PageRequest.of(safePage, safeSize), summaries.size());
+        }
+
+        LocalDate newest = selected.get(0).date();
+        LocalDate oldest = selected.get(selected.size() - 1).date();
+        List<SharedTransactionDto> transactions = getSharedTransactions(currentUser, oldest, newest);
+        Map<LocalDate, List<SharedTransactionDto>> transactionsByDate = transactions.stream()
+                .collect(Collectors.groupingBy(SharedTransactionDto::date));
+        List<SharedDayDto> pageContent = selected.stream()
+                .map(day -> withTransactions(day, transactionsByDate.getOrDefault(day.date(), List.of())))
+                .toList();
+
+        return new PageImpl<>(pageContent, PageRequest.of(safePage, safeSize), summaries.size());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SharedMemberSummaryDto> getSharedMemberSummaries(User currentUser, LocalDate start, LocalDate end) {
+        Long familyId = currentUser.getFamilyId();
+        if (familyId == null) return List.of();
+
+        Map<String, double[]> totals = new HashMap<>();
+        for (Object[] row : expenseRepository.sumSharedExpensesByMember(familyId, start, end)) {
+            totals.computeIfAbsent((String) row[0], key -> new double[2])[0] = ((Number) row[1]).doubleValue();
+        }
+        for (Object[] row : incomeRepository.sumSharedIncomesByMember(familyId, start, end)) {
+            totals.computeIfAbsent((String) row[0], key -> new double[2])[1] = ((Number) row[1]).doubleValue();
+        }
+        return totals.entrySet().stream()
+                .map(entry -> new SharedMemberSummaryDto(entry.getKey(), entry.getValue()[0],
+                        entry.getValue()[1], entry.getValue()[1] - entry.getValue()[0]))
+                .sorted(Comparator.comparing(SharedMemberSummaryDto::username, String.CASE_INSENSITIVE_ORDER))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<SharedDayDto> getSharedDaySummaries(User currentUser, LocalDate start, LocalDate end) {
         Long familyId = currentUser.getFamilyId();
         if (familyId == null) return List.of();
 
@@ -260,25 +322,29 @@ public class FamilyService {
         for (Object[] r : expenseRepository.sumSharedExpensesByDay(familyId, start, end)) {
             LocalDate d = (LocalDate) r[0];
             stats.computeIfAbsent(d, k -> new double[2]);
-            stats.get(d)[0] += (Double) r[1];
+            stats.get(d)[0] += ((Number) r[1]).doubleValue();
         }
         for (Object[] r : incomeRepository.sumSharedIncomesByDay(familyId, start, end)) {
             LocalDate d = (LocalDate) r[0];
             stats.computeIfAbsent(d, k -> new double[2]);
-            stats.get(d)[1] += (Double) r[1];
+            stats.get(d)[1] += ((Number) r[1]).doubleValue();
         }
 
         List<SharedDayDto> result = new ArrayList<>(stats.size());
         for (var entry : stats.entrySet()) {
             LocalDate date = entry.getKey();
-            List<SharedTransactionDto> txs = getSharedTransactionsByDate(currentUser, date);
             result.add(new SharedDayDto(
                     date, getDayName(date),
                     entry.getValue()[0], entry.getValue()[1],
                     entry.getValue()[1] - entry.getValue()[0],
-                    txs));
+                    List.of()));
         }
         return result;
+    }
+
+    private SharedDayDto withTransactions(SharedDayDto summary, List<SharedTransactionDto> transactions) {
+        return new SharedDayDto(summary.date(), summary.dayName(), summary.totalExpenses(),
+                summary.totalIncomes(), summary.balance(), transactions);
     }
 
     public String getDayName(LocalDate date) {
