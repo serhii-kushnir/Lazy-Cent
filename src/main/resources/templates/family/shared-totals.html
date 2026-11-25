@@ -57,7 +57,9 @@
         .empty-note i { display: block; margin-bottom: .75rem; font-size: 3rem; opacity: .25; }
         @media (max-width: 767.98px) {
             .export-actions, .export-button { width: 100%; }
+            .export-actions { flex-direction: column; }
             .export-button { justify-content: center; }
+            .income-link { width: 100%; justify-content: center; }
         }
         @media (max-width: 767.98px) {
             .summary-toolbar { align-items: stretch; flex-direction: column; padding: .5rem 0; }
@@ -125,6 +127,9 @@
         <div class="d-flex gap-2 justify-content-center no-print export-actions">
             <a th:href="@{/family/shared/totals/export(startDate=${startDate},endDate=${endDate})}" class="btn btn-success export-button">
                 <i class="fas fa-file-excel me-1"></i><span th:text="#{totals.export}">Експорт</span>
+            </a>
+            <a href="/family/shared/income" class="btn btn-outline-success income-link">
+                <i class="fas fa-hand-holding-dollar me-1"></i><span th:text="#{family.shared.income.open}">Спільні доходи</span>
             </a>
             <button type="button" class="btn btn-warning d-none d-md-inline-flex" onclick="window.print()">
                 <i class="fas fa-print me-1"></i><span th:text="#{btn.print}">Друк</span>

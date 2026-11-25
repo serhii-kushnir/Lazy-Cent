@@ -11,8 +11,12 @@ import org.lazycent.model.dto.SharedTransactionDto;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.repository.UserRepository;
 import org.lazycent.service.FamilyService;
+import org.lazycent.service.FamilyIncomePlanningService;
+import org.lazycent.service.FamilyIncomeExportService;
 import org.lazycent.service.FamilySharedDayExportService;
 import org.lazycent.service.FamilySharedExportService;
+import org.lazycent.service.TemplateDataService;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,9 +26,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -42,6 +48,9 @@ public class FamilyController extends BaseController {
     private final DayBudgetRepository dayBudgetRepository;
     private final FamilySharedDayExportService familySharedDayExportService;
     private final FamilySharedExportService familySharedExportService;
+    private final FamilyIncomePlanningService familyIncomePlanningService;
+    private final FamilyIncomeExportService familyIncomeExportService;
+    private final TemplateDataService templateDataService;
     private final UserRepository userRepository;
 
     private static String nullSafe(String s) { return s == null ? "" : s; }
@@ -66,6 +75,140 @@ public class FamilyController extends BaseController {
     }
 
     // ==================== SHARED — LIST ====================
+
+    @GetMapping("/shared/income")
+    public String viewSharedIncome(
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Authentication authentication, Model model) {
+
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+
+        LocalDate today = LocalDate.now();
+        int selectedMonth = month != null && month >= 1 && month <= 12 ? month : today.getMonthValue();
+        int selectedYear = year != null && year >= 1900 && year <= 9999 ? year : today.getYear();
+        model.addAttribute("dashboard", familyIncomePlanningService.getDashboard(freshUser, selectedMonth, selectedYear));
+        model.addAttribute("incomeCategoryNames",
+                familyIncomePlanningService.getAvailableCategoryNames(freshUser, selectedMonth, selectedYear));
+        model.addAttribute("month", selectedMonth);
+        model.addAttribute("year", selectedYear);
+        model.addAttribute("monthDate", LocalDate.of(selectedYear, selectedMonth, 1));
+        model.addAttribute("hasPreviousTargets", familyIncomePlanningService.hasCategoryTargets(
+                freshUser, selectedMonth == 1 ? 12 : selectedMonth - 1,
+                selectedMonth == 1 ? selectedYear - 1 : selectedYear));
+        model.addAttribute("todayMonth", today.getMonthValue());
+        model.addAttribute("todayYear", today.getYear());
+        return "family/shared-income";
+    }
+
+    @GetMapping("/shared/income/export")
+    public void exportSharedIncome(@RequestParam int month, @RequestParam int year,
+                                   Authentication authentication, HttpServletResponse response) throws java.io.IOException {
+        User user = getCurrentUser(authentication);
+        if (user == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null || !isValidBudgetPeriod(month, year)) {
+            response.sendRedirect("/family/shared/income");
+            return;
+        }
+        var dashboard = familyIncomePlanningService.getDashboard(freshUser, month, year);
+        byte[] file = familyIncomeExportService.export(dashboard, month, year,
+                templateDataService.currencySymbol(), LocaleContextHolder.getLocale());
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"shared-income-" + year + "-" + String.format("%02d", month) + ".xlsx\"");
+        response.setContentLength(file.length);
+        response.getOutputStream().write(file);
+    }
+
+    @PostMapping("/shared/income/plan")
+    public String saveSharedIncomePlan(@RequestParam int month, @RequestParam int year,
+                                       @RequestParam double totalTarget,
+                                       Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (!isValidBudgetPeriod(month, year) || !Double.isFinite(totalTarget) || totalTarget < 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", msg("family.shared.income.invalidTarget"));
+        } else {
+            familyIncomePlanningService.savePlan(freshUser, month, year, totalTarget);
+            redirectAttributes.addFlashAttribute("successMessage", msg("family.shared.income.targetSaved"));
+        }
+        return sharedIncomeRedirect(month, year);
+    }
+
+    @PostMapping("/shared/income/category-target")
+    public String saveSharedIncomeCategoryTarget(@RequestParam int month, @RequestParam int year,
+                                                 @RequestParam String categoryName,
+                                                 @RequestParam double targetAmount,
+                                                 @RequestParam(required = false) String note,
+                                                 Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (!isValidBudgetPeriod(month, year) || !Double.isFinite(targetAmount) || targetAmount < 0
+                || categoryName == null || categoryName.isBlank() || categoryName.trim().length() > 100
+                || (note != null && note.length() > 255)
+                || (isValidBudgetPeriod(month, year)
+                    && familyIncomePlanningService.getAvailableCategoryNames(freshUser, month, year).stream()
+                        .noneMatch(name -> name.equalsIgnoreCase(categoryName == null ? "" : categoryName.trim())))) {
+            redirectAttributes.addFlashAttribute("errorMessage", msg("family.shared.income.invalidTarget"));
+        } else {
+            familyIncomePlanningService.saveCategoryTarget(freshUser, month, year, categoryName, targetAmount, note);
+            redirectAttributes.addFlashAttribute("successMessage", msg("family.shared.income.categorySaved"));
+        }
+        return sharedIncomeRedirect(month, year);
+    }
+
+    @PostMapping("/shared/income/category-target/delete")
+    public String deleteSharedIncomeCategoryTarget(@RequestParam int month, @RequestParam int year,
+                                                   @RequestParam String categoryName,
+                                                   Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (isValidBudgetPeriod(month, year)) {
+            familyIncomePlanningService.deleteCategoryTarget(freshUser, month, year, categoryName);
+            redirectAttributes.addFlashAttribute("successMessage", msg("incomeBudget.deleteTarget.success"));
+        }
+        return sharedIncomeRedirect(month, year);
+    }
+
+    @PostMapping("/shared/income/copy-previous")
+    public String copyPreviousSharedIncomeTargets(@RequestParam int month, @RequestParam int year,
+                                                  Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (!isValidBudgetPeriod(month, year)) return "redirect:/family/shared/income";
+
+        int previousMonth = month == 1 ? 12 : month - 1;
+        int previousYear = month == 1 ? year - 1 : year;
+        int copied = familyIncomePlanningService.copyCategoryTargets(
+                freshUser, previousMonth, previousYear, month, year);
+        redirectAttributes.addFlashAttribute(copied > 0 ? "successMessage" : "errorMessage",
+                copied > 0 ? msg("family.shared.income.copySuccess", copied)
+                        : msg("family.shared.income.copyEmpty"));
+        return sharedIncomeRedirect(month, year);
+    }
+
+    private static boolean isValidBudgetPeriod(int month, int year) {
+        return month >= 1 && month <= 12 && year >= 1900 && year <= 9999;
+    }
+
+    private static String sharedIncomeRedirect(int month, int year) {
+        return "redirect:/family/shared/income?month=" + month + "&year=" + year;
+    }
 
     @GetMapping("/shared/totals")
     public String viewSharedTotals(
