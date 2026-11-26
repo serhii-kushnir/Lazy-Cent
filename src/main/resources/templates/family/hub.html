@@ -106,26 +106,6 @@
             </a>
         </div>
 
-        <!-- All Days -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/all-days" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-warning text-dark">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{nav.allDays}">Всі дні</h6>
-            </a>
-        </div>
-
-        <!-- Budget -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/budget" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-success text-white">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{nav.budget}">Бюджет</h6>
-            </a>
-        </div>
-
         <!-- Shared Totals -->
         <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
             <a href="/family/shared/totals" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
@@ -143,6 +123,16 @@
                     <i class="fas fa-hand-holding-dollar"></i>
                 </div>
                 <h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.income.open}">Спільні доходи</h6>
+            </a>
+        </div>
+
+        <!-- Shared Budget -->
+        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
+            <a href="/family/shared/budget" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
+                <div class="icon-box bg-primary text-white">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.budget.open}">Спільний бюджет</h6>
             </a>
         </div>
 

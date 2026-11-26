@@ -15,6 +15,8 @@ import org.lazycent.service.FamilyIncomePlanningService;
 import org.lazycent.service.FamilyIncomeExportService;
 import org.lazycent.service.FamilySharedDayExportService;
 import org.lazycent.service.FamilySharedExportService;
+import org.lazycent.service.FamilyExpenseBudgetService;
+import org.lazycent.service.FamilyExpenseBudgetExportService;
 import org.lazycent.service.TemplateDataService;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -50,6 +52,8 @@ public class FamilyController extends BaseController {
     private final FamilySharedExportService familySharedExportService;
     private final FamilyIncomePlanningService familyIncomePlanningService;
     private final FamilyIncomeExportService familyIncomeExportService;
+    private final FamilyExpenseBudgetService familyExpenseBudgetService;
+    private final FamilyExpenseBudgetExportService familyExpenseBudgetExportService;
     private final TemplateDataService templateDataService;
     private final UserRepository userRepository;
 
@@ -75,6 +79,134 @@ public class FamilyController extends BaseController {
     }
 
     // ==================== SHARED — LIST ====================
+
+    @GetMapping("/shared/budget")
+    public String viewSharedBudget(@RequestParam(required = false) Integer month,
+                                   @RequestParam(required = false) Integer year,
+                                   Authentication authentication, Model model) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+
+        LocalDate today = LocalDate.now();
+        int selectedMonth = month != null && month >= 1 && month <= 12 ? month : today.getMonthValue();
+        int selectedYear = year != null && year >= 1900 && year <= 9999 ? year : today.getYear();
+        model.addAttribute("dashboard", familyExpenseBudgetService.getDashboard(freshUser, selectedMonth, selectedYear));
+        model.addAttribute("expenseCategoryNames",
+                familyExpenseBudgetService.getAvailableCategoryNames(freshUser, selectedMonth, selectedYear));
+        model.addAttribute("month", selectedMonth);
+        model.addAttribute("year", selectedYear);
+        model.addAttribute("monthDate", LocalDate.of(selectedYear, selectedMonth, 1));
+        model.addAttribute("hasPreviousLimits", familyExpenseBudgetService.hasCategoryLimits(
+                freshUser, selectedMonth == 1 ? 12 : selectedMonth - 1,
+                selectedMonth == 1 ? selectedYear - 1 : selectedYear));
+        model.addAttribute("todayMonth", today.getMonthValue());
+        model.addAttribute("todayYear", today.getYear());
+        return "family/shared-budget";
+    }
+
+    @GetMapping("/shared/budget/export")
+    public void exportSharedBudget(@RequestParam int month, @RequestParam int year,
+                                   Authentication authentication, HttpServletResponse response) throws java.io.IOException {
+        User user = getCurrentUser(authentication);
+        if (user == null) {
+            response.sendRedirect("/login");
+            return;
+        }
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null || !isValidBudgetPeriod(month, year)) {
+            response.sendRedirect("/family/shared/budget");
+            return;
+        }
+        var dashboard = familyExpenseBudgetService.getDashboard(freshUser, month, year);
+        byte[] file = familyExpenseBudgetExportService.export(dashboard, month, year,
+                templateDataService.currencySymbol(), LocaleContextHolder.getLocale());
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"shared-budget-" + year + "-" + String.format("%02d", month) + ".xlsx\"");
+        response.setContentLength(file.length);
+        response.getOutputStream().write(file);
+    }
+
+    @PostMapping("/shared/budget/plan")
+    public String saveSharedBudget(@RequestParam int month, @RequestParam int year,
+                                   @RequestParam double totalBudget,
+                                   Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (!isValidBudgetPeriod(month, year) || !Double.isFinite(totalBudget) || totalBudget < 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", msg("family.shared.budget.invalidTarget"));
+        } else {
+            familyExpenseBudgetService.saveBudget(freshUser, month, year, totalBudget);
+            redirectAttributes.addFlashAttribute("successMessage", msg("family.shared.budget.targetSaved"));
+        }
+        return sharedBudgetRedirect(month, year);
+    }
+
+    @PostMapping("/shared/budget/category-limit")
+    public String saveSharedBudgetCategoryLimit(@RequestParam int month, @RequestParam int year,
+                                                @RequestParam String categoryName,
+                                                @RequestParam double limitAmount,
+                                                @RequestParam(required = false) String note,
+                                                Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        boolean categoryExists = isValidBudgetPeriod(month, year)
+                && categoryName != null
+                && familyExpenseBudgetService.getAvailableCategoryNames(freshUser, month, year).stream()
+                .anyMatch(name -> name.equalsIgnoreCase(categoryName.trim()));
+        if (!isValidBudgetPeriod(month, year) || !Double.isFinite(limitAmount) || limitAmount < 0
+                || !categoryExists || (note != null && note.length() > 255)) {
+            redirectAttributes.addFlashAttribute("errorMessage", msg("family.shared.budget.invalidTarget"));
+        } else {
+            familyExpenseBudgetService.saveCategoryLimit(freshUser, month, year, categoryName, limitAmount, note);
+            redirectAttributes.addFlashAttribute("successMessage", msg("family.shared.budget.categorySaved"));
+        }
+        return sharedBudgetRedirect(month, year);
+    }
+
+    @PostMapping("/shared/budget/category-limit/delete")
+    public String deleteSharedBudgetCategoryLimit(@RequestParam int month, @RequestParam int year,
+                                                  @RequestParam String categoryName,
+                                                  Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (isValidBudgetPeriod(month, year)) {
+            familyExpenseBudgetService.deleteCategoryLimit(freshUser, month, year, categoryName);
+            redirectAttributes.addFlashAttribute("successMessage", msg("budget.deleteLimit.success"));
+        }
+        return sharedBudgetRedirect(month, year);
+    }
+
+    @PostMapping("/shared/budget/copy-previous")
+    public String copyPreviousSharedBudgetLimits(@RequestParam int month, @RequestParam int year,
+                                                 Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = getCurrentUser(authentication);
+        if (user == null) return "redirect:/login";
+        User freshUser = userRepository.findById(user.getId()).orElse(user);
+        if (freshUser.getFamilyId() == null) return "redirect:/family/shared";
+        if (!isValidBudgetPeriod(month, year)) return "redirect:/family/shared/budget";
+
+        int previousMonth = month == 1 ? 12 : month - 1;
+        int previousYear = month == 1 ? year - 1 : year;
+        int copied = familyExpenseBudgetService.copyCategoryLimits(
+                freshUser, previousMonth, previousYear, month, year);
+        redirectAttributes.addFlashAttribute(copied > 0 ? "successMessage" : "errorMessage",
+                copied > 0 ? msg("family.shared.budget.copySuccess", copied)
+                        : msg("family.shared.budget.copyEmpty"));
+        return sharedBudgetRedirect(month, year);
+    }
+
+    private static String sharedBudgetRedirect(int month, int year) {
+        return "redirect:/family/shared/budget?month=" + month + "&year=" + year;
+    }
 
     @GetMapping("/shared/income")
     public String viewSharedIncome(

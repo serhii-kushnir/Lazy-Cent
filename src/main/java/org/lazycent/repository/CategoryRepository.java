@@ -28,5 +28,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
             "ORDER BY c.name")
     List<String> findIncomeCategoryNamesByFamily(@Param("familyId") Long familyId);
 
+    @Query("SELECT DISTINCT c.name FROM Category c " +
+            "WHERE c.owner.family.id = :familyId AND UPPER(c.type) = 'EXPENSE' " +
+            "ORDER BY c.name")
+    List<String> findExpenseCategoryNamesByFamily(@Param("familyId") Long familyId);
+
     long countByOwner(User owner);
 }
