@@ -6,51 +6,58 @@
     <title th:text="#{family.title} + ' - ' + #{app.title}">Сім'я - Lazy Cent</title>
     <div th:replace="~{fragments/head :: themeAssets(robots='noindex, nofollow')}"></div>
     <style>
-        /* Анімації */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp .5s ease forwards; opacity: 0; }
+        .animate-fade-down { animation: fadeInDown .4s ease forwards; opacity: 0; }
+        .delay-1 { animation-delay: .05s; } .delay-2 { animation-delay: .1s; }
+        .delay-3 { animation-delay: .15s; } .delay-4 { animation-delay: .2s; }
+        .delay-5 { animation-delay: .25s; }
+        .page-max { max-width: 1920px; margin: 0 auto; }
+        .btn:not(.btn-close), .btn.rounded-pill, .btn.rounded-circle, .btn-rounded, .nav-btn { border-radius: .5rem !important; }
+        .btn:not(.btn-close):not(.navbar-toggler) { transition: transform .2s ease, box-shadow .2s ease; }
+        .btn:not(.btn-close):not(.navbar-toggler):hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,.15); }
+        .btn-sm { padding: .3rem .75rem; font-size: .875rem; }
+        .page-header-wrap { position: relative; z-index: 10; }
+        .icon-circle { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
+        .stat-card { border-radius: 1rem; border: 1px solid #2a2e37; background-color: #1d2027; color: #f8f9fa; box-shadow: 0 4px 12px rgba(0,0,0,.05); height: 100%; }
+        [data-bs-theme="dark"] .stat-card, [data-bs-theme="dark"] .bg-card-bg { background-color: #1d2027; border: 1px solid #2a2e37; }
+        .bg-card-bg { background-color: var(--bs-card-bg); border-radius: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,.05); overflow: hidden; }
+        .progress-bar-custom { height: 10px; border-radius: 10px; }
+        .recent-list .list-group-item { padding: .6rem 0; border-left: none; border-right: none; background: transparent; }
+        .recent-list .list-group-item:first-child { border-top: none; }
+        .recent-list .recent-desc { font-size: .92rem; }
+        .recent-list .recent-meta { font-size: .78rem; }
+        .family-widget { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.25rem 1.5rem; border: 1px solid #2a2e37; border-radius: 1rem; background: #1d2027; color: #f8f9fa; box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+        .family-widget .icon-circle { background: var(--bs-primary); color: #fff; }
+        .family-widget-name { color: #f8f9fa; }
+        .family-widget-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+        .family-widget-meta .badge { padding: .55rem .75rem; font-size: .85rem; }
+        .family-invite-code { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .7rem; border: 1px solid #3a404a; border-radius: .6rem; background: #212529; }
+        .family-invite-code code { color: #f8f9fa; font-size: .95rem; }
+        .hub-card { height: 100%; border: 1px solid #2a2e37; border-radius: 1rem; background: #1d2027; color: #f8f9fa; text-decoration: none; transition: transform .2s, box-shadow .2s; }
+        .hub-card:hover { transform: translateY(-4px); box-shadow: 0 8px 18px rgba(0,0,0,.2); color: #fff; }
+        .hub-card .icon-box { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1.35rem; margin-bottom: .75rem; }
+        @media (max-width: 767.98px) {
+            .family-widget { align-items: flex-start; flex-direction: column; padding: 1rem; gap: 1rem; }
+            .family-widget-main { width: 100%; }
+            .family-widget-meta { width: 100%; }
+            .family-widget .settings-button { margin-left: auto; }
         }
-        .anim-fade-up {
-            animation: fadeInUp 0.5s ease forwards;
-            opacity: 0;
+        @media (max-width: 420px) {
+            .family-widget-meta { align-items: stretch; }
+            .family-widget .settings-button { width: 100%; margin-left: 0; }
         }
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-
-        /* Стилі карток */
-        .hub-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-radius: 1rem;
-            height: 100%;
-            text-decoration: none;
-            color: inherit;
-            background: var(--bs-body-bg);
-            border: 1px solid var(--bs-border-color);
+        @media print {
+            body, html { margin: 0 !important; padding: 0 !important; }
+            nav.navbar, footer, .no-print, .btn, .modal, .modal-backdrop, .d-print-none, .alert { display: none !important; }
+            .d-print-block { display: block !important; } .d-print-flex { display: flex !important; }
+            .container-fluid, .page-max { max-width: 100% !important; padding: 10px !important; margin: 0 !important; }
+            .print-header { display: flex !important; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #333; margin-bottom: 20px; }
+            .print-footer { text-align: center; font-size: .7rem; color: #666; border-top: 1px solid #ddd; padding-top: 10px; margin-top: 20px; }
+            .stat-card, .bg-card-bg { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
         }
-        .hub-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            color: inherit;
-        }
-        .family-header {
-            background: linear-gradient(135deg, #6f42c1 0%, #9b59b6 100%);
-            color: #fff;
-            border-radius: 1rem;
-            padding: 2.5rem 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 8px 16px rgba(111, 66, 193, 0.3);
-        }
-        .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
     </style>
 </head>
 <body>
@@ -59,98 +66,235 @@
 <div th:replace="~{fragments/cookie-banner :: cookieBanner}"></div>
 <div th:replace="~{fragments/toast :: toastContainer}"></div>
 
-<div class="container mt-4 mb-5">
-    <!-- Заголовок сім'ї -->
-    <div class="family-header anim-fade-up">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div>
-                <h2 class="mb-2 fw-bold"><i class="fas fa-users me-2"></i><span th:text="${family.name}">Сім'я</span></h2>
-                <p class="mb-0 opacity-75">
-                    <i class="fas fa-user-friends me-1"></i> <span th:text="${membersCount}">0</span> <span th:text="#{home.family.members}">учасників</span>
-                    <span class="mx-2">·</span>
-                    <i class="fas fa-key me-1"></i> <span th:text="#{family.hub.code}">Код:</span> <span th:text="${family.inviteCode}" class="fw-bold"></span>
-                </p>
+<main class="container-fluid px-3 px-md-4 mt-4 page-max">
+    <div class="print-header d-print-flex" style="display:none">
+        <span class="logo">💰 LazyCent</span>
+        <h2 th:text="#{family.title}">Сім'я</h2>
+    </div>
+
+    <div class="page-header-wrap mb-4 animate-fade-up delay-1 text-center">
+        <h2 class="mb-0 fw-bold text-muted"><i class="far fa-calendar-alt me-2"></i>
+            <span th:text="${#temporals.format(today, 'dd MMMM yyyy')}">26 листопада 2026</span>
+        </h2>
+    </div>
+
+    <div class="page-header-wrap mb-4 animate-fade-down">
+        <div class="family-widget">
+            <div class="family-widget-main d-flex align-items-center gap-3 flex-grow-1" style="min-width:0">
+                <div class="icon-circle flex-shrink-0"><i class="fas fa-users"></i></div>
+                <div class="text-start" style="min-width:0">
+                    <h6 class="text-muted mb-0" th:text="#{nav.family}">Сім'я</h6>
+                    <h3 class="family-widget-name mb-1 text-truncate" th:text="${family.name}">Family</h3>
+                    <div class="family-widget-meta">
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-user-friends me-1"></i><span th:text="${membersCount}">0</span>
+                            <span th:text="#{home.family.members}">учасників</span>
+                        </span>
+                        <span th:if="${pendingRequests != null and !pendingRequests.empty}" class="badge bg-warning text-dark">
+                            <i class="fas fa-user-clock me-1"></i><span th:text="${pendingRequests.size()}">1</span>
+                            <span th:text="#{family.dashboard.pendingRequests}">запитів</span>
+                        </span>
+                        <span class="family-invite-code">
+                            <small class="text-muted" th:text="#{family.inviteCode}">Код-запрошення</small>
+                            <code class="fw-bold" th:text="${family.inviteCode}">ABCD1234</code>
+                        </span>
+                    </div>
+                </div>
             </div>
-            <div class="d-flex flex-column flex-sm-row gap-2 mt-3 mt-md-0">
-                <button class="btn btn-light rounded-pill px-4" onclick="window.openSettingsDrawer('family')">
-                    <i class="fas fa-cog me-1"></i> <span th:text="#{family.hub.settings}">Налаштування сім'ї</span>
-                </button>
-            </div>
+            <button type="button" class="btn btn-primary text-nowrap no-print settings-button"
+                    onclick="window.openSettingsDrawer('family')">
+                <i class="fas fa-cog me-1"></i><span th:text="#{family.hub.settings}">Налаштування сім'ї</span>
+            </button>
         </div>
     </div>
 
-    <!-- Сітка посилань -->
-    <h4 class="mb-4 text-muted fw-bold anim-fade-up delay-1">
-        <i class="fas fa-compass me-2"></i><span th:text="#{family.hub.nav_title}">Навігація та дії</span>
-    </h4>
-
-    <!-- Використовуємо col-lg-2, щоб 6 карток (6 * 2 = 12) ідеально ставали в один рядок на ПК -->
-    <div class="row g-3 justify-content-center">
-        <!-- Home -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/home" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-primary text-white">
-                    <i class="fas fa-home"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{nav.home}">Головна</h6>
-            </a>
+    <section class="mb-4 animate-fade-up delay-3">
+        <h4 class="mb-3 text-muted fw-bold"><i class="fas fa-compass me-2"></i><span th:text="#{index.quickAccess.title}">Швидкий доступ</span></h4>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-xl"><a th:href="@{/family/shared}" class="hub-card d-flex flex-column align-items-center justify-content-center p-3">
+                <div class="icon-box bg-secondary text-white"><i class="fas fa-list-ul"></i></div><h6 class="mb-0 fw-bold text-center" th:text="#{family.hub.shared}">Спільні транзакції</h6>
+            </a></div>
+            <div class="col-6 col-md-4 col-xl"><a th:href="@{/family/shared/budget}" class="hub-card d-flex flex-column align-items-center justify-content-center p-3">
+                <div class="icon-box bg-primary text-white"><i class="fas fa-wallet"></i></div><h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.budget.open}">Спільний бюджет</h6>
+            </a></div>
+            <div class="col-6 col-md-4 col-xl"><a th:href="@{/family/shared/income}" class="hub-card d-flex flex-column align-items-center justify-content-center p-3">
+                <div class="icon-box bg-success text-white"><i class="fas fa-hand-holding-dollar"></i></div><h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.income.open}">Спільні доходи</h6>
+            </a></div>
+            <div class="col-6 col-md-4 col-xl"><a th:href="@{/family/shared/totals}" class="hub-card d-flex flex-column align-items-center justify-content-center p-3">
+                <div class="icon-box bg-info text-white"><i class="fas fa-chart-pie"></i></div><h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.totalsPage.open}">Спільні підсумки</h6>
+            </a></div>
+            <div class="col-6 col-md-4 col-xl"><a th:href="@{/notes/family}" class="hub-card d-flex flex-column align-items-center justify-content-center p-3">
+                <div class="icon-box bg-dark text-white"><i class="fas fa-sticky-note"></i></div><h6 class="mb-0 fw-bold text-center" th:text="#{notes.family.title}">Спільні нотатки</h6>
+            </a></div>
         </div>
+    </section>
 
-        <!-- Shared Transactions -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/family/shared" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-secondary text-white">
-                    <i class="fas fa-list-ul"></i>
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-1"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3"><div class="icon-circle bg-primary text-white"><i class="fas fa-wallet"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{family.dashboard.monthBalance}">Баланс сім'ї за місяць</h6>
+                    <h3 class="mb-0" th:classappend="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3>
+                    <small class="text-muted d-block mt-1" th:text="#{family.dashboard.sharedBalance}">Спільні доходи мінус витрати</small></div>
+            </div>
+        </div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-2"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3"><div class="icon-circle bg-success-subtle text-success"><i class="fas fa-arrow-up"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{family.dashboard.monthIncome}">Доходи сім'ї за місяць</h6>
+                    <h3 class="text-success mb-0" th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3></div>
+            </div>
+        </div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-3"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3"><div class="icon-circle bg-danger-subtle text-danger"><i class="fas fa-arrow-down"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{family.dashboard.monthExpense}">Витрати сім'ї за місяць</h6>
+                    <h3 class="text-danger mb-0" th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3></div>
+            </div>
+        </div></div></div>
+        <div class="col-12 col-sm-6 col-xl-3 animate-fade-up delay-4"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3"><div class="icon-circle bg-info-subtle text-info"><i class="fas fa-bullseye"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{home.budget.title}">Бюджет на місяць</h6>
+                    <h3 class="text-info mb-0" th:text="${expenseBudget.totalBudget > 0 ? #numbers.formatDecimal(expenseBudget.totalBudget, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol : '— ' + currencySymbol}">— ₴</h3>
+                    <small class="text-muted d-block mt-1" th:if="${expenseBudget.totalBudget <= 0}">
+                        <a th:href="@{/family/shared/budget}" class="text-decoration-none"><i class="fas fa-plus-circle me-1"></i><span th:text="#{home.budget.setNow}">Встановити бюджет</span></a>
+                    </small>
+                    <small class="text-muted d-block mt-1" th:if="${expenseBudget.totalBudget > 0 and expenseBudget.daysRemaining > 0}">
+                        <i class="fas fa-calendar-day me-1"></i><span th:text="#{home.budget.daysLeft(${expenseBudget.daysRemaining})}">Днів залишилось</span>
+                    </small>
                 </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{family.hub.shared}">Спільні транзакції</h6>
-            </a>
-        </div>
+            </div>
+        </div></div></div>
+    </div>
 
-        <!-- Shared Totals -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/family/shared/totals" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-primary text-white">
-                    <i class="fas fa-chart-pie"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.totalsPage.open}">Спільні підсумки</h6>
-            </a>
-        </div>
-
-        <!-- Shared Income -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/family/shared/income" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-success text-white">
-                    <i class="fas fa-hand-holding-dollar"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.income.open}">Спільні доходи</h6>
-            </a>
-        </div>
-
-        <!-- Shared Budget -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/family/shared/budget" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-primary text-white">
-                    <i class="fas fa-wallet"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{family.shared.budget.open}">Спільний бюджет</h6>
-            </a>
-        </div>
-
-        <!-- Family Notes -->
-        <div class="col-6 col-md-4 col-lg-2 anim-fade-up delay-2">
-            <a href="/notes/family" class="hub-card d-flex flex-column align-items-center justify-content-center p-4">
-                <div class="icon-box bg-dark text-white">
-                    <i class="fas fa-sticky-note"></i>
-                </div>
-                <h6 class="mb-0 fw-bold text-center" th:text="#{notes.family.title}">Спільні нотатки</h6>
-            </a>
+    <div th:if="${expenseBudget.totalBudget > 0}" class="mb-4 animate-fade-up delay-5">
+        <div class="d-flex justify-content-between mb-1"><span class="fw-semibold" th:text="#{budget.progress}">Використано бюджету</span>
+            <span class="fw-bold" th:text="${#numbers.formatDecimal(expenseBudget.totalExpenses / expenseBudget.totalBudget * 100, 1, 'COMMA', 2, 'POINT') + '%'}">0%</span></div>
+        <div class="progress progress-bar-custom"><div class="progress-bar" role="progressbar"
+             th:style="|width:${expenseBudget.totalExpenses / expenseBudget.totalBudget * 100 > 100 ? 100 : expenseBudget.totalExpenses / expenseBudget.totalBudget * 100}%|"
+             th:classappend="${expenseBudget.totalExpenses > expenseBudget.totalBudget} ? 'bg-danger' : (${expenseBudget.totalExpenses / expenseBudget.totalBudget >= .8} ? 'bg-warning' : 'bg-success')"></div></div>
+        <div class="d-flex justify-content-between mt-2 small text-muted flex-wrap gap-2">
+            <span><i class="fas fa-coins me-1"></i><span th:text="#{budget.spent}">Витрачено</span>:
+                <strong class="text-danger" th:text="${#numbers.formatDecimal(expenseBudget.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</strong></span>
+            <span><i class="fas fa-wallet me-1"></i><span th:text="#{budget.remaining}">Залишок</span>:
+                <strong th:classappend="${expenseBudget.remainingBudget >= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(expenseBudget.remainingBudget, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</strong></span>
         </div>
     </div>
-</div>
+    <div th:if="${incomePlan.totalTarget > 0}" class="mb-4 animate-fade-up delay-5">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="fw-semibold" th:text="#{family.dashboard.incomeTargetProgress}">Ціль спільних доходів</span>
+            <span class="fw-bold" th:text="${#numbers.formatDecimal(incomePlan.totalIncomes / incomePlan.totalTarget * 100, 1, 'COMMA', 2, 'POINT') + '%'}">0%</span>
+        </div>
+        <div class="progress progress-bar-custom"><div class="progress-bar bg-success" role="progressbar"
+             th:style="|width:${incomePlan.totalIncomes / incomePlan.totalTarget * 100 > 100 ? 100 : incomePlan.totalIncomes / incomePlan.totalTarget * 100}%|"></div></div>
+        <div class="d-flex justify-content-between mt-2 small text-muted flex-wrap gap-2">
+            <span><i class="fas fa-hand-holding-dollar me-1"></i><span th:text="#{index.income}">Доходи</span>:
+                <strong class="text-success" th:text="${#numbers.formatDecimal(incomePlan.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</strong></span>
+            <span><i class="fas fa-bullseye me-1"></i><span th:text="#{family.dashboard.incomeTarget}">Ціль</span>:
+                <strong th:text="${#numbers.formatDecimal(incomePlan.totalTarget, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</strong></span>
+        </div>
+    </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 animate-fade-up delay-1"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom"><div class="icon-circle bg-primary-subtle text-primary"><i class="fas fa-sun"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{index.today}">Сьогодні</h6>
+                    <h3 class="mb-0" th:classappend="${todaySummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(todaySummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3></div></div>
+            <div class="d-flex justify-content-between small mb-1"><span class="text-muted"><i class="fas fa-arrow-up text-success me-1"></i><span th:text="#{index.income}">Доходи</span></span>
+                <span class="text-success fw-semibold" th:text="${#numbers.formatDecimal(todaySummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span></div>
+            <div class="d-flex justify-content-between small"><span class="text-muted"><i class="fas fa-arrow-down text-danger me-1"></i><span th:text="#{index.expense}">Витрати</span></span>
+                <span class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(todaySummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span></div>
+        </div></div></div>
+        <div class="col-md-4 animate-fade-up delay-2"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom"><div class="icon-circle bg-success-subtle text-success"><i class="fas fa-calendar-week"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{index.week}">Цей тиждень</h6>
+                    <h3 class="mb-0" th:classappend="${weekSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(weekSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3></div></div>
+            <div class="d-flex justify-content-between small mb-1"><span class="text-muted"><i class="fas fa-arrow-up text-success me-1"></i><span th:text="#{index.income}">Доходи</span></span>
+                <span class="text-success fw-semibold" th:text="${#numbers.formatDecimal(weekSummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span></div>
+            <div class="d-flex justify-content-between small"><span class="text-muted"><i class="fas fa-arrow-down text-danger me-1"></i><span th:text="#{index.expense}">Витрати</span></span>
+                <span class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(weekSummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span></div>
+        </div></div></div>
+        <div class="col-md-4 animate-fade-up delay-3"><div class="stat-card"><div class="card-body p-4">
+            <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom"><div class="icon-circle bg-info-subtle text-info"><i class="fas fa-calendar-alt"></i></div>
+                <div class="flex-grow-1 text-start"><h6 class="text-muted mb-0" th:text="#{index.month}">Цей місяць</h6>
+                    <h3 class="mb-0" th:classappend="${monthSummary.balance >= 0} ? 'text-success' : 'text-danger'"
+                        th:text="${#numbers.formatDecimal(monthSummary.balance, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3></div></div>
+            <div class="d-flex justify-content-between small mb-1"><span class="text-muted"><i class="fas fa-arrow-up text-success me-1"></i><span th:text="#{index.income}">Доходи</span></span>
+                <span class="text-success fw-semibold" th:text="${#numbers.formatDecimal(monthSummary.totalIncomes, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span></div>
+            <div class="d-flex justify-content-between small"><span class="text-muted"><i class="fas fa-arrow-down text-danger me-1"></i><span th:text="#{index.expense}">Витрати</span></span>
+                <span class="text-danger fw-semibold" th:text="${#numbers.formatDecimal(monthSummary.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span></div>
+        </div></div></div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-6 animate-fade-up delay-1"><div class="bg-card-bg h-100 d-flex flex-column">
+            <div class="d-flex align-items-center gap-3 flex-wrap" style="padding:1rem;border-bottom:1px solid var(--bs-border-color)">
+                <div class="icon-circle bg-info-subtle text-info"><i class="fas fa-clock-rotate-left"></i></div>
+                <div class="flex-grow-1 text-start" style="min-width:0"><h3 class="mb-0" th:text="#{home.recent.title}">Останні транзакції</h3></div>
+                <a th:href="@{/family/shared}" class="btn btn-outline-secondary btn-sm flex-shrink-0"><span th:text="#{home.recent.viewAll}">Всі</span><i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+            <div class="p-3 flex-grow-1 d-flex flex-column">
+                <div th:if="${recentTransactions == null or recentTransactions.empty}" class="text-center py-4 text-muted flex-grow-1 d-flex flex-column justify-content-center">
+                    <i class="fas fa-inbox fa-2x mb-2" style="opacity:.4"></i><p class="mb-0" th:text="#{family.dashboard.noTransactions}">Ще немає спільних транзакцій</p>
+                </div>
+                <ul th:if="${recentTransactions != null and !recentTransactions.empty}" class="list-group list-group-flush recent-list flex-grow-1">
+                    <li th:each="t : ${recentTransactions}" class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2 flex-grow-1 text-truncate">
+                            <i class="fas" th:classappend="${t.expense()} ? 'fa-arrow-down text-danger' : 'fa-arrow-up text-success'"></i>
+                            <div class="text-truncate"><div class="fw-semibold recent-desc text-truncate"
+                                th:text="${t.description() != null and !t.description().isEmpty()} ? ${t.description()} : '—'">—</div>
+                                <small class="text-muted recent-meta"><span th:text="${#temporals.format(t.date(), 'dd.MM')}"></span>
+                                    · <span th:text="${t.categoryName()}">Категорія</span> · <span th:text="${t.memberUsername()}">Учасник</span></small>
+                            </div>
+                        </div>
+                        <span class="fw-bold text-nowrap ms-2" th:classappend="${t.expense()} ? 'text-danger' : 'text-success'"
+                              th:text="${(t.expense() ? '−' : '+') + #numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
+                    </li>
+                </ul>
+            </div>
+        </div></div>
+
+        <div class="col-12 col-lg-6 animate-fade-up delay-2"><div class="bg-card-bg h-100 d-flex flex-column">
+            <div class="d-flex align-items-center gap-3 flex-wrap" style="padding:1rem;border-bottom:1px solid var(--bs-border-color)">
+                <div class="icon-circle bg-danger-subtle text-danger"><i class="fas fa-chart-bar"></i></div>
+                <div class="flex-grow-1 text-start" style="min-width:0"><h6 class="text-muted mb-0" th:text="#{home.topCategories.title}">Топ категорій витрат</h6>
+                    <h3 class="mb-0" th:text="${#numbers.formatDecimal(topExpensesTotal, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h3></div>
+            </div>
+            <div class="p-3 flex-grow-1 d-flex flex-column">
+                <div th:if="${topCategories == null or topCategories.empty}" class="text-center py-3 text-muted">
+                    <i class="fas fa-chart-line fa-2x mb-2" style="opacity:.4"></i><p class="mb-0 small" th:text="#{home.topCategories.empty}">Немає витрат цього місяця</p>
+                </div>
+                <div th:if="${topCategories != null and !topCategories.empty}" class="flex-grow-1">
+                    <div th:each="cat, stat : ${topCategories}" class="mb-3">
+                        <div class="d-flex justify-content-between mb-1"><span class="fw-semibold"><span class="badge bg-danger me-1" th:text="${stat.count}">1</span><span th:text="${cat.name()}">—</span></span>
+                            <span class="fw-bold text-nowrap"><span th:text="${#numbers.formatDecimal(cat.amount(), 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
+                                <small class="text-muted ms-1" th:text="${'(' + #numbers.formatDecimal(cat.percent(), 1, 'COMMA', 1, 'POINT') + '%)'}">(0%)</small></span></div>
+                        <div class="progress progress-bar-custom" style="height:8px"><div class="progress-bar bg-danger" th:style="|width:${cat.percent()}%|"></div></div>
+                    </div>
+                </div>
+                <hr class="my-3">
+                <div class="d-flex align-items-center gap-3 mb-3"><div class="icon-circle bg-success-subtle text-success" style="width:40px;height:40px;font-size:1rem"><i class="fas fa-hand-holding-dollar"></i></div>
+                    <div class="flex-grow-1 text-start" style="min-width:0"><h6 class="text-muted mb-0 small" th:text="#{home.topIncomeCategories.title}">Топ категорій доходів</h6>
+                        <h5 class="mb-0 text-success" th:text="${#numbers.formatDecimal(topIncomesTotal, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</h5></div></div>
+                <div th:if="${topIncomeCategories == null or topIncomeCategories.empty}" class="text-center py-2 text-muted"><p class="mb-0 small" th:text="#{home.topIncomeCategories.empty}">Немає доходів цього місяця</p></div>
+                <div th:if="${topIncomeCategories != null and !topIncomeCategories.empty}">
+                    <div th:each="cat, stat : ${topIncomeCategories}" class="mb-3">
+                        <div class="d-flex justify-content-between mb-1"><span class="fw-semibold"><span class="badge bg-success me-1" th:text="${stat.count}">1</span><span th:text="${cat.name()}">—</span></span>
+                            <span class="fw-bold text-nowrap"><span th:text="${#numbers.formatDecimal(cat.amount(), 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</span>
+                                <small class="text-muted ms-1" th:text="${'(' + #numbers.formatDecimal(cat.percent(), 1, 'COMMA', 1, 'POINT') + '%)'}">(0%)</small></span></div>
+                        <div class="progress progress-bar-custom" style="height:8px"><div class="progress-bar bg-success" th:style="|width:${cat.percent()}%|"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="print-footer d-print-block" style="display:none"><span th:text="#{footer.copyright}">© 2026 LazyCent</span></div>
+</main>
+<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <footer th:replace="~{fragments/footer :: footer}"></footer>
 <div th:replace="~{fragments/toast :: toastScript}"></div>
-<script src="/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
 <div th:replace="~{fragments/settings-panel :: settingsPanelScript}"></div>
 </body>
 </html>

@@ -8,6 +8,7 @@ import org.lazycent.model.dto.SharedDayDto;
 import org.lazycent.model.dto.SharedCategoryTotalDto;
 import org.lazycent.model.dto.SharedMemberSummaryDto;
 import org.lazycent.model.dto.SharedTransactionDto;
+import org.lazycent.model.dto.CategoryExpenseItem;
 import org.lazycent.repository.DayBudgetRepository;
 import org.lazycent.repository.UserRepository;
 import org.lazycent.service.FamilyService;
@@ -35,11 +36,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 @Controller
 @RequiredArgsConstructor
@@ -75,7 +78,73 @@ public class FamilyController extends BaseController {
 
         model.addAttribute("family", family);
         model.addAttribute("membersCount", familyService.getFamilyMembers(freshUser).size());
+        LocalDate today = LocalDate.now();
+        LocalDate monthStart = today.withDayOfMonth(1);
+        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
+        model.addAttribute("today", today);
+        model.addAttribute("todaySummary", summarizeSharedTransactions(familyService.getSharedTransactions(
+                freshUser, today, today), today));
+        model.addAttribute("weekSummary", summarizeSharedTransactions(familyService.getSharedTransactions(
+                freshUser, weekStart, today), weekStart));
+        List<SharedTransactionDto> monthTransactions = familyService.getSharedTransactions(
+                freshUser, monthStart, today);
+        var monthSummary = summarizeSharedTransactions(monthTransactions, monthStart);
+        model.addAttribute("monthSummary", monthSummary);
+        List<CategoryExpenseItem> topExpenses = getTopSharedCategories(monthTransactions, true);
+        List<CategoryExpenseItem> topIncomes = getTopSharedCategories(monthTransactions, false);
+        model.addAttribute("topCategories", topExpenses);
+        model.addAttribute("topIncomeCategories", topIncomes);
+        model.addAttribute("topExpensesTotal", topExpenses.stream()
+                .mapToDouble(CategoryExpenseItem::amount).sum());
+        model.addAttribute("topIncomesTotal", topIncomes.stream()
+                .mapToDouble(CategoryExpenseItem::amount).sum());
+
+        List<SharedDayDto> recentDays = familyService.getSharedDaySummaries(
+                freshUser, today.minusYears(1), today);
+        if (!recentDays.isEmpty()) {
+            LocalDate oldestRecentDate = recentDays.get(Math.min(2, recentDays.size() - 1)).date();
+            model.addAttribute("recentTransactions", familyService.getSharedTransactions(
+                            freshUser, oldestRecentDate, today).stream().limit(6).toList());
+        } else {
+            model.addAttribute("recentTransactions", List.of());
+        }
+
+        int month = today.getMonthValue();
+        int year = today.getYear();
+        model.addAttribute("expenseBudget", familyExpenseBudgetService.getDashboard(freshUser, month, year));
+        model.addAttribute("incomePlan", familyIncomePlanningService.getDashboard(freshUser, month, year));
+        model.addAttribute("currencySymbol", templateDataService.currencySymbol());
         return "family/hub";
+    }
+
+    private static SharedDayDto summarizeSharedTransactions(List<SharedTransactionDto> transactions, LocalDate date) {
+        double expenses = transactions.stream().filter(SharedTransactionDto::expense)
+                .map(SharedTransactionDto::amount).filter(java.util.Objects::nonNull)
+                .mapToDouble(Double::doubleValue).sum();
+        double incomes = transactions.stream().filter(SharedTransactionDto::income)
+                .map(SharedTransactionDto::amount).filter(java.util.Objects::nonNull)
+                .mapToDouble(Double::doubleValue).sum();
+        return new SharedDayDto(date, "", expenses, incomes, incomes - expenses, List.of());
+    }
+
+    private static List<CategoryExpenseItem> getTopSharedCategories(
+            List<SharedTransactionDto> transactions, boolean expense) {
+        Map<String, Double> totals = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        transactions.stream().filter(transaction -> expense
+                        ? transaction.expense() : transaction.income())
+                .filter(transaction -> transaction.amount() != null && transaction.amount() > 0)
+                .forEach(transaction -> totals.merge(
+                        transaction.categoryName() == null || transaction.categoryName().isBlank()
+                                ? "—" : transaction.categoryName().trim(),
+                        transaction.amount(), Double::sum));
+        double total = totals.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (total <= 0) return List.of();
+        return totals.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(3)
+                .map(entry -> new CategoryExpenseItem(entry.getKey(), entry.getValue(),
+                        entry.getValue() / total * 100))
+                .toList();
     }
 
     // ==================== SHARED — LIST ====================
