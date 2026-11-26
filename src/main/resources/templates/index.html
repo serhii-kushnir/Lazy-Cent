@@ -72,9 +72,9 @@
                     "applicationCategory": "FinanceApplication",
                     "image": /*[[${ogImg}]]*/ "https://lazycent.com/img/og-uk.png",
                     "screenshot": [
-                        "https://lazycent.com/img/screenshots/budget.png",
-                        "https://lazycent.com/img/screenshots/totals.png",
-                        "https://lazycent.com/img/screenshots/all-day.png"
+                        "https://lazycent.com/img/lazycent/ua/budget_ua.png",
+                        "https://lazycent.com/img/lazycent/ua/totals_ua.png",
+                        "https://lazycent.com/img/lazycent/ua/all-days_ua.png"
                     ],
                     "datePublished": "2026-01-15",
                     "dateModified": "2026-11-26",
@@ -101,7 +101,7 @@
         a { color: var(--bs-primary, #0d6efd); text-decoration: none; transition: color 0.2s; }
         a:hover { filter: brightness(1.2); }
         :focus-visible { outline: 3px solid var(--coin); outline-offset: 3px; border-radius: 4px; }
-        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+        .wrap { max-width: 1840px; margin: 0 auto; padding: 0 clamp(20px, 3vw, 48px); }
         .text-center { text-align: center; }
         .nav-btn, .theme-toggle-btn, .lang-switch { height: 40px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; }
         .nav-btn { padding: 0 16px; border-radius: 8px; font-weight: 700; font-size: 0.9rem; text-decoration: none; transition: all 0.2s ease; white-space: nowrap; }
@@ -188,6 +188,34 @@
         #cookie p { margin: 0 0 14px; font-size: .95rem; color: var(--muted); }
         #cookie .row { display: flex; flex-wrap: wrap; gap: 10px; }
         #cookie .nav-btn { height: auto; padding: 10px 18px; font-size: 0.9rem; }
+        .fx-list { text-align: left; }
+        .fx { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; align-items: center; padding: 56px 0; border-top: 1px solid var(--line); }
+        .fx:nth-child(even) { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
+        .fx:nth-child(even) .fx-text { order: 2; }
+        .fx h3 { margin: 0 0 12px; font-size: clamp(1.5rem, 2.4vw, 2.1rem); line-height: 1.15; font-weight: 800; color: var(--ink); }
+        .fx p { margin: 0 0 14px; font-size: 1.15rem; color: var(--muted); }
+        .fx ul { margin: 0; padding-left: 1.2rem; color: var(--muted); }
+        .fx li { margin-bottom: 6px; }
+        .fx .shot { margin: 0; width: 100%; max-width: 780px; justify-self: center; }
+        .fx .shot a, .fx .shot picture { display: block; }
+        .fx .shot img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; object-position: top center; }
+        .fx .shot.portrait img { object-fit: contain; background: var(--bg); }
+        .nav-btn, .theme-toggle-btn, .lang-switch { height: 56px; }
+        .nav-btn { padding: 0 30px; font-size: 1.1rem; border-radius: 10px; }
+        .theme-toggle-btn { width: 56px; font-size: 1.25rem; }
+        .lang-switch a { padding: 0 20px; font-size: 1.1rem; }
+        .bar { height: 68px; }
+        header .nav-btn, header .theme-toggle-btn, header .lang-switch { height: 42px; }
+        header .nav-btn { padding: 0 18px; font-size: .95rem; }
+        header .theme-toggle-btn { width: 42px; font-size: 1rem; }
+        header .lang-switch a { padding: 0 14px; font-size: .9rem; }
+        .hero .cta .nav-btn, .final .nav-btn { height: 68px; padding: 0 44px; font-size: 1.3rem; }
+        #cookie .nav-btn { height: auto; padding: 14px 26px; font-size: 1rem; }
+        .more-title { margin: 64px 0 18px; font-size: 1.3rem; }
+        .video-shot { max-width: 1200px; margin: 0 auto; }
+        .video-shot video { width: 100%; height: auto; }
+        @media (max-width: 1100px) { .fx, .fx:nth-child(even) { grid-template-columns: 1fr; gap: 32px; padding: 40px 0; } .fx:nth-child(even) .fx-text { order: 0; } }
+        @media (max-width: 820px) { .more-title { margin-top: 40px; text-align: center; } .fx .shot { max-width: 94%; margin: 0 auto; } }
         @keyframes rise  { from { opacity: 0; translate: 0 28px; }  to { opacity: 1; translate: 0 0; } }
         @keyframes pop   { from { opacity: 0; translate: 0 24px; scale: .93; } to { opacity: 1; translate: 0 0; scale: 1; } }
         @keyframes fromL { from { opacity: 0; translate: -40px 0; } to { opacity: 1; translate: 0 0; } }
@@ -295,7 +323,7 @@
     </div>
 </header>
 
-<main>
+<main th:with="shot=${#locale.language == 'en'} ? 'en' : 'ua'">
     <div class="wrap hero">
         <div class="hero-grid">
             <div class="text-center">
@@ -322,42 +350,204 @@
         <div class="wrap text-center">
             <h2 th:text="#{landing.features.title}">Функції Lazy Cent для обліку витрат</h2>
             <p class="sub" th:text="#{landing.features.subtitle}">Тільки те, що потрібно для щоденного обліку грошей.</p>
-            <p class="mb-4 text-start mx-auto" style="max-width: 800px; color: var(--muted);" th:utext="#{landing.features.intro}">
-                Від щоденних записів до сімейного бюджету — функції Lazy Cent допомагають планувати й переглядати фінанси в одному місці.
-            </p>
-            <div class="features" style="text-align: left;">
-                <div class="feature"><h3 th:text="#{landing.features.transactions.title}">Витрати й доходи</h3><p th:text="#{landing.features.transactions.desc}">Записуйте суму, категорію, опис і час операції. Редагуйте, видаляйте, дублюйте записи або виконуйте групові дії.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.quick.title}">Швидке додавання</h3><p th:text="#{landing.features.quick.desc}">Додавайте витрату або дохід із дашборда чи сторінки дня — без зайвих переходів.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.budget.title}">Місячний бюджет</h3><p th:text="#{landing.features.budget.desc}">Задавайте загальний план витрат і ліміти за категоріями, відстежуйте використану та залишкову суму.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.income.title}">План доходів</h3><p th:text="#{landing.features.income.desc}">Плануйте очікуваний дохід на місяць і задавайте цілі для окремих категорій надходжень.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.history.title}">Історія за днями</h3><p th:text="#{landing.features.history.desc}">Переглядайте транзакції та баланс за кожен день, знаходьте потрібні записи в історії.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.analytics.title}">Підсумки й аналітика</h3><p th:text="#{landing.features.analytics.desc}">Порівнюйте доходи й витрати за періодами та категоріями, щоб краще розуміти структуру бюджету.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.categories.title}">Категорії</h3><p th:text="#{landing.features.categories.desc}">Створюйте власні категорії доходів і витрат та використовуйте їх у записах і плануванні.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.family.title}">Спільні фінанси сім’ї</h3><p th:text="#{landing.features.family.desc}">Створіть сімейний простір, запросіть учасників і ведіть спільні транзакції, бюджети, цілі доходів та підсумки.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.notes.title}">Нотатки</h3><p th:text="#{landing.features.notes.desc}">Створюйте нотатки, додавайте кольори, закріплюйте важливі, шукайте та керуйте ними групово.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.export.title}">Експорт даних</h3><p th:text="#{landing.features.export.desc}">Завантажуйте звіти у форматі Excel зі сторінок історії, підсумків і планування бюджету.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.settings.title}">Налаштування під себе</h3><p th:text="#{landing.features.settings.desc}">Оберіть валюту, мову й тему інтерфейсу; за потреби керуйте даними та обліковим записом.</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.security.title}">Вхід і захист акаунта</h3><p th:text="#{landing.features.security.desc}">Створіть акаунт, входьте з паролем або Google і відновлюйте пароль через електронну пошту.</p></div>
+            <div class="fx-list" id="screenshots">
+                <article class="fx" id="f-home">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.home.title}">Дашборд</h3>
+                        <p th:text="#{landing.tour.home.desc}">Стан грошей за сьогодні, тиждень і місяць на одному екрані.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.home.b1}">Баланс, доходи й витрати за місяць</li>
+                            <li th:text="#{landing.tour.home.b2}">Скільки місячного бюджету вже використано</li>
+                            <li th:text="#{landing.tour.home.b3}">Останні транзакції та топ категорій</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/home_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/home_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/home_${shot}.png|}" th:alt="#{landing.tour.home.title}" alt="Дашборд" width="1600" height="1217"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-add">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.add.title}">Швидке додавання</h3>
+                        <p th:text="#{landing.tour.add.desc}">Додайте витрату або дохід за кілька секунд з будь-якої сторінки.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.add.b1}">Назва, категорія, дата й сума — решта за бажанням</li>
+                            <li th:text="#{landing.tour.add.b2}">Нову категорію можна створити тут же</li>
+                            <li th:text="#{landing.tour.add.b3}">Ctrl+Enter зберігає, Esc скасовує</li>
+                        </ul>
+                    </div>
+                    <figure class="shot portrait"><a th:href="@{|/img/lazycent/${shot}/tranzaction_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/tranzaction_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/tranzaction_${shot}.png|}" th:alt="#{landing.tour.add.title}" alt="Швидке додавання" width="724" height="1108" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-budget">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.budget.title}">Витрати й бюджет</h3>
+                        <p th:text="#{landing.tour.budget.desc}">Задайте бюджет на місяць і ліміти для категорій — і бачте, що лишилось.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.budget.b1}">Сповіщення, коли ліміт категорії перевищено</li>
+                            <li th:text="#{landing.tour.budget.b2}">Прогноз на кінець місяця й добова норма витрат</li>
+                            <li th:text="#{landing.tour.budget.b3}">Порівняння з минулим місяцем, експорт в Excel і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/budget_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/budget_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/budget_${shot}.png|}" th:alt="#{landing.tour.budget.title}" alt="Витрати й бюджет" width="1600" height="895" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-income">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.income.title}">План доходів</h3>
+                        <p th:text="#{landing.tour.income.desc}">Вкажіть, скільки очікуєте отримати, і порівнюйте з тим, що вже надійшло.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.income.b1}">Загальна ціль доходів на місяць</li>
+                            <li th:text="#{landing.tour.income.b2}">Цілі для окремих категорій надходжень</li>
+                            <li th:text="#{landing.tour.income.b3}">Таблиця або картки, пошук, експорт</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/budget-income_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/budget-income_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/budget-income_${shot}.png|}" th:alt="#{landing.tour.income.title}" alt="План доходів" width="1600" height="853" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-day">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.day.title}">Сторінка дня</h3>
+                        <p th:text="#{landing.tour.day.desc}">Усі операції дня: що купили, у кого, за скільки і в якій категорії.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.day.b1}">Початковий баланс і підсумок дня</li>
+                            <li th:text="#{landing.tour.day.b2}">Покупець, продавець, кількість і деталі в кожному записі</li>
+                            <li th:text="#{landing.tour.day.b3}">Редагування, дублювання, групові дії, експорт і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/day_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/day_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/day_${shot}.png|}" th:alt="#{landing.tour.day.title}" alt="Сторінка дня" width="1600" height="844" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-alldays">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.alldays.title}">Усі дні</h3>
+                        <p th:text="#{landing.tour.alldays.desc}">Кожен день з доходами, витратами й балансом — з пошуком і фільтром за датами.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.alldays.b1}">День з найбільшими витратами та доходами</li>
+                            <li th:text="#{landing.tour.alldays.b2}">Перегляд або видалення цілого дня</li>
+                            <li th:text="#{landing.tour.alldays.b3}">Таблиця чи картки, експорт і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/all-days_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/all-days_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/all-days_${shot}.png|}" th:alt="#{landing.tour.alldays.title}" alt="Усі дні" width="1600" height="1243" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-totals">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.totals.title}">Підсумки</h3>
+                        <p th:text="#{landing.tour.totals.desc}">Порівняйте доходи й витрати за будь-який період і за категоріями.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.totals.b1}">Чистий баланс за вибраний період</li>
+                            <li th:text="#{landing.tour.totals.b2}">Частка кожної категорії у відсотках</li>
+                            <li th:text="#{landing.tour.totals.b3}">Фільтри за типом і категорією, експорт, друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/totals_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/totals_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/totals_${shot}.png|}" th:alt="#{landing.tour.totals.title}" alt="Підсумки" width="1600" height="917" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="f-notes">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.notes.title}">Нотатки</h3>
+                        <p th:text="#{landing.tour.notes.desc}">Короткі записи про борги, покупки й плани — поруч із фінансами.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.notes.b1}">Кольори та закріплення важливих</li>
+                            <li th:text="#{landing.tour.notes.b2}">Архів і пошук; клавіші N, / та Esc</li>
+                            <li th:text="#{landing.tour.notes.b3}">Спільні нотатки для сім’ї</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/notes_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/notes_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/notes_${shot}.png|}" th:alt="#{landing.tour.notes.title}" alt="Нотатки" width="1600" height="1252" loading="lazy"></picture></a></figure>
+                </article>
+            </div>
+            <h3 class="more-title" th:text="#{landing.tour.more}">Ще в застосунку</h3>
+            <div class="features">
+                <div class="feature"><h3 th:text="#{landing.features.categories.title}">Категорії</h3><p th:text="#{landing.features.categories.desc}">Створюйте власні категорії доходів і витрат.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.export.title}">Експорт даних</h3><p th:text="#{landing.features.export.desc}">Звіти у форматі Excel.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.settings.title}">Налаштування під себе</h3><p th:text="#{landing.features.settings.desc}">Валюта, мова й тема.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.security.title}">Вхід і захист акаунта</h3><p th:text="#{landing.features.security.desc}">Пароль або Google.</p></div>
             </div>
         </div>
     </section>
 
-    <section id="screenshots" class="band">
+    <section id="family">
         <div class="wrap text-center">
-            <h2 th:text="#{landing.screenshots.title}">Як це виглядає</h2>
-            <p class="sub" th:text="#{landing.screenshots.subtitle}">Екрани застосунку.</p>
-            <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 2rem;" th:utext="#{landing.screenshots.intro}">
-                Перегляньте основні екрани: щоденні операції, бюджет, історію, підсумки, нотатки та дашборд.
-            </p>
-            <div class="gallery" style="text-align: left;">
-                <!-- width/height задають співвідношення сторін скриншота (≈1827×970), щоб не було стрибка макета (CLS).
-                     Якщо ваші файли мають інші пропорції — підставте їхні справжні розміри. -->
-                <figure><img th:src="@{/img/screenshots/budget.png}" th:alt="#{landing.screenshots.budget.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.budget.desc}">Місячний бюджет...</figcaption></figure>
-                <figure><img th:src="@{/img/screenshots/all-day.png}" th:alt="#{landing.screenshots.alldays.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.alldays.desc}">Усі дні...</figcaption></figure>
-                <figure><img th:src="@{/img/screenshots/totals.png}" th:alt="#{landing.screenshots.totals.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.totals.desc}">Аналітика...</figcaption></figure>
-                <figure><img th:src="@{/img/screenshots/notes.png}" th:alt="#{landing.screenshots.notes.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.notes.desc}">Нотатки...</figcaption></figure>
-                <figure><img th:src="@{/img/screenshots/day.png}" th:alt="#{landing.screenshots.day.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.day.desc}">Транзакції...</figcaption></figure>
-                <figure><img th:src="@{/img/screenshots/home.png}" th:alt="#{landing.screenshots.home.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.home.caption}">Дашборд</figcaption></figure>
+            <h2 th:text="#{landing.family.title}">Сімейний простір</h2>
+            <p class="sub" th:text="#{landing.family.sub}">Ведіть фінанси разом: кожен додає свої записи, а родина бачить загальну картину.</p>
+            <p class="mx-auto" style="max-width: 800px; color: var(--muted);" th:text="#{landing.family.intro}">Створіть сім’ю, запросіть учасників за кодом і діліться лише тим, що самі позначили як спільне. Решта лишається особистою.</p>
+            <div class="fx-list">
+                <article class="fx" id="f-family">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.tour.family.title}">Сім’я</h3>
+                        <p th:text="#{landing.tour.family.desc}">Спільний простір для всіх, хто веде бюджет разом.</p>
+                        <ul>
+                            <li th:text="#{landing.tour.family.b1}">Запросіть учасників за кодом</li>
+                            <li th:text="#{landing.tour.family.b2}">Спільні транзакції, бюджет, доходи, підсумки й нотатки</li>
+                            <li th:text="#{landing.tour.family.b3}">Ціль спільних доходів і окремий баланс сім’ї</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family_${shot}.png|}" th:alt="#{landing.tour.family.title}" alt="Сім’я" width="1424" height="1274" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="fam-tx">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.family.tx.title}">Спільні транзакції</h3>
+                        <p th:text="#{landing.family.tx.desc}">Усі спільні операції родини за обраний період.</p>
+                        <ul>
+                            <li th:text="#{landing.family.tx.b1}">Графік витрат і доходів за днями</li>
+                            <li th:text="#{landing.family.tx.b2}">Підсумки по кожному учаснику: витрати, доходи, баланс</li>
+                            <li th:text="#{landing.family.tx.b3}">Фільтри за днями, учасниками й балансом; експорт і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared_${shot}.png|}" th:alt="#{landing.family.tx.title}" alt="Спільні транзакції" width="1707" height="1252" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="fam-day">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.family.day.title}">Спільний день</h3>
+                        <p th:text="#{landing.family.day.desc}">Операції одного дня, які родина позначила як спільні.</p>
+                        <ul>
+                            <li th:text="#{landing.family.day.b1}">Усі спільні записи дня в одній таблиці</li>
+                            <li th:text="#{landing.family.day.b2}">Пошук і фільтри за типом та категорією</li>
+                            <li th:text="#{landing.family.day.b3}">Експорт і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.png|}" th:alt="#{landing.family.day.title}" alt="Спільний день" width="1710" height="927" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="fam-budget">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.family.budget.title}">Спільний бюджет</h3>
+                        <p th:text="#{landing.family.budget.desc}">Один бюджет на місяць для всієї родини з лімітами за категоріями.</p>
+                        <ul>
+                            <li th:text="#{landing.family.budget.b1}">Витрачено, залишок і прогноз на кінець місяця</li>
+                            <li th:text="#{landing.family.budget.b2}">Ліміти категорій; їх можна скопіювати з минулого місяця</li>
+                            <li th:text="#{landing.family.budget.b3}">Експорт в Excel і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.png|}" th:alt="#{landing.family.budget.title}" alt="Спільний бюджет" width="1908" height="987" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="fam-income">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.family.income.title}">Спільні доходи</h3>
+                        <p th:text="#{landing.family.income.desc}">Ціль доходів родини на місяць і те, скільки вже надійшло.</p>
+                        <ul>
+                            <li th:text="#{landing.family.income.b1}">Загальна ціль і цілі за категоріями</li>
+                            <li th:text="#{landing.family.income.b2}">Прогрес виконання плану</li>
+                            <li th:text="#{landing.family.income.b3}">Таблиця або картки, експорт</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.png|}" th:alt="#{landing.family.income.title}" alt="Спільні доходи" width="1907" height="919" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="fam-totals">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.family.totals.title}">Спільні підсумки</h3>
+                        <p th:text="#{landing.family.totals.desc}">Доходи й витрати родини за період і за категоріями.</p>
+                        <ul>
+                            <li th:text="#{landing.family.totals.b1}">Чистий баланс родини</li>
+                            <li th:text="#{landing.family.totals.b2}">Частка кожної категорії у відсотках</li>
+                            <li th:text="#{landing.family.totals.b3}">Фільтри, експорт і друк</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.png|}" th:alt="#{landing.family.totals.title}" alt="Спільні підсумки" width="1902" height="913" loading="lazy"></picture></a></figure>
+                </article>
+                <article class="fx" id="fam-notes">
+                    <div class="fx-text">
+                        <h3 th:text="#{landing.family.notes.title}">Спільні нотатки</h3>
+                        <p th:text="#{landing.family.notes.desc}">Нотатки, якими ви ділитеся з родиною: покупки, борги, плани.</p>
+                        <ul>
+                            <li th:text="#{landing.family.notes.b1}">Позначка «Спільна» на кожній нотатці</li>
+                            <li th:text="#{landing.family.notes.b2}">Кольори, закріплення й архів</li>
+                            <li th:text="#{landing.family.notes.b3}">Пошук і швидкі клавіші</li>
+                        </ul>
+                    </div>
+                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/notes-family_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/notes-family_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/notes-family_${shot}.png|}" th:alt="#{landing.family.notes.title}" alt="Спільні нотатки" width="1900" height="1165" loading="lazy"></picture></a></figure>
+                </article>
             </div>
         </div>
     </section>
@@ -478,8 +668,8 @@
     <section class="final">
         <div class="wrap">
             <h2 th:text="#{landing.cta.title}">Готові взяти фінанси під контроль?</h2>
-                <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 1.5rem;" th:text="#{landing.cta.intro}">
-                    Почніть із власного обліку або створіть спільний простір для сімейних фінансів.
+            <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 1.5rem;" th:text="#{landing.cta.intro}">
+                Почніть із власного обліку або створіть спільний простір для сімейних фінансів.
             </p>
             <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{landing.cta.button}">Створити акаунт</a>
         </div>
@@ -598,7 +788,12 @@
         add('section .sub', 'rise', { base: 90 });
         add('.feature h3', 'rise', { cols: 2, step: 90 });
         add('.feature p', 'rise', { cols: 2, step: 90, base: 100 });
-        add('.gallery figure', 'pop', { cols: 3, step: 100 });
+        add('.fx:nth-child(odd) .fx-text', 'left');
+        add('.fx:nth-child(odd) .shot', 'right', { base: 120 });
+        add('.fx:nth-child(even) .fx-text', 'right');
+        add('.fx:nth-child(even) .shot', 'left', { base: 120 });
+        add('.more-title', 'rise');
+        add('.video-shot', 'pop', { base: 100 });
         add('details', 'rise', { cols: 5, step: 70 });
         add('.author-box', 'rise', { base: 100 });
         add('.comparison-table', 'rise', { base: 100 });
