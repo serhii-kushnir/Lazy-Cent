@@ -1,6 +1,7 @@
 package org.lazycent.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,10 +88,11 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleGenericException_addsLocalizedError() {
         HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
         RedirectAttributes attrs = new RedirectAttributesModelMap();
 
         handler.handleGenericException(
-                new RuntimeException("boom"), request, attrs);
+                new RuntimeException("boom"), request, response, attrs);
 
         Object errorMessage = flashOf(attrs).get("errorMessage");
         assertThat(errorMessage)

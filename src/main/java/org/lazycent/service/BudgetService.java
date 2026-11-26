@@ -114,7 +114,7 @@ public class BudgetService {
 
     // ==================== ОСНОВНІ МЕТОДИ ====================
 
-    @Transactional(readOnly = true)
+    @Transactional
     public DayBudget getOrCreateDayBudget(LocalDate date, User user) {
         return dayBudgetRepository.findByDateAndOwner(date, user)
                 .orElseGet(() -> {
@@ -124,7 +124,7 @@ public class BudgetService {
                     newBudget.setStartingBalance(getLastRemainingBalance(date, user));
                     newBudget.setRemainingBalance(0.0);
                     newBudget.setOwner(user);
-                    return newBudget;
+                    return dayBudgetRepository.save(newBudget);
                 });
     }
 

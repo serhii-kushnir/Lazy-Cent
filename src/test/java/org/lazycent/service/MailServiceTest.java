@@ -17,6 +17,7 @@ import static org.mockito.Mockito.*;
 
 class MailServiceTest {
 
+    private static final Locale TEST_LOCALE = Locale.forLanguageTag("uk-UA");
     private JavaMailSender mailSender;
     private MailService mailService;
 
@@ -45,7 +46,7 @@ class MailServiceTest {
 
     @Test
     void sendPasswordResetEmail_sendsMail_withCorrectFromAndTo() {
-        mailService.sendPasswordResetEmail("user@example.com", "token-abc");
+        mailService.sendPasswordResetEmail("user@example.com", "token-abc", TEST_LOCALE);
 
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
@@ -57,7 +58,7 @@ class MailServiceTest {
 
     @Test
     void sendPasswordResetEmail_containsResetLink() {
-        mailService.sendPasswordResetEmail("user@example.com", "token-abc");
+        mailService.sendPasswordResetEmail("user@example.com", "token-abc", TEST_LOCALE);
 
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
@@ -72,7 +73,7 @@ class MailServiceTest {
 
     @Test
     void sendPasswordResetEmail_subjectIsNotEmpty() {
-        mailService.sendPasswordResetEmail("user@example.com", "token-abc");
+        mailService.sendPasswordResetEmail("user@example.com", "token-abc", TEST_LOCALE);
 
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
@@ -87,7 +88,7 @@ class MailServiceTest {
     void sendPasswordResetEmail_usesEnglishSubject_whenLocaleEnglish() {
         LocaleContextHolder.setLocale(Locale.ENGLISH);
 
-        mailService.sendPasswordResetEmail("user@example.com", "token-abc");
+        mailService.sendPasswordResetEmail("user@example.com", "token-abc", Locale.ENGLISH);
 
         ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
@@ -106,7 +107,7 @@ class MailServiceTest {
 
         org.junit.jupiter.api.Assertions.assertThrows(
                 org.springframework.mail.MailSendException.class,
-                () -> mailService.sendPasswordResetEmail("user@example.com", "token")
+                () -> mailService.sendPasswordResetEmail("user@example.com", "token", TEST_LOCALE)
         );
     }
 }

@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,19 +58,12 @@ class HomeControllerTest {
     }
 
     @Test
-    void allDays_marksLimited_whenTotalExceedsLoaded() throws Exception {
-        // Створюємо DayBudget З dayName — інакше Thymeleaf впаде на
-        // dayNames[null] (SpEL NPE).
-        org.lazycent.model.DayBudget budget = new org.lazycent.model.DayBudget();
-        budget.setId(1L);
-        budget.setDate(java.time.LocalDate.of(2026, 10, 5));
-        budget.setDayName("Понеділок");
-
-        when(budgetService.getAllBudgets(testUser)).thenReturn(java.util.List.of(budget));
-        when(dayBudgetRepository.countByOwner(testUser)).thenReturn(200L);
+    void allDays_exposesPaginationState_whenMorePagesExist() throws Exception {
+        when(budgetService.getAllBudgetsPaged(testUser, 0, 50))
+                .thenReturn(new PageImpl<>(java.util.List.of(), PageRequest.of(0, 50), 200));
 
         mockMvc.perform(get("/all-days").with(user(testUser)))
-                .andExpect(model().attribute("isLimited", true))
+                .andExpect(model().attribute("hasMore", true))
                 .andExpect(model().attribute("totalDays", 200L));
     }
 
@@ -110,10 +105,10 @@ class HomeControllerTest {
     }
 
     @Test
-    void index_redirectsToHome_forAuthenticated() throws Exception {
+    void index_showsLanding_forAuthenticated() throws Exception {
         mockMvc.perform(get("/").with(user(testUser)))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/home"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("index"));
     }
 
     // ==================== "/home" ====================
@@ -164,15 +159,17 @@ class HomeControllerTest {
 
     @Test
     void allDays_rendersView_forAuthenticated() throws Exception {
-        when(budgetService.getAllBudgets(testUser)).thenReturn(java.util.List.of());
-        when(dayBudgetRepository.countByOwner(testUser)).thenReturn(0L);
+        when(budgetService.getAllBudgetsPaged(testUser, 0, 50))
+                .thenReturn(new PageImpl<>(java.util.List.of(), PageRequest.of(0, 50), 0));
 
         mockMvc.perform(get("/all-days").with(user(testUser)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("all-days"))
                 .andExpect(model().attributeExists("allBudgets"))
                 .andExpect(model().attributeExists("totalDays"))
-                .andExpect(model().attributeExists("isLimited"));
+                .andExpect(model().attributeExists("hasMore"))
+                .andExpect(model().attributeExists("currentPage"))
+                .andExpect(model().attributeExists("pageSize"));
     }
 
 

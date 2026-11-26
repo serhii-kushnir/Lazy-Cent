@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.lazycent.model.Currency;
 import org.lazycent.model.CustomOAuth2User;
 import org.lazycent.model.User;
+import org.lazycent.repository.UserRepository;
 import org.lazycent.service.CategoryService;
+import org.lazycent.service.TemplateDataService;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.*;
 class GlobalControllerAdviceTest {
 
     private CategoryService categoryService;
+    private UserRepository userRepository;
     private GlobalControllerAdvice advice;
 
     @BeforeEach
@@ -37,7 +40,9 @@ class GlobalControllerAdviceTest {
         messageSource.setUseCodeAsDefaultMessage(false);
 
         categoryService = mock(CategoryService.class);
-        advice = new GlobalControllerAdvice(categoryService, messageSource);
+        userRepository = mock(UserRepository.class);
+        advice = new GlobalControllerAdvice(categoryService, messageSource, userRepository,
+                new TemplateDataService(messageSource));
     }
 
     @AfterEach

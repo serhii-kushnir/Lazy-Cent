@@ -62,7 +62,8 @@ class BudgetPlanningServiceDashboardTest {
         user.setId(1L);
         user.setUsername("planner");
 
-        when(planRepo.findByOwnerAndBudgetMonthAndBudgetYear(any(), anyInt(), anyInt()))
+        when(planRepo.findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(
+                any(), anyInt(), anyInt(), eq("EXPENSE")))
                 .thenReturn(Optional.empty());
         when(limitRepo.findByOwnerAndBudgetMonthAndBudgetYear(any(), anyInt(), anyInt()))
                 .thenReturn(List.of());
@@ -84,7 +85,8 @@ class BudgetPlanningServiceDashboardTest {
     private void stubBudget(double total) {
         BudgetPlan plan = new BudgetPlan();
         plan.setTotalBudget(total);
-        when(planRepo.findByOwnerAndBudgetMonthAndBudgetYear(eq(user), anyInt(), anyInt()))
+        when(planRepo.findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(
+                eq(user), anyInt(), anyInt(), eq("EXPENSE")))
                 .thenReturn(Optional.of(plan));
     }
 
@@ -320,7 +322,7 @@ class BudgetPlanningServiceDashboardTest {
     void saveOrUpdateBudgetPlan_updatesExisting_withoutCreatingSecond() {
         BudgetPlan existing = new BudgetPlan();
         existing.setTotalBudget(1000.0);
-        when(planRepo.findByOwnerAndBudgetMonthAndBudgetYear(user, 10, 2026))
+        when(planRepo.findByOwnerAndBudgetMonthAndBudgetYearAndPlanType(user, 10, 2026, "EXPENSE"))
                 .thenReturn(Optional.of(existing));
         when(planRepo.save(any(BudgetPlan.class))).thenAnswer(inv -> inv.getArgument(0));
 

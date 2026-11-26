@@ -78,14 +78,14 @@ class FlywayMigrationTest {
                 count++;
             }
 
-            assertThat(count).as("Кількість міграцій у flyway_schema_history").isGreaterThanOrEqualTo(3);
+            assertThat(count).as("Кількість записів у flyway_schema_history").isGreaterThanOrEqualTo(3);
             assertThat(appliedVersions)
-                    .as("Усі очікувані версії мають бути в історії")
-                    .contains("1", "2", "3", "4", "5", "6");
+                    .as("Усі активні версії міграцій мають бути в історії")
+                    .containsExactlyInAnyOrder("1", "2", "3");
         }
     }
 
-    // ==================== V3: category.version ====================
+    // ==================== CATEGORY VERSION ====================
 
     @Test
     void categoryTable_hasVersionColumn() throws SQLException {
@@ -121,7 +121,7 @@ class FlywayMigrationTest {
         }
     }
 
-    // ==================== V2: FK indexes ====================
+    // ==================== DATABASE INDEXES ====================
 
     @Test
     void fkIndexes_allExist() throws SQLException {
@@ -158,7 +158,7 @@ class FlywayMigrationTest {
                 .containsAll(expectedIndexes);
     }
 
-    // ==================== V1: базові таблиці ====================
+    // ==================== БАЗОВІ ТАБЛИЦІ ====================
 
     @Test
     void baseTables_exist() throws SQLException {
@@ -197,7 +197,7 @@ class FlywayMigrationTest {
 
             String defaultValue = rs.getString("column_default");
             assertThat(defaultValue)
-                    .as("V4 мала встановити DEFAULT '#212529'")
+                    .as("V1 мала встановити DEFAULT '#212529'")
                     .isNotNull()
                     .contains("#212529");
         }
@@ -205,27 +205,28 @@ class FlywayMigrationTest {
 
     @Test
     void categoryUniqueIndex_exists() throws SQLException {
-        Set<String> uniqueIndexes = new HashSet<>();
+        Set<String> uniqueConstraints = new HashSet<>();
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "SELECT DISTINCT index_name " +
-                             "FROM INFORMATION_SCHEMA.INDEX_COLUMNS " +
+                     "SELECT constraint_name " +
+                             "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
                              "WHERE table_schema = 'PUBLIC' " +
-                             "  AND table_name = 'CATEGORY'")) {
+                             "  AND table_name = 'CATEGORY' " +
+                             "  AND constraint_type = 'UNIQUE'")) {
 
             while (rs.next()) {
-                uniqueIndexes.add(rs.getString("index_name").toUpperCase());
+                uniqueConstraints.add(rs.getString("constraint_name").toUpperCase());
             }
         }
 
-        assertThat(uniqueIndexes)
-                .as("V5 мала створити unique index uk_category_user_name")
+        assertThat(uniqueConstraints)
+                .as("V1 мала створити unique constraint uk_category_user_name")
                 .contains("UK_CATEGORY_USER_NAME");
     }
 
-    // ==================== V6: case-insensitive unique ====================
+    // ==================== CASE-INSENSITIVE CATEGORY UNIQUENESS ====================
 
     @Test
     void categoryTable_hasNameLowerColumn() throws SQLException {
@@ -246,23 +247,24 @@ class FlywayMigrationTest {
 
     @Test
     void categoryCaseInsensitiveUniqueIndex_exists() throws SQLException {
-        Set<String> indexes = new HashSet<>();
+        Set<String> uniqueConstraints = new HashSet<>();
 
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(
-                     "SELECT DISTINCT index_name " +
-                             "FROM INFORMATION_SCHEMA.INDEX_COLUMNS " +
+                     "SELECT constraint_name " +
+                             "FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
                              "WHERE table_schema = 'PUBLIC' " +
-                             "  AND table_name = 'CATEGORY'")) {
+                             "  AND table_name = 'CATEGORY' " +
+                             "  AND constraint_type = 'UNIQUE'")) {
 
             while (rs.next()) {
-                indexes.add(rs.getString("index_name").toUpperCase());
+                uniqueConstraints.add(rs.getString("constraint_name").toUpperCase());
             }
         }
 
-        assertThat(indexes)
-                .as("V6 мала створити unique index uk_category_user_name_lower")
+        assertThat(uniqueConstraints)
+                .as("V1 мала створити unique constraint uk_category_user_name_lower")
                 .contains("UK_CATEGORY_USER_NAME_LOWER");
     }
 }
