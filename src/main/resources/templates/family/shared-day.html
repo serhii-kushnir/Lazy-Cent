@@ -559,7 +559,7 @@
                     <thead>
                     <tr>
                         <th class="col-bulk no-print">
-                            <input type="checkbox" id="selectAllCheckbox" title="Select all">
+                            <input type="checkbox" id="selectAllCheckbox" th:title="#{family.shared.bulk.selectAll}">
                         </th>
                         <th class="col-num">№</th>
                         <th class="col-time sortable" data-sort="time" data-type="string">
@@ -947,6 +947,7 @@
             expensesLabel: /*[[#{family.shared.col.expenses}]]*/ 'Витрати',
             incomesLabel:  /*[[#{family.shared.col.incomes}]]*/  'Доходи',
             bulkCopied: /*[[#{family.shared.bulk.copied}]]*/ 'Скопійовано: {0}',
+            bulkCopyFailed: /*[[#{family.shared.bulk.copyFailed}]]*/ 'Не вдалося скопіювати: {0}',
             bulkDeleted: /*[[#{family.shared.bulk.deleted}]]*/ 'Видалено: {0}',
             newTx: /*[[#{family.shared.newTransactions}]]*/ 'Є нові транзакції. Оновити?',
             toastError:   /*[[#{toast.error}]]*/   'Помилка!',
@@ -1022,11 +1023,11 @@
             el.classList.remove('success', 'error');
             if (type === 'error') {
                 el.classList.add('error');
-                if (title) title.textContent = 'Помилка';
+                if (title) title.textContent = i18n.toastError;
                 if (icon) icon.className = 'fas fa-exclamation-circle me-2';
             } else {
                 el.classList.add('success');
-                if (title) title.textContent = 'Успіх';
+                if (title) title.textContent = i18n.toastSuccess;
                 if (icon) icon.className = 'fas fa-check-circle me-2';
             }
             if (text) text.textContent = msg;
@@ -1930,6 +1931,11 @@
                 if (action === 'cancel') { clearSelection(); return; }
                 if (selectedIds.size === 0) return;
 
+                if (action === 'delete') {
+                    openBulkDeleteModal();
+                    return;
+                }
+
                 if (action === 'copy') {
                     var ids = Array.from(selectedIds);
                     var split = splitIdsByType(ids);
@@ -1963,10 +1969,10 @@
                         }
                         if (ok > 0) {
                             var msg = fmt(i18n.bulkCopied, ok);
-                            if (fail > 0) msg += ' (помилок: ' + fail + ')';
+                            if (fail > 0) msg += ' · ' + fmt(i18n.bulkCopyFailed, fail);
                             reloadWithToast(msg);
                         } else {
-                            showToast('Помилка', 'error');
+                            showToast(i18n.genericError, 'error');
                         }
                     })();
                 }

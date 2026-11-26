@@ -34,16 +34,6 @@ public class FamilyService {
     private static final int CODE_LENGTH = 8;
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    private static final Map<DayOfWeek, String> DAY_NAMES = Map.of(
-            DayOfWeek.MONDAY,    "Понеділок",
-            DayOfWeek.TUESDAY,   "Вівторок",
-            DayOfWeek.WEDNESDAY, "Середа",
-            DayOfWeek.THURSDAY,  "Четвер",
-            DayOfWeek.FRIDAY,    "П'ятниця",
-            DayOfWeek.SATURDAY,  "Субота",
-            DayOfWeek.SUNDAY,    "Неділя"
-    );
-
     private final FamilyRepository familyRepository;
     private final FamilyJoinRequestRepository joinRequestRepository;
     private final UserRepository userRepository;
@@ -349,7 +339,15 @@ public class FamilyService {
 
     public String getDayName(LocalDate date) {
         if (date == null) return "";
-        return DAY_NAMES.getOrDefault(date.getDayOfWeek(), "");
+        return switch (date.getDayOfWeek()) {
+            case MONDAY -> msg("day.monday", "Понеділок");
+            case TUESDAY -> msg("day.tuesday", "Вівторок");
+            case WEDNESDAY -> msg("day.wednesday", "Середа");
+            case THURSDAY -> msg("day.thursday", "Четвер");
+            case FRIDAY -> msg("day.friday", "П'ятниця");
+            case SATURDAY -> msg("day.saturday", "Субота");
+            case SUNDAY -> msg("day.sunday", "Неділя");
+        };
     }
 
     // ==================== JOIN REQUESTS ====================
