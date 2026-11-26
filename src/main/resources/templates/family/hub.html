@@ -177,7 +177,7 @@
             <span class="fw-bold" th:text="${#numbers.formatDecimal(expenseBudget.totalExpenses / expenseBudget.totalBudget * 100, 1, 'COMMA', 2, 'POINT') + '%'}">0%</span></div>
         <div class="progress progress-bar-custom"><div class="progress-bar" role="progressbar"
              th:style="|width:${expenseBudget.totalExpenses / expenseBudget.totalBudget * 100 > 100 ? 100 : expenseBudget.totalExpenses / expenseBudget.totalBudget * 100}%|"
-             th:classappend="${expenseBudget.totalExpenses > expenseBudget.totalBudget} ? 'bg-danger' : (${expenseBudget.totalExpenses / expenseBudget.totalBudget >= .8} ? 'bg-warning' : 'bg-success')"></div></div>
+             th:classappend="${expenseBudget.totalExpenses > expenseBudget.totalBudget} ? 'bg-danger' : (${expenseBudget.totalExpenses / expenseBudget.totalBudget >= 0.8} ? 'bg-warning' : 'bg-success')"></div></div>
         <div class="d-flex justify-content-between mt-2 small text-muted flex-wrap gap-2">
             <span><i class="fas fa-coins me-1"></i><span th:text="#{budget.spent}">Витрачено</span>:
                 <strong class="text-danger" th:text="${#numbers.formatDecimal(expenseBudget.totalExpenses, 1, 'COMMA', 2, 'POINT') + ' ' + currencySymbol}">0 ₴</strong></span>

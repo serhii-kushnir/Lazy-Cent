@@ -224,7 +224,7 @@
         <h2 th:text="#{notes.family.title}">Нотатки сім'ї</h2>
     </div>
 
-    <div class="page-header-wrap mb-4 animate-fade-down">
+    <div th:if="${familyNotesTotal > 0}" class="page-header-wrap mb-4 animate-fade-down">
         <div class="position-relative d-none d-lg-flex align-items-center" style="min-height: 48px;">
             <h2 class="mb-0 fw-bold">
                 <i class="fas fa-users me-2 text-primary"></i>
@@ -261,7 +261,8 @@
         </div>
     </div>
 
-    <div class="notes-section mb-3 animate-fade-up delay-1">
+    <div class="notes-section mb-3 animate-fade-up delay-1"
+         th:classappend="${familyNotesTotal == 0} ? ' d-none'">
 
         <div class="cat-header-theme d-flex align-items-center gap-3 flex-wrap" style="padding: 1rem;">
             <div class="icon-circle bg-info text-white">
@@ -368,34 +369,35 @@
                 </button>
             </div>
 
-            <div th:if="${familyNotes.empty}" class="empty-notes" id="initialEmptyState">
-                <i class="fas fa-users-slash"></i>
-                <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
-                <p class="mb-3" th:text="#{notes.family.empty.text}">Позначте свої нотатки як «Спільна», і вони з'являться тут.</p>
-                <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <button type="button" class="btn btn-primary" onclick="createFamilyNote()">
-                        <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити нотатку</span>
-                    </button>
-                    <a th:href="@{/notes}" class="btn btn-outline-secondary">
-                        <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
-                    </a>
-                </div>
-                <div class="mt-4 pt-3" style="max-width: 420px; margin: 0 auto; border-top: 1px solid var(--bs-border-color);">
-                    <p class="text-muted small mb-2">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <span th:text="#{family.hint.title}">Сімейний бюджет</span>
-                    </p>
-                    <button type="button" class="btn btn-outline-primary btn-sm"
-                            onclick="window.openSettingsDrawer('family')">
-                        <i class="fas fa-user-plus me-1"></i>
-                        <span th:text="#{family.shareLink}">Поділитися посиланням</span>
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
 
-    <div class="kbd-hint no-print text-center mb-5">
+    <div th:if="${familyNotesTotal == 0}" class="empty-notes" id="initialEmptyState">
+        <i class="fas fa-users-slash"></i>
+        <h4 class="mt-3" th:text="#{notes.family.empty.title}">Ніхто ще не поділився нотатками</h4>
+        <p class="mb-3" th:text="#{notes.family.empty.text}">Позначте свої нотатки як «Спільна», і вони з'являться тут.</p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <button type="button" class="btn btn-primary" onclick="createFamilyNote()">
+                <i class="fas fa-plus me-1"></i> <span th:text="#{notes.create.button}">Створити нотатку</span>
+            </button>
+            <a th:href="@{/notes}" class="btn btn-outline-secondary">
+                <i class="fas fa-sticky-note me-1"></i> <span th:text="#{notes.family.myNotes}">Мої нотатки</span>
+            </a>
+        </div>
+        <div class="mt-4 pt-3" style="max-width: 420px; margin: 0 auto; border-top: 1px solid var(--bs-border-color);">
+            <p class="text-muted small mb-2">
+                <i class="fas fa-info-circle me-1"></i>
+                <span th:text="#{family.hint.title}">Сімейний бюджет</span>
+            </p>
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    onclick="window.openSettingsDrawer('family')">
+                <i class="fas fa-user-plus me-1"></i>
+                <span th:text="#{family.shareLink}">Поділитися посиланням</span>
+            </button>
+        </div>
+    </div>
+
+    <div th:if="${familyNotesTotal > 0}" class="kbd-hint no-print text-center mb-5">
         <kbd>N</kbd> — нова · <kbd>Ctrl+K</kbd> — пошук · <kbd>Ctrl+A</kbd> — вибрати все · <kbd>Esc</kbd> — закрити
     </div>
 
