@@ -19,7 +19,7 @@
     <link rel="alternate" hreflang="x-default" href="https://lazycent.com/">
 
     <meta property="article:published_time" content="2026-01-15T08:00:00+00:00">
-    <meta property="article:modified_time" content="2026-10-24T12:00:00+00:00">
+    <meta property="article:modified_time" content="2026-11-26T08:00:00+00:00">
 
     <!-- Open Graph (зображення 1200x630) -->
     <meta property="og:type" content="website">
@@ -77,7 +77,7 @@
                         "https://lazycent.com/img/screenshots/all-day.png"
                     ],
                     "datePublished": "2026-01-15",
-                    "dateModified": "2026-10-24",
+                    "dateModified": "2026-11-26",
                     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "UAH" },
                     "author": { "@id": "https://lazycent.com/#author" }
                 },
@@ -299,11 +299,12 @@
     <div class="wrap hero">
         <div class="hero-grid">
             <div class="text-center">
-                <p class="tag" th:text="#{landing.hero.tag}">Безкоштовно. Без реклами.</p>
+                <p class="tag" th:text="#{landing.hero.tag}">Облік витрат і доходів для себе та сім’ї</p>
                 <h1 th:text="#{landing.hero.title.full}">Lazy Cent: облік витрат, бюджет і аналітика фінансів</h1>
-                <p class="lead" th:text="#{landing.hero.lead}">Записуйте витрати, плануйте бюджет на місяць і бачте, куди йдуть гроші.</p>
+                <p class="lead" th:text="#{landing.hero.lead}">Додавайте витрати й доходи, плануйте бюджет і переглядайте спільні фінанси родини.</p>
                 <div class="cta">
                     <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{landing.hero.cta.primary}">Створити акаунт</a>
+                    <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{landing.hero.cta.secondary}">Увійти</a>
                 </div>
             </div>
             <div class="shot">
@@ -322,15 +323,21 @@
             <h2 th:text="#{landing.features.title}">Функції Lazy Cent для обліку витрат</h2>
             <p class="sub" th:text="#{landing.features.subtitle}">Тільки те, що потрібно для щоденного обліку грошей.</p>
             <p class="mb-4 text-start mx-auto" style="max-width: 800px; color: var(--muted);" th:utext="#{landing.features.intro}">
-                Lazy Cent створений для того, щоб облік грошей не забирав час.
+                Від щоденних записів до сімейного бюджету — функції Lazy Cent допомагають планувати й переглядати фінанси в одному місці.
             </p>
             <div class="features" style="text-align: left;">
-                <div class="feature"><h3 th:text="#{landing.features.budget.title}">Місячний бюджет</h3><p th:text="#{landing.features.budget.desc}">Ліміти за категоріями...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.analytics.title}">Наочна аналітика</h3><p th:text="#{landing.features.analytics.desc}">Кругові діаграми...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.history.title}">Історія за днями</h3><p th:text="#{landing.features.history.desc}">Кожен день...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.categories.title}">Власні категорії</h3><p th:text="#{landing.features.categories.desc}">Створюйте...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.notes.title}">Нотатки</h3><p th:text="#{landing.features.notes.desc}">Швидкі...</p></div>
-                <div class="feature"><h3 th:text="#{landing.features.security.title}">Захист акаунта</h3><p th:text="#{landing.features.security.desc}">Паролі...</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.transactions.title}">Витрати й доходи</h3><p th:text="#{landing.features.transactions.desc}">Записуйте суму, категорію, опис і час операції. Редагуйте, видаляйте, дублюйте записи або виконуйте групові дії.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.quick.title}">Швидке додавання</h3><p th:text="#{landing.features.quick.desc}">Додавайте витрату або дохід із дашборда чи сторінки дня — без зайвих переходів.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.budget.title}">Місячний бюджет</h3><p th:text="#{landing.features.budget.desc}">Задавайте загальний план витрат і ліміти за категоріями, відстежуйте використану та залишкову суму.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.income.title}">План доходів</h3><p th:text="#{landing.features.income.desc}">Плануйте очікуваний дохід на місяць і задавайте цілі для окремих категорій надходжень.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.history.title}">Історія за днями</h3><p th:text="#{landing.features.history.desc}">Переглядайте транзакції та баланс за кожен день, знаходьте потрібні записи в історії.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.analytics.title}">Підсумки й аналітика</h3><p th:text="#{landing.features.analytics.desc}">Порівнюйте доходи й витрати за періодами та категоріями, щоб краще розуміти структуру бюджету.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.categories.title}">Категорії</h3><p th:text="#{landing.features.categories.desc}">Створюйте власні категорії доходів і витрат та використовуйте їх у записах і плануванні.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.family.title}">Спільні фінанси сім’ї</h3><p th:text="#{landing.features.family.desc}">Створіть сімейний простір, запросіть учасників і ведіть спільні транзакції, бюджети, цілі доходів та підсумки.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.notes.title}">Нотатки</h3><p th:text="#{landing.features.notes.desc}">Створюйте нотатки, додавайте кольори, закріплюйте важливі, шукайте та керуйте ними групово.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.export.title}">Експорт даних</h3><p th:text="#{landing.features.export.desc}">Завантажуйте звіти у форматі Excel зі сторінок історії, підсумків і планування бюджету.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.settings.title}">Налаштування під себе</h3><p th:text="#{landing.features.settings.desc}">Оберіть валюту, мову й тему інтерфейсу; за потреби керуйте даними та обліковим записом.</p></div>
+                <div class="feature"><h3 th:text="#{landing.features.security.title}">Вхід і захист акаунта</h3><p th:text="#{landing.features.security.desc}">Створіть акаунт, входьте з паролем або Google і відновлюйте пароль через електронну пошту.</p></div>
             </div>
         </div>
     </section>
@@ -340,7 +347,7 @@
             <h2 th:text="#{landing.screenshots.title}">Як це виглядає</h2>
             <p class="sub" th:text="#{landing.screenshots.subtitle}">Екрани застосунку.</p>
             <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 2rem;" th:utext="#{landing.screenshots.intro}">
-                Інтерфейс Lazy Cent розроблений так, щоб усе потрібне було під рукою.
+                Перегляньте основні екрани: щоденні операції, бюджет, історію, підсумки, нотатки та дашборд.
             </p>
             <div class="gallery" style="text-align: left;">
                 <!-- width/height задають співвідношення сторін скриншота (≈1827×970), щоб не було стрибка макета (CLS).
@@ -350,44 +357,43 @@
                 <figure><img th:src="@{/img/screenshots/totals.png}" th:alt="#{landing.screenshots.totals.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.totals.desc}">Аналітика...</figcaption></figure>
                 <figure><img th:src="@{/img/screenshots/notes.png}" th:alt="#{landing.screenshots.notes.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.notes.desc}">Нотатки...</figcaption></figure>
                 <figure><img th:src="@{/img/screenshots/day.png}" th:alt="#{landing.screenshots.day.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.day.desc}">Транзакції...</figcaption></figure>
-                <figure><img th:src="@{/img/screenshots/home.png}" th:alt="#{landing.screenshots.home.caption}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.home.caption}">Дашборд</figcaption></figure>
+                <figure><img th:src="@{/img/screenshots/home.png}" th:alt="#{landing.screenshots.home.alt}" width="1827" height="970"><figcaption th:text="#{landing.screenshots.home.caption}">Дашборд</figcaption></figure>
             </div>
         </div>
     </section>
 
     <section class="wrap text-center">
         <h2 th:text="#{landing.comparison.title}">Чому обрати Lazy Cent?</h2>
-        <p class="sub" th:text="#{landing.comparison.sub}">Порівняння з традиційними...</p>
+        <p class="sub" th:text="#{landing.comparison.sub}">Порівняння з ручним обліком у таблицях</p>
         <table class="comparison-table">
             <caption class="visually-hidden" th:text="#{landing.comparison.title}">Чому обрати Lazy Cent?</caption>
             <thead>
             <tr>
                 <th scope="col" th:text="#{landing.comparison.col1}">Функція</th>
                 <th scope="col" th:text="#{landing.comparison.col2}">Lazy Cent</th>
-                <th scope="col" th:text="#{landing.comparison.col3}">Excel / Google Sheets</th>
+                <th scope="col" th:text="#{landing.comparison.col3}">Таблиці</th>
             </tr>
             </thead>
             <tbody>
             <tr>
-                <th scope="row" th:text="#{landing.comparison.r1.f}">Швидке додавання</th>
+                <th scope="row" th:text="#{landing.comparison.r1.f}">Облік доходів і витрат</th>
                 <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r1.c2}">Так</span></td>
-                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r1.c3}">Налаштування</span></td>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r1.c3}">Потрібно налаштувати</span></td>
             </tr>
             <tr>
-                <th scope="row" th:text="#{landing.comparison.r2.f}">Автоматична аналітика</th>
+                <th scope="row" th:text="#{landing.comparison.r2.f}">Підсумки за періодами й категоріями</th>
                 <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r2.c2}">Вбудована</span></td>
-                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r2.c3}">Формули</span></td>
-            </tr>
-            <!-- УВАГА: у цьому рядку (landing.comparison.r3.c2) сказано «PWA». Лишайте, лише якщо в застосунку справді є manifest і service worker -->
-            <tr>
-                <th scope="row" th:text="#{landing.comparison.r3.f}">Доступ з пристроїв</th>
-                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r3.c2}">Так (PWA)</span></td>
-                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r3.c3}">Залежить від хмари</span></td>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r2.c3}">Можна створити вручну</span></td>
             </tr>
             <tr>
-                <th scope="row" th:text="#{landing.comparison.r4.f}">Безкоштовно</th>
-                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r4.c2}">Назавжди</span></td>
-                <td><i class="fas fa-times" aria-hidden="true"></i> <span th:text="#{landing.comparison.r4.c3}">Можуть бути ліміти</span></td>
+                <th scope="row" th:text="#{landing.comparison.r3.f}">Спільний сімейний простір</th>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r3.c2}">Вбудовані спільні сторінки</span></td>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r3.c3}">Потрібно налаштувати доступ</span></td>
+            </tr>
+            <tr>
+                <th scope="row" th:text="#{landing.comparison.r4.f}">Експорт звітів</th>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r4.c2}">Доступний у застосунку</span></td>
+                <td><i class="fas fa-check" aria-hidden="true"></i> <span th:text="#{landing.comparison.r4.c3}">Доступний у таблицях</span></td>
             </tr>
             </tbody>
         </table>
@@ -396,14 +402,14 @@
     <section class="wrap text-center my-5">
         <h2 th:text="#{landing.steps.title}">Як почати користуватися?</h2>
         <div class="text-start mx-auto" style="max-width: 800px; color: var(--muted);">
-            <p th:text="#{landing.steps.intro}">Почати роботу з Lazy Cent дуже просто. Вам не потрібно витрачати багато часу на налаштування. Просто виконайте кілька простих кроків, щоб взяти свої фінанси під контроль вже сьогодні.</p>
+            <p th:text="#{landing.steps.intro}">Створіть акаунт і почніть із власних записів. Сімейний простір можна налаштувати окремо.</p>
             <ol class="fs-5 mt-3 mb-3">
                 <li class="mb-2" th:text="#{landing.steps.1}">Зареєструйтеся...</li>
                 <li class="mb-2" th:text="#{landing.steps.2}">Додайте...</li>
                 <li class="mb-2" th:text="#{landing.steps.3}">Встановіть ліміт...</li>
                 <li th:text="#{landing.steps.4}">Слідкуйте...</li>
             </ol>
-            <p th:text="#{landing.steps.outro}">Після цих кроків ви отримаєте повну картину своїх фінансів. Система автоматично почне рахувати баланс, а ви зможете переглядати детальну аналітику за кожен день або місяць.</p>
+            <p th:text="#{landing.steps.outro}">Записи формують історію, баланс і підсумки, які можна переглядати за потрібний період.</p>
         </div>
     </section>
 
@@ -425,7 +431,7 @@
             <h2 th:text="#{landing.faq.title}">Часті запитання</h2>
             <p class="sub"><span th:text="#{landing.faq.subtitle}">Не знайшли відповідь?</span> <a href="mailto:lazycent.com@gmail.com" th:text="#{landing.footer.contact}">Напишіть нам</a>.</p>
             <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 2rem;" th:utext="#{landing.faq.intro}">
-                Ми зібрали найпопулярніші запитання про Lazy Cent.
+                Відповіді про облік, спільні фінанси, експорт і керування акаунтом.
             </p>
             <div class="faq">
                 <details><summary th:text="#{landing.faq.q1}">...</summary><p th:text="#{landing.faq.a1}">...</p></details>
@@ -472,8 +478,8 @@
     <section class="final">
         <div class="wrap">
             <h2 th:text="#{landing.cta.title}">Готові взяти фінанси під контроль?</h2>
-            <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 1.5rem;" th:text="#{landing.cta.intro}">
-                Lazy Cent допоможе вам не лише фіксувати витрати, а й планувати майбутнє. Створіть акаунт зараз і переконайтеся, наскільки простішим може бути фінансовий облік.
+                <p class="text-start mx-auto" style="max-width: 800px; color: var(--muted); margin-bottom: 1.5rem;" th:text="#{landing.cta.intro}">
+                    Почніть із власного обліку або створіть спільний простір для сімейних фінансів.
             </p>
             <a class="nav-btn nav-btn-primary" th:href="@{/register}" th:text="#{landing.cta.button}">Створити акаунт</a>
         </div>
