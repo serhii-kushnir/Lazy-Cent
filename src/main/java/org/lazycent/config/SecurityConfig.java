@@ -35,6 +35,7 @@ public class SecurityConfig {
                                 "/lib/**", "/css/**", "/img/**", "/js/**", "/webjars/**",
                                 "/favicon.ico", "/logo.png",
                                 "/privacy", "/terms", "/about", "/contact", "/editorial-policy",
+                                "/family-expenses", "/budget-planning", "/income-tracker",
                                 "/error", "/error/**",
                                 "/forgot-password", "/reset-password",
                                 "/actuator/health", "/robots.txt", "/sitemap.xml", "/actuator/health/**",

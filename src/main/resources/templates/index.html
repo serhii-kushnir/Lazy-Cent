@@ -197,9 +197,10 @@
         .fx ul { margin: 0; padding-left: 1.2rem; color: var(--muted); }
         .fx li { margin-bottom: 6px; }
         .fx .shot { margin: 0; width: 100%; max-width: 780px; justify-self: center; }
-        .fx .shot a, .fx .shot picture { display: block; }
-        .fx .shot img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; object-position: top center; }
-        .fx .shot.portrait img { object-fit: contain; background: var(--bg); }
+        .fx .shot.portrait { max-width: 420px; }
+        .fx .shot picture { display: block; }
+        .fx .shot img { width: 100%; height: auto; object-fit: contain; }
+        .fx .shot.portrait img { background: var(--bg); }
         .nav-btn, .theme-toggle-btn, .lang-switch { height: 56px; }
         .nav-btn { padding: 0 30px; font-size: 1.1rem; border-radius: 10px; }
         .theme-toggle-btn { width: 56px; font-size: 1.25rem; }
@@ -292,8 +293,11 @@
         </a>
         <nav class="nav-links">
             <a href="#features" th:text="#{landing.nav.features}">Функції</a>
-            <a href="#screenshots" th:text="#{landing.nav.screenshots}">Скриншоти</a>
+            <a href="#family" th:text="#{landing.family.title}">Сімейний простір</a>
             <a href="#faq" th:text="#{landing.nav.faq}">Запитання</a>
+            <a th:href="@{/family-expenses(lang=${#locale.language})}" th:text="#{seo.nav.familyExpenses}">Облік сімейних витрат</a>
+            <a th:href="@{/budget-planning(lang=${#locale.language})}" th:text="#{seo.nav.budgetPlanning}">Планування бюджету</a>
+            <a th:href="@{/income-tracker(lang=${#locale.language})}" th:text="#{seo.nav.incomeTracker}">Облік доходів</a>
             <div class="d-flex align-items-center gap-2 ms-3">
                 <a class="nav-btn nav-btn-ghost" th:href="@{/login(lang=${#locale.language})}" th:text="#{nav.login}">Увійти</a>
                 <a class="nav-btn nav-btn-primary" th:href="@{/register(lang=${#locale.language})}" th:text="#{nav.register}">Реєстрація</a>
@@ -308,8 +312,11 @@
     </div>
     <div class="mobile-menu" id="mobileMenu">
         <a href="#features" th:text="#{landing.nav.features}">Функції</a>
-        <a href="#screenshots" th:text="#{landing.nav.screenshots}">Скриншоти</a>
+        <a href="#family" th:text="#{landing.family.title}">Сімейний простір</a>
         <a href="#faq" th:text="#{landing.nav.faq}">Запитання</a>
+        <a th:href="@{/family-expenses(lang=${#locale.language})}" th:text="#{seo.nav.familyExpenses}">Облік сімейних витрат</a>
+        <a th:href="@{/budget-planning(lang=${#locale.language})}" th:text="#{seo.nav.budgetPlanning}">Планування бюджету</a>
+        <a th:href="@{/income-tracker(lang=${#locale.language})}" th:text="#{seo.nav.incomeTracker}">Облік доходів</a>
         <hr style="width:100%; border-color: var(--line); margin: 8px 0;">
         <a class="nav-btn nav-btn-ghost" th:href="@{/login}" th:text="#{nav.login}">Увійти</a>
         <a class="nav-btn nav-btn-primary mt-2" th:href="@{/register}" th:text="#{nav.register}">Реєстрація</a>
@@ -361,7 +368,7 @@
                             <li th:text="#{landing.tour.home.b3}">Останні транзакції та топ категорій</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/home_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/home_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/home_${shot}.png|}" th:alt="#{landing.tour.home.title}" alt="Дашборд" width="1600" height="1217"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/home_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/home_${shot}.png|}" th:alt="#{landing.tour.home.title}" alt="Дашборд" width="1600" height="1217"></picture></figure>
                 </article>
                 <article class="fx" id="f-add">
                     <div class="fx-text">
@@ -373,7 +380,7 @@
                             <li th:text="#{landing.tour.add.b3}">Ctrl+Enter зберігає, Esc скасовує</li>
                         </ul>
                     </div>
-                    <figure class="shot portrait"><a th:href="@{|/img/lazycent/${shot}/tranzaction_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/tranzaction_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/tranzaction_${shot}.png|}" th:alt="#{landing.tour.add.title}" alt="Швидке додавання" width="724" height="1108" loading="lazy"></picture></a></figure>
+                    <figure class="shot portrait"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/tranzaction_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/tranzaction_${shot}.png|}" th:alt="#{landing.tour.add.title}" alt="Швидке додавання" width="724" height="1108" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="f-budget">
                     <div class="fx-text">
@@ -385,7 +392,7 @@
                             <li th:text="#{landing.tour.budget.b3}">Порівняння з минулим місяцем, експорт в Excel і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/budget_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/budget_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/budget_${shot}.png|}" th:alt="#{landing.tour.budget.title}" alt="Витрати й бюджет" width="1600" height="895" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/budget_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/budget_${shot}.png|}" th:alt="#{landing.tour.budget.title}" alt="Витрати й бюджет" width="1600" height="895" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="f-income">
                     <div class="fx-text">
@@ -397,7 +404,7 @@
                             <li th:text="#{landing.tour.income.b3}">Таблиця або картки, пошук, експорт</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/budget-income_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/budget-income_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/budget-income_${shot}.png|}" th:alt="#{landing.tour.income.title}" alt="План доходів" width="1600" height="853" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/budget-income_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/budget-income_${shot}.png|}" th:alt="#{landing.tour.income.title}" alt="План доходів" width="1600" height="853" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="f-day">
                     <div class="fx-text">
@@ -409,7 +416,7 @@
                             <li th:text="#{landing.tour.day.b3}">Редагування, дублювання, групові дії, експорт і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/day_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/day_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/day_${shot}.png|}" th:alt="#{landing.tour.day.title}" alt="Сторінка дня" width="1600" height="844" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/day_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/day_${shot}.png|}" th:alt="#{landing.tour.day.title}" alt="Сторінка дня" width="1600" height="844" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="f-alldays">
                     <div class="fx-text">
@@ -421,7 +428,7 @@
                             <li th:text="#{landing.tour.alldays.b3}">Таблиця чи картки, експорт і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/all-days_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/all-days_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/all-days_${shot}.png|}" th:alt="#{landing.tour.alldays.title}" alt="Усі дні" width="1600" height="1243" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/all-days_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/all-days_${shot}.png|}" th:alt="#{landing.tour.alldays.title}" alt="Усі дні" width="1600" height="1243" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="f-totals">
                     <div class="fx-text">
@@ -433,7 +440,7 @@
                             <li th:text="#{landing.tour.totals.b3}">Фільтри за типом і категорією, експорт, друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/totals_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/totals_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/totals_${shot}.png|}" th:alt="#{landing.tour.totals.title}" alt="Підсумки" width="1600" height="917" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/totals_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/totals_${shot}.png|}" th:alt="#{landing.tour.totals.title}" alt="Підсумки" width="1600" height="917" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="f-notes">
                     <div class="fx-text">
@@ -445,7 +452,7 @@
                             <li th:text="#{landing.tour.notes.b3}">Спільні нотатки для сім’ї</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/notes_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/notes_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/notes_${shot}.png|}" th:alt="#{landing.tour.notes.title}" alt="Нотатки" width="1600" height="1252" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/notes_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/notes_${shot}.png|}" th:alt="#{landing.tour.notes.title}" alt="Нотатки" width="1600" height="1252" loading="lazy"></picture></figure>
                 </article>
             </div>
             <h3 class="more-title" th:text="#{landing.tour.more}">Ще в застосунку</h3>
@@ -474,7 +481,7 @@
                             <li th:text="#{landing.tour.family.b3}">Ціль спільних доходів і окремий баланс сім’ї</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family_${shot}.png|}" th:alt="#{landing.tour.family.title}" alt="Сім’я" width="1424" height="1274" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family_${shot}.png|}" th:alt="#{landing.tour.family.title}" alt="Сім’я" width="1424" height="1274" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="fam-tx">
                     <div class="fx-text">
@@ -486,7 +493,7 @@
                             <li th:text="#{landing.family.tx.b3}">Фільтри за днями, учасниками й балансом; експорт і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared_${shot}.png|}" th:alt="#{landing.family.tx.title}" alt="Спільні транзакції" width="1707" height="1252" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared_${shot}.png|}" th:alt="#{landing.family.tx.title}" alt="Спільні транзакції" width="1707" height="1252" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="fam-day">
                     <div class="fx-text">
@@ -498,7 +505,7 @@
                             <li th:text="#{landing.family.day.b3}">Експорт і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.png|}" th:alt="#{landing.family.day.title}" alt="Спільний день" width="1710" height="927" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-day_${shot}.png|}" th:alt="#{landing.family.day.title}" alt="Спільний день" width="1710" height="927" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="fam-budget">
                     <div class="fx-text">
@@ -510,7 +517,7 @@
                             <li th:text="#{landing.family.budget.b3}">Експорт в Excel і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.png|}" th:alt="#{landing.family.budget.title}" alt="Спільний бюджет" width="1908" height="987" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-budget_${shot}.png|}" th:alt="#{landing.family.budget.title}" alt="Спільний бюджет" width="1908" height="987" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="fam-income">
                     <div class="fx-text">
@@ -522,7 +529,7 @@
                             <li th:text="#{landing.family.income.b3}">Таблиця або картки, експорт</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.png|}" th:alt="#{landing.family.income.title}" alt="Спільні доходи" width="1907" height="919" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-income_${shot}.png|}" th:alt="#{landing.family.income.title}" alt="Спільні доходи" width="1907" height="919" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="fam-totals">
                     <div class="fx-text">
@@ -534,7 +541,7 @@
                             <li th:text="#{landing.family.totals.b3}">Фільтри, експорт і друк</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.png|}" th:alt="#{landing.family.totals.title}" alt="Спільні підсумки" width="1902" height="913" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/family-shared-totals_${shot}.png|}" th:alt="#{landing.family.totals.title}" alt="Спільні підсумки" width="1902" height="913" loading="lazy"></picture></figure>
                 </article>
                 <article class="fx" id="fam-notes">
                     <div class="fx-text">
@@ -546,7 +553,28 @@
                             <li th:text="#{landing.family.notes.b3}">Пошук і швидкі клавіші</li>
                         </ul>
                     </div>
-                    <figure class="shot"><a th:href="@{|/img/lazycent/${shot}/family/notes-family_${shot}.png|}" target="_blank" rel="noopener"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/notes-family_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/notes-family_${shot}.png|}" th:alt="#{landing.family.notes.title}" alt="Спільні нотатки" width="1900" height="1165" loading="lazy"></picture></a></figure>
+                    <figure class="shot"><picture><source type="image/webp" th:srcset="@{|/img/lazycent/${shot}/family/notes-family_${shot}.webp|}"><img th:src="@{|/img/lazycent/${shot}/family/notes-family_${shot}.png|}" th:alt="#{landing.family.notes.title}" alt="Спільні нотатки" width="1900" height="1165" loading="lazy"></picture></figure>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="band">
+        <div class="wrap text-center">
+            <h2 th:text="#{seo.topics.title}">Окремі інструменти для ваших фінансових цілей</h2>
+            <p class="sub" th:text="#{seo.topics.intro}">Дізнайтеся, як працюють функції Lazy Cent.</p>
+            <div class="features">
+                <article class="feature">
+                    <h3><a th:href="@{/family-expenses(lang=${#locale.language})}" th:text="#{seo.topics.familyExpenses.title}">Облік сімейних витрат</a></h3>
+                    <p th:text="#{seo.topics.familyExpenses.text}">Спільні транзакції, підсумки та бюджет родини.</p>
+                </article>
+                <article class="feature">
+                    <h3><a th:href="@{/budget-planning(lang=${#locale.language})}" th:text="#{seo.topics.budgetPlanning.title}">Планування бюджету</a></h3>
+                    <p th:text="#{seo.topics.budgetPlanning.text}">Місячний бюджет, ліміти та прогноз.</p>
+                </article>
+                <article class="feature">
+                    <h3><a th:href="@{/income-tracker(lang=${#locale.language})}" th:text="#{seo.topics.incomeTracker.title}">Облік доходів</a></h3>
+                    <p th:text="#{seo.topics.incomeTracker.text}">Планування і відстеження доходів.</p>
                 </article>
             </div>
         </div>
@@ -693,8 +721,10 @@
                 <h3 th:text="#{landing.footer.product}">Продукт</h3>
                 <ul>
                     <li><a href="#features"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{landing.nav.features}">Функції</span></a></li>
-                    <li><a href="#screenshots"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{landing.nav.screenshots}">Скриншоти</span></a></li>
                     <li><a href="#faq"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{landing.nav.faq}">Запитання</span></a></li>
+                    <li><a th:href="@{/family-expenses(lang=${#locale.language})}" th:text="#{seo.nav.familyExpenses}">Облік сімейних витрат</a></li>
+                    <li><a th:href="@{/budget-planning(lang=${#locale.language})}" th:text="#{seo.nav.budgetPlanning}">Планування бюджету</a></li>
+                    <li><a th:href="@{/income-tracker(lang=${#locale.language})}" th:text="#{seo.nav.incomeTracker}">Облік доходів</a></li>
                     <li><a th:href="@{/register}"><i class="fas fa-chevron-right" aria-hidden="true"></i> <span th:text="#{nav.register}">Реєстрація</span></a></li>
                 </ul>
             </div>

@@ -15,6 +15,9 @@ public class SeoController {
                "Allow: /register\n" +
                "Allow: /privacy\n" +
                "Allow: /terms\n" +
+               "Allow: /family-expenses\n" +
+               "Allow: /budget-planning\n" +
+               "Allow: /income-tracker\n" +
                "Disallow: /home\n" +
                "Disallow: /budget\n" +
                "Disallow: /totals\n" +
@@ -35,6 +38,42 @@ public class SeoController {
                "    <lastmod>2026-10-22</lastmod>\n" +
                "    <changefreq>weekly</changefreq>\n" +
                "    <priority>1.0</priority>\n" +
+               "  </url>\n" +
+               "  <url>\n" +
+               "    <loc>https://lazycent.com/family-expenses</loc>\n" +
+               "    <lastmod>2026-11-27</lastmod>\n" +
+               "    <changefreq>monthly</changefreq>\n" +
+               "    <priority>0.8</priority>\n" +
+               "  </url>\n" +
+               "  <url>\n" +
+               "    <loc>https://lazycent.com/family-expenses?lang=en</loc>\n" +
+               "    <lastmod>2026-11-27</lastmod>\n" +
+               "    <changefreq>monthly</changefreq>\n" +
+               "    <priority>0.8</priority>\n" +
+               "  </url>\n" +
+               "  <url>\n" +
+               "    <loc>https://lazycent.com/budget-planning</loc>\n" +
+               "    <lastmod>2026-11-27</lastmod>\n" +
+               "    <changefreq>monthly</changefreq>\n" +
+               "    <priority>0.8</priority>\n" +
+               "  </url>\n" +
+               "  <url>\n" +
+               "    <loc>https://lazycent.com/budget-planning?lang=en</loc>\n" +
+               "    <lastmod>2026-11-27</lastmod>\n" +
+               "    <changefreq>monthly</changefreq>\n" +
+               "    <priority>0.8</priority>\n" +
+               "  </url>\n" +
+               "  <url>\n" +
+               "    <loc>https://lazycent.com/income-tracker</loc>\n" +
+               "    <lastmod>2026-11-27</lastmod>\n" +
+               "    <changefreq>monthly</changefreq>\n" +
+               "    <priority>0.8</priority>\n" +
+               "  </url>\n" +
+               "  <url>\n" +
+               "    <loc>https://lazycent.com/income-tracker?lang=en</loc>\n" +
+               "    <lastmod>2026-11-27</lastmod>\n" +
+               "    <changefreq>monthly</changefreq>\n" +
+               "    <priority>0.8</priority>\n" +
                "  </url>\n" +
                "  <url>\n" +
                "    <loc>https://lazycent.com/login</loc>\n" +

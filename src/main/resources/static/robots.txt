@@ -2,6 +2,9 @@ User-agent: *
 Allow: /
 Allow: /login
 Allow: /register
+Allow: /family-expenses
+Allow: /budget-planning
+Allow: /income-tracker
 
 Disallow: /home
 Disallow: /budget

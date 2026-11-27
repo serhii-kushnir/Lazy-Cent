@@ -56,4 +56,36 @@ class PageControllerTest {
         mockMvc.perform(get("/privacy").param("lang", "en"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void topicLandingPages_arePublicAndIndexable() throws Exception {
+        mockMvc.perform(get("/family-expenses").param("lang", "uk"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("seo-topic"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "Облік сімейних витрат без втрати особистого контролю")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "https://lazycent.com/family-expenses")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("index, follow")));
+
+        mockMvc.perform(get("/budget-planning").param("lang", "uk"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "Планування бюджету, яке показує не лише витрати, а й залишок")));
+
+        mockMvc.perform(get("/income-tracker").param("lang", "uk"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "Облік доходів і зрозумілий прогрес до місячної цілі")));
+    }
+
+    @Test
+    void topicLandingPages_areLocalized() throws Exception {
+        mockMvc.perform(get("/income-tracker").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "Track income and see progress toward a monthly goal")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "https://lazycent.com/income-tracker?lang=en")));
+    }
 }

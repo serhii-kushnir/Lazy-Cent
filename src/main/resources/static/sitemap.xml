@@ -7,6 +7,42 @@
         <priority>1.0</priority>
     </url>
     <url>
+        <loc>https://lazycent.com/family-expenses</loc>
+        <lastmod>2026-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://lazycent.com/family-expenses?lang=en</loc>
+        <lastmod>2026-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://lazycent.com/budget-planning</loc>
+        <lastmod>2026-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://lazycent.com/budget-planning?lang=en</loc>
+        <lastmod>2026-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://lazycent.com/income-tracker</loc>
+        <lastmod>2026-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://lazycent.com/income-tracker?lang=en</loc>
+        <lastmod>2026-11-27</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
         <loc>https://lazycent.com/login</loc>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>

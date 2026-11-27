@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${seoTitle}">Lazy Cent</title>
+    <meta name="description" th:content="${seoDescription}">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" th:href="${seoCanonicalUrl}">
+    <link rel="alternate" hreflang="uk" th:href="@{|https://lazycent.com/${seoSlug}|}">
+    <link rel="alternate" hreflang="en" th:href="@{|https://lazycent.com/${seoSlug}?lang=en|}">
+    <link rel="alternate" hreflang="x-default" th:href="@{|https://lazycent.com/${seoSlug}|}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Lazy Cent">
+    <meta property="og:title" th:content="${seoTitle}">
+    <meta property="og:description" th:content="${seoDescription}">
+    <meta property="og:url" th:content="${seoCanonicalUrl}">
+    <meta property="og:locale" th:content="${seoEnglish} ? 'en_US' : 'uk_UA'">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" th:content="${seoTitle}">
+    <meta name="twitter:description" th:content="${seoDescription}">
+    <link rel="icon" href="/logo.png">
+    <link rel="stylesheet" href="/lib/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/lib/fontawesome/css/all.min.css">
+    <script type="application/ld+json" th:inline="javascript">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": /*[[${seoTitle}]]*/ "Lazy Cent",
+            "description": /*[[${seoDescription}]]*/ "Personal finance tools",
+            "url": /*[[${seoCanonicalUrl}]]*/ "https://lazycent.com/",
+            "inLanguage": /*[[${#locale.language}]]*/ "uk",
+            "isPartOf": {
+                "@type": "WebSite",
+                "name": "Lazy Cent",
+                "url": "https://lazycent.com/"
+            }
+        }
+    </script>
+    <style>
+        :root { color-scheme: light; --bg: #f2f5f3; --surface: #fff; --ink: #13211c; --muted: #4d5f58; --line: #d3ddd8; --accent: #0d6efd; --coin: #e9a93b; }
+        [data-bs-theme="dark"] { color-scheme: dark; --bg: #14161a; --surface: #1d2027; --ink: #e6e6e6; --muted: #9aa3b2; --line: #2a2e37; --coin: #f0b94f; }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--bg); color: var(--ink); font: 400 1.05rem/1.7 system-ui, sans-serif; }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+        header { border-bottom: 1px solid var(--line); background: var(--surface); }
+        .bar { min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 1.15rem; font-weight: 800; }
+        .brand img { width: 34px; height: 34px; }
+        .nav { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .nav a { padding: 8px 12px; color: var(--ink); font-weight: 500; border-radius: 8px; transition: background .2s; }
+        .nav a:hover { background: var(--line); text-decoration: none; }
+        .nav .nav-btn { height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 18px; border: 2px solid var(--accent); border-radius: 8px; color: var(--accent); font-size: .95rem; font-weight: 700; white-space: nowrap; }
+        .nav .nav-btn:hover { background: rgba(13, 110, 253, .1); }
+        .hero { padding: clamp(52px, 9vw, 100px) 0 48px; }
+        .eyebrow { color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .82rem; }
+        h1 { max-width: 900px; margin: 8px 0 20px; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1.12; letter-spacing: -.035em; }
+        .lead { max-width: 820px; color: var(--muted); font-size: clamp(1.1rem, 2vw, 1.3rem); }
+        .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+        .button { display: inline-flex; justify-content: center; align-items: center; min-height: 46px; padding: 10px 18px; border: 2px solid var(--accent); border-radius: 9px; font-weight: 750; }
+        .button.primary { background: var(--accent); color: #fff; }
+        .button.secondary { color: var(--accent); }
+        .content { padding: 10px 0 72px; }
+        .content-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, .8fr); gap: 32px; align-items: start; }
+        .article h2, .faq h2 { margin: 38px 0 10px; font-size: clamp(1.4rem, 2.5vw, 1.9rem); line-height: 1.25; }
+        .article p, .faq p { color: var(--muted); margin: 0 0 18px; }
+        .steps, .aside, .faq-item { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+        .steps { padding: 22px 24px; margin-top: 30px; }
+        .steps h2 { margin: 0 0 12px; font-size: 1.3rem; }
+        .steps ol { margin: 0; padding-left: 1.4rem; }
+        .steps li { padding: 4px 0 4px 4px; }
+        .aside { padding: 22px; position: sticky; top: 92px; }
+        .aside h2 { margin: 0 0 12px; font-size: 1.25rem; }
+        .aside ul { margin: 0; padding-left: 1.2rem; }
+        .aside li { margin: 8px 0; }
+        .faq { margin-top: 48px; }
+        .faq h2 { margin-top: 0; }
+        .faq-item { padding: 20px 22px; margin-top: 12px; }
+        .faq-item h3 { margin: 0 0 6px; font-size: 1.05rem; }
+        .faq-item p { margin: 0; }
+        footer { padding: 24px 0; background: var(--surface); border-top: 1px solid var(--line); color: var(--muted); }
+        footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+        @media (max-width: 760px) {
+            .wrap { padding-inline: 18px; }
+            .bar { padding-block: 12px; align-items: flex-start; }
+            .nav { justify-content: flex-end; gap: 8px 12px; font-size: .9rem; }
+            .content-grid { grid-template-columns: 1fr; }
+            .aside { position: static; grid-row: 1; }
+        }
+        @media (max-width: 480px) {
+            .bar { flex-direction: column; gap: 8px; }
+            .nav { justify-content: flex-start; }
+            .cta .button { width: 100%; }
+        }
+    </style>
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('lazycent-theme');
+                if (savedTheme === 'dark' || savedTheme === 'light') {
+                    document.documentElement.setAttribute('data-bs-theme', savedTheme);
+                }
+            } catch (error) {}
+        })();
+    </script>
+</head>
+<body>
+<header>
+    <div class="wrap bar">
+        <a class="brand" th:href="@{/(lang=${#locale.language})}">
+            <img src="/logo.png" alt="" width="34" height="34">
+            <span>Lazy Cent</span>
+        </a>
+        <nav class="nav" th:aria-label="#{seo.nav.label}">
+            <a th:href="@{/(lang=${#locale.language})}" th:text="#{seo.nav.home}">Головна</a>
+            <a th:href="@{/family-expenses(lang=${#locale.language})}" th:text="#{seo.nav.familyExpenses}">Сімейні витрати</a>
+            <a th:href="@{/budget-planning(lang=${#locale.language})}" th:text="#{seo.nav.budgetPlanning}">Планування бюджету</a>
+            <a th:href="@{/income-tracker(lang=${#locale.language})}" th:text="#{seo.nav.incomeTracker}">Облік доходів</a>
+            <a class="nav-btn" th:href="@{/login(lang=${#locale.language})}" th:text="#{nav.login}">Увійти</a>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap">
+    <section class="hero">
+        <div class="eyebrow">Lazy Cent</div>
+        <h1 th:text="${seoHeading}">Облік фінансів</h1>
+        <p class="lead" th:text="${seoIntro}">Корисний опис можливостей Lazy Cent.</p>
+        <div class="cta">
+            <a class="button primary" th:href="@{/register(lang=${#locale.language})}">
+                <i class="fas fa-user-plus me-2" aria-hidden="true"></i><span th:text="#{seo.cta.register}">Створити акаунт</span>
+            </a>
+            <a class="button secondary" th:href="@{/(lang=${#locale.language})}" th:text="#{seo.cta.explore}">Дізнатися про Lazy Cent</a>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="content-grid">
+            <article class="article">
+                <section th:each="section : ${seoSections}">
+                    <h2 th:text="${section.title}">Розділ</h2>
+                    <p th:text="${section.body}">Опис функції.</p>
+                </section>
+                <section class="steps">
+                    <h2 th:text="${seoStepsHeading}">Як почати</h2>
+                    <ol>
+                        <li th:each="step : ${seoSteps}" th:text="${step}">Крок</li>
+                    </ol>
+                </section>
+            </article>
+            <aside class="aside">
+                <h2 th:text="#{seo.related.title}">Інші можливості Lazy Cent</h2>
+                <ul>
+                    <li><a th:href="@{/family-expenses(lang=${#locale.language})}" th:text="#{seo.nav.familyExpenses}">Сімейні витрати</a></li>
+                    <li><a th:href="@{/budget-planning(lang=${#locale.language})}" th:text="#{seo.nav.budgetPlanning}">Планування бюджету</a></li>
+                    <li><a th:href="@{/income-tracker(lang=${#locale.language})}" th:text="#{seo.nav.incomeTracker}">Облік доходів</a></li>
+                </ul>
+            </aside>
+        </div>
+
+        <section class="faq">
+            <h2 th:text="${seoFaqHeading}">Поширені запитання</h2>
+            <div class="faq-item" th:each="faq : ${seoFaqs}">
+                <h3 th:text="${faq.question}">Запитання</h3>
+                <p th:text="${faq.answer}">Відповідь</p>
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <div class="wrap">
+        <span>© <span th:text="${T(java.time.Year).now()}">2026</span> Lazy Cent</span>
+        <a th:href="@{/privacy(lang=${#locale.language})}" th:text="#{footer.privacy}">Конфіденційність</a>
+    </div>
+</footer>
+</body>
+</html>
