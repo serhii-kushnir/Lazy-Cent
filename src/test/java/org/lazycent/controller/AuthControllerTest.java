@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -37,6 +38,25 @@ class AuthControllerTest {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("index"));
+    }
+
+    @Test
+    void guestPages_redirectAuthenticatedUsersToHome() throws Exception {
+        mockMvc.perform(get("/login").with(user("signed-in")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
+
+        mockMvc.perform(get("/register").with(user("signed-in")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
+
+        mockMvc.perform(get("/").with(user("signed-in")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
+
+        mockMvc.perform(get("/family-expenses").with(user("signed-in")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
     }
 
     @Test

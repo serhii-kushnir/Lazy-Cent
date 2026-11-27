@@ -41,6 +41,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(localeChangeInterceptor());
+        registry.addInterceptor(new AuthenticatedUserRedirectInterceptor())
+                .addPathPatterns(
+                        "/", "/login", "/register",
+                        "/privacy", "/terms", "/about", "/contact", "/editorial-policy",
+                        "/family-expenses", "/budget-planning", "/income-tracker",
+                        "/forgot-password", "/reset-password");
     }
 
     @Override

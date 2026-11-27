@@ -105,10 +105,10 @@ class HomeControllerTest {
     }
 
     @Test
-    void index_showsLanding_forAuthenticated() throws Exception {
+    void index_redirectsToHome_forAuthenticated() throws Exception {
         mockMvc.perform(get("/").with(user(testUser)))
-                .andExpect(status().isOk())
-                .andExpect(view().name("index"));
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/home"));
     }
 
     // ==================== "/home" ====================
