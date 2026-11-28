@@ -4,8 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
@@ -60,8 +62,18 @@ class WebConfigTest {
     @Test
     void addInterceptors_registersLocaleChangeInterceptor() {
         InterceptorRegistry registry = mock(InterceptorRegistry.class);
+        InterceptorRegistration registration = mock(InterceptorRegistration.class);
+        when(registry.addInterceptor(any(HandlerInterceptor.class))).thenReturn(registration);
+        when(registration.addPathPatterns(any(String[].class))).thenReturn(registration);
+
         config.addInterceptors(registry);
+
         verify(registry).addInterceptor(any(LocaleChangeInterceptor.class));
+        verify(registration).addPathPatterns(
+                "/", "/login", "/register",
+                "/privacy", "/terms", "/about", "/contact", "/editorial-policy",
+                "/family-expenses", "/budget-planning", "/income-tracker",
+                "/forgot-password", "/reset-password");
     }
 
     @Test
